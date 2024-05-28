@@ -2,7 +2,7 @@ use std::process::ExitStatus;
 use std::sync::Arc;
 
 use futures_channel::oneshot;
-use gdk::glib;
+use gio::glib;
 use glycin_utils::{DimensionTooLargerError, RemoteError};
 use libseccomp::error::SeccompError;
 

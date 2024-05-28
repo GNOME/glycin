@@ -68,17 +68,14 @@ async fn run() -> Result<(), glycin::Error> {
 
     for _ in 0..n_frames {
         let frame = image.next_frame().await.unwrap();
+        let texture = frame.texture().unwrap();
         println!("[[frame]]");
-        println!(
-            "dimensions = {} x {}",
-            frame.texture.width(),
-            frame.texture.height()
-        );
-        println!("format = {:?}", frame.texture.format());
+        println!("dimensions = {} x {}", frame.width(), frame.height());
+        println!("format = {:?}", texture.format());
         println!(
             "delay = {}",
             frame
-                .delay
+                .delay()
                 .map(|x| format!("{:#?}", x))
                 .unwrap_or("-".into())
         );
@@ -86,7 +83,7 @@ async fn run() -> Result<(), glycin::Error> {
         println!(
             "iccp = {}",
             frame
-                .details
+                .details()
                 .iccp
                 .as_ref()
                 .map_or(String::from("empty"), |x| glib::format_size(
@@ -97,7 +94,7 @@ async fn run() -> Result<(), glycin::Error> {
         println!(
             "bit_depth = {}",
             frame
-                .details
+                .details()
                 .bit_depth
                 .map(|x| format!("{} bit", x))
                 .unwrap_or("-".into())
@@ -105,7 +102,7 @@ async fn run() -> Result<(), glycin::Error> {
         println!(
             "alpha_channel = {}",
             frame
-                .details
+                .details()
                 .alpha_channel
                 .map(|x| x.to_string())
                 .unwrap_or("-".into())
@@ -113,7 +110,7 @@ async fn run() -> Result<(), glycin::Error> {
         println!(
             "grayscale = {}",
             frame
-                .details
+                .details()
                 .grayscale
                 .map(|x| x.to_string())
                 .unwrap_or("-".into())

@@ -38,7 +38,7 @@ impl Handler {
     pub fn info(&self, decoder: &mut impl image::ImageDecoder) -> ImageInfo {
         let (width, height) = decoder.dimensions();
         let mut info = ImageInfo::new(width, height);
-        info.details.format_name = self.format_name.clone();
+        info.details.format_name.clone_from(&self.format_name);
 
         info
     }

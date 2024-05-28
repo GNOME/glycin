@@ -1208,7 +1208,7 @@ checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
 
 [[package]]
 name = "glycin"
-version = "1.0.2"
+version = "2.0.0-alpha"
 dependencies = [
  "async-fs",
  "async-global-executor",
@@ -1235,7 +1235,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-heif"
-version = "1.0.2"
+version = "2.0.0-alpha"
 dependencies = [
  "glycin-utils",
  "libheif-rs",
@@ -1244,7 +1244,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-image-rs"
-version = "1.0.2"
+version = "2.0.0-alpha"
 dependencies = [
  "glycin-utils",
  "image 0.25.1",
@@ -1253,7 +1253,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-jxl"
-version = "1.0.2"
+version = "2.0.0-alpha"
 dependencies = [
  "glycin-utils",
  "jpegxl-rs",
@@ -1263,7 +1263,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-svg"
-version = "1.0.2"
+version = "2.0.0-alpha"
 dependencies = [
  "cairo-rs",
  "gio",
@@ -1273,7 +1273,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-utils"
-version = "1.0.2"
+version = "2.0.0-alpha"
 dependencies = [
  "futures-lite",
  "gufo-common",
@@ -1570,7 +1570,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin"
-version = "1.0.2"
+version = "2.0.0-alpha"
 dependencies = [
  "async-io",
  "futures-task",
@@ -2831,7 +2831,7 @@ dependencies = [
 
 [[package]]
 name = "tests"
-version = "1.0.2"
+version = "2.0.0-alpha"
 dependencies = [
  "async-global-executor",
  "gdk4",
@@ -2951,7 +2951,7 @@ dependencies = [
 
 [[package]]
 name = "tools"
-version = "1.0.2"
+version = "2.0.0-alpha"
 dependencies = [
  "gdk4",
  "gio",

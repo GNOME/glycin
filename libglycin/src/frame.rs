@@ -16,11 +16,11 @@ pub extern "C" fn gly_frame_get_type() -> GType {
 #[no_mangle]
 pub unsafe extern "C" fn gly_frame_get_texture(frame: *mut GlyFrame) -> *mut GdkTexture {
     let frame = gobject::GlyFrame::from_glib_ptr_borrow(&(frame as *const _));
-    frame.texture().into_glib_ptr()
+    frame.frame().texture().unwrap().into_glib_ptr()
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn gly_frame_get_delay(frame: *mut GlyFrame) -> i64 {
     let frame = gobject::GlyFrame::from_glib_ptr_borrow(&(frame as *const _));
-    frame.frame().delay.unwrap_or_default().as_micros() as i64
+    frame.frame().delay().unwrap_or_default().as_micros() as i64
 }

@@ -36,10 +36,6 @@ impl GlyFrame {
         obj
     }
 
-    pub fn texture(&self) -> gdk::Texture {
-        self.frame().texture.clone()
-    }
-
     pub fn frame(&self) -> &Frame {
         self.imp().frame.get().unwrap()
     }

@@ -12,8 +12,10 @@ edition.workspace = true
 rust-version.workspace = true
 
 [features]
+default = ["gdk4"]
 tokio = ["dep:tokio", "zbus/tokio"]
 gobject = ["dep:static_assertions"]
+gdk4 = ["dep:gdk"]
 
 [dependencies]
 async-fs.workspace = true
@@ -21,7 +23,7 @@ async-global-executor.workspace = true
 async-lock.workspace = true
 futures-channel.workspace = true
 futures-util.workspace = true
-gdk.workspace = true
+gdk = { workspace = true, optional = true }
 gio.workspace = true
 glycin-utils = { workspace = true }
 gufo-common = { git = "https://github.com/gufo-rs/gufo.git", version = "0.1.0" }

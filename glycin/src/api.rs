@@ -2,12 +2,13 @@ use std::path::Path;
 use std::sync::OnceLock;
 
 use async_global_executor::spawn_blocking;
-use gdk::gio;
-#[cfg(feature = "gobject")]
 use gio::glib;
 use gio::prelude::*;
+#[cfg(feature = "gdk4")]
+use glycin_utils::save_math::*;
 pub use glycin_utils::FrameDetails;
 use glycin_utils::ImageInfo;
+use glycin_utils::MemoryFormat;
 
 pub use crate::config::MimeType;
 use crate::dbus::*;
@@ -257,12 +258,66 @@ impl Drop for Loader {
 /// A frame of an image often being the complete image
 #[derive(Debug, Clone)]
 pub struct Frame {
-    pub texture: gdk::Texture,
+    pub(crate) buffer: glib::Bytes,
+    pub(crate) width: u32,
+    pub(crate) height: u32,
+    /// Line stride
+    pub(crate) stride: u32,
+    pub(crate) memory_format: MemoryFormat,
+    pub(crate) delay: Option<std::time::Duration>,
+    pub(crate) details: FrameDetails,
+}
+
+impl Frame {
+    pub fn buf_bytes(&self) -> glib::Bytes {
+        self.buffer.clone()
+    }
+
+    pub fn buf_slice(&self) -> &[u8] {
+        self.buffer.as_ref()
+    }
+
+    /// Width in pixels
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    /// Height in pixels
+    pub fn height(&self) -> u32 {
+        self.height
+    }
+
+    /// Line stride in bytes
+    pub fn stride(&self) -> u32 {
+        self.stride
+    }
+
+    pub fn memory_format(&self) -> MemoryFormat {
+        self.memory_format
+    }
+
     /// Duration to show frame for animations.
     ///
     /// If the value is not set, the image is not animated.
-    pub delay: Option<std::time::Duration>,
-    pub details: FrameDetails,
+    pub fn delay(&self) -> Option<std::time::Duration> {
+        self.delay
+    }
+
+    pub fn details(&self) -> &FrameDetails {
+        &self.details
+    }
+
+    #[cfg(feature = "gdk4")]
+    pub fn texture(&self) -> Result<gdk::Texture> {
+        Ok(gdk::MemoryTexture::new(
+            self.width().try_i32()?,
+            self.height().try_i32()?,
+            crate::util::gdk_memory_format(self.memory_format()),
+            &self.buffer,
+            self.stride().try_usize()?,
+        )
+        .upcast())
+    }
 }
 
 #[derive(Default, Debug)]
