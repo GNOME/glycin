@@ -1,4 +1,4 @@
-use glycin_utils::MemoryFormat;
+use glycin_utils::memory_format::MemoryFormat;
 
 use crate::Result;
 

@@ -13,8 +13,8 @@ use futures_util::{future, FutureExt};
 use gdk::prelude::*;
 use gio::glib;
 use glycin_utils::{
-    DimensionTooLargerError, Frame, FrameRequest, ImageInfo, InitRequest, InitializationDetails,
-    MemoryFormat, RemoteError, SafeConversion, SafeMath,
+    memory_format::MemoryFormat, DimensionTooLargerError, Frame, FrameRequest, ImageInfo,
+    InitRequest, InitializationDetails, RemoteError, SafeConversion, SafeMath,
 };
 use nix::sys::signal;
 use zbus::zvariant;

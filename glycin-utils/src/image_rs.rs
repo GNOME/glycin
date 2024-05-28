@@ -1,4 +1,5 @@
-use super::{Frame, ImageInfo, MemoryFormat, SharedMemory};
+use super::{Frame, ImageInfo, SharedMemory};
+use crate::memory_format::MemoryFormat;
 use crate::{BinaryData, FrameDetails, GenericContexts, LoaderError};
 
 #[derive(Default, Clone, Debug)]
