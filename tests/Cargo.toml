@@ -8,7 +8,7 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dev-dependencies]
-glycin.workspace = true
+glycin = { workspace = true, features = ["gdk4"] }
 glycin-utils = { workspace = true, features = ["loader-utils"] }
 gio.workspace = true
 async-global-executor.workspace = true

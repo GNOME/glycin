@@ -12,4 +12,4 @@ rust-version.workspace = true
 [dependencies]
 gdk.workspace = true
 gio.workspace = true
-glycin.workspace = true
+glycin = { workspace = true, features = ["gdk4"] }

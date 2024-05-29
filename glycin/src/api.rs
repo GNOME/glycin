@@ -8,7 +8,7 @@ use gio::prelude::*;
 use glycin_utils::save_math::*;
 pub use glycin_utils::FrameDetails;
 use glycin_utils::ImageInfo;
-use glycin_utils::MemoryFormat;
+pub use glycin_utils::MemoryFormat;
 
 pub use crate::config::MimeType;
 use crate::dbus::*;

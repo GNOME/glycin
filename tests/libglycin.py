@@ -6,7 +6,9 @@ import os.path
 import sys
 
 gi.require_version("Gly", "1")
-from gi.repository import Gly, Gio, GLib
+gi.require_version("GlyGtk", "1")
+
+from gi.repository import Gly, GlyGtk, Gio, GLib
 
 def main():
     GLib.timeout_add_seconds(interval = 2, function = cb_exit)
@@ -23,13 +25,28 @@ def main():
 
     image = loader.load()
     frame = image.next_frame()
-    texture = frame.get_texture()
 
+    width = frame.get_width()
+    height = frame.get_height()
+    stride = frame.get_stride()
+    first_byte = frame.get_buf_bytes().get_data()[0]
     mime_type = image.get_mime_type()
-    width = texture.get_width()
+    memory_format = frame.get_memory_format()
 
+    texture = GlyGtk.frame_get_texture(frame)
+    texture_width = texture.get_width()
+
+    assert width == 600, f"Wrong width: {width} px"
+    assert height == 400, f"Wrong height: {height} px"
+    assert stride == 600 * 3, f"Wrong stride: {stride} px"
+    assert first_byte > 50 and first_byte < 70, f"Wrong frist byte: {first_byte}"
     assert mime_type == "image/jpeg", f"Wrong mime type {mime_type}"
-    assert width == 600, f"Wrong size: {width} px"
+    assert memory_format == Gly.MemoryFormat.R8G8B8, f"Wrong memory format: {memory_format}"
+
+    assert not Gly.MemoryFormat.has_alpha(memory_format)
+    assert not Gly.MemoryFormat.is_premultiplied(memory_format)
+
+    assert texture_width == 600, f"Wrong texture width: {texture_width} px"
 
     # Async tests
 

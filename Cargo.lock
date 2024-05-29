@@ -1276,12 +1276,14 @@ name = "glycin-utils"
 version = "2.0.0-alpha"
 dependencies = [
  "futures-lite",
+ "glib",
  "gufo-common",
  "image 0.25.1",
  "libc",
  "libseccomp",
  "memmap2",
  "nix 0.27.1",
+ "paste",
  "rmp-serde",
  "serde",
  "thiserror",
@@ -1570,12 +1572,21 @@ dependencies = [
 
 [[package]]
 name = "libglycin"
-version = "2.0.0-alpha"
+version = "1.0.0"
 dependencies = [
  "async-io",
  "futures-task",
+ "gio",
+ "glycin",
+]
+
+[[package]]
+name = "libglycin-gtk4"
+version = "1.0.0"
+dependencies = [
  "gdk4",
  "glycin",
+ "system-deps",
 ]
 
 [[package]]

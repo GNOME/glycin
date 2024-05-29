@@ -1,32 +1,37 @@
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::Type;
 
-#[derive(Deserialize, Serialize, Type, Debug, Clone, Copy)]
-pub enum MemoryFormat {
-    B8g8r8a8Premultiplied,
-    A8r8g8b8Premultiplied,
-    R8g8b8a8Premultiplied,
-    B8g8r8a8,
-    A8r8g8b8,
-    R8g8b8a8,
-    A8b8g8r8,
-    R8g8b8,
-    B8g8r8,
-    R16g16b16,
-    R16g16b16a16Premultiplied,
-    R16g16b16a16,
-    R16g16b16Float,
-    R16g16b16a16Float,
-    R32g32b32Float,
-    R32g32b32a32FloatPremultiplied,
-    R32g32b32a32Float,
-    G8a8Premultiplied,
-    G8a8,
-    G8,
-    G16a16Premultiplied,
-    G16a16,
-    G16,
-}
+gufo_common::maybe_convertible_enum!(
+    #[repr(i32)]
+    #[derive(Deserialize, Serialize, Type, Debug, Clone, Copy)]
+    #[cfg_attr(feature = "gobject", derive(glib::Enum))]
+    #[cfg_attr(feature = "gobject", enum_type(name = "GlyMemoryFormat"))]
+    pub enum MemoryFormat {
+        B8g8r8a8Premultiplied = 0,
+        A8r8g8b8Premultiplied = 1,
+        R8g8b8a8Premultiplied = 2,
+        B8g8r8a8 = 3,
+        A8r8g8b8 = 4,
+        R8g8b8a8 = 5,
+        A8b8g8r8 = 6,
+        R8g8b8 = 7,
+        B8g8r8 = 8,
+        R16g16b16 = 9,
+        R16g16b16a16Premultiplied = 10,
+        R16g16b16a16 = 11,
+        R16g16b16Float = 12,
+        R16g16b16a16Float = 13,
+        R32g32b32Float = 14,
+        R32g32b32a32FloatPremultiplied = 15,
+        R32g32b32a32Float = 16,
+        G8a8Premultiplied = 17,
+        G8a8 = 18,
+        G8 = 19,
+        G16a16Premultiplied = 20,
+        G16a16 = 21,
+        G16 = 22,
+    }
+);
 
 impl MemoryFormat {
     pub const fn n_bytes(self) -> MemoryFormatBytes {

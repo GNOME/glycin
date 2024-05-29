@@ -3,7 +3,7 @@ project(
   'rust',
   'c',
   version: '1.0.1',
-  meson_version: '>=0.60',
+  meson_version: '>=1.2',
 )
 
 lcms2_req = '>= 2.14'
@@ -29,11 +29,7 @@ else
   cargo_profile = 'dev'
 endif
 
-introspection = (
-  get_option('introspection')
-  or get_option('vapi')
-  or get_option('capi_docs')
-)
+introspection = (get_option('introspection') or get_option('vapi') or get_option('capi_docs'))
 
 if get_option('introspection') != introspection
   summary('introspection', introspection, section: 'Overwritten options')

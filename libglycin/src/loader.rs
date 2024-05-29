@@ -1,7 +1,7 @@
 use std::ptr;
 
-use gdk::{gio, glib};
 use gio::ffi::{GAsyncReadyCallback, GAsyncResult, GTask};
+use gio::glib;
 use gio::prelude::*;
 use glib::ffi::{gpointer, GError, GType};
 use glib::subclass::prelude::*;

@@ -1,5 +1,5 @@
 [package]
-name = "libglycin"
+name = "libglycin-gtk4"
 version = "1.0.0"
 authors.workspace = true
 description.workspace = true
@@ -10,11 +10,18 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-async-io.workspace = true
-futures-task.workspace = true
-gio.workspace = true
-glycin = { workspace = true, features = ["gobject"] }
+gdk.workspace = true
+glycin = { workspace = true, features = ["gobject", "gdk4"] }
+
+[build-dependencies]
+system-deps = "6.0"
+
+[package.metadata.system-deps]
+glycin-1 = "1.0"
+
+[lints]
+workspace = true
 
 [lib]
-name = "glycin"
+name = "glycin_gtk4"
 crate-type = ["cdylib"]

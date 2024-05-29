@@ -24,6 +24,8 @@ endif
 
 glycin_datadir = datadir / meson.project_name() / compat_version
 
+meson.add_devenv({'XDG_DATA_HOME': datadir})
+
 meson.add_dist_script('../build-aux/dist-vendor.sh', meson.project_version())
 
 i18n = import('i18n')
@@ -155,8 +157,8 @@ if get_option('tests')
       'test',
       '-p', 'tests',
       test_args,
-      '--target-dir', # Not using a separate target dir causes rebuilds for the loaders
-      cargo_target_dir / 'tests',
+      # Not using a separate target dir causes rebuilds for the loaders
+      '--target-dir', cargo_target_dir / 'tests',
       cargo_options,
       '--',
       '--test-threads=1',

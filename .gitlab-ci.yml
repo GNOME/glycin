@@ -20,8 +20,8 @@ variables:
     - cd ../..
 
     - echo "deb https://deb.debian.org/debian/ testing main" >> /etc/apt/sources.list
-    - apt update
-    - apt install -y libheif-dev libgtk-4-dev libcairo2-dev
+    - apt-get update
+    - apt-get install -y libheif-dev libgtk-4-dev libcairo2-dev meson
 
     # Update fontcache for SVGs
     - fc-cache

@@ -12,4 +12,5 @@ baseURLs = [
     ['Gsk', 'https://docs.gtk.org/gsk4/'],
     ['Gtk', 'https://docs.gtk.org/gtk4/'],
     ['Pango', 'https://docs.gtk.org/Pango/'],
+    ['Gly', 'https://sophie-h.pages.gitlab.gnome.org/glycin/libglycin/'],
 ]

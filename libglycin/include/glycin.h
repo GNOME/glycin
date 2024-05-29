@@ -12,6 +12,8 @@ G_BEGIN_DECLS
  * [class@Loader] prepares loading an image.
  *
  * ```c
+ * #include <glycin-gtk4.h>
+ *
  * file = g_file_new_for_path ("test.png");
  * loader = gly_loader_new (file);
  * image = gly_loader_load (loader, NULL);
@@ -19,7 +21,7 @@ G_BEGIN_DECLS
  * {
  *   frame = gly_image_next_frame (image, NULL);
  *   if (frame) {
- *     texture = gly_frame_get_texture (frame);
+ *     texture = gly_gtk_frame_get_texture (frame);
  *     printf ("Image height: %d\n", gdk_texture_get_height (texture));
  *     image = gtk_image_new_from_paintable (GDK_PAINTABLE (texture));
  *   }
@@ -242,16 +244,83 @@ uint32_t gly_image_get_height(GlyImage *image);
 /**************** GlyFrame ****************/
 
 /**
- * gly_frame_get_texture:
- * @frame:
+ * GlyMemoryFormat:
+ * @GLY_MEMORY_B8G8R8A8_PREMULTIPLIED:
+ * @GLY_MEMORY_A8R8G8B8_PREMULTIPLIED:
+ * @GLY_MEMORY_R8G8B8A8_PREMULTIPLIED:
+ * @GLY_MEMORY_B8G8R8A8:
+ * @GLY_MEMORY_A8R8G8B8:
+ * @GLY_MEMORY_R8G8B8A8:
+ * @GLY_MEMORY_A8B8G8R8:
+ * @GLY_MEMORY_R8G8B8:
+ * @GLY_MEMORY_B8G8R8:
+ * @GLY_MEMORY_R16G16B16:
+ * @GLY_MEMORY_R16G16B16A16_PREMULTIPLIED:
+ * @GLY_MEMORY_R16G16B16A16:
+ * @GLY_MEMORY_R16G16B16_FLOAT:
+ * @GLY_MEMORY_R16G16B16A16_FLOAT:
+ * @GLY_MEMORY_R32G32B32_FLOAT:
+ * @GLY_MEMORY_R32G32B32A32_FLOAT_PREMULTIPLIED:
+ * @GLY_MEMORY_R32G32B32A32_FLOAT:
+ * @GLY_MEMORY_G8A8_PREMULTIPLIED:
+ * @GLY_MEMORY_G8A8:
+ * @GLY_MEMORY_G8:
+ * @GLY_MEMORY_G16A16_PREMULTIPLIED:
+ * @GLY_MEMORY_G16A16:
+ * @GLY_MEMORY_G16:
  *
- * Gets the actual image from a frame.
- *
- * Returns: (transfer full):
+ * Memory format
  *
  * Since: 1.0
  */
-GdkTexture *gly_frame_get_texture(GlyFrame *frame);
+typedef enum
+{
+    GLY_MEMORY_B8G8R8A8_PREMULTIPLIED,
+    GLY_MEMORY_A8R8G8B8_PREMULTIPLIED,
+    GLY_MEMORY_R8G8B8A8_PREMULTIPLIED,
+    GLY_MEMORY_B8G8R8A8,
+    GLY_MEMORY_A8R8G8B8,
+    GLY_MEMORY_R8G8B8A8,
+    GLY_MEMORY_A8B8G8R8,
+    GLY_MEMORY_R8G8B8,
+    GLY_MEMORY_B8G8R8,
+    GLY_MEMORY_R16G16B16,
+    GLY_MEMORY_R16G16B16A16_PREMULTIPLIED,
+    GLY_MEMORY_R16G16B16A16,
+    GLY_MEMORY_R16G16B16_FLOAT,
+    GLY_MEMORY_R16G16B16A16_FLOAT,
+    GLY_MEMORY_R32G32B32_FLOAT,
+    GLY_MEMORY_R32G32B32A32_FLOAT_PREMULTIPLIED,
+    GLY_MEMORY_R32G32B32A32_FLOAT,
+    GLY_MEMORY_G8A8_PREMULTIPLIED,
+    GLY_MEMORY_G8A8,
+    GLY_MEMORY_G8,
+    GLY_MEMORY_G16A16_PREMULTIPLIED,
+    GLY_MEMORY_G16A16,
+    GLY_MEMORY_G16,
+} GlyMemoryFormat;
+
+GType gly_memory_format_get_type(void);
+
+/**
+ * gly_memory_format_has_alpha:
+ * @memory_format:
+ *
+ * Returns:
+ *
+ * Since: 1.0
+ */
+gboolean gly_memory_format_has_alpha(GlyMemoryFormat memory_format);
+
+/**
+ * gly_memory_format_is_premultiplied:
+ * @memory_format:
+ *
+ * Returns:
+ *
+ * Since: 1.0
+ */
+gboolean gly_memory_format_is_premultiplied(GlyMemoryFormat memory_format);
 
 /**
  * gly_frame_get_delay:
@@ -266,6 +335,56 @@ GdkTexture *gly_frame_get_texture(GlyFrame *frame);
  * Since: 1.0
  */
 int64_t gly_frame_get_delay(GlyFrame *frame);
+
+/**
+ * gly_frame_get_width:
+ * @frame:
+ *
+ * Returns:
+ *
+ * Since: 1.0
+ */
+uint32_t gly_frame_get_width(GlyFrame *frame);
+
+/**
+ * gly_frame_get_height:
+ * @frame:
+ *
+ * Returns:
+ *
+ * Since: 1.0
+ */
+uint32_t gly_frame_get_height(GlyFrame *frame);
+
+/**
+ * gly_frame_get_stride:
+ * @frame:
+ *
+ * Returns:
+ *
+ * Since: 1.0
+ */
+uint32_t gly_frame_get_stride(GlyFrame *frame);
+
+/**
+ * gly_frame_get_buf_bytes:
+ * @frame:
+ *
+ * Returns:
+ *
+ * Since: 1.0
+ */
+GBytes *gly_frame_get_buf_bytes(GlyFrame *frame);
+
+/**
+ * gly_frame_get_memory_format:
+ * @frame:
+ *
+ * Returns:
+ *
+ * Since: 1.0
+ */
+GlyMemoryFormat gly_frame_get_memory_format(GlyFrame *frame);
 
 /**************** GlyLoaderError ****************/
 

@@ -17,7 +17,15 @@ opt-level = 3
 
 [workspace]
 resolver = "2"
-members = ["glycin", "glycin-utils", "libglycin", "loaders/*", "tests", "tools"]
+members = [
+    "glycin",
+    "glycin-utils",
+    "libglycin",
+    "libglycin/libglycin-gtk4",
+    "loaders/*",
+    "tests",
+    "tools",
+]
 default-members = ["glycin", "glycin-utils"]
 
 [workspace.lints.clippy]
@@ -36,7 +44,8 @@ futures-task = "0.3.30"
 futures-util = "0.3.30"
 gdk = { package = "gdk4", version = "0.8.0", features = ["v4_12"] }
 gio = "0.19.0"
-glycin = { path = "glycin/" }
+glib = "0.19.0"
+glycin = { path = "glycin/", default-features = false }
 glycin-utils = { version = "2.0.0-alpha", path = "glycin-utils/" }
 gufo-common = { version = "0.1.0", git = "https://github.com/gufo-rs/gufo.git", features = [
     "serde",
@@ -50,6 +59,7 @@ libseccomp = "0.3.0"
 memfd = "0.6.3"
 memmap = { package = "memmap2", version = "0.9.0" }
 nix = { version = "0.27.0", features = ["fs", "resource", "signal"] }
+paste = "1.0.0"
 rmp-serde = "1.3.0"
 safe-transmute = "0.11.2"
 serde = { version = "1.0.162", features = ["derive"] }
