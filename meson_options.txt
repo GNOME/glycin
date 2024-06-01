@@ -22,6 +22,7 @@ option(
     'glycin-heif',
     'glycin-image-rs',
     'glycin-jxl',
+    'glycin-raw',
     'glycin-svg',
   ],
   value: [
