@@ -11,6 +11,6 @@ rust-version.workspace = true
 
 [dependencies]
 cairo-rs = "0.19"
-gio.workspace = true
+gio = "0.19"
 glycin-utils = { workspace = true, features = ["loader-utils"] }
 librsvg = "2.58.0"

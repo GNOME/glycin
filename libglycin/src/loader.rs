@@ -16,7 +16,7 @@ pub type GlyLoader = <gobject::loader::imp::GlyLoader as ObjectSubclass>::Instan
 
 #[no_mangle]
 pub unsafe extern "C" fn gly_loader_new(file: *mut gio::ffi::GFile) -> *mut GlyLoader {
-    let file = gio::File::from_glib_ptr_borrow(&(file as *const _));
+    let file = gio::File::from_glib_ptr_borrow(&file);
     gobject::GlyLoader::new(&file).into_glib_ptr()
 }
 
@@ -26,7 +26,7 @@ pub unsafe extern "C" fn gly_loader_set_sandbox_selector(
     sandbox_selector: i32,
 ) {
     let sandbox_selector = GlySandboxSelector::from_glib(sandbox_selector);
-    let obj = gobject::GlyLoader::from_glib_ptr_borrow(&(loader as *const _));
+    let obj = gobject::GlyLoader::from_glib_ptr_borrow(&loader);
 
     obj.set_sandbox_selector(sandbox_selector);
 }
@@ -36,7 +36,7 @@ pub unsafe extern "C" fn gly_loader_load(
     loader: *mut GlyLoader,
     g_error: *mut *mut GError,
 ) -> *mut GlyImage {
-    let obj = gobject::GlyLoader::from_glib_ptr_borrow(&(loader as *const _));
+    let obj = gobject::GlyLoader::from_glib_ptr_borrow(&loader);
 
     let result = async_io::block_on(obj.load());
 
@@ -57,17 +57,18 @@ pub unsafe extern "C" fn gly_loader_load_async(
     user_data: gpointer,
 ) {
     let obj = gobject::GlyLoader::from_glib_none(loader);
-    let cancellable = (!cancellable.is_null())
-        .then(|| gio::Cancellable::from_glib_ptr_borrow(&(cancellable as *const _)));
+    let cancellable =
+        (!cancellable.is_null()).then(|| gio::Cancellable::from_glib_none(cancellable));
     let callback = GAsyncReadyCallbackSend::new(callback, user_data);
 
-    let cancel_signal = if let Some(cancellable) = cancellable {
+    let cancel_signal = if let Some(cancellable) = &cancellable {
         cancellable
             .connect_cancelled(glib::clone!(@weak obj => move |_| obj.cancellable().cancel()))
     } else {
         None
     };
 
+    let cancellable_ = cancellable.clone();
     let closure = move |task: gio::Task<gobject::GlyImage>, obj: Option<&gobject::GlyLoader>| {
         if let (Some(cancel_signal), Some(cancellable)) = (cancel_signal, cancellable) {
             cancellable.disconnect_cancelled(cancel_signal);
@@ -77,7 +78,7 @@ pub unsafe extern "C" fn gly_loader_load_async(
         callback.call(obj.unwrap(), result);
     };
 
-    let task = gio::Task::new(Some(&obj), cancellable, closure);
+    let task = gio::Task::new(Some(&obj), cancellable_.as_ref(), closure);
 
     glib::MainContext::ref_thread_default().spawn_local(async move {
         let res = obj.load().await.map_err(|x| glib_error(&x));
