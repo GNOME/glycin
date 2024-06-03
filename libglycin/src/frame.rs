@@ -55,13 +55,15 @@ pub extern "C" fn gly_memory_format_get_type() -> GType {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn gly_memory_format_has_alpha(memory_format: i32) -> bool {
+pub unsafe extern "C" fn gly_memory_format_has_alpha(memory_format: i32) -> glib::ffi::gboolean {
     let format = glycin::MemoryFormat::try_from(memory_format).unwrap();
-    format.has_alpha()
+    format.has_alpha().into_glib()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn gly_memory_format_is_premultiplied(memory_format: i32) -> bool {
+pub unsafe extern "C" fn gly_memory_format_is_premultiplied(
+    memory_format: i32,
+) -> glib::ffi::gboolean {
     let format = glycin::MemoryFormat::try_from(memory_format).unwrap();
-    format.is_premultiplied()
+    format.is_premultiplied().into_glib()
 }
