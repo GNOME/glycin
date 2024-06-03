@@ -195,7 +195,7 @@ impl Sandbox {
                 ("flatpak-spawn".into(), args, None)
             }
             SandboxMechanism::NotSandboxed => {
-                eprintln!("WARNING: Glycin running without sandbox.");
+                //eprintln!("WARNING: Glycin running without sandbox.");
                 (self.command, vec![], None)
             }
         };
