@@ -11,5 +11,5 @@ rust-version.workspace = true
 
 [dependencies]
 glycin-utils = { workspace = true, features = ["loader-utils"] }
-libheif-rs = "1.0.0"
+libheif-rs = "1.0.2"
 safe-transmute.workspace = true
