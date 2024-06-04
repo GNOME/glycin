@@ -6,6 +6,7 @@ gufo_common::maybe_convertible_enum!(
     #[derive(Deserialize, Serialize, Type, Debug, Clone, Copy)]
     #[cfg_attr(feature = "gobject", derive(glib::Enum))]
     #[cfg_attr(feature = "gobject", enum_type(name = "GlyMemoryFormat"))]
+    #[zvariant(signature = "u")]
     pub enum MemoryFormat {
         B8g8r8a8Premultiplied = 0,
         A8r8g8b8Premultiplied = 1,
