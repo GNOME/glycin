@@ -6,9 +6,9 @@ import os.path
 import sys
 
 gi.require_version("Gly", "1")
-gi.require_version("GlyGtk", "1")
+gi.require_version("GlyGtk4", "1")
 
-from gi.repository import Gly, GlyGtk, Gio, GLib
+from gi.repository import Gly, GlyGtk4, Gio, GLib
 
 def main():
     GLib.timeout_add_seconds(interval = 2, function = cb_exit)
@@ -33,7 +33,7 @@ def main():
     mime_type = image.get_mime_type()
     memory_format = frame.get_memory_format()
 
-    texture = GlyGtk.frame_get_texture(frame)
+    texture = GlyGtk4.frame_get_texture(frame)
     texture_width = texture.get_width()
 
     assert width == 600, f"Wrong width: {width} px"

@@ -31,7 +31,7 @@ packages = [
     },
     {
         'suffix': '-gtk4',
-        'namespace_suffix': 'Gtk',
+        'namespace_suffix': 'Gtk4',
         'symbol_prefix_suffix': '_gtk',
         'extra_deps': [dependency('gtk4', version: gtk4_req)],
     },
