@@ -12,7 +12,7 @@ edition.workspace = true
 rust-version.workspace = true
 
 [features]
-default = ["gdk4"]
+default = []
 tokio = ["dep:tokio", "zbus/tokio"]
 gobject = ["dep:static_assertions", "glycin-utils/gobject"]
 gdk4 = ["dep:gdk"]
