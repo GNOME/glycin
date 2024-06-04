@@ -9,6 +9,8 @@
 //!
 //! # Example
 //!
+//! You need to enable the `gdk4` feature for this example to work.
+//!
 //! ```no_run
 //! # use glycin::*;
 //! # async_global_executor::block_on(async {
@@ -23,11 +25,36 @@
 //! You can pass the [`texture`](Frame#structfield.texture) of a [`Frame`] to
 //! [`gtk4::Image::from_paintable()`] to display the image.
 //!
+//! # External Dependencies
+//!
+//! Glycin requires the libraries *libglib2.0*, *liblcms2*, and *libseccomp*
+//! packages to be installed. For the `gdk` feature, *libgtk-4* is required as
+//! well. To actually work with images, loaders for the respective formats have
+//! to be installed. Glycin provides [loaders] for many formats that are
+//! packaged with many distributions. When working in the default sandbox mode,
+//! the `bwrap` binary of *bubblewrap* is required as well. The required
+//! depencencies can usually be installed through commands like
+//!
+//! ```sh
+//! $ apt install libgtk-4-dev liblcms2-dev libseccomp-dev glycin-loaders bubblewrap
+//! ```
+//!
+//! on Debian/Ubuntu or
+//!
+//! ```sh
+//! $ dnf install gtk4-devel lcms2-devel libseccomp-devel glycin-loaders bubblewrap
+//! ```
+//!
+//! on Fedora.
+//!
 //! # Features
 //!
+//! - `gtk4` – Enables interoperability with [`gtk4`] by enabling to get a
+//!   [`gdk::Texture`] directly.
 //! - `tokio` – Makes glycin compatible with [`zbus`] using [`tokio`].
 //!
 //! [`gtk4::Image::from_paintable()`]: https://gtk-rs.org/gtk4-rs/git/docs/gtk4/struct.Image.html#method.from_paintable
+//! [loaders]: https://gitlab.gnome.org/sophie-h/glycin#supported-image-formats
 
 mod api;
 mod config;

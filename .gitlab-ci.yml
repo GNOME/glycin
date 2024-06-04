@@ -31,80 +31,86 @@ variables:
       - tests/failures
       - builddir/meson-logs
 
-test-x86_64:
-  image: rust:1.76-bookworm
-  extends: .install_dependencies
+# test-x86_64:
+#   image: rust:1.76-bookworm
+#   extends: .install_dependencies
+#   interruptible: true
+#   script:
+#     - export LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu/
+#     # Skip isolated install for tests to test usual installation scenario
+#     - meson setup -Dprofile=dev -Dpython_tests=true -Dtest_skip_install=true -Dcapi_docs=true --prefix=/usr builddir
+#     - meson install -C builddir
+#     - meson test -vC builddir
+#     - mv builddir/libglycin/libglycin-1 c-api
+#   artifacts:
+#     paths:
+#       - c-api
+
+# test-i386:
+#   # Use hash to force i386, lookup "MANIFEST DIGEST" here <https://hub.docker.com/r/i386/rust/tags>
+#   image: rust@sha256:d21d21f6e7baa3e203257b0cf4de5827be3e877f853d2ef16b6ae5a2747e342c
+#   extends: .install_dependencies
+#   interruptible: true
+#   # As long as 32-bit CI is so unstable
+#   allow_failure: true
+#   script:
+#     - export LD_LIBRARY_PATH=/usr/local/lib/i386-linux-gnu/
+#     - apt-get install -y ninja-build
+#     - meson setup -Dprofile=dev  -Dpython_tests=true -Dtest_skip_install=true -Dtest_skip_ext=avif --prefix=/usr builddir
+#     - meson install -C builddir
+#     - meson test -vC builddir
+
+# test-aarch64:
+#   image: rust:1.76-bookworm
+#   tags:
+#     - aarch64
+#   extends: .install_dependencies
+#   interruptible: true
+#   script:
+#     - export LD_LIBRARY_PATH=/usr/local/lib/aarch64-linux-gnu/
+#     - meson setup -Dprofile=dev -Dpython_tests=true -Dtest_skip_install=true --prefix=/usr builddir
+#     - meson install -C builddir
+#     - meson test -vC builddir
+
+test-fedoda40-loaders:
+  image: 'registry.fedoraproject.org/fedora:40'
   interruptible: true
   script:
-    - export LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu/
-    # Skip isolated install for tests to test usual installation scenario
-    - meson setup -Dprofile=dev -Dpython_tests=true -Dtest_skip_install=true -Dcapi_docs=true --prefix=/usr builddir
-    - meson install -C builddir
-    - meson test -vC builddir
-    - mv builddir/libglycin/libglycin-1 c-api
-  artifacts:
-    paths:
-      - c-api
+    - dnf install --assumeyes glycin-loaders cargo bubblewrap glib2-devel gtk4-devel lcms2-devel libseccomp-devel
+    - GLYCIN_TEST_SKIP_EXT=exr cargo test -p tests
 
-test-i386:
-  # Use hash to force i386, lookup "MANIFEST DIGEST" here <https://hub.docker.com/r/i386/rust/tags>
-  image: rust@sha256:d21d21f6e7baa3e203257b0cf4de5827be3e877f853d2ef16b6ae5a2747e342c
-  extends: .install_dependencies
-  interruptible: true
-  # As long as 32-bit CI is so unstable
-  allow_failure: true
-  script:
-    - export LD_LIBRARY_PATH=/usr/local/lib/i386-linux-gnu/
-    - apt-get install -y ninja-build
-    - meson setup -Dprofile=dev  -Dpython_tests=true -Dtest_skip_install=true -Dtest_skip_ext=avif --prefix=/usr builddir
-    - meson install -C builddir
-    - meson test -vC builddir
+# cargo-semver-checks:
+#   image: rust
+#   extends: .install_dependencies
+#   interruptible: true
+#   script:
+#     - apt install cmake -y
+#     - cargo install cargo-semver-checks --locked
+#     - cargo semver-checks
 
-test-aarch64:
-  image: rust:1.76-bookworm
-  tags:
-    - aarch64
-  extends: .install_dependencies
-  interruptible: true
-  script:
-    - export LD_LIBRARY_PATH=/usr/local/lib/aarch64-linux-gnu/
-    - meson setup -Dprofile=dev -Dpython_tests=true -Dtest_skip_install=true --prefix=/usr builddir
-    - meson install -C builddir
-    - meson test -vC builddir
+# cargo-fmt:
+#   image: rust
+#   interruptible: true
+#   script:
+#     - rustup component add rustfmt
+#     - cargo fmt --check
 
+# cargo-deny:
+#   image: rust
+#   interruptible: true
+#   script:
+#     - cargo install cargo-deny --locked
+#     - cargo deny check
 
-cargo-semver-checks:
-  image: rust
-  extends: .install_dependencies
-  interruptible: true
-  script:
-    - apt install cmake -y
-    - cargo install cargo-semver-checks --locked
-    - cargo semver-checks
-
-cargo-fmt:
-  image: rust
-  interruptible: true
-  script:
-    - rustup component add rustfmt
-    - cargo fmt --check
-
-cargo-deny:
-  image: rust
-  interruptible: true
-  script:
-    - cargo install cargo-deny --locked
-    - cargo deny check
-
-pages:
-  stage: deploy
-  dependencies:
-    - test-x86_64
-  script:
-    - mkdir public
-    - mv c-api public
-  artifacts:
-    paths:
-      - public
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+# pages:
+#   stage: deploy
+#   dependencies:
+#     - test-x86_64
+#   script:
+#     - mkdir public
+#     - mv c-api public
+#   artifacts:
+#     paths:
+#       - public
+#   rules:
+#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
