@@ -64,85 +64,84 @@ impl MemoryFormat {
 
     pub const fn n_channels(self) -> u8 {
         match self {
-            MemoryFormat::B8g8r8a8Premultiplied => 4,
-            MemoryFormat::A8r8g8b8Premultiplied => 4,
-            MemoryFormat::R8g8b8a8Premultiplied => 4,
-            MemoryFormat::B8g8r8a8 => 4,
-            MemoryFormat::A8r8g8b8 => 4,
-            MemoryFormat::R8g8b8a8 => 4,
-            MemoryFormat::A8b8g8r8 => 4,
-            MemoryFormat::R8g8b8 => 3,
-            MemoryFormat::B8g8r8 => 3,
-            MemoryFormat::R16g16b16 => 3,
-            MemoryFormat::R16g16b16a16Premultiplied => 4,
-            MemoryFormat::R16g16b16a16 => 4,
-            MemoryFormat::R16g16b16Float => 3,
-            MemoryFormat::R16g16b16a16Float => 4,
-            MemoryFormat::R32g32b32Float => 3,
-            MemoryFormat::R32g32b32a32FloatPremultiplied => 4,
-            MemoryFormat::R32g32b32a32Float => 4,
-            MemoryFormat::G8a8Premultiplied => 2,
-            MemoryFormat::G8a8 => 2,
-            MemoryFormat::G8 => 1,
-            MemoryFormat::G16a16Premultiplied => 2,
-            MemoryFormat::G16a16 => 2,
-            MemoryFormat::G16 => 1,
+            MemoryFormat::B8g8r8a8Premultiplied
+            | MemoryFormat::A8r8g8b8Premultiplied
+            | MemoryFormat::R8g8b8a8Premultiplied
+            | MemoryFormat::B8g8r8a8
+            | MemoryFormat::A8r8g8b8
+            | MemoryFormat::R8g8b8a8
+            | MemoryFormat::A8b8g8r8
+            | MemoryFormat::R16g16b16a16Premultiplied
+            | MemoryFormat::R16g16b16a16
+            | MemoryFormat::R16g16b16a16Float
+            | MemoryFormat::R32g32b32a32FloatPremultiplied
+            | MemoryFormat::R32g32b32a32Float => 4,
+            MemoryFormat::R8g8b8
+            | MemoryFormat::B8g8r8
+            | MemoryFormat::R16g16b16
+            | MemoryFormat::R16g16b16Float
+            | MemoryFormat::R32g32b32Float => 3,
+            MemoryFormat::G8a8Premultiplied
+            | MemoryFormat::G8a8
+            | MemoryFormat::G16a16Premultiplied
+            | MemoryFormat::G16a16 => 2,
+            MemoryFormat::G8 | MemoryFormat::G16 => 1,
         }
     }
 
     pub const fn has_alpha(self) -> bool {
         match self {
-            MemoryFormat::B8g8r8a8Premultiplied => true,
-            MemoryFormat::A8r8g8b8Premultiplied => true,
-            MemoryFormat::R8g8b8a8Premultiplied => true,
-            MemoryFormat::B8g8r8a8 => true,
-            MemoryFormat::A8r8g8b8 => true,
-            MemoryFormat::R8g8b8a8 => true,
-            MemoryFormat::A8b8g8r8 => true,
-            MemoryFormat::R8g8b8 => false,
-            MemoryFormat::B8g8r8 => false,
-            MemoryFormat::R16g16b16 => false,
-            MemoryFormat::R16g16b16a16Premultiplied => true,
-            MemoryFormat::R16g16b16a16 => true,
-            MemoryFormat::R16g16b16Float => false,
-            MemoryFormat::R16g16b16a16Float => true,
-            MemoryFormat::R32g32b32Float => false,
-            MemoryFormat::R32g32b32a32FloatPremultiplied => true,
-            MemoryFormat::R32g32b32a32Float => true,
-            MemoryFormat::G8a8Premultiplied => true,
-            MemoryFormat::G8a8 => true,
-            MemoryFormat::G8 => false,
-            MemoryFormat::G16a16Premultiplied => true,
-            MemoryFormat::G16a16 => true,
-            MemoryFormat::G16 => false,
+            MemoryFormat::B8g8r8a8Premultiplied
+            | MemoryFormat::A8r8g8b8Premultiplied
+            | MemoryFormat::R8g8b8a8Premultiplied
+            | MemoryFormat::B8g8r8a8
+            | MemoryFormat::A8r8g8b8
+            | MemoryFormat::R8g8b8a8
+            | MemoryFormat::A8b8g8r8
+            | MemoryFormat::R16g16b16a16Premultiplied
+            | MemoryFormat::R32g32b32a32FloatPremultiplied
+            | MemoryFormat::R32g32b32a32Float
+            | MemoryFormat::G8a8Premultiplied
+            | MemoryFormat::G8a8
+            | MemoryFormat::R16g16b16a16
+            | MemoryFormat::R16g16b16a16Float
+            | MemoryFormat::G16a16Premultiplied
+            | MemoryFormat::G16a16 => true,
+            MemoryFormat::R8g8b8
+            | MemoryFormat::B8g8r8
+            | MemoryFormat::R16g16b16
+            | MemoryFormat::R16g16b16Float
+            | MemoryFormat::R32g32b32Float
+            | MemoryFormat::G8
+            | MemoryFormat::G16 => false,
         }
     }
 
     pub const fn is_premultiplied(self) -> bool {
         match self {
-            MemoryFormat::B8g8r8a8Premultiplied => true,
-            MemoryFormat::A8r8g8b8Premultiplied => true,
-            MemoryFormat::R8g8b8a8Premultiplied => true,
-            MemoryFormat::B8g8r8a8 => false,
-            MemoryFormat::A8r8g8b8 => false,
-            MemoryFormat::R8g8b8a8 => false,
-            MemoryFormat::A8b8g8r8 => false,
-            MemoryFormat::R8g8b8 => false,
-            MemoryFormat::B8g8r8 => false,
-            MemoryFormat::R16g16b16 => false,
-            MemoryFormat::R16g16b16a16Premultiplied => true,
-            MemoryFormat::R16g16b16a16 => false,
-            MemoryFormat::R16g16b16Float => false,
-            MemoryFormat::R16g16b16a16Float => false,
-            MemoryFormat::R32g32b32Float => false,
-            MemoryFormat::R32g32b32a32FloatPremultiplied => true,
-            MemoryFormat::R32g32b32a32Float => false,
-            MemoryFormat::G8a8Premultiplied => true,
-            MemoryFormat::G8a8 => false,
-            MemoryFormat::G8 => false,
-            MemoryFormat::G16a16Premultiplied => true,
-            MemoryFormat::G16a16 => false,
-            MemoryFormat::G16 => false,
+            MemoryFormat::B8g8r8a8Premultiplied
+            | MemoryFormat::A8r8g8b8Premultiplied
+            | MemoryFormat::R8g8b8a8Premultiplied
+            | MemoryFormat::R16g16b16a16Premultiplied
+            | MemoryFormat::R32g32b32a32FloatPremultiplied
+            | MemoryFormat::G8a8Premultiplied
+            | MemoryFormat::G16a16Premultiplied => true,
+            MemoryFormat::B8g8r8a8
+            | MemoryFormat::A8r8g8b8
+            | MemoryFormat::R8g8b8a8
+            | MemoryFormat::A8b8g8r8
+            | MemoryFormat::R8g8b8
+            | MemoryFormat::B8g8r8
+            | MemoryFormat::R16g16b16
+            | MemoryFormat::R16g16b16a16
+            | MemoryFormat::R16g16b16Float
+            | MemoryFormat::R16g16b16a16Float
+            | MemoryFormat::R32g32b32Float
+            | MemoryFormat::R32g32b32a32Float
+            | MemoryFormat::G8a8
+            | MemoryFormat::G8
+            | MemoryFormat::G16a16
+            | MemoryFormat::G16 => false,
         }
     }
 }
@@ -158,6 +157,7 @@ pub enum MemoryFormatBytes {
     B16 = 16,
 }
 
+// TODO: Convert to From trait impls
 impl MemoryFormatBytes {
     pub fn u32(self) -> u32 {
         self as u32
