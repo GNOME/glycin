@@ -1,0 +1,109 @@
+## 1.0.2
+
+- sandbox: Add directories and syscalls needed for fontconfig to work
+
+## 1.0.1
+
+- loaders/utils: Register SIGSYS handler as early as possible for better debugging for unallowed syscalls
+- sandbox: Allow membarrier, open, stat syscalls
+
+## 1.0.0
+
+- glycin: Change to stable crate version
+- svg: Change to stable rsvg version
+
+## 1.0.rc
+
+- glycin: Allow fstat syscall
+- glycin: Treat files detected as XML as SVG if they have .svg file ending #48
+- jxl: Allow libjxl 0.10 as well
+
+## 1.0.beta.2
+
+- api: Rename a few functions
+- api: Use memfds for larger metadata like Exif or ICC profiles
+- glycin/glycin-utils: Drop all uses of anyhow
+- glycin/glycin-utils: Use thiserror to define types
+- glycin: Check image width and height are not zero
+- loaders/image-rs: Disable memory limits since we have our own
+- loaders: Use new error utils tracking code location
+
+## 1.0.beta.1
+
+- Update to zbus 4.0
+
+- glycin: Use more fine-tuned memory limits using max 80% available memory
+
+## 1.0.beta
+
+- Consitently use Loader instead of Decoder terminology in code
+
+- glycin/utils: Only use checked math operations
+- glycin: Add seccomp filter based on allow list for bwrap sandboxes
+- glycin: Attach command line to error messages
+- glycin: Clear env when using bwrap sandbox
+- glycin: Fix closing an already closed fd
+- glycin: Fix race condition in initialization
+- glycin: Limit memory usage when using flatpak sandbox
+- glycin: Retry sealing an memfd if it fails
+- glycin: Use more robust transfer of /lib.. symlinks into sandbox
+- jxl: Support Exif
+- jxl: Use libjxl instead of jxl-oxide for performance reasons
+- loaders: Use isolated install for tests in meson
+- utils: Add root cause info to decoding errors
+
+## 1.0.alpha
+
+- Replace async-std with other crates
+- Use a new D-Bus API version 1+ allowing for backward compatible extendability
+
+- glycin: Don't allow access to / in bwrap sandbox
+- glycin: Limit memory using when using bwrap sandbox
+- glycin: Don't block on applying ICC profiles
+- glycin: Add tokio feature for when zbus is used with tokio
+
+## 0.1.2
+
+- GIF/APNG/WEBP: Assume frame length of 100ms if provided frame length is zero or invalid
+
+## 0.1.1
+
+- Distribute correct Cargo.lock for glycin-loaders tarballs
+
+## 0.1.0
+
+- Update dependencies
+
+## 0.1.rc
+
+- Update dependencies
+
+## 0.1.beta.4
+
+- Relicense under MPL-2.0 OR LGPL-2.1-or-later
+- Add symlinks for license files in crates
+- Add cairo dependency for svg loader
+- HEIC: Fix filetype detection in config
+- tests: Add HEIC tests
+- tests: Add option to skip image formats in tests
+- tests: Run required install before tests (can be disabled)
+
+## 0.1.beta.3
+
+- Add consitency checks for stride and texture size
+- Fix applying ICC profiles to grayscale images
+- DDS/ICO: Fixed filetype detection in image-rs
+- Fix build on some 32 bit architectures
+
+## 0.1.beta.2
+
+- Use (outdated) librsvg from crates.io instead of git for now
+
+## 0.1.beta.1
+
+- Update dependencies
+- Update image-rs to 0.24.7
+    * WebP/TIFF: Adds ICC profile support to TIFF and WebP
+    * WebP: Fixes frequent decoding issues
+- WebP: Use transparent background instead of color suggested by image in
+  animations
