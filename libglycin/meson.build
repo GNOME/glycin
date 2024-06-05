@@ -181,7 +181,7 @@ foreach package : packages
             f'libglycin@suffix@-doc',
             # Generate from .gir file
             depends: libglycin_gir,
-            input: ['doc/libglycin.toml'] + libglycin_gir[0],
+            input: [f'doc/libglycin@suffix@.toml'] + libglycin_gir[0],
             output: f'libglycin@suffix@-1',
             command: [
                 gidocgen,

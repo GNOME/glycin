@@ -41,10 +41,12 @@ test-x86_64:
     - meson setup -Dprofile=dev -Dpython_tests=true -Dtest_skip_install=true -Dcapi_docs=true --prefix=/usr builddir
     - meson install -C builddir
     - meson test -vC builddir
-    - mv builddir/libglycin/libglycin-1 c-api
+    - mv builddir/libglycin/libglycin-1 libglycin-docs
+    - mv builddir/libglycin/libglycin-gtk4-1 libglycin-gtk4-docs
   artifacts:
     paths:
-      - c-api
+      - libglycin-docs
+      - libglycin-gtk4-docs
 
 test-i386:
   # Use hash to force i386, lookup "MANIFEST DIGEST" here <https://hub.docker.com/r/i386/rust/tags>
@@ -108,7 +110,8 @@ pages:
     - test-x86_64
   script:
     - mkdir public
-    - mv c-api public
+    - mv libglycin-docs public/libglycin
+    - mv libglycin-gtk4-docs public/ligblycin-gtk4
   artifacts:
     paths:
       - public

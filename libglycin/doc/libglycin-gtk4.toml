@@ -1,12 +1,12 @@
 [library]
 version = "1.0"
-description = "Sandboxed and extendable image loading"
+description = "Convert glycin frames to GDK Textures"
 authors = "Sophie Herold"
 license = "MPL-2.0 OR LGPL-2.1-or-later"
 browse_url = "https://gitlab.gnome.org/sophie-h/glycin/"
 repository_url = "https://gitlab.gnome.org/sophie-h/glycin.git"
 website_url = "https://gnome.pages.gitlab.gnome.org/sophie-h/glycin"
-docs_url = "https://sophie-h.pages.gitlab.gnome.org/glycin/libglycin/"
+docs_url = "https://sophie-h.pages.gitlab.gnome.org/glycin/c-api/"
 devhelp = true
 search_index = true
 
@@ -28,10 +28,15 @@ name = "Gio"
 description = "GObject Interfaces and Objects, Networking, IPC, and I/O"
 docs_url = "https://docs.gtk.org/gio/"
 
-[related."GlyGtk4-1"]
-name = "GlyGtk4"
-description = "Convert glycin frames to GDK Textures"
-docs_url = "https://sophie-h.pages.gitlab.gnome.org/glycin/libglycin-gtk4/"
+[dependencies."Gdk-4.0"]
+name = "Gdk"
+description = "The GTK windowing system abstraction"
+docs_url = "https://docs.gtk.org/gdk4/"
+
+[dependencies."Gly-1"]
+name = "Gly"
+description = "Sandboxed and extendable image loading"
+docs_url = "https://sophie-h.pages.gitlab.gnome.org/glycin/libglycin/"
 
 [source-location]
 base_url = "https://gitlab.gnome.org/sophie-h/glycin/-/blob/main/libglycin/include/"

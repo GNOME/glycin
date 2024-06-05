@@ -11,6 +11,10 @@ G_BEGIN_DECLS
  *
  * [class@Loader] prepares loading an image.
  *
+ * The following example shows how to obtain a [class@Gdk.Texture]. It uses
+ * [GlyGtk4](https://sophie-h.pages.gitlab.gnome.org/glycin/libglycin-gtk4)
+ * for this.
+ *
  * ```c
  * #include <glycin-gtk4.h>
  *
@@ -221,7 +225,7 @@ const char *gly_image_get_mime_type(GlyImage *image);
  *
  * This information is often correct. However, it should only be used for
  * an early rendering estimates. For everything else, the specific frame
- * information should be used. See [method@Gdk.Texture.get_width].
+ * information should be used. See [method@Frame.get_width].
  *
  * Returns: Width
  *
@@ -245,29 +249,29 @@ uint32_t gly_image_get_height(GlyImage *image);
 
 /**
  * GlyMemoryFormat:
- * @GLY_MEMORY_B8G8R8A8_PREMULTIPLIED:
- * @GLY_MEMORY_A8R8G8B8_PREMULTIPLIED:
- * @GLY_MEMORY_R8G8B8A8_PREMULTIPLIED:
- * @GLY_MEMORY_B8G8R8A8:
- * @GLY_MEMORY_A8R8G8B8:
- * @GLY_MEMORY_R8G8B8A8:
- * @GLY_MEMORY_A8B8G8R8:
- * @GLY_MEMORY_R8G8B8:
- * @GLY_MEMORY_B8G8R8:
- * @GLY_MEMORY_R16G16B16:
- * @GLY_MEMORY_R16G16B16A16_PREMULTIPLIED:
- * @GLY_MEMORY_R16G16B16A16:
- * @GLY_MEMORY_R16G16B16_FLOAT:
- * @GLY_MEMORY_R16G16B16A16_FLOAT:
- * @GLY_MEMORY_R32G32B32_FLOAT:
- * @GLY_MEMORY_R32G32B32A32_FLOAT_PREMULTIPLIED:
- * @GLY_MEMORY_R32G32B32A32_FLOAT:
- * @GLY_MEMORY_G8A8_PREMULTIPLIED:
- * @GLY_MEMORY_G8A8:
- * @GLY_MEMORY_G8:
- * @GLY_MEMORY_G16A16_PREMULTIPLIED:
- * @GLY_MEMORY_G16A16:
- * @GLY_MEMORY_G16:
+ * @GLY_MEMORY_B8G8R8A8_PREMULTIPLIED: 8-bit RGRA premultiplied
+ * @GLY_MEMORY_A8R8G8B8_PREMULTIPLIED: 8-bit ARGB premultiplied
+ * @GLY_MEMORY_R8G8B8A8_PREMULTIPLIED: 8-bit RGBA premultiplied
+ * @GLY_MEMORY_B8G8R8A8: 8-bit RGBA
+ * @GLY_MEMORY_A8R8G8B8: 8-bit AGBR
+ * @GLY_MEMORY_R8G8B8A8: 8-bit RGBA
+ * @GLY_MEMORY_A8B8G8R8: 8-bit ABGR
+ * @GLY_MEMORY_R8G8B8: 8-bit RGB
+ * @GLY_MEMORY_B8G8R8: 8-bit BGR
+ * @GLY_MEMORY_R16G16B16: 16-bit RGB
+ * @GLY_MEMORY_R16G16B16A16_PREMULTIPLIED: 16-bit RGBA premultiplied
+ * @GLY_MEMORY_R16G16B16A16: 16-bit RGBA
+ * @GLY_MEMORY_R16G16B16_FLOAT: 16-bit float RGB
+ * @GLY_MEMORY_R16G16B16A16_FLOAT: 16-bit float RGBA
+ * @GLY_MEMORY_R32G32B32_FLOAT: 32-bit float RGB
+ * @GLY_MEMORY_R32G32B32A32_FLOAT_PREMULTIPLIED: 32-bit float RGBA premultiplied
+ * @GLY_MEMORY_R32G32B32A32_FLOAT: 16-bit float RGBA
+ * @GLY_MEMORY_G8A8_PREMULTIPLIED: 8-bit gray with alpha premultiplied
+ * @GLY_MEMORY_G8A8: 8-bit gray with alpha
+ * @GLY_MEMORY_G8: 8-bit gray
+ * @GLY_MEMORY_G16A16_PREMULTIPLIED: 16-bit gray with alpha premultiplied
+ * @GLY_MEMORY_G16A16: 16-bit gray with alpha
+ * @GLY_MEMORY_G16: 16-bit gray
  *
  * Memory format
  *
@@ -306,7 +310,9 @@ GType gly_memory_format_get_type(void);
  * gly_memory_format_has_alpha:
  * @memory_format:
  *
- * Returns:
+ * Whether a memory format has an alpha channel
+ *
+ * Returns: Returns `TRUE` if the memory format has an alpha channel
  *
  * Since: 1.0
  */
@@ -316,7 +322,10 @@ gboolean gly_memory_format_has_alpha(GlyMemoryFormat memory_format);
  * gly_memory_format_is_premultiplied:
  * @memory_format:
  *
- * Returns:
+ * Wether a memory format as an alpha channel an the color values are
+ * premultiplied with the alpha value
+ *
+ * Returns: Returns `TRUE` if color channels are premultiplied
  *
  * Since: 1.0
  */
@@ -340,7 +349,9 @@ int64_t gly_frame_get_delay(GlyFrame *frame);
  * gly_frame_get_width:
  * @frame:
  *
- * Returns:
+ * Width for image data in pixels
+ *
+ * Returns: Width in pixels
  *
  * Since: 1.0
  */
@@ -350,7 +361,9 @@ uint32_t gly_frame_get_width(GlyFrame *frame);
  * gly_frame_get_height:
  * @frame:
  *
- * Returns:
+ * Height for image data in pixels
+ *
+ * Returns: Height in pixels
  *
  * Since: 1.0
  */
@@ -360,7 +373,9 @@ uint32_t gly_frame_get_height(GlyFrame *frame);
  * gly_frame_get_stride:
  * @frame:
  *
- * Returns:
+ * Width of a row for image data in bytes
+ *
+ * Returns: Row stride in bytes
  *
  * Since: 1.0
  */
@@ -370,7 +385,9 @@ uint32_t gly_frame_get_stride(GlyFrame *frame);
  * gly_frame_get_buf_bytes:
  * @frame:
  *
- * Returns: (transfer none):
+ * Image data arranged according to [method@Frame.get_memory_format]
+ *
+ * Returns: (transfer none): Image data
  *
  * Since: 1.0
  */
@@ -380,7 +397,9 @@ GBytes *gly_frame_get_buf_bytes(GlyFrame *frame);
  * gly_frame_get_memory_format:
  * @frame:
  *
- * Returns:
+ * Format of the image data in [method@Gly.Frame.get_buf_bytes]
+ *
+ * Returns: Format of image data
  *
  * Since: 1.0
  */

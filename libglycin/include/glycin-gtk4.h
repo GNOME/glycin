@@ -8,7 +8,8 @@ G_BEGIN_DECLS
  * gly_gtk_frame_get_texture:
  * @frame: Frame
  *
- * Gets the actual image from a frame.
+ * Gets the actual image from a frame. See the [class@Gly.Loader] docs
+ * for a complete example.
  *
  * Returns: (transfer full): A GDK Texture
  *
