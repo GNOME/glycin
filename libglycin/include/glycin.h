@@ -370,7 +370,7 @@ uint32_t gly_frame_get_stride(GlyFrame *frame);
  * gly_frame_get_buf_bytes:
  * @frame:
  *
- * Returns:
+ * Returns: (transfer none):
  *
  * Since: 1.0
  */
