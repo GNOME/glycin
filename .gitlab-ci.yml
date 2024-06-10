@@ -111,7 +111,7 @@ pages:
   script:
     - mkdir public
     - mv libglycin-docs public/libglycin
-    - mv libglycin-gtk4-docs public/ligblycin-gtk4
+    - mv libglycin-gtk4-docs public/libglycin-gtk4
   artifacts:
     paths:
       - public
