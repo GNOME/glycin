@@ -28,7 +28,7 @@
 //! # External Dependencies
 //!
 //! Glycin requires the libraries *libglib2.0*, *liblcms2*, and *libseccomp*
-//! packages to be installed. For the `gdk` feature, *libgtk-4* is required as
+//! packages to be installed. For the `gdk4` feature, *libgtk-4* is required as
 //! well. To actually work with images, loaders for the respective formats have
 //! to be installed. Glycin provides [loaders] for many formats that are
 //! packaged with many distributions. When working in the default sandbox mode,
@@ -49,9 +49,9 @@
 //!
 //! # Features
 //!
-//! - `gtk4` – Enables interoperability with [`gtk4`] by enabling to get a
+//! - `gdk4` --- Enables interoperability with [`gdk4`](gdk) by enabling to get a
 //!   [`gdk::Texture`] directly.
-//! - `tokio` – Makes glycin compatible with [`zbus`] using [`tokio`].
+//! - `tokio` --- Makes glycin compatible with [`zbus`] using [`tokio`].
 //!
 //! [`gtk4::Image::from_paintable()`]: https://gtk-rs.org/gtk4-rs/git/docs/gtk4/struct.Image.html#method.from_paintable
 //! [loaders]: https://gitlab.gnome.org/sophie-h/glycin#supported-image-formats
