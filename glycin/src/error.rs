@@ -25,6 +25,10 @@ pub enum Error {
     DbusError(#[from] zbus::Error),
     #[error("Internal communication was unexpectedly canceled")]
     InternalCommunicationCanceled,
+    #[error(
+        "No image loaders are configured. You might need to install a package like glycin-loaders."
+    )]
+    NoLoadersConfigured,
     #[error("Unknown image format: {0}")]
     UnknownImageFormat(MimeType),
     #[error("Loader process exited early with status '{}'. {cmd}", .status.code().unwrap_or_default())]

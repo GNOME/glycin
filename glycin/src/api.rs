@@ -125,6 +125,10 @@ impl Loader {
     pub async fn load<'a>(self) -> Result<Image<'a>> {
         let config = config::Config::cached().await;
 
+        if config.image_decoders.is_empty() {
+            return Err(Error::NoLoadersConfigured);
+        }
+
         let gfile_worker = GFileWorker::spawn(self.file.clone(), self.cancellable.clone());
         let mime_type = Self::guess_mime_type(&gfile_worker).await?;
         let decoder_config = config.get(&mime_type)?;
