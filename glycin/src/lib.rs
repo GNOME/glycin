@@ -74,6 +74,5 @@ pub use config::COMPAT_VERSION;
 pub use default_formats::DEFAULT_MIME_TYPES;
 pub use error::Error;
 pub use glycin_utils::{ImageInfo, ImageInfoDetails, RemoteError};
-
 #[cfg(feature = "gdk4")]
 pub use util::gdk_memory_format;

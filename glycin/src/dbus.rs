@@ -73,7 +73,7 @@ impl<'a> DecoderProcess<'a> {
         let dbus_result = zbus::ConnectionBuilder::unix_stream(unix_stream)
             .p2p()
             .server(guid)?
-            .auth_mechanisms(&[zbus::AuthMechanism::Anonymous])
+            .auth_mechanism(zbus::AuthMechanism::Anonymous)
             .build()
             .shared();
 

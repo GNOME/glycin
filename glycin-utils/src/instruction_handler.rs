@@ -30,7 +30,7 @@ impl Communication {
         };
         let dbus_connection = zbus::ConnectionBuilder::unix_stream(unix_stream)
             .p2p()
-            .auth_mechanisms(&[zbus::AuthMechanism::Anonymous])
+            .auth_mechanism(zbus::AuthMechanism::Anonymous)
             .serve_at("/org/gnome/glycin", instruction_handler)
             .expect("Failed to setup instruction handler")
             .build()
