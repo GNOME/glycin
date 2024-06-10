@@ -16,6 +16,7 @@ use glycin_utils::{
     DimensionTooLargerError, Frame, FrameRequest, ImageInfo, InitRequest, InitializationDetails,
     RemoteError, SafeConversion, SafeMath,
 };
+use memmap::MmapMut;
 use nix::sys::signal;
 use zbus::zvariant;
 
@@ -166,22 +167,9 @@ impl<'a> DecoderProcess<'a> {
         }
 
         let raw_fd = frame.texture.as_raw_fd();
-        let original_mmap = unsafe { memmap::MmapMut::map_mut(raw_fd) }?;
+        let original_mmap = unsafe { MmapMut::map_mut(raw_fd) }?;
 
-        if original_mmap.len() < frame.n_bytes()? {
-            return Err(Error::TextureTooSmall {
-                texture_size: original_mmap.len(),
-                frame: format!("{:?}", frame),
-            });
-        }
-
-        if frame.stride < frame.width.smul(frame.memory_format.n_bytes().u32())? {
-            return Err(Error::StrideTooSmall(format!("{:?}", frame)));
-        }
-
-        if frame.width < 1 || frame.height < 1 {
-            return Err(Error::WidgthOrHeightZero(format!("{:?}", frame)));
-        }
+        validate_frame(&frame, &original_mmap)?;
 
         let img_buf = ImgBuf::MMap(original_mmap);
 
@@ -359,6 +347,25 @@ fn seal_fd(fd: impl AsRawFd) -> Result<(), memfd::Error> {
         }
     }
     mem::forget(mfd);
+
+    Ok(())
+}
+
+fn validate_frame(frame: &Frame, mmap: &MmapMut) -> Result<(), Error> {
+    if mmap.len() < frame.n_bytes()? {
+        return Err(Error::TextureTooSmall {
+            texture_size: mmap.len(),
+            frame: format!("{:?}", frame),
+        });
+    }
+
+    if frame.stride < frame.width.smul(frame.memory_format.n_bytes().u32())? {
+        return Err(Error::StrideTooSmall(format!("{:?}", frame)));
+    }
+
+    if frame.width < 1 || frame.height < 1 {
+        return Err(Error::WidgthOrHeightZero(format!("{:?}", frame)));
+    }
 
     Ok(())
 }
