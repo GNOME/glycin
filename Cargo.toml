@@ -11,6 +11,11 @@ rust-version = "1.76"
 [profile.release]
 lto = true
 codegen-units = 1
+panic = "abort"
+
+[profile.release.package]
+zbus.opt-level = "z"
+zvariant.opt-level = "z"
 
 [profile.dev.package.image]
 opt-level = 3
