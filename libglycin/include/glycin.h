@@ -27,7 +27,7 @@ G_BEGIN_DECLS
  *   if (frame) {
  *     texture = gly_gtk_frame_get_texture (frame);
  *     printf ("Image height: %d\n", gdk_texture_get_height (texture));
- *     image = gtk_image_new_from_paintable (GDK_PAINTABLE (texture));
+ *     image_widget = gtk_image_new_from_paintable (GDK_PAINTABLE (texture));
  *   }
  * }
  * ```
