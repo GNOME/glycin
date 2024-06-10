@@ -8,7 +8,9 @@ pub fn apply_exif_orientation(
     frame: &mut Frame,
     image_info: &ImageInfo,
 ) -> ImgBuf {
-    if let Some(exif_data) = image_info
+    if image_info.details.transformations_applied {
+        img_buf
+    } else if let Some(exif_data) = image_info
         .details
         .exif
         .as_ref()
