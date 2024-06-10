@@ -166,7 +166,7 @@ async fn get_texture(path: impl AsRef<Path>) -> gdk::Texture {
     let image_request = glycin::Loader::new(file);
     let image = image_request.load().await.unwrap();
     let frame = image.next_frame().await.unwrap();
-    frame.texture().unwrap()
+    frame.texture()
 }
 
 async fn get_info(path: impl AsRef<Path>) -> glycin::ImageInfo {

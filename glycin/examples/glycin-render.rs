@@ -19,6 +19,6 @@ where
     let image = Loader::new(file).load().await.expect("request failed");
     let frame = image.next_frame().await.expect("next frame failed");
 
-    frame.texture().unwrap().save_to_png("output.png")?;
+    frame.texture().save_to_png("output.png")?;
     Ok(())
 }

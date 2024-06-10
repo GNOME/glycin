@@ -68,7 +68,7 @@ async fn run() -> Result<(), glycin::Error> {
 
     for _ in 0..n_frames {
         let frame = image.next_frame().await.unwrap();
-        let texture = frame.texture().unwrap();
+        let texture = frame.texture();
         println!("[[frame]]");
         println!("dimensions = {} x {}", frame.width(), frame.height());
         println!("format = {:?}", texture.format());

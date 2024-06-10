@@ -6,6 +6,7 @@ use gio::glib;
 use glycin_utils::{DimensionTooLargerError, RemoteError};
 use libseccomp::error::SeccompError;
 
+use crate::dbus::MAX_TEXTURE_SIZE;
 use crate::MimeType;
 
 #[derive(Debug, Clone, thiserror::Error)]
@@ -37,6 +38,8 @@ pub enum Error {
     },
     #[error("Texture is only {texture_size} but was announced differently: {frame}")]
     TextureTooSmall { texture_size: usize, frame: String },
+    #[error("Texture size exceeds hardcoded limit of {MAX_TEXTURE_SIZE} bytes")]
+    TextureTooLarge,
     #[error("Stride is smaller than possible: {0}")]
     StrideTooSmall(String),
     #[error("Width or height is zero: {0}")]

@@ -24,6 +24,9 @@ use crate::api::{self, SandboxMechanism};
 use crate::sandbox::Sandbox;
 use crate::{config, icc, orientation, Error, Image};
 
+/// Max texture size 8 GB in bytes
+pub(crate) const MAX_TEXTURE_SIZE: u64 = 8u64.pow(9);
+
 #[derive(Clone, Debug)]
 pub struct DecoderProcess<'a> {
     _dbus_connection: zbus::Connection,
@@ -366,6 +369,15 @@ fn validate_frame(frame: &Frame, mmap: &MmapMut) -> Result<(), Error> {
     if frame.width < 1 || frame.height < 1 {
         return Err(Error::WidgthOrHeightZero(format!("{:?}", frame)));
     }
+
+    if (frame.stride as u64).smul(frame.height as u64)? > MAX_TEXTURE_SIZE {
+        return Err(Error::TextureTooLarge);
+    }
+
+    // Esnure
+    frame.width.try_i32()?;
+    frame.height.try_i32()?;
+    frame.stride.try_usize()?;
 
     Ok(())
 }

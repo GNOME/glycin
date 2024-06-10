@@ -61,3 +61,17 @@ impl SafeMath for u32 {
         self.checked_add(rhs).ok_or(DimensionTooLargerError)
     }
 }
+
+impl SafeMath for u64 {
+    fn smul(self, rhs: Self) -> Result<Self, DimensionTooLargerError> {
+        self.checked_mul(rhs).ok_or(DimensionTooLargerError)
+    }
+
+    fn sadd(self, rhs: Self) -> Result<Self, DimensionTooLargerError> {
+        self.checked_add(rhs).ok_or(DimensionTooLargerError)
+    }
+
+    fn srem(self, rhs: Self) -> Result<Self, DimensionTooLargerError> {
+        self.checked_add(rhs).ok_or(DimensionTooLargerError)
+    }
+}

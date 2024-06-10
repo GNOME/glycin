@@ -308,15 +308,16 @@ impl Frame {
     }
 
     #[cfg(feature = "gdk4")]
-    pub fn texture(&self) -> Result<gdk::Texture> {
-        Ok(gdk::MemoryTexture::new(
-            self.width().try_i32()?,
-            self.height().try_i32()?,
+    pub fn texture(&self) -> gdk::Texture {
+        // Use unwraps here since the compatibility was checked before
+        gdk::MemoryTexture::new(
+            self.width().try_i32().unwrap(),
+            self.height().try_i32().unwrap(),
             crate::util::gdk_memory_format(self.memory_format()),
             &self.buffer,
-            self.stride().try_usize()?,
+            self.stride().try_usize().unwrap(),
         )
-        .upcast())
+        .upcast()
     }
 }
 
