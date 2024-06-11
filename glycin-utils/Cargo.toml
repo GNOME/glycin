@@ -14,7 +14,7 @@ futures-lite = { workspace = true, optional = true }
 image = { workspace = true, optional = true }
 libseccomp.workspace = true
 memmap.workspace = true
-nix = { workspace = true, features = ["fs", "signal"], optional = true }
+nix = { workspace = true, features = ["fs", "signal"] }
 serde.workspace = true
 zbus.workspace = true
 thiserror.workspace = true
@@ -30,7 +30,7 @@ default = ["async-io"]
 async-io = ["zbus/async-io"]
 tokio = ["dep:tokio", "zbus/tokio"]
 image-rs = ["dep:image", "loader-utils"]
-loader-utils = ["dep:futures-lite", "dep:nix"]
+loader-utils = ["dep:futures-lite"]
 gobject = ["glib"]
 
 [package.metadata.docs.rs]

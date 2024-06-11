@@ -1,12 +1,15 @@
 use std::os::unix::net::UnixStream;
 use std::sync::Mutex;
 
-const INTERFACE_NAME: &str = "org.gnome.glycin.Loader";
-
 #[test]
 #[ignore]
 fn dbus_api_stability() {
     async_global_executor::spawn(start_dbus()).detach();
+    check_api_stability("org.gnome.glycin.Loader");
+    check_api_stability("org.gnome.glycin.Editor");
+}
+
+fn check_api_stability(interface_name: &str) {
     let output = std::process::Command::new("busctl")
         .args([
             "introspect",
@@ -20,7 +23,7 @@ fn dbus_api_stability() {
 
     let compat_version = glycin::COMPAT_VERSION;
     let current_api =
-        std::fs::read_to_string(format!("../docs/{compat_version}+/{INTERFACE_NAME}.xml")).unwrap();
+        std::fs::read_to_string(format!("../docs/{compat_version}+/{interface_name}.xml")).unwrap();
 
     let s = r#"<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
   "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
@@ -32,7 +35,7 @@ fn dbus_api_stability() {
         .unwrap()
         .lines()
         .fold((false, s), |(mut take, mut s), line| {
-            if line.contains(INTERFACE_NAME) {
+            if line.contains(interface_name) {
                 take = true;
             }
 
@@ -59,9 +62,25 @@ fn dbus_api_stability() {
 }
 
 async fn start_dbus() {
-    struct MockDecoder {}
+    let _connection = zbus::ConnectionBuilder::session()
+        .unwrap()
+        .name("org.gnome.glycin.Test")
+        .unwrap()
+        .serve_at("/org/gnome/glycin/test", mock_loader())
+        .unwrap()
+        .serve_at("/org/gnome/glycin/test", mock_editor())
+        .unwrap()
+        .build()
+        .await
+        .unwrap();
 
-    impl glycin_utils::LoaderImplementation for MockDecoder {
+    std::future::pending::<()>().await;
+}
+
+fn mock_loader() -> glycin_utils::Loader {
+    struct MockLoader {}
+
+    impl glycin_utils::LoaderImplementation for MockLoader {
         fn init(
             &self,
             _stream: UnixStream,
@@ -78,21 +97,31 @@ async fn start_dbus() {
         }
     }
 
-    let decoder = MockDecoder {};
+    let loader_impl = MockLoader {};
 
-    let instruction_handler = glycin_utils::Loader {
-        decoder: Mutex::new(Box::new(decoder)),
-    };
+    glycin_utils::Loader {
+        loader: Mutex::new(Box::new(loader_impl)),
+    }
+}
 
-    let _connection = zbus::ConnectionBuilder::session()
-        .unwrap()
-        .name("org.gnome.glycin.Test")
-        .unwrap()
-        .serve_at("/org/gnome/glycin/test", instruction_handler)
-        .unwrap()
-        .build()
-        .await
-        .unwrap();
+fn mock_editor() -> glycin_utils::Editor {
+    struct MockEditor {}
 
-    std::future::pending::<()>().await;
+    impl glycin_utils::EditorImplementation for MockEditor {
+        fn apply(
+            &self,
+            _stream: UnixStream,
+            _mime_type: String,
+            _details: glycin_utils::InitializationDetails,
+            _operations: glycin_utils::operations::Operations,
+        ) -> Result<glycin_utils::EditorOutput, glycin_utils::LoaderError> {
+            unimplemented!()
+        }
+    }
+
+    let editor_impl = MockEditor {};
+
+    glycin_utils::Editor {
+        editor: Mutex::new(Box::new(editor_impl)),
+    }
 }

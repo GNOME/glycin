@@ -2,6 +2,7 @@
 
 //! Internal DBus API
 
+use std::marker::PhantomData;
 use std::mem;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::os::unix::net::UnixStream;
@@ -11,9 +12,10 @@ use futures_channel::oneshot;
 use futures_util::{future, FutureExt};
 use gio::glib;
 use gio::prelude::*;
+use glycin_utils::operations::Operations;
 use glycin_utils::{
-    DimensionTooLargerError, Frame, FrameRequest, ImageInfo, InitRequest, InitializationDetails,
-    RemoteError, SafeConversion, SafeMath,
+    DimensionTooLargerError, EditRequest, EditorOutput, Frame, FrameRequest, ImageInfo,
+    InitRequest, InitializationDetails, RemoteError, SafeConversion, SafeMath,
 };
 use memmap::MmapMut;
 use nix::sys::signal;
@@ -28,20 +30,37 @@ use crate::{config, icc, orientation, Error, Image};
 pub(crate) const MAX_TEXTURE_SIZE: u64 = 8u64.pow(9);
 
 #[derive(Clone, Debug)]
-pub struct DecoderProcess<'a> {
+pub struct RemoteProcess<'a, P: ZbusProxy<'a>> {
     _dbus_connection: zbus::Connection,
-    decoding_instruction: LoaderProxy<'a>,
+    decoding_instruction: P,
     mime_type: String,
+    phantom: PhantomData<&'a P>,
 }
 
-impl<'a> DecoderProcess<'a> {
+pub trait ZbusProxy<'a>: Sized + From<zbus::Proxy<'a>> {
+    fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self>;
+}
+
+impl<'a> ZbusProxy<'a> for LoaderProxy<'a> {
+    fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self> {
+        Self::builder(conn)
+    }
+}
+
+impl<'a> ZbusProxy<'a> for EditorProxy<'a> {
+    fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self> {
+        Self::builder(conn)
+    }
+}
+
+impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
     pub async fn new(
         mime_type: &config::MimeType,
         config: &config::Config,
         sandbox_mechanism: SandboxMechanism,
         file: &gio::File,
         cancellable: &gio::Cancellable,
-    ) -> Result<DecoderProcess<'a>, Error> {
+    ) -> Result<Self, Error> {
         let loader_config = config.get(mime_type)?;
 
         // UnixStream which facilitates the D-Bus connection. The stream is passed as
@@ -97,7 +116,7 @@ impl<'a> DecoderProcess<'a> {
 
         let dbus_connection = dbus_result.await?;
 
-        let decoding_instruction = LoaderProxy::builder(&dbus_connection)
+        let decoding_instruction = P::builder(&dbus_connection)
             // Ununsed since P2P connection
             .destination("org.gnome.glycin")?
             .build()
@@ -108,14 +127,19 @@ impl<'a> DecoderProcess<'a> {
             _dbus_connection: dbus_connection,
             decoding_instruction,
             mime_type: mime_type.to_string(),
+            phantom: PhantomData,
         })
     }
 
-    pub async fn init(
+    pub fn mime_type(&self) -> &str {
+        &self.mime_type
+    }
+
+    fn init_request(
         &self,
-        gfile_worker: GFileWorker,
+        gfile_worker: &GFileWorker,
         base_dir: Option<std::path::PathBuf>,
-    ) -> Result<ImageInfo, Error> {
+    ) -> Result<InitRequest, Error> {
         let (remote_reader, writer) = std::os::unix::net::UnixStream::pair()?;
 
         gfile_worker.write_to(writer)?;
@@ -127,14 +151,23 @@ impl<'a> DecoderProcess<'a> {
         let mut details = InitializationDetails::default();
         details.base_dir = base_dir;
 
-        let image_info = self
-            .decoding_instruction
-            .init(InitRequest {
-                fd,
-                mime_type,
-                details,
-            })
-            .shared();
+        Ok(InitRequest {
+            fd,
+            mime_type,
+            details,
+        })
+    }
+}
+
+impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
+    pub async fn init(
+        &self,
+        gfile_worker: GFileWorker,
+        base_dir: Option<std::path::PathBuf>,
+    ) -> Result<ImageInfo, Error> {
+        let init_request = self.init_request(&gfile_worker, base_dir)?;
+
+        let image_info = self.decoding_instruction.init(init_request).shared();
 
         let reader_error = gfile_worker.error();
         futures_util::pin_mut!(reader_error);
@@ -223,6 +256,35 @@ impl<'a> DecoderProcess<'a> {
     }
 }
 
+impl<'a> RemoteProcess<'a, EditorProxy<'a>> {
+    pub async fn editor_apply(
+        &self,
+        gfile_worker: &GFileWorker,
+        base_dir: Option<std::path::PathBuf>,
+        operations: Operations,
+    ) -> Result<EditorOutput, Error> {
+        let init_request = self.init_request(gfile_worker, base_dir)?;
+        let edit_request = EditRequest::for_operations(operations);
+
+        let editor_output = self
+            .decoding_instruction
+            .apply(init_request, edit_request)
+            .shared();
+
+        let reader_error = gfile_worker.error();
+        futures_util::pin_mut!(reader_error);
+
+        futures_util::select! {
+            _result = editor_output.clone().fuse() => Ok(()),
+            result = reader_error.fuse() => result,
+        }?;
+
+        let editor_output = editor_output.await?;
+
+        Ok(editor_output)
+    }
+}
+
 use std::io::Write;
 const BUF_SIZE: usize = u16::MAX as usize;
 
@@ -233,6 +295,18 @@ const BUF_SIZE: usize = u16::MAX as usize;
 trait Loader {
     async fn init(&self, init_request: InitRequest) -> Result<ImageInfo, RemoteError>;
     async fn frame(&self, frame_request: FrameRequest) -> Result<Frame, RemoteError>;
+}
+
+#[zbus::proxy(
+    interface = "org.gnome.glycin.Editor",
+    default_path = "/org/gnome/glycin"
+)]
+trait Editor {
+    async fn apply(
+        &self,
+        init_request: InitRequest,
+        edit_request: EditRequest,
+    ) -> Result<EditorOutput, RemoteError>;
 }
 
 pub struct GFileWorker {

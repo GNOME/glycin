@@ -9,7 +9,7 @@ use glycin_utils::*;
 /// <https://gitlab.gnome.org/GNOME/librsvg/-/issues/938>
 pub const RSVG_MAX_SIZE: u32 = 32_767;
 
-init_main!(ImgDecoder::default());
+init_main_loader!(ImgDecoder::default());
 
 #[derive(Default)]
 pub struct ImgDecoder {

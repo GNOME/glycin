@@ -205,3 +205,9 @@ impl Deref for BinaryDataRef {
         self.mmap.deref()
     }
 }
+
+impl AsRef<[u8]> for BinaryDataRef {
+    fn as_ref(&self) -> &[u8] {
+        self.mmap.deref()
+    }
+}

@@ -1,49 +1,75 @@
 // Copyright (c) 2024 GNOME Foundation Inc.
 
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+use std::os::fd::{AsRawFd, FromRawFd};
 use std::os::raw::{c_int, c_void};
 use std::os::unix::net::UnixStream;
 use std::sync::Mutex;
 
 use nix::libc::{c_uint, siginfo_t};
 
-use crate::dbus::*;
-use crate::error::*;
+use crate::dbus_editor_api::{void_editor_none, Editor, EditorImplementation};
+use crate::dbus_loader_api::{Loader, LoaderImplementation};
 
 pub struct Communication {
     _dbus_connection: zbus::Connection,
 }
 
 impl Communication {
-    pub fn spawn(decoder: impl LoaderImplementation + 'static) {
+    pub fn spawn_loader(decoder: impl LoaderImplementation + 'static) {
         futures_lite::future::block_on(async move {
-            let _connection = Communication::new(decoder).await;
+            let _connection = Self::connect(Some(decoder), void_editor_none()).await;
             std::future::pending::<()>().await;
         })
     }
 
-    pub async fn new(decoder: impl LoaderImplementation + 'static) -> Self {
-        let unix_stream = unsafe { UnixStream::from_raw_fd(std::io::stdin().as_raw_fd()) };
+    pub fn spawn_loader_editor(
+        loader: impl LoaderImplementation + 'static,
+        editor: impl EditorImplementation + 'static,
+    ) {
+        futures_lite::future::block_on(async move {
+            let _connection = Self::connect(Some(loader), Some(editor)).await;
+            std::future::pending::<()>().await;
+        })
+    }
 
-        let instruction_handler = Loader {
-            decoder: Mutex::new(Box::new(decoder)),
-        };
+    async fn connect(
+        loader: Option<impl LoaderImplementation + 'static>,
+        editor: Option<impl EditorImplementation + 'static>,
+    ) -> Self {
+        let unix_stream: UnixStream =
+            unsafe { UnixStream::from_raw_fd(std::io::stdin().as_raw_fd()) };
 
         #[cfg(feature = "tokio")]
         let unix_stream =
             tokio::net::UnixStream::from_std(unix_stream).expect("wrapping unix stream works");
 
-        let dbus_connection = zbus::ConnectionBuilder::unix_stream(unix_stream)
+        let mut dbus_connection = zbus::connection::Builder::unix_stream(unix_stream)
             .p2p()
-            .auth_mechanism(zbus::AuthMechanism::Anonymous)
-            .serve_at("/org/gnome/glycin", instruction_handler)
-            .expect("Failed to setup instruction handler")
-            .build()
-            .await
-            .expect("Failed to create private DBus connection");
+            .auth_mechanism(zbus::AuthMechanism::Anonymous);
+
+        if let Some(loader) = loader {
+            let instruction_handler = Loader {
+                loader: Mutex::new(Box::new(loader)),
+            };
+            dbus_connection = dbus_connection
+                .serve_at("/org/gnome/glycin", instruction_handler)
+                .expect("Failed to setup loader handler");
+        }
+
+        if let Some(editor) = editor {
+            let instruction_handler = Editor {
+                editor: Mutex::new(Box::new(editor)),
+            };
+            dbus_connection = dbus_connection
+                .serve_at("/org/gnome/glycin", instruction_handler)
+                .expect("Failed to setup editor handler");
+        }
 
         Communication {
-            _dbus_connection: dbus_connection,
+            _dbus_connection: dbus_connection
+                .build()
+                .await
+                .expect("Failed to create private DBus connection"),
         }
     }
 
@@ -100,66 +126,33 @@ impl Communication {
     }
 }
 
-pub trait LoaderImplementation: Send {
-    fn init(
-        &self,
-        stream: UnixStream,
-        mime_type: String,
-        details: InitializationDetails,
-    ) -> Result<ImageInfo, LoaderError>;
-    fn frame(&self, frame_request: FrameRequest) -> Result<Frame, LoaderError>;
-}
-
-pub struct Loader {
-    pub decoder: Mutex<Box<dyn LoaderImplementation>>,
-}
-
-#[zbus::interface(name = "org.gnome.glycin.Loader")]
-impl Loader {
-    async fn init(&self, init_request: InitRequest) -> Result<ImageInfo, RemoteError> {
-        let fd = OwnedFd::from(init_request.fd);
-        let stream = UnixStream::from(fd);
-
-        let image_info = self
-            .decoder
-            .lock()
-            .map_err(|err| {
-                RemoteError::InternalLoaderError(format!(
-                    "Failed to lock decoder for init(): {err}"
-                ))
-            })?
-            .init(stream, init_request.mime_type, init_request.details)?;
-
-        Ok(image_info)
-    }
-
-    async fn frame(&self, frame_request: FrameRequest) -> Result<Frame, RemoteError> {
-        self.decoder
-            .lock()
-            .map_err(|err| {
-                RemoteError::InternalLoaderError(format!(
-                    "Failed to lock decoder for frame(): {err}"
-                ))
-            })?
-            .frame(frame_request)
-            .map_err(Into::into)
-    }
-}
-
 #[allow(dead_code)]
 pub extern "C" fn pre_main() {
     Communication::setup_sigsys_handler();
 }
 
 #[macro_export]
-macro_rules! init_main {
-    ($init:expr) => {
+macro_rules! init_main_loader {
+    ($loader:expr) => {
         /// Init handler for SIGSYS before main() to catch
         #[cfg_attr(target_os = "linux", link_section = ".ctors")]
         static __CTOR: extern "C" fn() = pre_main;
 
         fn main() {
-            $crate::Communication::spawn($init);
+            $crate::Communication::spawn_loader($loader);
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! init_main_loader_editor {
+    ($loader:expr, $editor:expr) => {
+        /// Init handler for SIGSYS before main() to catch
+        #[cfg_attr(target_os = "linux", link_section = ".ctors")]
+        static __CTOR: extern "C" fn() = pre_main;
+
+        fn main() {
+            $crate::Communication::spawn_loader_editor($loader, $editor);
         }
     };
 }

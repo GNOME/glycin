@@ -1,8 +1,10 @@
 use std::path::Path;
+use std::path::PathBuf;
 use std::sync::OnceLock;
 
 use gio::glib;
 use gio::prelude::*;
+use glycin_utils::operations::Operations;
 #[cfg(feature = "gdk4")]
 use glycin_utils::save_math::*;
 use glycin_utils::ImageInfo;
@@ -76,6 +78,129 @@ impl SandboxSelector {
 
 /// Image request builder
 #[derive(Debug)]
+pub struct Editor {
+    file: gio::File,
+    cancellable: gio::Cancellable,
+    pub(crate) sandbox_mechanism: SandboxSelector,
+}
+
+impl Editor {
+    /// Create a new loader
+    pub fn new(file: gio::File) -> Self {
+        Self {
+            file,
+            cancellable: gio::Cancellable::new(),
+            sandbox_mechanism: SandboxSelector::default(),
+        }
+    }
+
+    /// Change the sandbox mechanism
+    ///
+    /// The default without calling this function is to automatically select a
+    /// sandbox mechanism. The sandbox is never disabled automatically.
+    pub fn sandbox_mechanism(&mut self, sandbox_mechanism: Option<SandboxMechanism>) -> &mut Self {
+        self.sandbox_mechanism =
+            sandbox_mechanism.map_or(SandboxSelector::Auto, |x| x.into_selector());
+        self
+    }
+
+    /// Set [`Cancellable`](gio::Cancellable) to cancel any editing operations
+    pub fn cancellable(&mut self, cancellable: impl IsA<gio::Cancellable>) -> &mut Self {
+        self.cancellable = cancellable.upcast();
+        self
+    }
+
+    pub async fn apply(self, operations: Operations) -> Result<()> {
+        let process_context =
+            spin_up(&self.file, &self.cancellable, &self.sandbox_mechanism).await?;
+
+        let editor_output = process_context
+            .process
+            .editor_apply(
+                &process_context.gfile_worker,
+                process_context.base_dir,
+                operations,
+            )
+            .await?;
+
+        dbg!(editor_output);
+
+        Ok(())
+    }
+}
+
+pub struct RemoteProcessContext<'a, P: ZbusProxy<'a>> {
+    process: RemoteProcess<'a, P>,
+    gfile_worker: GFileWorker,
+    base_dir: Option<PathBuf>,
+    mime_type: MimeType,
+    sandbox_mechanism: SandboxMechanism,
+}
+
+async fn spin_up<'a, P: ZbusProxy<'a> + 'a>(
+    file: &gio::File,
+    cancellable: &gio::Cancellable,
+    sandbox_selector: &SandboxSelector,
+) -> Result<RemoteProcessContext<'a, P>> {
+    let config = config::Config::cached().await;
+
+    let gfile_worker = GFileWorker::spawn(file.clone(), cancellable.clone());
+    let mime_type = guess_mime_type(&gfile_worker).await?;
+
+    let sandbox_mechanism = sandbox_selector.determine_sandbox_mechanism().await;
+
+    let process = RemoteProcess::new(
+        &mime_type,
+        config,
+        sandbox_mechanism,
+        &file,
+        cancellable.as_ref(),
+    )
+    .await?;
+
+    let decoder_config = config.get(&process.mime_type().to_string())?;
+    let base_dir = if decoder_config.expose_base_dir {
+        file.parent().and_then(|x| x.path())
+    } else {
+        None
+    };
+
+    Ok(RemoteProcessContext {
+        process,
+        gfile_worker,
+        base_dir,
+        mime_type,
+        sandbox_mechanism,
+    })
+}
+
+async fn guess_mime_type(gfile_worker: &GFileWorker) -> Result<String> {
+    let head = gfile_worker.head().await?;
+    let (content_type, unsure) = gio::content_type_guess(None::<String>, &head);
+    let mime_type = gio::content_type_get_mime_type(&content_type)
+        .ok_or_else(|| Error::UnknownImageFormat(content_type.to_string()));
+
+    // Prefer file extension for TIFF since it can be a RAW format as well
+    let is_tiff = mime_type.clone().ok() == Some("image/tiff".into());
+
+    // Prefer file extension for XML since long comment between `<?xml` and `<svg>`
+    // can falsely guess XML instead of SVG
+    let is_xml = mime_type.clone().ok() == Some("application/xml".into());
+
+    if unsure || is_tiff || is_xml {
+        if let Some(filename) = gfile_worker.file().basename() {
+            let content_type_fn = gio::content_type_guess(Some(filename), &head).0;
+            return gio::content_type_get_mime_type(&content_type_fn)
+                .ok_or_else(|| Error::UnknownImageFormat(content_type_fn.to_string()))
+                .map(|x| x.to_string());
+        }
+    }
+
+    mime_type.map(|x| x.to_string())
+}
+
+/// Image request builder
+#[derive(Debug)]
 pub struct Loader {
     file: gio::File,
     cancellable: gio::Cancellable,
@@ -123,67 +248,21 @@ impl Loader {
 
     /// Load basic image information and enable further operations
     pub async fn load<'a>(self) -> Result<Image<'a>> {
-        let config = config::Config::cached().await;
+        let process_context =
+            spin_up(&self.file, &self.cancellable, &self.sandbox_mechanism).await?;
 
-        if config.image_decoders.is_empty() {
-            return Err(Error::NoLoadersConfigured);
-        }
-
-        let gfile_worker = GFileWorker::spawn(self.file.clone(), self.cancellable.clone());
-        let mime_type = Self::guess_mime_type(&gfile_worker).await?;
-        let decoder_config = config.get(&mime_type)?;
-
-        let sandbox_mechanism = self.sandbox_mechanism.determine_sandbox_mechanism().await;
-
-        let base_dir = if decoder_config.expose_base_dir {
-            self.file.parent().and_then(|x| x.path())
-        } else {
-            None
-        };
-
-        let process = DecoderProcess::new(
-            &mime_type,
-            config,
-            sandbox_mechanism,
-            &self.file,
-            self.cancellable.as_ref(),
-        )
-        .await?;
-
-        let info = process.init(gfile_worker, base_dir).await?;
+        let info = process_context
+            .process
+            .init(process_context.gfile_worker, process_context.base_dir)
+            .await?;
 
         Ok(Image {
-            process,
+            process: process_context.process,
             info,
             loader: self,
-            mime_type,
-            active_sandbox_mechanism: sandbox_mechanism,
+            mime_type: process_context.mime_type,
+            active_sandbox_mechanism: process_context.sandbox_mechanism,
         })
-    }
-
-    async fn guess_mime_type(gfile_worker: &GFileWorker) -> Result<String> {
-        let head = gfile_worker.head().await?;
-        let (content_type, unsure) = gio::content_type_guess(None::<String>, &head);
-        let mime_type = gio::content_type_get_mime_type(&content_type)
-            .ok_or_else(|| Error::UnknownImageFormat(content_type.to_string()));
-
-        // Prefer file extension for TIFF since it can be a RAW format as well
-        let is_tiff = mime_type.clone().ok() == Some("image/tiff".into());
-
-        // Prefer file extension for XML since long comment between `<?xml` and `<svg>`
-        // can falsely guess XML instead of SVG
-        let is_xml = mime_type.clone().ok() == Some("application/xml".into());
-
-        if unsure || is_tiff || is_xml {
-            if let Some(filename) = gfile_worker.file().basename() {
-                let content_type_fn = gio::content_type_guess(Some(filename), &head).0;
-                return gio::content_type_get_mime_type(&content_type_fn)
-                    .ok_or_else(|| Error::UnknownImageFormat(content_type_fn.to_string()))
-                    .map(|x| x.to_string());
-            }
-        }
-
-        mime_type.map(|x| x.to_string())
     }
 }
 
@@ -191,7 +270,7 @@ impl Loader {
 #[derive(Debug)]
 pub struct Image<'a> {
     pub(crate) loader: Loader,
-    process: DecoderProcess<'a>,
+    process: RemoteProcess<'a, LoaderProxy<'a>>,
     info: ImageInfo,
     mime_type: MimeType,
     active_sandbox_mechanism: SandboxMechanism,

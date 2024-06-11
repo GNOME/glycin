@@ -1,15 +1,18 @@
 #![allow(clippy::large_enum_variant)]
 
+mod editor;
+
 use std::io::{Cursor, Read};
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::Mutex;
 
+use editor::ImgEditor;
 use glycin_utils::image_rs::Handler;
 use glycin_utils::*;
 use image::io::Limits;
 use image::{codecs, AnimationDecoder, ImageDecoder, ImageResult};
 
-init_main!(ImgDecoder::default());
+init_main_loader_editor!(ImgDecoder::default(), ImgEditor::default());
 
 type Reader = Cursor<Vec<u8>>;
 type FrameReceiver = Receiver<Result<Frame, LoaderError>>;

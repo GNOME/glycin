@@ -10,7 +10,7 @@ use jpegxl_sys::codestream_header::*;
 use jpegxl_sys::decode::*;
 use jpegxl_sys::types::{JxlBool, JxlBoxType};
 
-init_main!(ImgDecoder::default());
+init_main_loader!(ImgDecoder::default());
 
 type InitData = Option<(Vec<u8>, Option<Vec<u8>>)>;
 

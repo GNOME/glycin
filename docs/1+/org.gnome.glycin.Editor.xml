@@ -1,0 +1,11 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+  "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.gnome.glycin.Editor">
+    <method name="Apply">
+      <arg name="init_request" type="(hsa{sv})" direction="in"/>
+      <arg name="edit_request" type="a{sv}" direction="in"/>
+      <arg type="a{sv}" direction="out"/>
+    </method>
+  </interface>
+</node>
