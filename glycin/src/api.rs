@@ -149,17 +149,10 @@ async fn spin_up<'a, P: ZbusProxy<'a> + 'a>(
 
     let sandbox_mechanism = sandbox_selector.determine_sandbox_mechanism().await;
 
-    let process = RemoteProcess::new(
-        &mime_type,
-        config,
-        sandbox_mechanism,
-        &file,
-        cancellable.as_ref(),
-    )
-    .await?;
+    let process =
+        RemoteProcess::new(&mime_type, config, sandbox_mechanism, file, cancellable).await?;
 
-    let decoder_config = config.get(&process.mime_type().to_string())?;
-    let base_dir = if decoder_config.expose_base_dir {
+    let base_dir: Option<PathBuf> = if P::expose_base_dir(config, &mime_type)? {
         file.parent().and_then(|x| x.path())
     } else {
         None
@@ -430,7 +423,7 @@ impl FrameRequest {
 pub async fn supported_mime_types() -> Vec<MimeType> {
     config::Config::cached()
         .await
-        .image_decoders
+        .image_loader
         .keys()
         .cloned()
         .collect()

@@ -18,11 +18,18 @@ static CONFIG: OnceLock<Config> = OnceLock::new();
 
 #[derive(Debug, Clone, Default)]
 pub struct Config {
-    pub image_decoders: HashMap<MimeType, ImageDecoderConfig>,
+    pub image_loader: HashMap<MimeType, ImageLoaderConfig>,
+    pub image_editor: HashMap<MimeType, ImageEditorConfig>,
 }
 
 #[derive(Debug, Clone)]
-pub struct ImageDecoderConfig {
+pub struct ImageLoaderConfig {
+    pub exec: PathBuf,
+    pub expose_base_dir: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct ImageEditorConfig {
     pub exec: PathBuf,
     pub expose_base_dir: bool,
 }
@@ -37,8 +44,14 @@ impl Config {
         }
     }
 
-    pub fn get(&self, mime_type: &MimeType) -> Result<&ImageDecoderConfig, Error> {
-        self.image_decoders
+    pub fn get_loader(&self, mime_type: &MimeType) -> Result<&ImageLoaderConfig, Error> {
+        self.image_loader
+            .get(mime_type.as_str())
+            .ok_or_else(|| Error::UnknownImageFormat(mime_type.to_string()))
+    }
+
+    pub fn get_editor(&self, mime_type: &MimeType) -> Result<&ImageEditorConfig, Error> {
+        self.image_editor
             .get(mime_type.as_str())
             .ok_or_else(|| Error::UnknownImageFormat(mime_type.to_string()))
     }
@@ -75,24 +88,40 @@ impl Config {
         keyfile.load_from_bytes(&bytes, glib::KeyFileFlags::NONE)?;
 
         for group in keyfile.groups() {
-            let mut elements = group.split(':');
+            let mut elements = group.trim().split(':');
             let kind = elements.next();
             let mime_type = elements.next();
 
-            if kind == Some("loader") {
-                if let Some(mime_type) = mime_type {
-                    let group = group.trim();
-                    if let Ok(exec) = keyfile.string(group, "Exec") {
-                        let expose_base_dir =
-                            keyfile.boolean(group, "ExposeBaseDir").unwrap_or_default();
+            if let Some(mime_type) = mime_type {
+                let group = group.trim();
+                match kind {
+                    Some("loader") => {
+                        if let Ok(exec) = keyfile.string(group, "Exec") {
+                            let expose_base_dir =
+                                keyfile.boolean(group, "ExposeBaseDir").unwrap_or_default();
 
-                        let cfg = ImageDecoderConfig {
-                            exec: exec.into(),
-                            expose_base_dir,
-                        };
+                            let cfg = ImageLoaderConfig {
+                                exec: exec.into(),
+                                expose_base_dir,
+                            };
 
-                        config.image_decoders.insert(mime_type.to_string(), cfg);
+                            config.image_loader.insert(mime_type.to_string(), cfg);
+                        }
                     }
+                    Some("editor") => {
+                        if let Ok(exec) = keyfile.string(group, "Exec") {
+                            let expose_base_dir =
+                                keyfile.boolean(group, "ExposeBaseDir").unwrap_or_default();
+
+                            let cfg = ImageEditorConfig {
+                                exec: exec.into(),
+                                expose_base_dir,
+                            };
+
+                            config.image_editor.insert(mime_type.to_string(), cfg);
+                        }
+                    }
+                    _ => {}
                 }
             }
         }

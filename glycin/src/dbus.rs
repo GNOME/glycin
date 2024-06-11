@@ -6,6 +6,7 @@ use std::marker::PhantomData;
 use std::mem;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::os::unix::net::UnixStream;
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use futures_channel::oneshot;
@@ -22,9 +23,10 @@ use nix::sys::signal;
 use zbus::zvariant;
 
 use crate::api::{self, SandboxMechanism};
+use crate::config::Config;
 use crate::sandbox::Sandbox;
 use crate::util::{block_on, spawn_blocking, spawn_blocking_detached};
-use crate::{config, icc, orientation, Error, Image};
+use crate::{config, icc, orientation, Error, Image, MimeType};
 
 /// Max texture size 8 GB in bytes
 pub(crate) const MAX_TEXTURE_SIZE: u64 = 8u64.pow(9);
@@ -39,17 +41,35 @@ pub struct RemoteProcess<'a, P: ZbusProxy<'a>> {
 
 pub trait ZbusProxy<'a>: Sized + From<zbus::Proxy<'a>> {
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self>;
+    fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error>;
+    fn exec(config: &Config, mime_type: &MimeType) -> Result<PathBuf, Error>;
 }
 
 impl<'a> ZbusProxy<'a> for LoaderProxy<'a> {
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self> {
         Self::builder(conn)
     }
+
+    fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error> {
+        Ok(config.get_loader(mime_type)?.expose_base_dir)
+    }
+
+    fn exec(config: &Config, mime_type: &MimeType) -> Result<PathBuf, Error> {
+        Ok(config.get_loader(mime_type)?.exec.clone())
+    }
 }
 
 impl<'a> ZbusProxy<'a> for EditorProxy<'a> {
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self> {
         Self::builder(conn)
+    }
+
+    fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error> {
+        Ok(config.get_editor(mime_type)?.expose_base_dir)
+    }
+
+    fn exec(config: &Config, mime_type: &MimeType) -> Result<PathBuf, Error> {
+        Ok(config.get_editor(mime_type)?.exec.clone())
     }
 }
 
@@ -61,8 +81,6 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         file: &gio::File,
         cancellable: &gio::Cancellable,
     ) -> Result<Self, Error> {
-        let loader_config = config.get(mime_type)?;
-
         // UnixStream which facilitates the D-Bus connection. The stream is passed as
         // stdin to loader binaries.
         let (unix_stream, loader_stdin) = std::os::unix::net::UnixStream::pair()?;
@@ -73,10 +91,10 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
             .set_nonblocking(true)
             .expect("Couldn't set nonblocking");
 
-        let decoder_bin = loader_config.exec.clone();
+        let decoder_bin = P::exec(config, mime_type)?;
         let mut sandbox = Sandbox::new(sandbox_mechanism, decoder_bin, loader_stdin);
         // Mount dir that contains the file as read only for formats like SVG
-        if loader_config.expose_base_dir {
+        if P::expose_base_dir(config, mime_type)? {
             if let Some(base_dir) = file.parent().and_then(|x| x.path()) {
                 sandbox.add_ro_bind(base_dir);
             }
@@ -129,10 +147,6 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
             mime_type: mime_type.to_string(),
             phantom: PhantomData,
         })
-    }
-
-    pub fn mime_type(&self) -> &str {
-        &self.mime_type
     }
 
     fn init_request(
