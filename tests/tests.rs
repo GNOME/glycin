@@ -53,11 +53,11 @@ impl TestResult {
 }
 
 fn test_dir(dir: impl AsRef<Path>) {
-    async_global_executor::block_on(test_dir_options(dir, true));
+    block_on(test_dir_options(dir, true));
 }
 
 fn test_dir_no_exif(dir: impl AsRef<Path>) {
-    async_global_executor::block_on(test_dir_options(dir, false));
+    block_on(test_dir_options(dir, false));
 }
 
 async fn test_dir_options(dir: impl AsRef<Path>, exif: bool) {
@@ -174,4 +174,18 @@ async fn get_info(path: impl AsRef<Path>) -> glycin::ImageInfo {
     let image_request = glycin::Loader::new(file);
     let image = image_request.load().await.unwrap();
     image.info().clone()
+}
+
+#[cfg(not(feature = "tokio"))]
+pub fn block_on<F: std::future::Future>(future: F) -> F::Output {
+    async_global_executor::block_on(future)
+}
+
+#[cfg(feature = "tokio")]
+pub fn block_on<F: std::future::Future>(future: F) -> F::Output {
+    use std::sync::OnceLock;
+    static TOKIO_RT: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
+    let runtime =
+        TOKIO_RT.get_or_init(|| tokio::runtime::Runtime::new().expect("tokio runtime was created"));
+    runtime.block_on(future)
 }

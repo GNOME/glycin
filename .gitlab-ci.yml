@@ -74,12 +74,19 @@ test-aarch64:
     - meson install -C builddir
     - meson test -vC builddir
 
-test-fedoda40-loaders:
+test-fedora40-loaders-async-io:
   image: 'registry.fedoraproject.org/fedora:40'
   interruptible: true
   script:
     - dnf install --assumeyes glycin-loaders cargo bubblewrap glib2-devel gtk4-devel lcms2-devel libseccomp-devel
     - GLYCIN_TEST_SKIP_EXT=exr cargo test -p tests
+
+test-fedora40-loaders-tokio:
+  image: 'registry.fedoraproject.org/fedora:40'
+  interruptible: true
+  script:
+    - dnf install --assumeyes glycin-loaders cargo bubblewrap glib2-devel gtk4-devel lcms2-devel libseccomp-devel
+    - GLYCIN_TEST_SKIP_EXT=exr cargo test -p tests --no-default-features --features tokio
 
 cargo-semver-checks:
   image: rust

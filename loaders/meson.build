@@ -168,4 +168,24 @@ if get_option('tests')
     is_parallel: false,
     timeout: 1800,
   )
+
+  test(
+    'cargo-test-tokio',
+    cargo_bin,
+    args: [
+      'test',
+      '-p', 'tests',
+      '--no-default-features',
+      '--features', 'tokio',
+      # Not using a separate target dir causes rebuilds for the loaders
+      '--target-dir', cargo_target_dir / 'tests',
+      cargo_options,
+      '--',
+      '--test-threads=1',
+      '--nocapture',
+    ],
+    env: env,
+    is_parallel: false,
+    timeout: 1800,
+  )
 endif

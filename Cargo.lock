@@ -2994,6 +2994,7 @@ dependencies = [
  "gio 0.20.0",
  "glycin",
  "glycin-utils",
+ "tokio",
  "zbus",
 ]
 
