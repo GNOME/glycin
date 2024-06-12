@@ -1377,6 +1377,7 @@ dependencies = [
  "rmp-serde",
  "serde",
  "thiserror",
+ "tokio",
  "zbus",
 ]
 

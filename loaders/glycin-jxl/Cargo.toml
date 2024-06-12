@@ -10,7 +10,7 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-glycin-utils = { workspace = true, features = ["loader-utils", "image-rs"] }
+glycin-utils = { workspace = true, features = ["async-io", "loader-utils", "image-rs"] }
 jpegxl-rs = "0.10.3"
 jpegxl-sys = "0.10.3"
 safe-transmute.workspace = true

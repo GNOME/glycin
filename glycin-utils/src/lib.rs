@@ -6,6 +6,13 @@
 
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
+#[cfg(all(not(feature = "async-io"), not(feature = "tokio")))]
+mod error_message {
+    compile_error!(
+        "\"async-io\" (default) or \"tokio\" must be enabled to provide an async runtime for zbus."
+    );
+}
+
 pub mod dbus;
 pub mod error;
 #[cfg(feature = "image-rs")]

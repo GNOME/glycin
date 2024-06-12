@@ -12,5 +12,5 @@ rust-version.workspace = true
 [dependencies]
 cairo-rs = "0.19"
 gio = "0.19"
-glycin-utils = { workspace = true, features = ["loader-utils"] }
+glycin-utils = { workspace = true, features = ["async-io", "loader-utils"] }
 librsvg = "2.58.0"

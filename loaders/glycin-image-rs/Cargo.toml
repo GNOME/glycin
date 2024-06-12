@@ -10,6 +10,6 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-glycin-utils = { workspace = true, features = ["image-rs"] }
+glycin-utils = { workspace = true, features = ["async-io", "image-rs"] }
 image.workspace = true
 kamadak-exif.workspace = true

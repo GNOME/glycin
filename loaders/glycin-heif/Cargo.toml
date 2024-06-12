@@ -10,6 +10,6 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-glycin-utils = { workspace = true, features = ["loader-utils"] }
+glycin-utils = { workspace = true, features = ["async-io", "loader-utils"] }
 libheif-rs = "1.0.2"
 safe-transmute.workspace = true

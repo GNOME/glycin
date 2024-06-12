@@ -28,6 +28,11 @@ impl Communication {
         let instruction_handler = Loader {
             decoder: Mutex::new(Box::new(decoder)),
         };
+
+        #[cfg(feature = "tokio")]
+        let unix_stream =
+            tokio::net::UnixStream::from_std(unix_stream).expect("wrapping unix stream works");
+
         let dbus_connection = zbus::ConnectionBuilder::unix_stream(unix_stream)
             .p2p()
             .auth_mechanism(zbus::AuthMechanism::Anonymous)

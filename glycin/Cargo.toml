@@ -13,8 +13,8 @@ rust-version.workspace = true
 
 [features]
 default = ["async-io"]
-async-io = ["dep:async-fs", "dep:async-global-executor", "dep:async-lock", "zbus/async-io"]
-tokio = ["dep:tokio", "dep:tokio-stream", "zbus/tokio"]
+async-io = ["dep:async-fs", "dep:async-global-executor", "dep:async-lock", "glycin-utils/async-io", "zbus/async-io"]
+tokio = ["dep:tokio", "dep:tokio-stream", "glycin-utils/tokio", "zbus/tokio"]
 gobject = ["dep:static_assertions", "glycin-utils/gobject"]
 gdk4 = ["dep:gdk"]
 

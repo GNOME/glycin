@@ -16,16 +16,19 @@ libseccomp.workspace = true
 memmap.workspace = true
 nix = { workspace = true, features = ["fs", "signal"], optional = true }
 serde.workspace = true
-zbus = { workspace = true, features = ["async-io"] }
+zbus.workspace = true
 thiserror.workspace = true
 libc.workspace = true
 rmp-serde.workspace = true
 gufo-common.workspace = true
 paste.workspace = true
 glib = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
 
 [features]
-default = []
+default = ["async-io"]
+async-io = ["zbus/async-io"]
+tokio = ["dep:tokio", "zbus/tokio"]
 image-rs = ["dep:image", "loader-utils"]
 loader-utils = ["dep:futures-lite", "dep:nix"]
 gobject = ["glib"]
