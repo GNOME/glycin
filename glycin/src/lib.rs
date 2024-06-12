@@ -56,6 +56,13 @@
 //! [`gtk4::Image::from_paintable()`]: https://gtk-rs.org/gtk4-rs/git/docs/gtk4/struct.Image.html#method.from_paintable
 //! [loaders]: https://gitlab.gnome.org/sophie-h/glycin#supported-image-formats
 
+#[cfg(all(not(feature = "async-io"), not(feature = "tokio")))]
+mod error_message {
+    compile_error!(
+        "\"async-io\" (default) or \"tokio\" must be enabled to provide an async runtime."
+    );
+}
+
 mod api;
 mod config;
 mod dbus;

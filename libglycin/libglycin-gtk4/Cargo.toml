@@ -11,7 +11,7 @@ rust-version.workspace = true
 
 [dependencies]
 gdk.workspace = true
-glycin = { workspace = true, features = ["gobject", "gdk4"] }
+glycin = { workspace = true, features = ["async-io", "gobject", "gdk4"] }
 
 [build-dependencies]
 system-deps = "6.0"

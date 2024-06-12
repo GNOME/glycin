@@ -14,10 +14,10 @@ use libseccomp::{ScmpAction, ScmpFilterContext, ScmpSyscall};
 use memfd::{Memfd, MemfdOptions};
 use nix::sys::resource;
 
+use crate::util::{new_async_mutex, AsyncMutex};
 use crate::{Error, SandboxMechanism};
 
-static SYSTEM_SETUP: async_lock::Mutex<Option<Arc<io::Result<SystemSetup>>>> =
-    async_lock::Mutex::new(None);
+static SYSTEM_SETUP: AsyncMutex<Option<Arc<io::Result<SystemSetup>>>> = new_async_mutex(None);
 
 const ALLOWED_SYSCALLS: &[&str] = &[
     "access",

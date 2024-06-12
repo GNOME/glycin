@@ -12,15 +12,16 @@ edition.workspace = true
 rust-version.workspace = true
 
 [features]
-default = []
-tokio = ["dep:tokio", "zbus/tokio"]
+default = ["async-io"]
+async-io = ["dep:async-fs", "dep:async-global-executor", "dep:async-lock", "zbus/async-io"]
+tokio = ["dep:tokio", "dep:tokio-stream", "zbus/tokio"]
 gobject = ["dep:static_assertions", "glycin-utils/gobject"]
 gdk4 = ["dep:gdk"]
 
 [dependencies]
-async-fs.workspace = true
-async-global-executor.workspace = true
-async-lock.workspace = true
+async-fs = { workspace = true, optional = true }
+async-global-executor = { workspace = true, optional = true }
+async-lock = { workspace = true, optional = true }
 futures-channel.workspace = true
 futures-util.workspace = true
 gdk = { workspace = true, optional = true }
@@ -38,6 +39,7 @@ nix = { workspace = true, features = ["fs", "resource", "signal"] }
 static_assertions = { workspace = true, optional = true }
 thiserror.workspace = true
 tokio = { workspace = true, optional = true }
+tokio-stream = { workspace = true, optional = true }
 zbus = { workspace = true, features = ["p2p"] }
 
 [package.metadata.docs.rs]

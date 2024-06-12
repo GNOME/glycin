@@ -1,3 +1,6 @@
+use std::path::{Path, PathBuf};
+
+use futures_util::{Stream, StreamExt};
 #[cfg(feature = "gdk4")]
 use glycin_utils::MemoryFormat;
 
@@ -31,3 +34,86 @@ pub const fn gdk_memory_format(format: MemoryFormat) -> gdk::MemoryFormat {
         MemoryFormat::G16 => gdk::MemoryFormat::G16,
     }
 }
+
+#[cfg(not(feature = "tokio"))]
+pub fn block_on<F: std::future::Future>(future: F) -> F::Output {
+    async_global_executor::block_on(future)
+}
+
+#[cfg(feature = "tokio")]
+pub fn block_on<F: std::future::Future>(future: F) -> F::Output {
+    use std::sync::OnceLock;
+    static TOKIO_RT: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
+    let runtime =
+        TOKIO_RT.get_or_init(|| tokio::runtime::Runtime::new().expect("tokio runtime was created"));
+    runtime.block_on(future)
+}
+
+#[cfg(not(feature = "tokio"))]
+pub async fn spawn_blocking<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(f: F) -> T {
+    async_global_executor::spawn_blocking(f).await
+}
+
+#[cfg(feature = "tokio")]
+pub async fn spawn_blocking<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(f: F) -> T {
+    tokio::task::spawn_blocking(f)
+        .await
+        .expect("task was not aborted")
+}
+
+#[cfg(not(feature = "tokio"))]
+pub fn spawn_blocking_detached<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(f: F) {
+    async_global_executor::spawn_blocking(f).detach()
+}
+
+#[cfg(feature = "tokio")]
+pub fn spawn_blocking_detached<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(f: F) {
+    tokio::task::spawn_blocking(f);
+}
+
+#[cfg(not(feature = "tokio"))]
+pub type AsyncMutex<T> = async_lock::Mutex<T>;
+
+#[cfg(not(feature = "tokio"))]
+pub const fn new_async_mutex<T>(t: T) -> AsyncMutex<T> {
+    AsyncMutex::new(t)
+}
+
+#[cfg(feature = "tokio")]
+pub type AsyncMutex<T> = tokio::sync::Mutex<T>;
+
+#[cfg(feature = "tokio")]
+pub const fn new_async_mutex<T>(t: T) -> AsyncMutex<T> {
+    AsyncMutex::const_new(t)
+}
+
+#[cfg(not(feature = "tokio"))]
+pub async fn read_dir<P: AsRef<Path>>(
+    path: P,
+) -> Result<
+    impl Stream<Item = Result<PathBuf, Box<dyn std::error::Error + Sync + Send>>>,
+    Box<dyn std::error::Error + Sync + Send>,
+> {
+    Ok(async_fs::read_dir(path)
+        .await?
+        .map(|result| result.map(|entry| entry.path()).map_err(Into::into)))
+}
+
+#[cfg(feature = "tokio")]
+pub async fn read_dir<P: AsRef<Path>>(
+    path: P,
+) -> Result<
+    impl Stream<Item = Result<PathBuf, Box<dyn std::error::Error + Sync + Send>>>,
+    Box<dyn std::error::Error + Sync + Send>,
+> {
+    let read_dir = tokio::fs::read_dir(path).await?;
+
+    Ok(tokio_stream::wrappers::ReadDirStream::new(read_dir)
+        .map(|result| result.map(|entry| entry.path()).map_err(Into::into)))
+}
+
+#[cfg(not(feature = "tokio"))]
+pub use async_fs::read;
+
+#[cfg(feature = "tokio")]
+pub use tokio::fs::read;

@@ -13,7 +13,7 @@ rust-version.workspace = true
 async-io.workspace = true
 futures-task.workspace = true
 gio.workspace = true
-glycin = { workspace = true, features = ["gobject"] }
+glycin = { workspace = true, features = ["async-io", "gobject"] }
 
 [lib]
 name = "glycin"

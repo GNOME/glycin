@@ -1,7 +1,6 @@
 use std::path::Path;
 use std::sync::OnceLock;
 
-use async_global_executor::spawn_blocking;
 use gio::glib;
 use gio::prelude::*;
 #[cfg(feature = "gdk4")]
@@ -11,6 +10,7 @@ pub use glycin_utils::{FrameDetails, MemoryFormat};
 
 pub use crate::config::MimeType;
 use crate::dbus::*;
+use crate::util::spawn_blocking;
 use crate::{config, Error};
 
 static IS_FLATPAKED: OnceLock<bool> = OnceLock::new();

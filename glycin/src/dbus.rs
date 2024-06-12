@@ -7,7 +7,6 @@ use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::os::unix::net::UnixStream;
 use std::sync::Arc;
 
-use async_global_executor::{block_on, spawn_blocking};
 use futures_channel::oneshot;
 use futures_util::{future, FutureExt};
 use gio::glib;
@@ -22,6 +21,7 @@ use zbus::zvariant;
 
 use crate::api::{self, SandboxMechanism};
 use crate::sandbox::Sandbox;
+use crate::util::{block_on, spawn_blocking, spawn_blocking_detached};
 use crate::{config, icc, orientation, Error, Image};
 
 /// Max texture size 8 GB in bytes
@@ -250,7 +250,7 @@ impl GFileWorker {
         let (first_bytes_send, first_bytes_recv) = oneshot::channel();
         let (writer_send, writer_recv) = oneshot::channel();
 
-        spawn_blocking(move || {
+        spawn_blocking_detached(move || {
             Self::handle_errors(error_send, move || {
                 let reader = gfile.read(Some(&cancellable))?;
                 let mut buf = vec![0; BUF_SIZE];
@@ -276,8 +276,7 @@ impl GFileWorker {
 
                 Ok(())
             })
-        })
-        .detach();
+        });
 
         GFileWorker {
             file,

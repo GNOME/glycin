@@ -16,7 +16,7 @@ libseccomp.workspace = true
 memmap.workspace = true
 nix = { workspace = true, features = ["fs", "signal"], optional = true }
 serde.workspace = true
-zbus.workspace = true
+zbus = { workspace = true, features = ["async-io"] }
 thiserror.workspace = true
 libc.workspace = true
 rmp-serde.workspace = true
