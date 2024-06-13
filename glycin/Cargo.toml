@@ -13,7 +13,13 @@ rust-version.workspace = true
 
 [features]
 default = ["async-io"]
-async-io = ["dep:async-fs", "dep:async-global-executor", "dep:async-lock", "glycin-utils/async-io", "zbus/async-io"]
+async-io = [
+    "dep:async-fs",
+    "dep:async-global-executor",
+    "dep:async-lock",
+    "glycin-utils/async-io",
+    "zbus/async-io",
+]
 tokio = ["dep:tokio", "dep:tokio-stream", "glycin-utils/tokio", "zbus/tokio"]
 gobject = ["dep:static_assertions", "glycin-utils/gobject"]
 gdk4 = ["dep:gdk"]
@@ -27,8 +33,8 @@ futures-util.workspace = true
 gdk = { workspace = true, optional = true }
 gio.workspace = true
 glycin-utils = { workspace = true }
-gufo-common = { git = "https://github.com/gufo-rs/gufo.git", version = "0.1.0" }
-gufo-exif = { git = "https://github.com/gufo-rs/gufo.git", version = "0.1.0" }
+gufo-common.workspace = true
+gufo-exif.workspace = true
 lcms2.workspace = true
 lcms2-sys.workspace = true
 libc.workspace = true

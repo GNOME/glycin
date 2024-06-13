@@ -27,6 +27,7 @@ pub trait SafeConversion:
 impl SafeConversion for usize {}
 impl SafeConversion for u32 {}
 impl SafeConversion for i32 {}
+impl SafeConversion for u64 {}
 
 pub trait SafeMath: Sized {
     fn smul(self, rhs: Self) -> Result<Self, DimensionTooLargerError>;

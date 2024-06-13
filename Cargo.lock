@@ -1337,6 +1337,9 @@ name = "glycin-image-rs"
 version = "2.0.0-alpha"
 dependencies = [
  "glycin-utils",
+ "gufo-common",
+ "gufo-exif",
+ "gufo-jpeg",
  "image 0.25.1",
  "kamadak-exif",
 ]
@@ -1405,7 +1408,7 @@ dependencies = [
 [[package]]
 name = "gufo-common"
 version = "0.1.0"
-source = "git+https://github.com/gufo-rs/gufo.git#bae0a89920859c657cb971910083acba7b1a7fa8"
+source = "git+https://github.com/gufo-rs/gufo.git#24eea4b5d7109c034c4cedb159d9a200d895f724"
 dependencies = [
  "once_cell",
  "paste",
@@ -1415,9 +1418,20 @@ dependencies = [
 [[package]]
 name = "gufo-exif"
 version = "0.1.0"
-source = "git+https://github.com/gufo-rs/gufo.git#bae0a89920859c657cb971910083acba7b1a7fa8"
+source = "git+https://github.com/gufo-rs/gufo.git#24eea4b5d7109c034c4cedb159d9a200d895f724"
 dependencies = [
  "gufo-common",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
+name = "gufo-jpeg"
+version = "0.1.0"
+source = "git+https://github.com/gufo-rs/gufo.git#24eea4b5d7109c034c4cedb159d9a200d895f724"
+dependencies = [
+ "gufo-common",
+ "tracing",
 ]
 
 [[package]]

@@ -1,5 +1,4 @@
-use std::path::Path;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 use gio::glib;
@@ -7,7 +6,7 @@ use gio::prelude::*;
 use glycin_utils::operations::Operations;
 #[cfg(feature = "gdk4")]
 use glycin_utils::save_math::*;
-use glycin_utils::ImageInfo;
+use glycin_utils::{BinaryData, BitChanges, ImageInfo, SafeConversion, SparseEditorOutput};
 pub use glycin_utils::{FrameDetails, MemoryFormat};
 
 pub use crate::config::MimeType;
@@ -110,7 +109,7 @@ impl Editor {
         self
     }
 
-    pub async fn apply(self, operations: Operations) -> Result<()> {
+    pub async fn apply_sparse(self, operations: Operations) -> Result<SparseEdit> {
         let process_context =
             spin_up(&self.file, &self.cancellable, &self.sandbox_mechanism).await?;
 
@@ -123,9 +122,7 @@ impl Editor {
             )
             .await?;
 
-        dbg!(editor_output);
-
-        Ok(())
+        SparseEdit::try_from(editor_output)
     }
 }
 
@@ -416,6 +413,67 @@ impl FrameRequest {
     pub fn clip(mut self, x: u32, y: u32, width: u32, height: u32) -> Self {
         self.request.clip = Some((x, y, width, height));
         self
+    }
+}
+
+#[derive(Debug)]
+pub enum SparseEdit {
+    Sparse(BitChanges),
+    Complete(BinaryData),
+}
+
+impl SparseEdit {
+    #[must_use]
+    pub async fn apply_to(&self, file: gio::File) -> Result<bool> {
+        match self {
+            Self::Sparse(bit_changes) => {
+                let bit_changes = bit_changes.clone();
+                spawn_blocking(move || {
+                    let stream = file.open_readwrite(gio::Cancellable::NONE)?;
+                    let output_stream = stream.output_stream();
+                    for change in bit_changes.changes {
+                        stream.seek(
+                            change.offset.try_i64()?,
+                            glib::SeekType::Set,
+                            gio::Cancellable::NONE,
+                        )?;
+                        let (_, err) =
+                            output_stream.write_all(&[change.new_value], gio::Cancellable::NONE)?;
+
+                        if let Some(err) = err {
+                            return Err(err.into());
+                        }
+                    }
+                    Ok(true)
+                })
+                .await
+            }
+            Self::Complete(_) => Ok(false),
+        }
+    }
+}
+
+impl TryFrom<SparseEditorOutput> for SparseEdit {
+    type Error = Error;
+
+    fn try_from(value: SparseEditorOutput) -> std::result::Result<Self, Self::Error> {
+        if value.bit_changes.is_some() && value.data.is_some() {
+            Err(Error::RemoteError(
+                glycin_utils::RemoteError::InternalLoaderError(
+                    "Sparse editor output with 'bit_changes' and 'data' returned.".into(),
+                ),
+            ))
+        } else if let Some(bit_changes) = value.bit_changes {
+            Ok(Self::Sparse(bit_changes))
+        } else if let Some(data) = value.data {
+            Ok(Self::Complete(data))
+        } else {
+            Err(Error::RemoteError(
+                glycin_utils::RemoteError::InternalLoaderError(
+                    "Sparse editor output with neither 'bit_changes' nor 'data' returned.".into(),
+                ),
+            ))
+        }
     }
 }
 

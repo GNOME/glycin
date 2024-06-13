@@ -35,12 +35,12 @@ impl EditRequest {
 #[derive(DeserializeDict, SerializeDict, Type, Debug, Clone)]
 #[zvariant(signature = "dict")]
 #[non_exhaustive]
-pub struct EditorOutput {
+pub struct SparseEditorOutput {
     pub bit_changes: Option<BitChanges>,
     pub data: Option<BinaryData>,
 }
 
-impl EditorOutput {
+impl SparseEditorOutput {
     pub fn bit_changes(changes: &[(u64, u8)]) -> Self {
         let bit_changes = BitChanges {
             changes: changes
@@ -52,7 +52,7 @@ impl EditorOutput {
                 .collect(),
         };
 
-        EditorOutput {
+        SparseEditorOutput {
             bit_changes: Some(bit_changes),
             data: None,
         }
@@ -67,10 +67,9 @@ pub struct BitChanges {
 }
 
 #[derive(Deserialize, Serialize, Type, Debug, Clone)]
-#[zvariant(signature = "ty")]
 pub struct BitChange {
-    offset: u64,
-    new_value: u8,
+    pub offset: u64,
+    pub new_value: u8,
 }
 
 pub struct Editor {
@@ -84,7 +83,7 @@ impl Editor {
         &self,
         init_request: InitRequest,
         edit_request: EditRequest,
-    ) -> Result<EditorOutput, RemoteError> {
+    ) -> Result<SparseEditorOutput, RemoteError> {
         let fd: OwnedFd = OwnedFd::from(init_request.fd);
         let stream = UnixStream::from(fd);
         let operations = edit_request.operations();
@@ -116,7 +115,7 @@ pub trait EditorImplementation: Send {
         mime_type: String,
         details: InitializationDetails,
         operations: Operations,
-    ) -> Result<EditorOutput, LoaderError>;
+    ) -> Result<SparseEditorOutput, LoaderError>;
 }
 
 pub fn void_editor_none() -> Option<impl EditorImplementation> {
@@ -129,7 +128,7 @@ pub fn void_editor_none() -> Option<impl EditorImplementation> {
             _mime_type: String,
             _details: InitializationDetails,
             _operations: Operations,
-        ) -> Result<EditorOutput, LoaderError> {
+        ) -> Result<SparseEditorOutput, LoaderError> {
             match *self {}
         }
     }

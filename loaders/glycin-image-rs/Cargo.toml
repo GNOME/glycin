@@ -13,3 +13,6 @@ rust-version.workspace = true
 glycin-utils = { workspace = true, features = ["async-io", "image-rs"] }
 image.workspace = true
 kamadak-exif.workspace = true
+gufo-common.workspace = true
+gufo-jpeg.workspace = true
+gufo-exif.workspace = true

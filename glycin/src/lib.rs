@@ -1,6 +1,8 @@
 #![deny(clippy::arithmetic_side_effects)]
 #![deny(clippy::cast_possible_truncation)]
 #![deny(clippy::cast_possible_wrap)]
+#![deny(clippy::unwrap_used)]
+#![deny(clippy::expect_used)]
 
 //! Glycin allows to decode images into [`gdk::Texture`]s and to extract image
 //! metadata. The decoding happens in sandboxed modular image loaders that have
@@ -49,8 +51,8 @@
 //!
 //! # Features
 //!
-//! - `gdk4` --- Enables interoperability with [`gdk4`](gdk) by enabling to get a
-//!   [`gdk::Texture`] directly.
+//! - `gdk4` --- Enables interoperability with [`gdk4`](gdk) by enabling to get
+//!   a [`gdk::Texture`] directly.
 //! - `tokio` --- Makes glycin compatible with [`zbus`] using [`tokio`].
 //!
 //! [`gtk4::Image::from_paintable()`]: https://gtk-rs.org/gtk4-rs/git/docs/gtk4/struct.Image.html#method.from_paintable

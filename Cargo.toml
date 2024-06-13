@@ -57,6 +57,8 @@ glycin-utils = { version = "2.0.0-alpha", path = "glycin-utils/", default-featur
 gufo-common = { version = "0.1.0", git = "https://github.com/gufo-rs/gufo.git", features = [
     "serde",
 ] }
+gufo-jpeg = { version = "0.1.0", git = "https://github.com/gufo-rs/gufo.git" }
+gufo-exif = { version = "0.1.0", git = "https://github.com/gufo-rs/gufo.git" }
 image = { version = "0.25.1" }
 kamadak-exif = "0.5.5"
 lcms2 = "6.0.3"

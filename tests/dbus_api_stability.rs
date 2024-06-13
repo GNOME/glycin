@@ -114,7 +114,7 @@ fn mock_editor() -> glycin_utils::Editor {
             _mime_type: String,
             _details: glycin_utils::InitializationDetails,
             _operations: glycin_utils::operations::Operations,
-        ) -> Result<glycin_utils::EditorOutput, glycin_utils::LoaderError> {
+        ) -> Result<glycin_utils::SparseEditorOutput, glycin_utils::LoaderError> {
             unimplemented!()
         }
     }
