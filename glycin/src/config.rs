@@ -9,7 +9,21 @@ use gio::glib;
 use crate::util::{read, read_dir};
 use crate::Error;
 
-pub type MimeType = String;
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+/// Mime type
+pub struct MimeType(pub(crate) String);
+
+impl MimeType {
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
+impl std::fmt::Display for MimeType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
 
 const CONFIG_FILE_EXT: &str = "conf";
 pub const COMPAT_VERSION: u8 = 1;
@@ -46,13 +60,13 @@ impl Config {
 
     pub fn get_loader(&self, mime_type: &MimeType) -> Result<&ImageLoaderConfig, Error> {
         self.image_loader
-            .get(mime_type.as_str())
+            .get(mime_type)
             .ok_or_else(|| Error::UnknownImageFormat(mime_type.to_string()))
     }
 
     pub fn get_editor(&self, mime_type: &MimeType) -> Result<&ImageEditorConfig, Error> {
         self.image_editor
-            .get(mime_type.as_str())
+            .get(mime_type)
             .ok_or_else(|| Error::UnknownImageFormat(mime_type.to_string()))
     }
 
@@ -105,7 +119,9 @@ impl Config {
                                 expose_base_dir,
                             };
 
-                            config.image_loader.insert(mime_type.to_string(), cfg);
+                            config
+                                .image_loader
+                                .insert(MimeType(mime_type.to_string()), cfg);
                         }
                     }
                     Some("editor") => {
@@ -118,7 +134,9 @@ impl Config {
                                 expose_base_dir,
                             };
 
-                            config.image_editor.insert(mime_type.to_string(), cfg);
+                            config
+                                .image_editor
+                                .insert(MimeType(mime_type.to_string()), cfg);
                         }
                     }
                     _ => {}

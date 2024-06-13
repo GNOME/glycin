@@ -93,7 +93,7 @@ pub(crate) async fn spin_up<'a, P: ZbusProxy<'a> + 'a>(
     })
 }
 
-pub(crate) async fn guess_mime_type(gfile_worker: &GFileWorker) -> Result<String> {
+pub(crate) async fn guess_mime_type(gfile_worker: &GFileWorker) -> Result<MimeType> {
     let head = gfile_worker.head().await?;
     let (content_type, unsure) = gio::content_type_guess(None::<String>, &head);
     let mime_type = gio::content_type_get_mime_type(&content_type)
@@ -111,9 +111,9 @@ pub(crate) async fn guess_mime_type(gfile_worker: &GFileWorker) -> Result<String
             let content_type_fn = gio::content_type_guess(Some(filename), &head).0;
             return gio::content_type_get_mime_type(&content_type_fn)
                 .ok_or_else(|| Error::UnknownImageFormat(content_type_fn.to_string()))
-                .map(|x| x.to_string());
+                .map(|x| MimeType(x.to_string()));
         }
     }
 
-    mime_type.map(|x| x.to_string())
+    mime_type.map(|x| MimeType(x.to_string()))
 }

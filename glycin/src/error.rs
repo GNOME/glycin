@@ -7,7 +7,6 @@ use glycin_utils::{DimensionTooLargerError, RemoteError};
 use libseccomp::error::SeccompError;
 
 use crate::dbus::MAX_TEXTURE_SIZE;
-use crate::MimeType;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -32,7 +31,7 @@ pub enum Error {
     )]
     NoLoadersConfigured,
     #[error("Unknown image format: {0}")]
-    UnknownImageFormat(MimeType),
+    UnknownImageFormat(String),
     #[error("Loader process exited early with status '{}'. {cmd}", .status.code().unwrap_or_default())]
     PrematureExit { status: ExitStatus, cmd: String },
     #[error("Conversion too large")]
@@ -65,7 +64,7 @@ impl Error {
     /// is unrelated to unsupported formats.
     pub fn unsupported_format(&self) -> Option<String> {
         match self {
-            Self::UnknownImageFormat(mime_type) => Some(mime_type.clone()),
+            Self::UnknownImageFormat(mime_type) => Some(mime_type.to_string()),
             Self::RemoteError(RemoteError::UnsupportedImageFormat(msg)) => Some(msg.clone()),
             _ => None,
         }
