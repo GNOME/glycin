@@ -15,8 +15,8 @@ use image::{codecs, AnimationDecoder, ImageDecoder, ImageResult};
 init_main_loader_editor!(ImgDecoder::default(), ImgEditor::default());
 
 type Reader = Cursor<Vec<u8>>;
-type FrameReceiver = Receiver<Result<Frame, LoaderError>>;
-type FrameSender = Sender<Result<Frame, LoaderError>>;
+type FrameReceiver = Receiver<Result<Frame, ProcessError>>;
+type FrameSender = Sender<Result<Frame, ProcessError>>;
 
 #[derive(Default)]
 pub struct ImgDecoder {
@@ -71,7 +71,7 @@ fn animated_worker(
 
         let is_animated = match first_frames.len() {
             0 => {
-                send.send(Err(LoaderError::loading(&"No frame found.")))
+                send.send(Err(ProcessError::expected(&"No frame found.")))
                     .unwrap();
                 return;
             }
@@ -101,8 +101,8 @@ pub fn animated_get_frame(
     frame: Result<image::Frame, image::ImageError>,
     frame_details: Option<FrameDetails>,
     is_animated: bool,
-) -> Result<Frame, LoaderError> {
-    let frame = frame.loading_error()?;
+) -> Result<Frame, ProcessError> {
+    let frame = frame.expected_error()?;
 
     let (delay_num, delay_den) = frame.delay().numer_denom_ms();
 
@@ -124,7 +124,7 @@ pub fn animated_get_frame(
 
     let mut memory =
         SharedMemory::new(u64::from(width) * u64::from(height) * memory_format.n_bytes().u64())
-            .loading_error()
+            .expected_error()
             .unwrap();
     Cursor::new(buffer.into_raw())
         .read_exact(&mut memory)
@@ -148,7 +148,7 @@ impl LoaderImplementation for ImgDecoder {
         mut stream: UnixStream,
         mime_type: String,
         _details: InitializationDetails,
-    ) -> Result<ImageInfo, LoaderError> {
+    ) -> Result<ImageInfo, ProcessError> {
         let mut buf = Vec::new();
         stream.read_to_end(&mut buf).internal_error()?;
         let data = Cursor::new(buf);
@@ -164,7 +164,7 @@ impl LoaderImplementation for ImgDecoder {
             .ok()
             .map(|x| BinaryData::from_data(x.buf()))
             .transpose()
-            .loading_error()?;
+            .expected_error()?;
 
         if format.decoder.is_animated() {
             let (send, recv) = channel();
@@ -177,9 +177,9 @@ impl LoaderImplementation for ImgDecoder {
         Ok(image_info)
     }
 
-    fn frame(&self, _frame_request: FrameRequest) -> Result<Frame, LoaderError> {
+    fn frame(&self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
         let frame = if let Some(decoder) = std::mem::take(&mut *self.format.lock().unwrap()) {
-            decoder.frame().loading_error()?
+            decoder.frame().expected_error()?
         } else if let Some((ref thread, ref recv)) = *self.thread.lock().unwrap() {
             thread.thread().unpark();
             recv.recv().internal_error()??
@@ -213,92 +213,92 @@ pub struct ImageRsFormat<T: std::io::BufRead + std::io::Seek> {
 }
 
 impl ImageRsFormat<Reader> {
-    fn create(data: Reader, mime_type: &str) -> Result<Self, LoaderError> {
+    fn create(data: Reader, mime_type: &str) -> Result<Self, ProcessError> {
         Ok(match mime_type {
             "image/bmp" => Self::new(ImageRsDecoder::Bmp(
-                codecs::bmp::BmpDecoder::new(data).loading_error()?,
+                codecs::bmp::BmpDecoder::new(data).expected_error()?,
             ))
             .format_name("BMP")
             .default_bit_depth(8),
             "image/x-dds" => Self::new(ImageRsDecoder::Dds(
-                codecs::dds::DdsDecoder::new(data).loading_error()?,
+                codecs::dds::DdsDecoder::new(data).expected_error()?,
             ))
             .format_name("DDS")
             .supports_two_grayscale_modes(true),
             "image/x-ff" => Self::new(ImageRsDecoder::Farbfeld(
-                codecs::farbfeld::FarbfeldDecoder::new(data).loading_error()?,
+                codecs::farbfeld::FarbfeldDecoder::new(data).expected_error()?,
             ))
             .format_name("Farbfeld")
             .default_bit_depth(16),
             "image/gif" => Self::new(ImageRsDecoder::Gif(
-                codecs::gif::GifDecoder::new(data).loading_error()?,
+                codecs::gif::GifDecoder::new(data).expected_error()?,
             ))
             .format_name("GIF")
             .default_bit_depth(8),
             "image/vnd.microsoft.icon" => Self::new(ImageRsDecoder::Ico(
-                codecs::ico::IcoDecoder::new(data).loading_error()?,
+                codecs::ico::IcoDecoder::new(data).expected_error()?,
             ))
             .format_name("ICO"),
             "image/jpeg" => Self::new(ImageRsDecoder::Jpeg(
-                codecs::jpeg::JpegDecoder::new(data).loading_error()?,
+                codecs::jpeg::JpegDecoder::new(data).expected_error()?,
             ))
             .format_name("JPEG")
             .default_bit_depth(8)
             .supports_two_grayscale_modes(true),
             "image/x-exr" => Self::new(ImageRsDecoder::OpenExr(
-                codecs::openexr::OpenExrDecoder::new(data).loading_error()?,
+                codecs::openexr::OpenExrDecoder::new(data).expected_error()?,
             ))
             .format_name("OpenEXR")
             .default_bit_depth(32)
             .supports_two_grayscale_modes(true),
             "image/png" => Self::new(ImageRsDecoder::Png(
-                codecs::png::PngDecoder::new(data).loading_error()?,
+                codecs::png::PngDecoder::new(data).expected_error()?,
             ))
             .format_name("PNG")
             .supports_two_alpha_modes(true)
             .supports_two_grayscale_modes(true)
             .default_bit_depth(8),
             "image/x-portable-bitmap" => Self::new(ImageRsDecoder::Pnm(
-                codecs::pnm::PnmDecoder::new(data).loading_error()?,
+                codecs::pnm::PnmDecoder::new(data).expected_error()?,
             ))
             .format_name("PBM")
             .default_bit_depth(1),
             "image/x-portable-graymap" => Self::new(ImageRsDecoder::Pnm(
-                codecs::pnm::PnmDecoder::new(data).loading_error()?,
+                codecs::pnm::PnmDecoder::new(data).expected_error()?,
             ))
             .format_name("PGM"),
             "image/x-portable-pixmap" => Self::new(ImageRsDecoder::Pnm(
-                codecs::pnm::PnmDecoder::new(data).loading_error()?,
+                codecs::pnm::PnmDecoder::new(data).expected_error()?,
             ))
             .format_name("PPM"),
             "image/x-portable-anymap" => Self::new(ImageRsDecoder::Pnm(
-                codecs::pnm::PnmDecoder::new(data).loading_error()?,
+                codecs::pnm::PnmDecoder::new(data).expected_error()?,
             ))
             .format_name("PAM"),
             "image/x-qoi" => Self::new(ImageRsDecoder::Qoi(
-                codecs::qoi::QoiDecoder::new(data).loading_error()?,
+                codecs::qoi::QoiDecoder::new(data).expected_error()?,
             ))
             .format_name("QOI")
             .default_bit_depth(8)
             .supports_two_alpha_modes(true),
             "image/x-targa" | "image/x-tga" => Self::new(ImageRsDecoder::Tga(
-                codecs::tga::TgaDecoder::new(data).loading_error()?,
+                codecs::tga::TgaDecoder::new(data).expected_error()?,
             ))
             .format_name("TGA")
             .supports_two_grayscale_modes(true),
             "image/tiff" => Self::new(ImageRsDecoder::Tiff(
-                codecs::tiff::TiffDecoder::new(data).loading_error()?,
+                codecs::tiff::TiffDecoder::new(data).expected_error()?,
             ))
             .format_name("TIFF")
             .supports_two_alpha_modes(true)
             .supports_two_grayscale_modes(true),
             "image/webp" => Self::new(ImageRsDecoder::WebP(
-                codecs::webp::WebPDecoder::new(data).loading_error()?,
+                codecs::webp::WebPDecoder::new(data).expected_error()?,
             ))
             .format_name("WebP")
             .default_bit_depth(8)
             .supports_two_alpha_modes(true),
-            mime_type => return Err(LoaderError::UnsupportedImageFormat(mime_type.to_string())),
+            mime_type => return Err(ProcessError::UnsupportedImageFormat(mime_type.to_string())),
         })
     }
 }
@@ -353,7 +353,7 @@ impl<'a, T: std::io::BufRead + std::io::Seek + 'a> ImageRsFormat<T> {
         }
     }
 
-    fn frame(self) -> Result<Frame, LoaderError> {
+    fn frame(self) -> Result<Frame, ProcessError> {
         match self.decoder {
             ImageRsDecoder::Bmp(d) => self.handler.frame(d),
             ImageRsDecoder::Dds(d) => self.handler.frame(d),
@@ -371,7 +371,7 @@ impl<'a, T: std::io::BufRead + std::io::Seek + 'a> ImageRsFormat<T> {
         }
     }
 
-    fn frame_details(&mut self) -> Result<FrameDetails, LoaderError> {
+    fn frame_details(&mut self) -> Result<FrameDetails, ProcessError> {
         match self.decoder {
             ImageRsDecoder::Bmp(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Dds(ref mut d) => self.handler.frame_details(d),

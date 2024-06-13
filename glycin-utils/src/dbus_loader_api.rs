@@ -13,8 +13,8 @@ pub trait LoaderImplementation: Send {
         stream: UnixStream,
         mime_type: String,
         details: InitializationDetails,
-    ) -> Result<ImageInfo, LoaderError>;
-    fn frame(&self, frame_request: FrameRequest) -> Result<Frame, LoaderError>;
+    ) -> Result<ImageInfo, ProcessError>;
+    fn frame(&self, frame_request: FrameRequest) -> Result<Frame, ProcessError>;
 }
 
 pub struct Loader {
@@ -35,14 +35,17 @@ impl Loader {
         let fd = OwnedFd::from(init_request.fd);
         let stream = UnixStream::from(fd);
 
-        let image_info =
-            self.get_loader()?
-                .init(stream, init_request.mime_type, init_request.details)?;
+        let image_info = self
+            .get_loader()?
+            .init(stream, init_request.mime_type, init_request.details)
+            .map_err(|x| x.into_loader_error())?;
 
         Ok(image_info)
     }
 
     async fn frame(&self, frame_request: FrameRequest) -> Result<Frame, RemoteError> {
-        self.get_loader()?.frame(frame_request).map_err(Into::into)
+        self.get_loader()?
+            .frame(frame_request)
+            .map_err(|x| x.into_loader_error())
     }
 }

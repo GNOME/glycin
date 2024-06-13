@@ -114,6 +114,5 @@ pub async fn read_dir<P: AsRef<Path>>(
 
 #[cfg(not(feature = "tokio"))]
 pub use async_fs::read;
-
 #[cfg(feature = "tokio")]
 pub use tokio::fs::read;

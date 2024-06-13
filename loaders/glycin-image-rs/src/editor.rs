@@ -13,12 +13,12 @@ impl EditorImplementation for ImgEditor {
         mime_type: String,
         _details: glycin_utils::InitializationDetails,
         operations: glycin_utils::operations::Operations,
-    ) -> Result<SparseEditorOutput, glycin_utils::LoaderError> {
+    ) -> Result<SparseEditorOutput, glycin_utils::ProcessError> {
         if mime_type != "image/jpeg" {
-            return Err(LoaderError::UnsupportedImageFormat(mime_type.to_string()));
+            return Err(ProcessError::UnsupportedImageFormat(mime_type.to_string()));
         }
 
-        match operations.operations().first().loading_error()? {
+        match operations.operations().first().expected_error()? {
             Operation::Rotate(rotation) => {
                 let mut buf = Vec::new();
                 stream.read_to_end(&mut buf).internal_error()?;
@@ -31,7 +31,7 @@ impl EditorImplementation for ImgEditor {
                     (exif_data.next(), exif_segment.next())
                 {
                     let mut exif = gufo_exif::internal::ExifRaw::new(exif_data.to_vec());
-                    exif.decode().loading_error()?;
+                    exif.decode().expected_error()?;
 
                     if let Some(entry) = exif.lookup_entry(gufo_common::field::Orientation) {
                         let pos = exif_segment.data_pos() as usize
@@ -40,7 +40,7 @@ impl EditorImplementation for ImgEditor {
 
                         let current_orientation =
                             gufo_common::orientation::Orientation::try_from(buf[pos] as u16)
-                                .loading_error()?;
+                                .expected_error()?;
 
                         let new_rotation = current_orientation.rotate() - *rotation;
 

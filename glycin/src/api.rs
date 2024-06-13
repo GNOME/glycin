@@ -422,9 +422,15 @@ pub enum SparseEdit {
     Complete(BinaryData),
 }
 
+#[derive(Debug, PartialEq, Eq)]
+#[must_use]
+pub enum EditOutcome {
+    Changed,
+    Unchanged,
+}
+
 impl SparseEdit {
-    #[must_use]
-    pub async fn apply_to(&self, file: gio::File) -> Result<bool> {
+    pub async fn apply_to(&self, file: gio::File) -> Result<EditOutcome> {
         match self {
             Self::Sparse(bit_changes) => {
                 let bit_changes = bit_changes.clone();
@@ -444,11 +450,11 @@ impl SparseEdit {
                             return Err(err.into());
                         }
                     }
-                    Ok(true)
+                    Ok(EditOutcome::Changed)
                 })
                 .await
             }
-            Self::Complete(_) => Ok(false),
+            Self::Complete(_) => Ok(EditOutcome::Unchanged),
         }
     }
 }

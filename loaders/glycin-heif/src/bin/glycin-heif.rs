@@ -19,14 +19,14 @@ impl LoaderImplementation for ImgDecoder {
         mut stream: UnixStream,
         mime_type: String,
         _details: InitializationDetails,
-    ) -> Result<ImageInfo, LoaderError> {
+    ) -> Result<ImageInfo, ProcessError> {
         let mut data = Vec::new();
         let total_size = stream.read_to_end(&mut data).internal_error()?;
 
         let stream_reader = StreamReader::new(Cursor::new(data), total_size.try_u64()?);
-        let context = HeifContext::read_from_reader(Box::new(stream_reader)).loading_error()?;
+        let context = HeifContext::read_from_reader(Box::new(stream_reader)).expected_error()?;
 
-        let handle = context.primary_image_handle().loading_error()?;
+        let handle = context.primary_image_handle().expected_error()?;
 
         let format_name = match mime_type.as_str() {
             "image/heif" => "HEIC",
@@ -38,7 +38,7 @@ impl LoaderImplementation for ImgDecoder {
         image_info.details.exif = exif(&handle)
             .map(BinaryData::from_data)
             .transpose()
-            .loading_error()?;
+            .expected_error()?;
         image_info.details.format_name = Some(format_name.to_string());
 
         // TODO: Later use libheif 1.16 to get info if there is a transformation
@@ -49,14 +49,14 @@ impl LoaderImplementation for ImgDecoder {
         Ok(image_info)
     }
 
-    fn frame(&self, _frame_request: FrameRequest) -> Result<Frame, LoaderError> {
-        let context = std::mem::take(&mut *self.decoder.lock().unwrap()).loading_error()?;
+    fn frame(&self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
+        let context = std::mem::take(&mut *self.decoder.lock().unwrap()).expected_error()?;
         decode(context, self.mime_type.get().unwrap())
     }
 }
 
-fn decode(context: HeifContext, mime_type: &str) -> Result<Frame, LoaderError> {
-    let handle = context.primary_image_handle().loading_error()?;
+fn decode(context: HeifContext, mime_type: &str) -> Result<Frame, ProcessError> {
+    let handle = context.primary_image_handle().expected_error()?;
 
     let rgb_chroma = if handle.luma_bits_per_pixel() > 8 {
         if handle.has_alpha_channel() {
@@ -89,9 +89,9 @@ fn decode(context: HeifContext, mime_type: &str) -> Result<Frame, LoaderError> {
 
     let mut image = match image_result {
         Err(err) if matches!(err.sub_code, libheif_rs::HeifErrorSubCode::UnsupportedCodec) => {
-            return Err(LoaderError::UnsupportedImageFormat(mime_type.to_string()));
+            return Err(ProcessError::UnsupportedImageFormat(mime_type.to_string()));
         }
-        image => image.loading_error()?,
+        image => image.expected_error()?,
     };
 
     let icc_profile = if let Some(profile) = handle.color_profile_raw() {
@@ -109,7 +109,7 @@ fn decode(context: HeifContext, mime_type: &str) -> Result<Frame, LoaderError> {
         None
     };
 
-    let plane = image.planes_mut().interleaved.loading_error()?;
+    let plane = image.planes_mut().interleaved.expected_error()?;
 
     let memory_format = match rgb_chroma {
         RgbChroma::HdrRgbBe | RgbChroma::HdrRgbaBe | RgbChroma::HdrRgbLe | RgbChroma::HdrRgbaLe => {
@@ -147,7 +147,7 @@ fn decode(context: HeifContext, mime_type: &str) -> Result<Frame, LoaderError> {
     };
 
     let mut memory =
-        SharedMemory::new(plane.stride.try_u64()? * u64::from(plane.height)).loading_error()?;
+        SharedMemory::new(plane.stride.try_u64()? * u64::from(plane.height)).expected_error()?;
     Cursor::new(plane.data).read_exact(&mut memory).unwrap();
     let texture = memory.into_binary_data();
 
@@ -156,7 +156,7 @@ fn decode(context: HeifContext, mime_type: &str) -> Result<Frame, LoaderError> {
     frame.details.iccp = icc_profile
         .map(BinaryData::from_data)
         .transpose()
-        .loading_error()?;
+        .expected_error()?;
     if plane.bits_per_pixel > 8 {
         frame.details.bit_depth = Some(plane.bits_per_pixel);
     }

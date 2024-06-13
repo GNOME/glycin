@@ -17,7 +17,7 @@ pub struct ImgDecoder {
 }
 
 pub struct ImgDecoderDetails {
-    frame_recv: Receiver<Result<Frame, LoaderError>>,
+    frame_recv: Receiver<Result<Frame, ProcessError>>,
     instr_send: Sender<Instruction>,
     image_info: ImageInfo,
 }
@@ -30,15 +30,15 @@ pub struct Instruction {
 pub fn thread(
     stream: UnixStream,
     base_file: Option<gio::File>,
-    info_send: Sender<Result<ImageInfo, LoaderError>>,
-    frame_send: Sender<Result<Frame, LoaderError>>,
+    info_send: Sender<Result<ImageInfo, ProcessError>>,
+    frame_send: Sender<Result<Frame, ProcessError>>,
     instr_recv: Receiver<Instruction>,
 ) {
     let input_stream = unsafe { gio::UnixInputStream::take_fd(stream) };
 
     let handle = rsvg::Loader::new()
         .read_stream(&input_stream, base_file.as_ref(), gio::Cancellable::NONE)
-        .loading_error();
+        .expected_error();
 
     let handle = match handle {
         Ok(handle) => handle,
@@ -74,7 +74,7 @@ pub fn thread(
     }
 }
 
-pub fn render(renderer: &rsvg::CairoRenderer, instr: Instruction) -> Result<Frame, LoaderError> {
+pub fn render(renderer: &rsvg::CairoRenderer, instr: Instruction) -> Result<Frame, ProcessError> {
     let area = instr.area;
     let (total_width, total_height) = instr.total_size;
 
@@ -83,9 +83,9 @@ pub fn render(renderer: &rsvg::CairoRenderer, instr: Instruction) -> Result<Fram
         area.width() as i32,
         area.height() as i32,
     )
-    .loading_error()?;
+    .expected_error()?;
 
-    let context = cairo::Context::new(&surface).loading_error()?;
+    let context = cairo::Context::new(&surface).expected_error()?;
 
     renderer
         .render_document(
@@ -97,7 +97,7 @@ pub fn render(renderer: &rsvg::CairoRenderer, instr: Instruction) -> Result<Fram
                 total_height as f64,
             ),
         )
-        .loading_error()?;
+        .expected_error()?;
 
     drop(context);
 
@@ -107,9 +107,9 @@ pub fn render(renderer: &rsvg::CairoRenderer, instr: Instruction) -> Result<Fram
 
     let data = surface.take_data().internal_error()?.to_vec();
 
-    let mut memory = SharedMemory::new(data.len().try_u64()?).loading_error()?;
+    let mut memory = SharedMemory::new(data.len().try_u64()?).expected_error()?;
 
-    Cursor::new(data).read_exact(&mut memory).loading_error()?;
+    Cursor::new(data).read_exact(&mut memory).expected_error()?;
     let texture = memory.into_binary_data();
 
     let mut frame = Frame::new(
@@ -130,7 +130,7 @@ impl LoaderImplementation for ImgDecoder {
         stream: UnixStream,
         _mime_type: String,
         details: InitializationDetails,
-    ) -> Result<ImageInfo, LoaderError> {
+    ) -> Result<ImageInfo, ProcessError> {
         let (info_send, info_recv) = channel();
         let (frame_send, frame_recv) = channel();
         let (instr_send, instr_recv) = channel();
@@ -152,7 +152,7 @@ impl LoaderImplementation for ImgDecoder {
         Ok(image_info)
     }
 
-    fn frame(&self, frame_request: FrameRequest) -> Result<Frame, LoaderError> {
+    fn frame(&self, frame_request: FrameRequest) -> Result<Frame, ProcessError> {
         let lock = self.thread.lock().unwrap();
         let thread = lock.as_ref().internal_error()?;
 

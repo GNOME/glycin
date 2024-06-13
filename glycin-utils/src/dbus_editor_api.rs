@@ -88,12 +88,15 @@ impl Editor {
         let stream = UnixStream::from(fd);
         let operations = edit_request.operations();
 
-        let image_info = self.get_editor()?.apply(
-            stream,
-            init_request.mime_type,
-            init_request.details,
-            operations,
-        )?;
+        let image_info = self
+            .get_editor()?
+            .apply(
+                stream,
+                init_request.mime_type,
+                init_request.details,
+                operations,
+            )
+            .map_err(|x| x.into_editor_error())?;
 
         Ok(image_info)
     }
@@ -115,7 +118,7 @@ pub trait EditorImplementation: Send {
         mime_type: String,
         details: InitializationDetails,
         operations: Operations,
-    ) -> Result<SparseEditorOutput, LoaderError>;
+    ) -> Result<SparseEditorOutput, ProcessError>;
 }
 
 pub fn void_editor_none() -> Option<impl EditorImplementation> {
@@ -128,7 +131,7 @@ pub fn void_editor_none() -> Option<impl EditorImplementation> {
             _mime_type: String,
             _details: InitializationDetails,
             _operations: Operations,
-        ) -> Result<SparseEditorOutput, LoaderError> {
+        ) -> Result<SparseEditorOutput, ProcessError> {
             match *self {}
         }
     }

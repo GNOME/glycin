@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0 OR LGPL-2.1-or-later
 
-use glycin::Editor;
+use glycin::{EditOutcome, Editor};
 use glycin_utils::operations::{Operation, Operations};
 
 fn main() {
@@ -25,7 +25,7 @@ where
         .await
         .expect("request failed");
 
-    result.apply_to(file).await.unwrap();
+    assert_eq!(result.apply_to(file).await.unwrap(), EditOutcome::Changed);
 
     Ok(())
 }

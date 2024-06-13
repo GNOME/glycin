@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use zbus::zvariant;
 
-use crate::{BinaryData, LoaderError, SafeConversion};
+use crate::{BinaryData, ProcessError, SafeConversion};
 
 #[derive(Debug)]
 pub struct SharedMemory {
@@ -14,7 +14,7 @@ pub struct SharedMemory {
 }
 
 impl SharedMemory {
-    pub fn new(size: u64) -> Result<Self, LoaderError> {
+    pub fn new(size: u64) -> Result<Self, ProcessError> {
         let memfd = nix::sys::memfd::memfd_create(
             &CString::new("glycin-frame").unwrap(),
             nix::sys::memfd::MemFdCreateFlag::MFD_CLOEXEC
@@ -28,9 +28,9 @@ impl SharedMemory {
         let raw_fd = memfd.as_raw_fd();
         let mmap = unsafe { memmap::MmapMut::map_mut(raw_fd) }.map_err(|err| {
             if err.kind() == std::io::ErrorKind::OutOfMemory {
-                LoaderError::out_of_memory()
+                ProcessError::out_of_memory()
             } else {
-                LoaderError::loading(&err)
+                ProcessError::expected(&err)
             }
         })?;
 
@@ -46,7 +46,7 @@ impl SharedMemory {
 }
 
 impl SharedMemory {
-    fn from_data(value: impl AsRef<[u8]>) -> Result<Self, LoaderError> {
+    fn from_data(value: impl AsRef<[u8]>) -> Result<Self, ProcessError> {
         let mut shared_memory = SharedMemory::new(
             value
                 .as_ref()
@@ -62,7 +62,7 @@ impl SharedMemory {
 }
 
 impl BinaryData {
-    pub fn from_data(value: impl AsRef<[u8]>) -> Result<Self, LoaderError> {
+    pub fn from_data(value: impl AsRef<[u8]>) -> Result<Self, ProcessError> {
         Ok(SharedMemory::from_data(value)?.into_binary_data())
     }
 }

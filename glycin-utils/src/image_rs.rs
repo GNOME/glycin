@@ -1,6 +1,6 @@
 use super::{Frame, ImageInfo, SharedMemory};
 use crate::memory_format::MemoryFormat;
-use crate::{BinaryData, FrameDetails, GenericContexts, LoaderError};
+use crate::{BinaryData, FrameDetails, GenericContexts, ProcessError};
 
 #[derive(Default, Clone, Debug)]
 pub struct Handler {
@@ -43,19 +43,19 @@ impl Handler {
         info
     }
 
-    pub fn frame(&self, mut decoder: impl image::ImageDecoder) -> Result<Frame, LoaderError> {
+    pub fn frame(&self, mut decoder: impl image::ImageDecoder) -> Result<Frame, ProcessError> {
         let details = self.frame_details(&mut decoder);
         let color_type = decoder.color_type();
 
         let memory_format = MemoryFormat::from(color_type);
         let (width, height) = decoder.dimensions();
 
-        let mut memory = SharedMemory::new(decoder.total_bytes()).loading_error()?;
-        decoder.read_image(&mut memory).loading_error()?;
+        let mut memory = SharedMemory::new(decoder.total_bytes()).expected_error()?;
+        decoder.read_image(&mut memory).expected_error()?;
         let texture = memory.into_binary_data();
 
         let mut frame = Frame::new(width, height, memory_format, texture)?;
-        frame.details = details.loading_error()?;
+        frame.details = details.expected_error()?;
 
         Ok(frame)
     }
@@ -63,7 +63,7 @@ impl Handler {
     pub fn frame_details(
         &self,
         decoder: &mut impl image::ImageDecoder,
-    ) -> Result<FrameDetails, LoaderError> {
+    ) -> Result<FrameDetails, ProcessError> {
         let mut details = FrameDetails {
             iccp: decoder
                 .icc_profile()
@@ -71,7 +71,7 @@ impl Handler {
                 .flatten()
                 .map(BinaryData::from_data)
                 .transpose()
-                .loading_error()?,
+                .expected_error()?,
             ..Default::default()
         };
 

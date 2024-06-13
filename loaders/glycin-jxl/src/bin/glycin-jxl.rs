@@ -25,19 +25,19 @@ impl LoaderImplementation for ImgDecoder {
         mut stream: UnixStream,
         _mime_type: String,
         _details: InitializationDetails,
-    ) -> Result<ImageInfo, LoaderError> {
+    ) -> Result<ImageInfo, ProcessError> {
         let mut data = Vec::new();
-        stream.read_to_end(&mut data).loading_error()?;
+        stream.read_to_end(&mut data).expected_error()?;
         let (info, iccp, exif) = basic_info(&data);
 
-        let info = info.loading_error()?;
+        let info = info.expected_error()?;
 
         let mut image_info = ImageInfo::new(info.xsize, info.ysize);
         image_info.details.format_name = Some(String::from("JPEG XL"));
         image_info.details.exif = exif
             .map(BinaryData::from_data)
             .transpose()
-            .loading_error()?;
+            .expected_error()?;
         image_info.details.transformations_applied = true;
 
         *self.decoder.lock().unwrap() = Some((data, iccp));
@@ -45,17 +45,17 @@ impl LoaderImplementation for ImgDecoder {
         Ok(image_info)
     }
 
-    fn frame(&self, _frame_request: FrameRequest) -> Result<Frame, LoaderError> {
-        let (data, iccp) = std::mem::take(&mut *self.decoder.lock().unwrap()).loading_error()?;
+    fn frame(&self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
+        let (data, iccp) = std::mem::take(&mut *self.decoder.lock().unwrap()).expected_error()?;
 
         let decoder = jpegxl_rs::decode::decoder_builder()
             .build()
-            .loading_error()?;
+            .expected_error()?;
 
         let image = decoder
             .decode_to_image(&data)
-            .loading_error()?
-            .loading_error()?;
+            .expected_error()?
+            .expected_error()?;
 
         let memory_format = MemoryFormat::from(image.color());
         let (alpha_channel, grayscale, bits) =
@@ -64,19 +64,19 @@ impl LoaderImplementation for ImgDecoder {
         let height = image.height();
 
         let bytes = image.into_bytes();
-        let mut memory = SharedMemory::new(bytes.len() as u64).loading_error()?;
+        let mut memory = SharedMemory::new(bytes.len() as u64).expected_error()?;
 
         Cursor::new(memory.as_mut())
             .write_all(&bytes)
             .internal_error()?;
         let texture = memory.into_binary_data();
 
-        let mut frame = Frame::new(width, height, memory_format, texture).loading_error()?;
+        let mut frame = Frame::new(width, height, memory_format, texture).expected_error()?;
 
         frame.details.iccp = iccp
             .map(BinaryData::from_data)
             .transpose()
-            .loading_error()?;
+            .expected_error()?;
 
         if bits != 8 {
             frame.details.bit_depth = Some(bits);

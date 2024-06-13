@@ -86,13 +86,13 @@ fn mock_loader() -> glycin_utils::Loader {
             _stream: UnixStream,
             _mime_type: String,
             _details: glycin_utils::InitializationDetails,
-        ) -> Result<glycin_utils::ImageInfo, glycin_utils::LoaderError> {
+        ) -> Result<glycin_utils::ImageInfo, glycin_utils::ProcessError> {
             unimplemented!()
         }
         fn frame(
             &self,
             _frame_request: glycin_utils::FrameRequest,
-        ) -> Result<glycin_utils::Frame, glycin_utils::LoaderError> {
+        ) -> Result<glycin_utils::Frame, glycin_utils::ProcessError> {
             unimplemented!()
         }
     }
@@ -114,7 +114,7 @@ fn mock_editor() -> glycin_utils::Editor {
             _mime_type: String,
             _details: glycin_utils::InitializationDetails,
             _operations: glycin_utils::operations::Operations,
-        ) -> Result<glycin_utils::SparseEditorOutput, glycin_utils::LoaderError> {
+        ) -> Result<glycin_utils::SparseEditorOutput, glycin_utils::ProcessError> {
             unimplemented!()
         }
     }
