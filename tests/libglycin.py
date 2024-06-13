@@ -39,7 +39,7 @@ def main():
     assert width == 600, f"Wrong width: {width} px"
     assert height == 400, f"Wrong height: {height} px"
     assert stride == 600 * 3, f"Wrong stride: {stride} px"
-    assert first_byte > 50 and first_byte < 70, f"Wrong frist byte: {first_byte}"
+    assert first_byte > 50 and first_byte < 70, f"Wrong first byte: {first_byte}"
     assert mime_type == "image/jpeg", f"Wrong mime type {mime_type}"
     assert memory_format == Gly.MemoryFormat.R8G8B8, f"Wrong memory format: {memory_format}"
 

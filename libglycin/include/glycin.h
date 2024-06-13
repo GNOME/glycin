@@ -322,7 +322,7 @@ gboolean gly_memory_format_has_alpha(GlyMemoryFormat memory_format);
  * gly_memory_format_is_premultiplied:
  * @memory_format:
  *
- * Wether a memory format as an alpha channel an the color values are
+ * Whether a memory format as an alpha channel an the color values are
  * premultiplied with the alpha value
  *
  * Returns: Returns `TRUE` if color channels are premultiplied

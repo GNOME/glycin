@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 
 use futures_util::{Stream, StreamExt};
 #[cfg(feature = "gdk4")]
@@ -32,6 +33,16 @@ pub const fn gdk_memory_format(format: MemoryFormat) -> gdk::MemoryFormat {
         MemoryFormat::G16a16Premultiplied => gdk::MemoryFormat::G16a16Premultiplied,
         MemoryFormat::G16a16 => gdk::MemoryFormat::G16a16,
         MemoryFormat::G16 => gdk::MemoryFormat::G16,
+    }
+}
+
+pub async fn is_flatpaked() -> bool {
+    static IS_FLATPAKED: OnceLock<bool> = OnceLock::new();
+    if let Some(result) = IS_FLATPAKED.get() {
+        *result
+    } else {
+        let flatpaked = spawn_blocking(|| Path::new("/.flatpak-info").is_file()).await;
+        *IS_FLATPAKED.get_or_init(|| flatpaked)
     }
 }
 

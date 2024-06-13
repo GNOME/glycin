@@ -459,7 +459,7 @@ impl SystemSetup {
                 } else if metadata.is_symlink() {
                     // Symlinks like /lib -> /usr/lib
                     let target = canonicalize(&path)?;
-                    // Only use symlinks that link somehwere into /usr/
+                    // Only use symlinks that link somewhere into /usr/
                     if target.starts_with("/usr/") {
                         self.lib_symlinks.push((path, target));
                     }

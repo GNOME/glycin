@@ -9,6 +9,8 @@ use libseccomp::error::SeccompError;
 use crate::dbus::MAX_TEXTURE_SIZE;
 use crate::MimeType;
 
+pub type Result<T> = std::result::Result<T, Error>;
+
 #[derive(Debug, Clone, thiserror::Error)]
 #[non_exhaustive]
 pub enum Error {
@@ -57,6 +59,10 @@ pub enum Error {
 }
 
 impl Error {
+    /// Returns if the error is related to unsupported formats.
+    ///
+    /// Return the mime type of the unsupported format or [`None`] if the error
+    /// is unrelated to unsupported formats.
     pub fn unsupported_format(&self) -> Option<String> {
         match self {
             Self::UnknownImageFormat(mime_type) => Some(mime_type.clone()),

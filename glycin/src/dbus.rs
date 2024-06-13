@@ -22,11 +22,11 @@ use memmap::MmapMut;
 use nix::sys::signal;
 use zbus::zvariant;
 
-use crate::api::{self, SandboxMechanism};
+use crate::api_loader::{self};
 use crate::config::Config;
 use crate::sandbox::Sandbox;
 use crate::util::{block_on, spawn_blocking, spawn_blocking_detached};
-use crate::{config, icc, orientation, Error, Image, MimeType};
+use crate::{config, icc, orientation, Error, Image, MimeType, SandboxMechanism};
 
 /// Max texture size 8 GB in bytes
 pub(crate) const MAX_TEXTURE_SIZE: u64 = 8u64.pow(9);
@@ -135,7 +135,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         let dbus_connection = dbus_result.await?;
 
         let decoding_instruction = P::builder(&dbus_connection)
-            // Ununsed since P2P connection
+            // Unused since P2P connection
             .destination("org.gnome.glycin")?
             .build()
             .await
@@ -208,7 +208,7 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
         &self,
         frame_request: FrameRequest,
         image: &Image<'b>,
-    ) -> Result<api::Frame, Error> {
+    ) -> Result<api_loader::Frame, Error> {
         let mut frame = self.decoding_instruction.frame(frame_request).await?;
 
         // Seal all constant data
@@ -258,7 +258,7 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
             ImgBuf::Vec(vec) => glib::Bytes::from_owned(vec),
         };
 
-        Ok(api::Frame {
+        Ok(api_loader::Frame {
             buffer: bytes,
             width: frame.width,
             height: frame.height,
@@ -461,7 +461,7 @@ fn validate_frame(frame: &Frame, mmap: &MmapMut) -> Result<(), Error> {
         return Err(Error::TextureTooLarge);
     }
 
-    // Esnure
+    // Ensure
     frame.width.try_i32()?;
     frame.height.try_i32()?;
     frame.stride.try_usize()?;

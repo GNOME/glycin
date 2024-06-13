@@ -35,7 +35,7 @@
 //! to be installed. Glycin provides [loaders] for many formats that are
 //! packaged with many distributions. When working in the default sandbox mode,
 //! the `bwrap` binary of *bubblewrap* is required as well. The required
-//! depencencies can usually be installed through commands like
+//! dependencies can usually be installed through commands like
 //!
 //! ```sh
 //! $ apt install libgtk-4-dev liblcms2-dev libseccomp-dev glycin-loaders bubblewrap
@@ -65,7 +65,9 @@ mod error_message {
     );
 }
 
-mod api;
+mod api_common;
+mod api_editor;
+mod api_loader;
 mod config;
 mod dbus;
 mod default_formats;
@@ -78,10 +80,12 @@ mod util;
 #[cfg(feature = "gobject")]
 pub mod gobject;
 
-pub use api::*;
+pub use api_common::*;
+pub use api_editor::*;
+pub use api_loader::*;
 pub use config::COMPAT_VERSION;
 pub use default_formats::DEFAULT_MIME_TYPES;
-pub use error::Error;
+pub use error::{Error, Result};
 pub use glycin_utils::{ImageInfo, ImageInfoDetails, RemoteError};
 #[cfg(feature = "gdk4")]
 pub use util::gdk_memory_format;

@@ -3,6 +3,9 @@ use std::any::Any;
 #[derive(zbus::DBusError, Debug, Clone)]
 #[zbus(prefix = "org.gnome.glycin.Error")]
 #[non_exhaustive]
+/// Error within the remote process.
+///
+/// Errors that appear within the loader or editor.
 pub enum RemoteError {
     #[zbus(error)]
     ZBus(zbus::Error),

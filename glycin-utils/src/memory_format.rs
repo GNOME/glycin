@@ -7,6 +7,7 @@ gufo_common::maybe_convertible_enum!(
     #[cfg_attr(feature = "gobject", derive(glib::Enum))]
     #[cfg_attr(feature = "gobject", enum_type(name = "GlyMemoryFormat"))]
     #[zvariant(signature = "u")]
+    /// Describes the formats the image data can have.
     pub enum MemoryFormat {
         B8g8r8a8Premultiplied = 0,
         A8r8g8b8Premultiplied = 1,

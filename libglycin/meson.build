@@ -93,7 +93,7 @@ foreach package : packages
         dependencies: deps,
         # Mark dirty for "generate_gir" if the header or the rust generated .so changes
         link_depends: [
-            # For unkown reasons the header triggers repeated gir regenerates until something else changes
+            # For unknown reasons the header triggers repeated gir regenerates until something else changes
             f'include/glycin@suffix@.h',
             libglycin_copy_library_for_deps,
         ],
@@ -106,7 +106,7 @@ foreach package : packages
 
     x = libglycin_shim
 
-    # Copy the .so file to its correct loaction such that "generate_gir" can use it.
+    # Copy the .so file to its correct location such that "generate_gir" can use it.
     # We have to do this after the shim library target since it generates
     # a useless/empty library.
     libglycin_copy_library = custom_target(
