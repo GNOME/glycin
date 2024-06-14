@@ -1,6 +1,6 @@
 use gio::glib;
 use gio::prelude::{IsA, *};
-use glycin_utils::operations::Operations;
+pub use glycin_utils::operations::{Operation, Operations};
 use glycin_utils::{BinaryData, BitChanges, SafeConversion, SparseEditorOutput};
 
 use crate::api_common::*;
