@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+#[cfg(feature = "gobject")]
+use gio::glib;
 use gio::prelude::*;
 
 use crate::dbus::{GFileWorker, RemoteProcess, ZbusProxy};

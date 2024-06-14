@@ -56,8 +56,8 @@ impl GlyImage {
     }
 
     pub fn mime_type(&self) -> &glib::GString {
-        self.imp()
-            .mime_type
-            .get_or_init(|| glib::GString::from(self.imp().image.get().unwrap().mime_type()))
+        self.imp().mime_type.get_or_init(|| {
+            glib::GString::from(self.imp().image.get().unwrap().mime_type().as_str())
+        })
     }
 }
