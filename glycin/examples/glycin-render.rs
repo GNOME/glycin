@@ -8,7 +8,7 @@ fn main() {
         std::process::exit(2)
     };
 
-    let _ = async_global_executor::block_on(render(&path));
+    let _ = async_io::block_on(render(&path));
 }
 
 async fn render<P>(path: P) -> Result<(), Box<dyn std::error::Error>>

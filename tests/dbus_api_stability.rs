@@ -4,7 +4,8 @@ use std::sync::Mutex;
 #[test]
 #[ignore]
 fn dbus_api_stability() {
-    async_global_executor::spawn(start_dbus()).detach();
+    // TODO: This seems overly complicated
+    blocking::unblock(|| async_io::block_on(start_dbus())).detach();
     check_api_stability("org.gnome.glycin.Loader");
     check_api_stability("org.gnome.glycin.Editor");
 }

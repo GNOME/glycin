@@ -48,7 +48,7 @@ pub async fn is_flatpaked() -> bool {
 
 #[cfg(not(feature = "tokio"))]
 pub fn block_on<F: std::future::Future>(future: F) -> F::Output {
-    async_global_executor::block_on(future)
+    async_io::block_on(future)
 }
 
 #[cfg(feature = "tokio")]
@@ -62,7 +62,7 @@ pub fn block_on<F: std::future::Future>(future: F) -> F::Output {
 
 #[cfg(not(feature = "tokio"))]
 pub async fn spawn_blocking<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(f: F) -> T {
-    async_global_executor::spawn_blocking(f).await
+    blocking::unblock(f).await
 }
 
 #[cfg(feature = "tokio")]
@@ -74,7 +74,7 @@ pub async fn spawn_blocking<F: FnOnce() -> T + Send + 'static, T: Send + 'static
 
 #[cfg(not(feature = "tokio"))]
 pub fn spawn_blocking_detached<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(f: F) {
-    async_global_executor::spawn_blocking(f).detach()
+    blocking::unblock(f).detach()
 }
 
 #[cfg(feature = "tokio")]

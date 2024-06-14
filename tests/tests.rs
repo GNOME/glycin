@@ -178,7 +178,7 @@ async fn get_info(path: impl AsRef<Path>) -> glycin::ImageInfo {
 
 #[cfg(not(feature = "tokio"))]
 pub fn block_on<F: std::future::Future>(future: F) -> F::Output {
-    async_global_executor::block_on(future)
+    async_io::block_on(future)
 }
 
 #[cfg(feature = "tokio")]

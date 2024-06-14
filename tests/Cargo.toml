@@ -13,10 +13,11 @@ async-io = ["glycin/async-io", "glycin-utils/async-io"]
 tokio = ["glycin/tokio", "glycin-utils/tokio"]
 
 [dev-dependencies]
+async-io.workspace = true
+blocking.workspace = true
 glycin = { workspace = true, features = ["gdk4"] }
 glycin-utils = { workspace = true, features = ["loader-utils"] }
 gio.workspace = true
-async-global-executor.workspace = true
 tokio.workspace = true
 gdk.workspace = true
 zbus = { workspace = true, features = ["p2p"] }
