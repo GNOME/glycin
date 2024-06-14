@@ -1068,7 +1068,7 @@ dependencies = [
 [[package]]
 name = "gdk4"
 version = "0.9.0"
-source = "git+https://github.com/gtk-rs/gtk4-rs.git#32e7155cd32bd5c27e1847c7e38aae825642043a"
+source = "git+https://github.com/gtk-rs/gtk4-rs.git?branch=master#d1c8a6fedad4d21dfbdb09abe607bf1875cada7e"
 dependencies = [
  "cairo-rs 0.20.0",
  "gdk-pixbuf",
@@ -1082,7 +1082,7 @@ dependencies = [
 [[package]]
 name = "gdk4-sys"
 version = "0.9.0"
-source = "git+https://github.com/gtk-rs/gtk4-rs.git#32e7155cd32bd5c27e1847c7e38aae825642043a"
+source = "git+https://github.com/gtk-rs/gtk4-rs.git?branch=master#d1c8a6fedad4d21dfbdb09abe607bf1875cada7e"
 dependencies = [
  "cairo-sys-rs 0.20.0",
  "gdk-pixbuf-sys",

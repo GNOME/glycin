@@ -49,7 +49,7 @@ futures-task = "0.3.30"
 futures-util = "0.3.30"
 gdk = { package = "gdk4", git = "https://github.com/gtk-rs/gtk4-rs.git", features = [
     "v4_12",
-] }
+], branch = "master" }
 gio = { version = "0.20.0", git = "https://github.com/gtk-rs/gtk-rs-core.git", branch = "master" }
 glib = { version = "0.20.0", git = "https://github.com/gtk-rs/gtk-rs-core.git", branch = "master" }
 glycin = { path = "glycin/", default-features = false }
