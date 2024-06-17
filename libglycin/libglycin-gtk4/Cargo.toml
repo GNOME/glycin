@@ -14,7 +14,7 @@ gdk.workspace = true
 glycin = { workspace = true, features = ["async-io", "gobject", "gdk4"] }
 
 [build-dependencies]
-system-deps = "6.0"
+system-deps.workspace = true
 
 [package.metadata.system-deps]
 glycin-1 = "1.0"
