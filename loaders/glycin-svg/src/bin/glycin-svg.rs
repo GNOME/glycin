@@ -4,6 +4,7 @@ use std::sync::Mutex;
 
 use gio::prelude::*;
 use glycin_utils::*;
+use rsvg::prelude::*;
 
 /// Current librsvg limit on maximum dimensions. See
 /// <https://gitlab.gnome.org/GNOME/librsvg/-/issues/938>
@@ -36,27 +37,29 @@ pub fn thread(
 ) {
     let input_stream = unsafe { gio::UnixInputStream::take_fd(stream) };
 
-    let handle = rsvg::Loader::new()
-        .read_stream(&input_stream, base_file.as_ref(), gio::Cancellable::NONE)
-        .expected_error();
+    let handle = rsvg::Handle::from_stream_sync(
+        &input_stream,
+        base_file.as_ref(),
+        rsvg::HandleFlags::FLAGS_NONE,
+        gio::Cancellable::NONE,
+    )
+    .expected_error();
 
     let handle = match handle {
-        Ok(handle) => handle,
+        Ok(handle) => handle.unwrap(),
         Err(err) => {
             info_send.send(Err(err)).unwrap();
             return;
         }
     };
 
-    let renderer = rsvg::CairoRenderer::new(&handle);
-
-    let (original_width, original_height) = svg_dimensions(&renderer);
+    let (original_width, original_height) = svg_dimensions(&handle);
 
     let mut image_info = ImageInfo::new(original_width, original_height);
 
     image_info.details.format_name = Some(String::from("SVG"));
-    image_info.details.dimensions_text = dimensions_text(renderer.intrinsic_dimensions());
-    image_info.details.dimensions_inch = dimensions_inch(renderer.intrinsic_dimensions());
+    image_info.details.dimensions_text = dimensions_text(handle.intrinsic_dimensions());
+    image_info.details.dimensions_inch = dimensions_inch(handle.intrinsic_dimensions());
 
     info_send.send(Ok(image_info)).unwrap();
 
@@ -68,13 +71,13 @@ pub fn thread(
             continue;
         }
 
-        let frame = render(&renderer, instr);
+        let frame = render(&handle, instr);
 
         frame_send.send(frame).unwrap();
     }
 }
 
-pub fn render(renderer: &rsvg::CairoRenderer, instr: Instruction) -> Result<Frame, ProcessError> {
+pub fn render(renderer: &rsvg::Handle, instr: Instruction) -> Result<Frame, ProcessError> {
     let area = instr.area;
     let (total_width, total_height) = instr.total_size;
 
@@ -90,7 +93,7 @@ pub fn render(renderer: &rsvg::CairoRenderer, instr: Instruction) -> Result<Fram
     renderer
         .render_document(
             &context,
-            &cairo::Rectangle::new(
+            &rsvg::Rectangle::new(
                 -area.x(),
                 -area.y(),
                 total_width as f64,
@@ -175,27 +178,21 @@ impl LoaderImplementation for ImgDecoder {
     }
 }
 
-pub fn svg_dimensions(renderer: &rsvg::CairoRenderer) -> (u32, u32) {
+pub fn svg_dimensions(renderer: &rsvg::Handle) -> (u32, u32) {
     if let Some((width, height)) = renderer.intrinsic_size_in_pixels() {
         (width.ceil() as u32, height.ceil() as u32)
     } else {
-        match renderer.intrinsic_dimensions() {
-            rsvg::IntrinsicDimensions {
-                width:
-                    rsvg::Length {
-                        length: width,
-                        unit: rsvg::LengthUnit::Percent,
-                    },
-                height:
-                    rsvg::Length {
-                        length: height,
-                        unit: rsvg::LengthUnit::Percent,
-                    },
-                vbox: Some(vbox),
-            } => (
-                (width * vbox.width()).ceil() as u32,
-                (height * vbox.height()).ceil() as u32,
-            ),
+        let (width, height, vbox) = renderer.intrinsic_dimensions();
+
+        match (width, height, vbox) {
+            (width, height, Some(vbox))
+                if width.unit() == rsvg::Unit::Percent && height.unit() == rsvg::Unit::Percent =>
+            {
+                (
+                    (width.length() * vbox.width()).ceil() as u32,
+                    (height.length() * vbox.height()).ceil() as u32,
+                )
+            }
             dimensions => {
                 eprintln!("Failed to parse SVG dimensions: {dimensions:?}");
                 (300, 300)
@@ -216,31 +213,33 @@ const fn memory_format() -> MemoryFormat {
     }
 }
 
-pub fn dimensions_text(intrisic_dimensions: rsvg::IntrinsicDimensions) -> Option<String> {
-    let width = intrisic_dimensions.width;
-    let height = intrisic_dimensions.height;
+pub fn dimensions_text(
+    intrisic_dimensions: (rsvg::Length, rsvg::Length, Option<rsvg::Rectangle>),
+) -> Option<String> {
+    let width = intrisic_dimensions.0;
+    let height = intrisic_dimensions.1;
 
-    if width.unit == rsvg::LengthUnit::Px && height.unit == rsvg::LengthUnit::Px {
+    if width.unit() == rsvg::Unit::Px && height.unit() == rsvg::Unit::Px {
         None
     } else {
         // Percent is not stored as percentile
-        let width_factor = if width.unit == rsvg::LengthUnit::Percent {
+        let width_factor = if width.unit() == rsvg::Unit::Percent {
             100.
         } else {
             1.
         };
-        let height_factor = if height.unit == rsvg::LengthUnit::Percent {
+        let height_factor = if height.unit() == rsvg::Unit::Percent {
             100.
         } else {
             1.
         };
 
         // Only show two digits
-        let width_n = (width.length * width_factor * 100.).round() / 100.;
-        let height_n = (height.length * height_factor * 100.).round() / 100.;
+        let width_n = (width.length() * width_factor * 100.).round() / 100.;
+        let height_n = (height.length() * height_factor * 100.).round() / 100.;
 
-        let width_unit = width.unit;
-        let height_unit = height.unit;
+        let width_unit = width.unit();
+        let height_unit = height.unit();
 
         Some(format!(
             "{width_n}\u{202F}{width_unit} \u{D7} {height_n}\u{202F}{height_unit}"
@@ -248,9 +247,11 @@ pub fn dimensions_text(intrisic_dimensions: rsvg::IntrinsicDimensions) -> Option
     }
 }
 
-pub fn dimensions_inch(intrisic_dimensions: rsvg::IntrinsicDimensions) -> Option<(f64, f64)> {
-    let width = intrisic_dimensions.width;
-    let height = intrisic_dimensions.height;
+pub fn dimensions_inch(
+    intrisic_dimensions: (rsvg::Length, rsvg::Length, Option<rsvg::Rectangle>),
+) -> Option<(f64, f64)> {
+    let width = intrisic_dimensions.0;
+    let height = intrisic_dimensions.1;
 
     if let (Some(w), Some(h)) = (dimension_inch(width), dimension_inch(height)) {
         Some((w, h))
@@ -260,12 +261,12 @@ pub fn dimensions_inch(intrisic_dimensions: rsvg::IntrinsicDimensions) -> Option
 }
 
 pub fn dimension_inch(length: rsvg::Length) -> Option<f64> {
-    match length.unit {
-        rsvg::LengthUnit::In => Some(length.length),
-        rsvg::LengthUnit::Cm => Some(length.length / 2.54),
-        rsvg::LengthUnit::Mm => Some(length.length / 25.4),
-        rsvg::LengthUnit::Pt => Some(length.length * 72.),
-        rsvg::LengthUnit::Pc => Some(length.length / 12. * 72.),
+    match length.unit() {
+        rsvg::Unit::In => Some(length.length()),
+        rsvg::Unit::Cm => Some(length.length() / 2.54),
+        rsvg::Unit::Mm => Some(length.length() / 25.4),
+        rsvg::Unit::Pt => Some(length.length() * 72.),
+        rsvg::Unit::Pc => Some(length.length() / 12. * 72.),
         _ => None,
     }
 }
