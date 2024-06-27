@@ -87,7 +87,7 @@ class Release:
             s += f'\n### {section}\n\n'
 
             for item in sorted(items):
-                s += textwrap.TextWrapper(initial_indent='- ', subsequent_indent='  ').fill(item)
+                s += textwrap.TextWrapper(width = 80, initial_indent='- ', subsequent_indent='  ').fill(item)
                 s += '\n'
 
         return s

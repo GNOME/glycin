@@ -1,3 +1,26 @@
+## 1.1.alpha (Unreleased)
+
+### Added
+
+- A specific error if no loaders are configured instead of giving an unknown
+  format error
+- Bindings for C and other languages via GObject Introspection under the name
+  libglycin and libglycin-gtk4
+- Loaders are now accompanied by editors that can return an image with image
+  operations applied
+- Option to use tokio throughout instead of async-io
+- glycin: List of mime types `glycin::DEFAULT_MIME_TYPES` that the default
+  loaders support
+- glycin: New loader option to apply transformations like rotate/mirror from
+  metadata by default
+- loaders: Use specific OutOfMemory error type
+
+### Changed
+
+- glycin: Use a specific error type when no loaders are configured
+- jxl: Libjxl version 0.10 is now required
+- svg: Use C bindings in SVG loader to reduce binary size
+
 ## 1.0.2
 
 - sandbox: Add directories and syscalls needed for fontconfig to work
