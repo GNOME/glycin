@@ -54,11 +54,9 @@ gio = { version = "0.20.0", git = "https://github.com/gtk-rs/gtk-rs-core.git", b
 glib = { version = "0.20.0", git = "https://github.com/gtk-rs/gtk-rs-core.git", branch = "master" }
 glycin = { path = "glycin/", default-features = false }
 glycin-utils = { version = "2.0.0-alpha", path = "glycin-utils/", default-features = false }
-gufo-common = { version = "0.1.0", git = "https://github.com/gufo-rs/gufo.git", features = [
-    "serde",
-] }
-gufo-jpeg = { version = "0.1.0", git = "https://github.com/gufo-rs/gufo.git" }
-gufo-exif = { version = "0.1.0", git = "https://github.com/gufo-rs/gufo.git" }
+gufo-common = { version = "0.1.0-alpha", features = ["serde"] }
+gufo-exif = { version = "0.1.0-alpha" }
+gufo-jpeg = { version = "0.1.0-alpha" }
 image = { version = "0.25.1", default-features = false }
 kamadak-exif = "0.5.5"
 lcms2 = "6.0.3"
