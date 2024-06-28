@@ -1,8 +1,10 @@
 project(
-  'glycin-loaders',
+  'glycin',
   'rust',
   'c',
-  version: '1.0.1',
+  # This is a global version that's neither related to the glycin-loaders version
+  # nor the libglycin version
+  version: '1.1.alpha',
   meson_version: '>=1.2',
 )
 

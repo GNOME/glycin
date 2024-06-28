@@ -22,7 +22,7 @@ if get_option('tests')
   dependency('lcms2', version: lcms2_req)
 endif
 
-glycin_datadir = datadir / meson.project_name() / compat_version
+glycin_datadir = datadir / 'glycin-loaders' / compat_version
 
 meson.add_devenv({'XDG_DATA_HOME': datadir})
 
@@ -31,7 +31,7 @@ meson.add_dist_script('../build-aux/dist-vendor.sh', meson.project_version())
 i18n = import('i18n')
 
 loader_libexecdir = (
-  get_option('prefix') / get_option('libexecdir') / meson.project_name() / compat_version
+  get_option('prefix') / get_option('libexecdir') / 'glycin-loaders' / compat_version
 )
 
 test_skip_ext = ''
