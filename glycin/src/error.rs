@@ -6,6 +6,7 @@ use gio::glib;
 use glycin_utils::{DimensionTooLargerError, RemoteError};
 use libseccomp::error::SeccompError;
 
+use crate::config;
 use crate::dbus::MAX_TEXTURE_SIZE;
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -27,11 +28,13 @@ pub enum Error {
     #[error("Internal communication was unexpectedly canceled")]
     InternalCommunicationCanceled,
     #[error(
-        "No image loaders are configured. You might need to install a package like glycin-loaders."
+        "No image loaders are configured. You might need to install a package like glycin-loaders.\nUsed config: {0:#?}"
     )]
-    NoLoadersConfigured,
-    #[error("Unknown image format: {0}")]
-    UnknownImageFormat(String),
+    NoLoadersConfigured(config::Config),
+    #[error("Unknown image format: {0}\nUsed config: {1:#?}")]
+    UnknownImageFormat(String, config::Config),
+    #[error("Unknown content type: {0}")]
+    UnknownContentType(String),
     #[error("Loader process exited early with status '{}'. {cmd}", .status.code().unwrap_or_default())]
     PrematureExit { status: ExitStatus, cmd: String },
     #[error("Conversion too large")]
@@ -64,7 +67,7 @@ impl Error {
     /// is unrelated to unsupported formats.
     pub fn unsupported_format(&self) -> Option<String> {
         match self {
-            Self::UnknownImageFormat(mime_type) => Some(mime_type.to_string()),
+            Self::UnknownImageFormat(mime_type, _) => Some(mime_type.to_string()),
             Self::RemoteError(RemoteError::UnsupportedImageFormat(msg)) => Some(msg.clone()),
             _ => None,
         }

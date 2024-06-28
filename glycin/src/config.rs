@@ -59,15 +59,19 @@ impl Config {
     }
 
     pub fn get_loader(&self, mime_type: &MimeType) -> Result<&ImageLoaderConfig, Error> {
+        if self.image_loader.is_empty() {
+            return Err(Error::NoLoadersConfigured(self.clone()));
+        }
+
         self.image_loader
             .get(mime_type)
-            .ok_or_else(|| Error::UnknownImageFormat(mime_type.to_string()))
+            .ok_or_else(|| Error::UnknownImageFormat(mime_type.to_string(), self.clone()))
     }
 
     pub fn get_editor(&self, mime_type: &MimeType) -> Result<&ImageEditorConfig, Error> {
         self.image_editor
             .get(mime_type)
-            .ok_or_else(|| Error::UnknownImageFormat(mime_type.to_string()))
+            .ok_or_else(|| Error::UnknownImageFormat(mime_type.to_string(), self.clone()))
     }
 
     async fn load() -> Self {
