@@ -29,7 +29,7 @@ use crate::util::{block_on, spawn_blocking, spawn_blocking_detached};
 use crate::{config, icc, orientation, Error, Image, MimeType, SandboxMechanism};
 
 /// Max texture size 8 GB in bytes
-pub(crate) const MAX_TEXTURE_SIZE: u64 = 8u64.pow(9);
+pub(crate) const MAX_TEXTURE_SIZE: u64 = 8 * 10u64.pow(9);
 
 #[derive(Clone, Debug)]
 pub struct RemoteProcess<'a, P: ZbusProxy<'a>> {
