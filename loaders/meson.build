@@ -13,6 +13,7 @@ if 'glycin-jxl' in get_option('loaders')
 endif
 
 if 'glycin-svg' in get_option('loaders')
+  dependency('librsvg-2.0', version: '>= 2.52.0')
   dependency('cairo', version: '>= 1.17.0')
 endif
 
