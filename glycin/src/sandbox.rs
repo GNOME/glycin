@@ -206,6 +206,15 @@ impl Sandbox {
         command.stdin(OwnedFd::from(self.stdin));
         command.args(args);
 
+        // Clear ENV
+        command.env_clear();
+
+        // Inherit backtrace instructions
+        dbg!(std::env::var_os("RUST_BACKTRACE"));
+        if let Some(rust_backtrace) = std::env::var_os("RUST_BACKTRACE") {
+            command.env("RUST_BACKTRACE", rust_backtrace);
+        }
+
         // Set memory limit for sandbox
         if matches!(self.sandbox_mechanism, SandboxMechanism::Bwrap) {
             unsafe {
@@ -237,7 +246,6 @@ impl Sandbox {
         args.extend(
             [
                 "--unshare-all",
-                "--clearenv",
                 "--die-with-parent",
                 // change working directory to something that exists
                 "--chdir",
