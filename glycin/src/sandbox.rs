@@ -17,7 +17,9 @@ use nix::sys::resource;
 use crate::util::{new_async_mutex, AsyncMutex};
 use crate::{Error, SandboxMechanism};
 
-static SYSTEM_SETUP: AsyncMutex<Option<Arc<io::Result<SystemSetup>>>> = new_async_mutex(None);
+type SystemSetupStore = Arc<Result<SystemSetup, Arc<io::Error>>>;
+
+static SYSTEM_SETUP: AsyncMutex<Option<SystemSetupStore>> = new_async_mutex(None);
 
 const ALLOWED_SYSCALLS: &[&str] = &[
     "access",
@@ -277,7 +279,13 @@ impl Sandbox {
         );
 
         let system_setup_arc = SystemSetup::cached().await;
-        let system = system_setup_arc.as_ref().as_ref().unwrap();
+
+        let system = match system_setup_arc.as_ref().as_ref() {
+            Err(err) => {
+                return Err(err.clone().into());
+            }
+            Ok(system) => system,
+        };
 
         // Symlink paths like /usr/lib64 to /lib64
         for (dest, src) in &system.lib_symlinks {
@@ -376,7 +384,7 @@ impl Sandbox {
 
         for syscall_name in ALLOWED_SYSCALLS {
             let syscall = ScmpSyscall::from_name(syscall_name)?;
-            filter.add_rule(ScmpAction::Allow, syscall).unwrap();
+            filter.add_rule(ScmpAction::Allow, syscall)?;
         }
 
         Ok(filter)
@@ -390,7 +398,7 @@ impl Sandbox {
         filter.export_bpf(&mut memfd)?;
 
         let mut file = memfd.as_file();
-        file.rewind().unwrap();
+        file.rewind()?;
 
         Ok(memfd)
     }
@@ -405,13 +413,13 @@ struct SystemSetup {
 }
 
 impl SystemSetup {
-    async fn cached() -> Arc<io::Result<SystemSetup>> {
+    async fn cached() -> SystemSetupStore {
         let mut system_setup = SYSTEM_SETUP.lock().await;
 
         if let Some(arc) = &*system_setup {
             arc.clone()
         } else {
-            let arc = Arc::new(Self::new().await);
+            let arc = Arc::new(Self::new().await.map_err(Arc::new));
 
             *system_setup = Some(arc.clone());
 

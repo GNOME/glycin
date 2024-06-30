@@ -50,8 +50,11 @@ pub unsafe extern "C" fn gly_image_next_frame_async(
     let callback: GAsyncReadyCallbackSend = GAsyncReadyCallbackSend::new(callback, user_data);
 
     let cancel_signal = if let Some(cancellable) = &cancellable {
-        cancellable
-            .connect_cancelled(glib::clone!(@weak obj => move |_| obj.cancellable().cancel()))
+        cancellable.connect_cancelled(glib::clone!(
+            #[weak]
+            obj,
+            move |_| obj.cancellable().cancel()
+        ))
     } else {
         None
     };

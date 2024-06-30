@@ -84,12 +84,8 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         // UnixStream which facilitates the D-Bus connection. The stream is passed as
         // stdin to loader binaries.
         let (unix_stream, loader_stdin) = std::os::unix::net::UnixStream::pair()?;
-        unix_stream
-            .set_nonblocking(true)
-            .expect("Couldn't set nonblocking");
-        loader_stdin
-            .set_nonblocking(true)
-            .expect("Couldn't set nonblocking");
+        unix_stream.set_nonblocking(true)?;
+        loader_stdin.set_nonblocking(true)?;
 
         let decoder_bin = P::exec(config, mime_type)?;
         let mut sandbox = Sandbox::new(sandbox_mechanism, decoder_bin, loader_stdin);
@@ -138,8 +134,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
             // Unused since P2P connection
             .destination("org.gnome.glycin")?
             .build()
-            .await
-            .expect("Failed to create decoding instruction proxy");
+            .await?;
 
         Ok(Self {
             _dbus_connection: dbus_connection,
@@ -518,8 +513,7 @@ fn remove_stride_if_needed(
             nix::unistd::ftruncate(
                 borrowed_fd,
                 libc::off_t::try_from(frame.n_bytes()?).map_err(|_| DimensionTooLargerError)?,
-            )
-            .unwrap();
+            )?;
 
             // Need a new mmap with correct size
             let mmap = unsafe { memmap::MmapMut::map_mut(raw_fd) }?;

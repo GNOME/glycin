@@ -62,8 +62,11 @@ pub unsafe extern "C" fn gly_loader_load_async(
     let callback = GAsyncReadyCallbackSend::new(callback, user_data);
 
     let cancel_signal = if let Some(cancellable) = &cancellable {
-        cancellable
-            .connect_cancelled(glib::clone!(@weak obj => move |_| obj.cancellable().cancel()))
+        cancellable.connect_cancelled(glib::clone!(
+            #[weak]
+            obj,
+            move |_| obj.cancellable().cancel()
+        ))
     } else {
         None
     };

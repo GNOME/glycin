@@ -18,6 +18,8 @@ pub enum Error {
     RemoteError(#[from] RemoteError),
     #[error("GLib error: {0}")]
     GLibError(#[from] glib::Error),
+    #[error("Libc error: {0}")]
+    NixError(#[from] nix::errno::Errno),
     #[error("IO error: {err} {info}")]
     StdIoError {
         err: Arc<std::io::Error>,
@@ -78,6 +80,15 @@ impl From<std::io::Error> for Error {
     fn from(err: std::io::Error) -> Self {
         Self::StdIoError {
             err: Arc::new(err),
+            info: String::new(),
+        }
+    }
+}
+
+impl From<Arc<std::io::Error>> for Error {
+    fn from(err: Arc<std::io::Error>) -> Self {
+        Self::StdIoError {
+            err,
             info: String::new(),
         }
     }
