@@ -19,6 +19,8 @@ pub struct Loader {
     pub(crate) sandbox_mechanism: SandboxSelector,
 }
 
+static_assertions::assert_impl_all!(Loader: Send, Sync);
+
 impl Loader {
     /// Create a new loader
     pub fn new(file: gio::File) -> Self {
@@ -86,6 +88,8 @@ pub struct Image<'a> {
     mime_type: MimeType,
     active_sandbox_mechanism: SandboxMechanism,
 }
+
+static_assertions::assert_impl_all!(Image: Send, Sync);
 
 impl<'a> Image<'a> {
     /// Loads next frame

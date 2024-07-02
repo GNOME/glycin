@@ -23,7 +23,7 @@ async-io = [
     "zbus/async-io",
 ]
 tokio = ["dep:tokio", "dep:tokio-stream", "glycin-utils/tokio", "zbus/tokio"]
-gobject = ["dep:static_assertions", "glycin-utils/gobject"]
+gobject = ["glycin-utils/gobject"]
 gdk4 = ["dep:gdk"]
 
 [dependencies]
@@ -47,7 +47,7 @@ libseccomp.workspace = true
 memfd.workspace = true
 memmap.workspace = true
 nix = { workspace = true, features = ["fs", "resource", "signal"] }
-static_assertions = { workspace = true, optional = true }
+static_assertions = { workspace = true }
 thiserror.workspace = true
 tokio = { workspace = true, optional = true }
 tokio-stream = { workspace = true, optional = true }

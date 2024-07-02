@@ -152,12 +152,16 @@ pub struct Sandbox {
     ro_bind_extra: Vec<PathBuf>,
 }
 
+static_assertions::assert_impl_all!(Sandbox: Send, Sync);
+
 pub struct SpawnedSandbox {
     pub child: Child,
     // Keep seccomp fd alive until process exits
     pub _seccomp_fd: Option<Memfd>,
     pub info: SandboxInfo,
 }
+
+static_assertions::assert_impl_all!(SpawnedSandbox: Send, Sync);
 
 pub struct SandboxInfo {
     pub command_dbg: String,

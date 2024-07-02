@@ -39,7 +39,7 @@ pub struct RemoteProcess<'a, P: ZbusProxy<'a>> {
     phantom: PhantomData<&'a P>,
 }
 
-pub trait ZbusProxy<'a>: Sized + From<zbus::Proxy<'a>> {
+pub trait ZbusProxy<'a>: Sized + Sync + Send + From<zbus::Proxy<'a>> {
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self>;
     fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error>;
     fn entry_config(config: &Config, mime_type: &MimeType) -> Result<Box<dyn ConfigEntry>, Error>;

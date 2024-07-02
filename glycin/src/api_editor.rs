@@ -15,6 +15,8 @@ pub struct Editor {
     pub(crate) sandbox_mechanism: SandboxSelector,
 }
 
+static_assertions::assert_impl_all!(Editor: Send, Sync);
+
 impl Editor {
     /// Create an editor.
     pub fn new(file: gio::File) -> Self {

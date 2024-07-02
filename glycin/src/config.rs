@@ -34,7 +34,7 @@ pub struct Config {
     pub image_editor: HashMap<MimeType, ImageEditorConfig>,
 }
 
-pub trait ConfigEntry {
+pub trait ConfigEntry: Send + Sync {
     fn fontconfig(&self) -> bool;
     fn exec(&self) -> PathBuf;
 }
