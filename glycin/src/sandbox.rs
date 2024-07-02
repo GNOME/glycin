@@ -210,7 +210,6 @@ impl Sandbox {
         command.env_clear();
 
         // Inherit backtrace instructions
-        dbg!(std::env::var_os("RUST_BACKTRACE"));
         if let Some(rust_backtrace) = std::env::var_os("RUST_BACKTRACE") {
             command.env("RUST_BACKTRACE", rust_backtrace);
         }

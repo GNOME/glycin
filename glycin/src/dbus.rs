@@ -8,6 +8,7 @@ use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 
 use futures_channel::oneshot;
 use futures_util::{future, FutureExt};
@@ -25,7 +26,7 @@ use zbus::zvariant;
 use crate::api_loader::{self};
 use crate::config::Config;
 use crate::sandbox::Sandbox;
-use crate::util::{block_on, spawn_blocking, spawn_blocking_detached};
+use crate::util::{self, block_on, spawn_blocking, spawn_blocking_detached};
 use crate::{config, icc, orientation, Error, Image, MimeType, SandboxMechanism};
 
 /// Max texture size 8 GB in bytes
@@ -190,10 +191,10 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
 
         // Seal all memfds
         if let Some(exif) = &image_info.details.exif {
-            seal_fd(exif)?;
+            seal_fd(exif).await?;
         }
         if let Some(xmp) = &image_info.details.xmp {
-            seal_fd(xmp)?;
+            seal_fd(xmp).await?;
         }
 
         Ok(image_info)
@@ -208,7 +209,7 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
 
         // Seal all constant data
         if let Some(iccp) = &frame.details.iccp {
-            seal_fd(iccp)?;
+            seal_fd(iccp).await?;
         }
 
         let raw_fd = frame.texture.as_raw_fd();
@@ -247,7 +248,7 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
         let bytes = match img_buf {
             ImgBuf::MMap(mmap) => {
                 drop(mmap);
-                seal_fd(raw_fd)?;
+                seal_fd(raw_fd).await?;
                 unsafe { gbytes_from_mmap(raw_fd)? }
             }
             ImgBuf::Vec(vec) => glib::Bytes::from_owned(vec),
@@ -411,12 +412,14 @@ impl GFileWorker {
     }
 }
 
-fn seal_fd(fd: impl AsRawFd) -> Result<(), memfd::Error> {
+async fn seal_fd(fd: impl AsRawFd) -> Result<(), memfd::Error> {
     let raw_fd = fd.as_raw_fd();
+
+    let start = Instant::now();
 
     let mfd = memfd::Memfd::try_from_fd(raw_fd).unwrap();
     // In rare circumstances the sealing returns a ResourceBusy
-    for i in 0.. {
+    loop {
         // 🦭
         let seal = mfd.add_seals(&[
             memfd::FileSeal::SealShrink,
@@ -427,8 +430,14 @@ fn seal_fd(fd: impl AsRawFd) -> Result<(), memfd::Error> {
 
         match seal {
             Ok(_) => break,
-            Err(err) if i > 10000 => return Err(err),
-            Err(_) => {}
+            Err(err) if start.elapsed() > Duration::from_secs(10) => {
+                // Give up after some time and return the error
+                return Err(err);
+            }
+            Err(_) => {
+                // Try again after short waiting time
+                util::sleep(Duration::from_millis(1)).await;
+            }
         }
     }
     mem::forget(mfd);

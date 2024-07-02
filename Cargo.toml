@@ -47,6 +47,7 @@ futures-channel = "0.3.30"
 futures-lite = { version = "2.1.0" }
 futures-task = "0.3.30"
 futures-util = "0.3.30"
+futures-timer = "3.0.3"
 gdk = { package = "gdk4", git = "https://github.com/gtk-rs/gtk4-rs.git", features = [
     "v4_12",
 ], branch = "master" }

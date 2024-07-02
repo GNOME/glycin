@@ -127,3 +127,11 @@ pub async fn read_dir<P: AsRef<Path>>(
 pub use async_fs::read;
 #[cfg(feature = "tokio")]
 pub use tokio::fs::read;
+
+#[cfg(not(feature = "tokio"))]
+pub async fn sleep(duration: std::time::Duration) {
+    futures_timer::Delay::new(duration).await
+}
+
+#[cfg(feature = "tokio")]
+pub use tokio::time::sleep;
