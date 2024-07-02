@@ -6,7 +6,7 @@ variables:
 .install_dependencies:
   before_script:
     - apt update
-    - apt install -y git curl meson pkg-config gobject-introspection gi-docgen valac libgirepository1.0-dev python3-gi build-essential liblcms2-dev gettext clang mold bubblewrap libseccomp-dev
+    - apt install -y git curl meson pkg-config gobject-introspection gi-docgen valac libgirepository1.0-dev python3-gi build-essential liblcms2-dev gettext clang mold bubblewrap libseccomp-dev libfontconfig-dev
 
     - git clone https://github.com/libjxl/libjxl.git --recursive --shallow-submodules
     - apt-get install -y clang cmake pkg-config libbrotli-dev
@@ -22,9 +22,6 @@ variables:
     - echo "deb https://deb.debian.org/debian/ testing main" >> /etc/apt/sources.list
     - apt-get update
     - apt-get install -y libheif-dev libgtk-4-dev libcairo2-dev meson
-
-    # Update fontcache for SVGs
-    - fc-cache
   artifacts:
     when: always
     paths:
@@ -78,15 +75,15 @@ test-fedora40-loaders-async-io:
   image: 'registry.fedoraproject.org/fedora:40'
   interruptible: true
   script:
-    - dnf install --assumeyes glycin-loaders cargo bubblewrap glib2-devel gtk4-devel lcms2-devel libseccomp-devel
-    - GLYCIN_TEST_SKIP_EXT=exr cargo test -p tests
+    - dnf install --assumeyes glycin-loaders cargo bubblewrap glib2-devel gtk4-devel lcms2-devel libseccomp-devel fontconfig-devel
+    - GLYCIN_TEST_SKIP_EXT=exr cargo test -p tests -- --nocapture
 
 test-fedora40-loaders-tokio:
   image: 'registry.fedoraproject.org/fedora:40'
   interruptible: true
   script:
-    - dnf install --assumeyes glycin-loaders cargo bubblewrap glib2-devel gtk4-devel lcms2-devel libseccomp-devel
-    - GLYCIN_TEST_SKIP_EXT=exr cargo test -p tests --no-default-features --features tokio
+    - dnf install --assumeyes glycin-loaders cargo bubblewrap glib2-devel gtk4-devel lcms2-devel libseccomp-devel fontconfig-devel
+    - GLYCIN_TEST_SKIP_EXT=exr cargo test -p tests --no-default-features --features tokio -- --nocapture
 
 cargo-semver-checks:
   image: rust

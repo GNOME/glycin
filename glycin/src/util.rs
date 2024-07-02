@@ -53,7 +53,6 @@ pub fn block_on<F: std::future::Future>(future: F) -> F::Output {
 
 #[cfg(feature = "tokio")]
 pub fn block_on<F: std::future::Future>(future: F) -> F::Output {
-    use std::sync::OnceLock;
     static TOKIO_RT: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
     let runtime =
         TOKIO_RT.get_or_init(|| tokio::runtime::Runtime::new().expect("tokio runtime was created"));

@@ -9,12 +9,14 @@ use std::path::PathBuf;
 use std::process::{Child, Command};
 use std::sync::Arc;
 
+use gio::glib;
 use libseccomp::error::SeccompError;
 use libseccomp::{ScmpAction, ScmpFilterContext, ScmpSyscall};
 use memfd::{Memfd, MemfdOptions};
 use nix::sys::resource;
 
-use crate::util::{new_async_mutex, AsyncMutex};
+use crate::config::ConfigEntry;
+use crate::util::{self, new_async_mutex, AsyncMutex};
 use crate::{Error, SandboxMechanism};
 
 type SystemSetupStore = Arc<Result<SystemSetup, Arc<io::Error>>>;
@@ -133,31 +135,50 @@ const ALLOWED_SYSCALLS: &[&str] = &[
     "write",
 ];
 
+const ALLOWED_SYSCALLS_FONTCONFIG: &[&str] = &[
+    "link",
+    "linkat",
+    "unlink",
+    "unlinkat",
+    "rename",
+    "renameat",
+    "renameat2",
+];
+
 pub struct Sandbox {
     sandbox_mechanism: SandboxMechanism,
-    command: PathBuf,
+    config_entry: Box<dyn ConfigEntry>,
     stdin: UnixStream,
     ro_bind_extra: Vec<PathBuf>,
 }
 
 pub struct SpawnedSandbox {
     pub child: Child,
+    // Keep seccomp fd alive until process exits
+    pub _seccomp_fd: Option<Memfd>,
     pub info: SandboxInfo,
 }
 
 pub struct SandboxInfo {
     pub command_dbg: String,
-    pub seccomp_fd: Option<Memfd>,
 }
 
 impl Sandbox {
-    pub fn new(sandbox_mechanism: SandboxMechanism, command: PathBuf, stdin: UnixStream) -> Self {
+    pub fn new(
+        sandbox_mechanism: SandboxMechanism,
+        config_entry: Box<dyn ConfigEntry>,
+        stdin: UnixStream,
+    ) -> Self {
         Self {
             sandbox_mechanism,
-            command,
+            config_entry,
             stdin,
             ro_bind_extra: Vec::new(),
         }
+    }
+
+    fn exec(&self) -> PathBuf {
+        self.config_entry.exec()
     }
 
     pub fn add_ro_bind(&mut self, path: PathBuf) {
@@ -170,11 +191,11 @@ impl Sandbox {
             SandboxMechanism::Bwrap => {
                 let mut args = self.bwrap_args().await?;
 
-                let seccomp_memfd = Self::seccomp_export_bpf(&Self::seccomp_filter()?)?;
+                let seccomp_memfd = Self::seccomp_export_bpf(&self.seccomp_filter()?)?;
                 args.push("--seccomp".into());
                 args.push(seccomp_memfd.as_raw_fd().to_string().into());
 
-                args.push(self.command);
+                args.push(self.exec());
 
                 ("bwrap".into(), args, Some(seccomp_memfd))
             }
@@ -191,14 +212,14 @@ impl Sandbox {
                     "prlimit".into(),
                     format!("--as={memory_limit}").into(),
                     // Loader binary
-                    self.command,
+                    self.exec(),
                 ];
 
                 ("flatpak-spawn".into(), args, None)
             }
             SandboxMechanism::NotSandboxed => {
                 eprintln!("WARNING: Glycin running without sandbox.");
-                (self.command, vec![], None)
+                (self.exec(), vec![], None)
             }
         };
 
@@ -232,10 +253,8 @@ impl Sandbox {
 
         Ok(SpawnedSandbox {
             child,
-            info: SandboxInfo {
-                command_dbg,
-                seccomp_fd,
-            },
+            _seccomp_fd: seccomp_fd,
+            info: SandboxInfo { command_dbg },
         })
     }
 
@@ -310,21 +329,47 @@ impl Sandbox {
 
         // Make loader binary available if not in /usr. This is useful for testing and
         // adding loaders in user (/home) configurations.
-        if !self.command.starts_with("/usr") {
+        if !self.exec().starts_with("/usr") {
             args.push("--ro-bind".into());
-            args.push(self.command.clone());
-            args.push(self.command.clone());
+            args.push(self.exec());
+            args.push(self.exec());
         }
 
         // Fontconfig
-        if let Some(fc_paths) = crate::fontconfig::cached_paths() {
+        if !self.config_entry.fontconfig() {
+            // TODO: log fontconfig disabled
+        } else if let Some(fc_paths) = crate::fontconfig::cached_paths() {
+            // Expose paths to fonts, configs, and caches
             for path in fc_paths {
                 args.push("--ro-bind-try".into());
                 args.push(path.clone());
                 args.push(path.clone());
             }
+
+            // Fontconfig needs a writeable cache if the cache is outdated
+            let cache_dir = PathBuf::from_iter([
+                glib::user_cache_dir(),
+                "glycin".into(),
+                self.exec().iter().skip(1).collect(),
+            ]);
+
+            let fc_cache_dir = PathBuf::from_iter([cache_dir.clone(), "fontconfig".into()]);
+
+            // Create cache dir
+            match util::spawn_blocking(move || std::fs::create_dir_all(fc_cache_dir)).await {
+                Err(err) => eprintln!("Failed to create cache dir: {err:?}"),
+                Ok(()) => {
+                    args.push("--bind-try".into());
+                    args.push(cache_dir.clone());
+                    args.push(cache_dir.clone());
+
+                    args.push("--setenv".into());
+                    args.push("XDG_CACHE_HOME".into());
+                    args.push(cache_dir);
+                }
+            }
         } else {
-            eprintln!("WARNING: Failt to load fonftconfig environment");
+            eprintln!("WARNING: Failed to load fonftconfig environment");
         }
 
         Ok(args)
@@ -390,10 +435,16 @@ impl Sandbox {
         }
     }
 
-    fn seccomp_filter() -> Result<ScmpFilterContext, SeccompError> {
+    fn seccomp_filter(&self) -> Result<ScmpFilterContext, SeccompError> {
         let mut filter = ScmpFilterContext::new_filter(ScmpAction::Trap)?;
 
-        for syscall_name in ALLOWED_SYSCALLS {
+        let mut syscalls = vec![ALLOWED_SYSCALLS];
+        if self.config_entry.fontconfig() {
+            // Enable some write operations for fontconfig to update its cache
+            syscalls.push(ALLOWED_SYSCALLS_FONTCONFIG);
+        }
+
+        for syscall_name in syscalls.into_iter().flatten() {
             let syscall = ScmpSyscall::from_name(syscall_name)?;
             filter.add_rule(ScmpAction::Allow, syscall)?;
         }

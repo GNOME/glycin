@@ -28,28 +28,55 @@ impl std::fmt::Display for MimeType {
 const CONFIG_FILE_EXT: &str = "conf";
 pub const COMPAT_VERSION: u8 = 1;
 
-static CONFIG: OnceLock<Config> = OnceLock::new();
-
 #[derive(Debug, Clone, Default)]
 pub struct Config {
     pub image_loader: HashMap<MimeType, ImageLoaderConfig>,
     pub image_editor: HashMap<MimeType, ImageEditorConfig>,
 }
 
+pub trait ConfigEntry {
+    fn fontconfig(&self) -> bool;
+    fn exec(&self) -> PathBuf;
+}
+
 #[derive(Debug, Clone)]
 pub struct ImageLoaderConfig {
     pub exec: PathBuf,
     pub expose_base_dir: bool,
+    pub fontconfig: bool,
+}
+
+impl ConfigEntry for ImageLoaderConfig {
+    fn fontconfig(&self) -> bool {
+        self.fontconfig
+    }
+
+    fn exec(&self) -> PathBuf {
+        self.exec.clone()
+    }
 }
 
 #[derive(Debug, Clone)]
 pub struct ImageEditorConfig {
     pub exec: PathBuf,
     pub expose_base_dir: bool,
+    pub fontconfig: bool,
+}
+
+impl ConfigEntry for ImageEditorConfig {
+    fn fontconfig(&self) -> bool {
+        self.fontconfig
+    }
+
+    fn exec(&self) -> PathBuf {
+        self.exec.clone()
+    }
 }
 
 impl Config {
     pub async fn cached() -> &'static Self {
+        static CONFIG: OnceLock<Config> = OnceLock::new();
+
         if let Some(config) = CONFIG.get() {
             config
         } else {
@@ -117,10 +144,13 @@ impl Config {
                         if let Ok(exec) = keyfile.string(group, "Exec") {
                             let expose_base_dir =
                                 keyfile.boolean(group, "ExposeBaseDir").unwrap_or_default();
+                            let fontconfig =
+                                keyfile.boolean(group, "Fontconfig").unwrap_or_default();
 
                             let cfg = ImageLoaderConfig {
                                 exec: exec.into(),
                                 expose_base_dir,
+                                fontconfig,
                             };
 
                             config
@@ -132,10 +162,13 @@ impl Config {
                         if let Ok(exec) = keyfile.string(group, "Exec") {
                             let expose_base_dir =
                                 keyfile.boolean(group, "ExposeBaseDir").unwrap_or_default();
+                            let fontconfig =
+                                keyfile.boolean(group, "Fontconfig").unwrap_or_default();
 
                             let cfg = ImageEditorConfig {
                                 exec: exec.into(),
                                 expose_base_dir,
+                                fontconfig,
                             };
 
                             config

@@ -31,7 +31,7 @@ async-fs = { workspace = true, optional = true }
 async-io = { workspace = true, optional = true }
 async-lock = { workspace = true, optional = true }
 blocking = { workspace = true, optional = true }
-servo-fontconfig.workspace = true
+yeslogic-fontconfig-sys.workspace = true
 futures-channel.workspace = true
 futures-timer = { workspace = true, optional = true }
 futures-util.workspace = true

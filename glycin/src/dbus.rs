@@ -6,7 +6,6 @@ use std::marker::PhantomData;
 use std::mem;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::os::unix::net::UnixStream;
-use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -24,7 +23,7 @@ use nix::sys::signal;
 use zbus::zvariant;
 
 use crate::api_loader::{self};
-use crate::config::Config;
+use crate::config::{Config, ConfigEntry};
 use crate::sandbox::Sandbox;
 use crate::util::{self, block_on, spawn_blocking, spawn_blocking_detached};
 use crate::{config, icc, orientation, Error, Image, MimeType, SandboxMechanism};
@@ -43,7 +42,7 @@ pub struct RemoteProcess<'a, P: ZbusProxy<'a>> {
 pub trait ZbusProxy<'a>: Sized + From<zbus::Proxy<'a>> {
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self>;
     fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error>;
-    fn exec(config: &Config, mime_type: &MimeType) -> Result<PathBuf, Error>;
+    fn entry_config(config: &Config, mime_type: &MimeType) -> Result<Box<dyn ConfigEntry>, Error>;
 }
 
 impl<'a> ZbusProxy<'a> for LoaderProxy<'a> {
@@ -55,8 +54,8 @@ impl<'a> ZbusProxy<'a> for LoaderProxy<'a> {
         Ok(config.get_loader(mime_type)?.expose_base_dir)
     }
 
-    fn exec(config: &Config, mime_type: &MimeType) -> Result<PathBuf, Error> {
-        Ok(config.get_loader(mime_type)?.exec.clone())
+    fn entry_config(config: &Config, mime_type: &MimeType) -> Result<Box<dyn ConfigEntry>, Error> {
+        Ok(Box::new(config.get_loader(mime_type)?.clone()))
     }
 }
 
@@ -69,8 +68,8 @@ impl<'a> ZbusProxy<'a> for EditorProxy<'a> {
         Ok(config.get_editor(mime_type)?.expose_base_dir)
     }
 
-    fn exec(config: &Config, mime_type: &MimeType) -> Result<PathBuf, Error> {
-        Ok(config.get_editor(mime_type)?.exec.clone())
+    fn entry_config(config: &Config, mime_type: &MimeType) -> Result<Box<dyn ConfigEntry>, Error> {
+        Ok(Box::new(config.get_editor(mime_type)?.clone()))
     }
 }
 
@@ -88,8 +87,8 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         unix_stream.set_nonblocking(true)?;
         loader_stdin.set_nonblocking(true)?;
 
-        let decoder_bin = P::exec(config, mime_type)?;
-        let mut sandbox = Sandbox::new(sandbox_mechanism, decoder_bin, loader_stdin);
+        let config_entry = P::entry_config(config, mime_type)?;
+        let mut sandbox = Sandbox::new(sandbox_mechanism, config_entry, loader_stdin);
         // Mount dir that contains the file as read only for formats like SVG
         if P::expose_base_dir(config, mime_type)? {
             if let Some(base_dir) = file.parent().and_then(|x| x.path()) {
