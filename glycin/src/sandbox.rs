@@ -416,20 +416,26 @@ impl Sandbox {
     fn mem_available() -> Option<resource::rlim_t> {
         if let Ok(file) = File::open("/proc/meminfo") {
             let meminfo = BufReader::new(file);
+            let mut total_avail_kb: Option<resource::rlim_t> = None;
 
             for line in meminfo.lines().map_while(Result::ok) {
-                if line.starts_with("MemAvailable:") {
+                if line.starts_with("MemAvailable:") || line.starts_with("SwapFree:") {
                     if let Some(mem_avail_kb) = line
                         .split(' ')
                         .filter(|x| !x.is_empty())
                         .nth(1)
                         .and_then(|x| x.parse::<resource::rlim_t>().ok())
                     {
-                        let mem_available = mem_avail_kb.saturating_mul(1024);
-
-                        return Some(Self::calculate_memory_limit(mem_available));
+                        total_avail_kb =
+                            Some(total_avail_kb.unwrap_or(0).saturating_add(mem_avail_kb));
                     }
                 }
+            }
+
+            if let Some(total_avail_kb) = total_avail_kb {
+                let mem_available = total_avail_kb.saturating_mul(1024);
+
+                return Some(Self::calculate_memory_limit(mem_available));
             }
         }
 
