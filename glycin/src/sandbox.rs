@@ -272,13 +272,6 @@ impl Sandbox {
                 "--setenv",
                 "XDG_RUNTIME_DIR",
                 "/tmp-run",
-                // Fontconfig
-                "--ro-bind-try",
-                "/etc/fonts",
-                "/etc/fonts",
-                "--ro-bind-try",
-                "/var/cache/fontconfig",
-                "/var/cache/fontconfig",
             ]
             .iter()
             .map(|x| (*x).into())
@@ -321,6 +314,17 @@ impl Sandbox {
             args.push("--ro-bind".into());
             args.push(self.command.clone());
             args.push(self.command.clone());
+        }
+
+        // Fontconfig
+        if let Some(fc_paths) = crate::fontconfig::cached_paths() {
+            for path in fc_paths {
+                args.push("--ro-bind-try".into());
+                args.push(path.clone());
+                args.push(path.clone());
+            }
+        } else {
+            eprintln!("WARNING: Failt to load fonftconfig environment");
         }
 
         Ok(args)

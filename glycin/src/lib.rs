@@ -73,6 +73,7 @@ mod config;
 mod dbus;
 mod default_formats;
 mod error;
+mod fontconfig;
 mod icc;
 mod orientation;
 mod sandbox;
