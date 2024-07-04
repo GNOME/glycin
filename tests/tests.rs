@@ -2,6 +2,8 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
 use gdk::prelude::*;
+use tracing_subscriber::layer::*;
+use tracing_subscriber::util::*;
 
 #[test]
 fn color() {
@@ -61,6 +63,11 @@ fn test_dir_no_exif(dir: impl AsRef<Path>) {
 }
 
 async fn test_dir_options(dir: impl AsRef<Path>, exif: bool) {
+    let _ = tracing_subscriber::registry()
+        .with(tracing_subscriber::EnvFilter::from_default_env())
+        .with(tracing_subscriber::fmt::Layer::default().compact())
+        .try_init();
+
     let images = std::fs::read_dir(&dir).unwrap();
 
     let skip_ext: Vec<_> = option_env!("GLYCIN_TEST_SKIP_EXT")

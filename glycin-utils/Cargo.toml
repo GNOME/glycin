@@ -24,6 +24,8 @@ gufo-common.workspace = true
 paste.workspace = true
 glib = { workspace = true, optional = true }
 tokio = { workspace = true, optional = true }
+log.workspace = true
+env_logger.workspace = true
 
 [features]
 default = ["async-io"]

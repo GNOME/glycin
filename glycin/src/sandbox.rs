@@ -235,8 +235,10 @@ impl Sandbox {
         command.env_clear();
 
         // Inherit backtrace instructions
-        if let Some(rust_backtrace) = std::env::var_os("RUST_BACKTRACE") {
-            command.env("RUST_BACKTRACE", rust_backtrace);
+        for env_key in ["RUST_BACKTRACE", "RUST_LOG"] {
+            if let Some(val) = std::env::var_os(env_key) {
+                command.env(env_key, val);
+            }
         }
 
         // Set memory limit for sandbox
@@ -250,6 +252,7 @@ impl Sandbox {
         }
 
         let command_dbg = format!("{:?}", command);
+        tracing::debug!("Spawning loader/editor:\n    {command_dbg}");
         let child = command.spawn().map_err(|err| Error::SpawnError {
             cmd: command_dbg.clone(),
             err: Arc::new(err),

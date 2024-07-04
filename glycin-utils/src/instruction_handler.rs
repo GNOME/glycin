@@ -36,6 +36,10 @@ impl Communication {
         loader: Option<impl LoaderImplementation + 'static>,
         editor: Option<impl EditorImplementation + 'static>,
     ) -> Self {
+        env_logger::builder().format_timestamp_millis().init();
+
+        log::debug!("Creating zbus connection to glycin");
+
         let unix_stream: UnixStream =
             unsafe { UnixStream::from_raw_fd(std::io::stdin().as_raw_fd()) };
 
@@ -65,12 +69,13 @@ impl Communication {
                 .expect("Failed to setup editor handler");
         }
 
-        Communication {
-            _dbus_connection: dbus_connection
-                .build()
-                .await
-                .expect("Failed to create private DBus connection"),
-        }
+        let _dbus_connection = dbus_connection
+            .build()
+            .await
+            .expect("Failed to create private DBus connection");
+
+        log::debug!("D-Bus connection to glycin created");
+        Communication { _dbus_connection }
     }
 
     fn setup_sigsys_handler() {

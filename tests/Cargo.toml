@@ -21,6 +21,7 @@ gio.workspace = true
 tokio.workspace = true
 gdk.workspace = true
 zbus = { workspace = true, features = ["p2p"] }
+tracing-subscriber.workspace = true
 
 [[test]]
 name = "tests"
