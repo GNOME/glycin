@@ -1,5 +1,6 @@
 // Copyright (c) 2024 GNOME Foundation Inc.
 
+use std::ffi::OsString;
 use std::fs::{canonicalize, DirEntry, File};
 use std::io::{self, BufRead, BufReader, Seek};
 use std::os::fd::{AsRawFd, OwnedFd};
@@ -232,12 +233,28 @@ impl Sandbox {
         command.args(args);
 
         // Clear ENV
-        command.env_clear();
+        if matches!(self.sandbox_mechanism, SandboxMechanism::FlatpakSpawn) {
+            // Do not clear environment before `flatpak-spawn` is called. Otherwise,
+            // `flatpak-spawn` will fail to find the D-Bus connection to call the portal.
+            command.arg("--clear-env");
+        } else {
+            command.env_clear();
+        }
 
-        // Inherit backtrace instructions
+        // Inherit some environment variables
         for env_key in ["RUST_BACKTRACE", "RUST_LOG"] {
             if let Some(val) = std::env::var_os(env_key) {
-                command.env(env_key, val);
+                if matches!(self.sandbox_mechanism, SandboxMechanism::FlatpakSpawn) {
+                    let mut arg = OsString::new();
+                    arg.push("--env=");
+                    arg.push(env_key);
+                    arg.push("=");
+                    arg.push(val);
+
+                    command.arg(arg);
+                } else {
+                    command.env(env_key, val);
+                }
             }
         }
 
