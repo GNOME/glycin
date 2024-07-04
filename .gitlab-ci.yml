@@ -29,7 +29,7 @@ variables:
       - builddir/meson-logs
 
 test-x86_64:
-  image: rust:1.76-bookworm
+  image: rust:1.77-bookworm
   extends: .install_dependencies
   interruptible: true
   script:
@@ -47,7 +47,7 @@ test-x86_64:
 
 test-i386:
   # Use hash to force i386, lookup "MANIFEST DIGEST" here <https://hub.docker.com/r/i386/rust/tags>
-  image: rust@sha256:d21d21f6e7baa3e203257b0cf4de5827be3e877f853d2ef16b6ae5a2747e342c
+  image: rust@sha256:a4a0d75603934331aeaef895addc326937ad27ea659a3b3c5a9ac4af4f039640
   extends: .install_dependencies
   interruptible: true
   # As long as 32-bit CI is so unstable
@@ -60,7 +60,7 @@ test-i386:
     - meson test -vC builddir
 
 test-aarch64:
-  image: rust:1.76-bookworm
+  image: rust:1.77-bookworm
   tags:
     - aarch64
   extends: .install_dependencies
