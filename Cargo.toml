@@ -6,7 +6,7 @@ license = "MPL-2.0 OR LGPL-2.1-or-later"
 homepage = "https://gitlab.gnome.org/sophie-h/glycin"
 repository = "https://gitlab.gnome.org/sophie-h/glycin"
 edition = "2021"
-rust-version = "1.76"
+rust-version = "1.77"
 
 [profile.release]
 lto = true
@@ -44,7 +44,7 @@ async-io = "2.3.2"
 async-lock = "3.3.0"
 blocking = "1.6.1"
 env_logger = "0.11.0"
-yeslogic-fontconfig-sys = "5.0.0"
+yeslogic-fontconfig-sys = "6.0.0"
 futures-channel = "0.3.30"
 futures-lite = { version = "2.1.0" }
 futures-task = "0.3.30"
