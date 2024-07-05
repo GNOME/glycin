@@ -16,7 +16,7 @@ pub struct Loader {
     file: gio::File,
     cancellable: gio::Cancellable,
     pub(crate) apply_transformations: bool,
-    pub(crate) sandbox_mechanism: SandboxSelector,
+    pub(crate) sandbox_selector: SandboxSelector,
 }
 
 static_assertions::assert_impl_all!(Loader: Send, Sync);
@@ -28,17 +28,15 @@ impl Loader {
             file,
             cancellable: gio::Cancellable::new(),
             apply_transformations: true,
-            sandbox_mechanism: SandboxSelector::default(),
+            sandbox_selector: SandboxSelector::default(),
         }
     }
 
-    /// Change the sandbox mechanism
+    /// Sets the method by which the sandbox mechanism is selected.
     ///
-    /// The default without calling this function is to automatically select a
-    /// sandbox mechanism. The sandbox is never disabled automatically.
-    pub fn sandbox_mechanism(&mut self, sandbox_mechanism: Option<SandboxMechanism>) -> &mut Self {
-        self.sandbox_mechanism =
-            sandbox_mechanism.map_or(SandboxSelector::Auto, |x| x.into_selector());
+    /// The default without calling this function is [`SandboxSelector::Auto`].
+    pub fn sandbox_selector(&mut self, sandbox_selector: SandboxSelector) -> &mut Self {
+        self.sandbox_selector = sandbox_selector;
         self
     }
 
@@ -62,7 +60,7 @@ impl Loader {
     /// Load basic image information and enable further operations
     pub async fn load<'a>(self) -> Result<Image<'a>> {
         let process_context =
-            spin_up(&self.file, &self.cancellable, &self.sandbox_mechanism).await?;
+            spin_up(&self.file, &self.cancellable, &self.sandbox_selector).await?;
 
         let info = process_context
             .process

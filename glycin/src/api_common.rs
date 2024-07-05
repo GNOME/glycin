@@ -5,7 +5,8 @@ use gio::glib;
 use gio::prelude::*;
 
 use crate::dbus::{GFileWorker, RemoteProcess, ZbusProxy};
-use crate::{config, util, Error, MimeType, Result};
+use crate::util::RunEnvironment;
+use crate::{config, Error, MimeType, Result};
 
 #[derive(Debug, Copy, Clone)]
 /// Sandboxing mechanism for image loading and editing
@@ -17,10 +18,10 @@ pub enum SandboxMechanism {
 
 impl SandboxMechanism {
     pub async fn detect() -> Self {
-        if util::is_flatpaked().await {
-            Self::FlatpakSpawn
-        } else {
-            Self::Bwrap
+        match RunEnvironment::cached().await {
+            RunEnvironment::FlatpakDevel => Self::NotSandboxed,
+            RunEnvironment::Flatpak => Self::FlatpakSpawn,
+            RunEnvironment::Host => Self::Bwrap,
         }
     }
 
@@ -40,6 +41,17 @@ impl SandboxMechanism {
 /// Method by which the [`SandboxMechanism`] is selected
 pub enum SandboxSelector {
     #[default]
+    /// This mode selects `bwrap` outside of Flatpaks and usually
+    /// `flatpak-spawn` inside of Flatpaks. The sandbox is disabled
+    /// automatically inside of Flatpak development environments. See
+    /// details below.
+    ///
+    /// Inside of Flatpaks, `flatpak-spawn` is used to create the sandbox. This
+    /// mechanism starts an installed Flatpak with the same app id. For
+    /// development, Flatpak are usually not installed and the sandbox can
+    /// therefore not be used. If the sandbox has been started via
+    /// `flatpak-builder --run` (i.e. without installed Flatpak) and the app id
+    /// ends with `.Devel`, the sandbox is disabled.
     Auto,
     Bwrap,
     FlatpakSpawn,

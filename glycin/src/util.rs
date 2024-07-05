@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 use futures_util::{Stream, StreamExt};
+use gio::glib;
 #[cfg(feature = "gdk4")]
 use glycin_utils::MemoryFormat;
 
@@ -36,14 +37,52 @@ pub const fn gdk_memory_format(format: MemoryFormat) -> gdk::MemoryFormat {
     }
 }
 
-pub async fn is_flatpaked() -> bool {
-    static IS_FLATPAKED: OnceLock<bool> = OnceLock::new();
-    if let Some(result) = IS_FLATPAKED.get() {
-        *result
-    } else {
-        let flatpaked = spawn_blocking(|| Path::new("/.flatpak-info").is_file()).await;
-        *IS_FLATPAKED.get_or_init(|| flatpaked)
+#[derive(Debug, Clone, Copy)]
+pub enum RunEnvironment {
+    /// Not inside Flatpak
+    Host,
+    /// Inside Flatpak
+    Flatpak,
+    /// Inside Flatpak and development environment
+    FlatpakDevel,
+}
+
+impl RunEnvironment {
+    pub async fn cached() -> Self {
+        static RUN_ENVIRONMENT: OnceLock<RunEnvironment> = OnceLock::new();
+        if let Some(result) = RUN_ENVIRONMENT.get() {
+            *result
+        } else {
+            let run_env = if let Some(devel) = flatpak_devel().await {
+                if devel {
+                    Self::FlatpakDevel
+                } else {
+                    Self::Flatpak
+                }
+            } else {
+                Self::Host
+            };
+
+            *RUN_ENVIRONMENT.get_or_init(|| run_env)
+        }
     }
+}
+
+/// Returns None if not in Flatpak environment, otherwise true if development
+async fn flatpak_devel() -> Option<bool> {
+    let data = read("/.flatpak-info").await.ok()?;
+    let bytes = glib::Bytes::from_owned(data);
+
+    let keyfile = glib::KeyFile::new();
+    keyfile
+        .load_from_bytes(&bytes, glib::KeyFileFlags::NONE)
+        .ok()?;
+
+    // App is not installed but instead started with `flatpak-builder --run`
+    let flatpak_builder = keyfile.boolean("Instance", "build").ok()?;
+    let name = keyfile.string("Application", "name").ok()?;
+
+    Some(flatpak_builder && name.ends_with(".Devel"))
 }
 
 #[cfg(not(feature = "tokio"))]

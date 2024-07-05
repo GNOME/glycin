@@ -46,7 +46,7 @@ impl GlyLoader {
     pub async fn load(&self) -> Result<GlyImage, crate::Error> {
         let mut loader = Loader::new(self.file().unwrap());
 
-        loader.sandbox_mechanism = self.sandbox_selector();
+        loader.sandbox_selector = self.sandbox_selector();
         loader.cancellable(self.cancellable());
 
         let image = loader.load().await?;

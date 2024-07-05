@@ -61,7 +61,16 @@ G_DECLARE_FINAL_TYPE(GlyFrame, gly_frame, GLY, FRAME, GObject)
 
 /**
  * GlySandboxSelector:
- * @GLY_SANDBOX_SELECTOR_AUTO: Select automatically. Never selects the not sandboxed option.
+ * @GLY_SANDBOX_SELECTOR_AUTO:
+ *  This mode selects `bwrap` outside of Flatpaks and usually
+ *  `flatpak-spawn` inside of Flatpaks. The sandbox is disabled
+ *  automatically inside of Flatpak development environments.
+ *  Inside of Flatpaks, `flatpak-spawn` is used to create the sandbox. This
+ *  mechanism starts an installed Flatpak with the same app id. For
+ *  development, Flatpak are usually not installed and the sandbox can
+ *  therefore not be used. If the sandbox has been started via
+ *  `flatpak-builder --run` (i.e. without installed Flatpak) and the app id
+ *  ends with `.Devel`, the sandbox is disabled.
  * @GLY_SANDBOX_SELECTOR_BWRAP: bwrap
  * @GLY_SANDBOX_SELECTOR_FLATPAK_SPAWN: flatpak-spawn
  * @GLY_SANDBOX_SELECTOR_NOT_SANDBOXED: Disable sandbox. Unsafe, only use for testing and development.
@@ -101,7 +110,7 @@ GlyLoader *gly_loader_new(GFile *file);
  * @loader:
  * @sandbox_selector: Method by which the sandbox mechanism is selected
  *
- * Selects which sandbox mechanism should be used. The default it to automatically select a sandbox. Usually there is no need to change this.
+ * Selects which sandbox mechanism should be used. The default without calling this function is [enum@SandboxSelector]`.AUTO`.
  *
  * Since: 1.0
  */

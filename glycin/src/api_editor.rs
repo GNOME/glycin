@@ -12,7 +12,7 @@ use crate::{util, Error};
 pub struct Editor {
     file: gio::File,
     cancellable: gio::Cancellable,
-    pub(crate) sandbox_mechanism: SandboxSelector,
+    pub(crate) sandbox_selector: SandboxSelector,
 }
 
 static_assertions::assert_impl_all!(Editor: Send, Sync);
@@ -23,17 +23,15 @@ impl Editor {
         Self {
             file,
             cancellable: gio::Cancellable::new(),
-            sandbox_mechanism: SandboxSelector::default(),
+            sandbox_selector: SandboxSelector::default(),
         }
     }
 
-    /// Change the sandbox mechanism.
+    /// Sets the method by which the sandbox mechanism is selected.
     ///
-    /// The default without calling this function is to automatically select a
-    /// sandbox mechanism. The sandbox is never disabled automatically.
-    pub fn sandbox_mechanism(&mut self, sandbox_mechanism: Option<SandboxMechanism>) -> &mut Self {
-        self.sandbox_mechanism =
-            sandbox_mechanism.map_or(SandboxSelector::Auto, |x| x.into_selector());
+    /// The default without calling this function is [`SandboxSelector::Auto`].
+    pub fn sandbox_selector(&mut self, sandbox_selector: SandboxSelector) -> &mut Self {
+        self.sandbox_selector = sandbox_selector;
         self
     }
 
@@ -50,7 +48,7 @@ impl Editor {
     /// a [`SparseEdit::Sparse`] is returned.
     pub async fn apply_sparse(self, operations: Operations) -> Result<SparseEdit> {
         let process_context =
-            spin_up(&self.file, &self.cancellable, &self.sandbox_mechanism).await?;
+            spin_up(&self.file, &self.cancellable, &self.sandbox_selector).await?;
 
         let editor_output = process_context
             .process
