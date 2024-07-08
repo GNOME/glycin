@@ -79,8 +79,13 @@ async fn flatpak_devel() -> Option<bool> {
         .ok()?;
 
     // App is not installed but instead started with `flatpak-builder --run`
-    let flatpak_builder = keyfile.boolean("Instance", "build").ok()?;
-    let name = keyfile.string("Application", "name").ok()?;
+    let Ok(flatpak_builder) = keyfile.boolean("Instance", "build") else {
+        return Some(false);
+    };
+
+    let Ok(name) = keyfile.string("Application", "name") else {
+        return Some(false);
+    };
 
     Some(flatpak_builder && name.ends_with(".Devel"))
 }
