@@ -10,10 +10,12 @@ libglycin_deps = [
 
 pkg = import('pkgconfig')
 gnome = import('gnome')
+manifest = meson.project_source_root() / 'Cargo.toml'
 
 cargo_options = [
     '--target-dir', cargo_target_dir,
     '--profile', cargo_profile,
+    '--manifest-path', manifest,
 ]
 
 pkg_uninstalled_path = {'PKG_CONFIG_PATH': meson.project_build_root() / 'meson-uninstalled'}

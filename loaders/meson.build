@@ -44,8 +44,11 @@ foreach ext : get_option('test_skip_ext')
   test_skip_ext += ext
 endforeach
 
+manifest = meson.project_source_root() / 'Cargo.toml'
+
 cargo_options = [
   '--profile', cargo_profile,
+  '--manifest-path', manifest,
 ]
 
 cargo_env = {
