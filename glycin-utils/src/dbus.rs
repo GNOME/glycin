@@ -114,6 +114,7 @@ pub struct FrameDetails {
     ///
     /// Only set if it can differ for the format
     pub grayscale: Option<bool>,
+    pub n_frame: Option<u64>,
 }
 
 impl Frame {

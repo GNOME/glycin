@@ -8,6 +8,10 @@ repository = "https://gitlab.gnome.org/sophie-h/glycin"
 edition = "2021"
 rust-version = "1.77"
 
+[patch.crates-io]
+image-webp = { git = "https://github.com/image-rs/image-webp.git" }
+image = { git = "https://github.com/image-rs/image.git" }
+
 [profile.release]
 lto = true
 codegen-units = 1
@@ -50,11 +54,9 @@ futures-lite = { version = "2.1.0" }
 futures-task = "0.3.30"
 futures-util = "0.3.30"
 futures-timer = "3.0.3"
-gdk = { package = "gdk4", git = "https://github.com/gtk-rs/gtk4-rs.git", features = [
-    "v4_12",
-], branch = "master" }
-gio = { version = "0.20.0", git = "https://github.com/gtk-rs/gtk-rs-core.git", branch = "master" }
-glib = { version = "0.20.0", git = "https://github.com/gtk-rs/gtk-rs-core.git", branch = "master" }
+gdk = { package = "gdk4", version = "0.9.0", features = ["v4_12"] }
+gio = { version = "0.20.0" }
+glib = { version = "0.20.0" }
 glycin = { path = "glycin/", default-features = false }
 glycin-utils = { version = "2.0.0-alpha", path = "glycin-utils/", default-features = false }
 gufo-common = { version = "0.1.0-alpha", features = ["serde"] }

@@ -37,7 +37,7 @@ pub enum Error {
     UnknownImageFormat(String, config::Config),
     #[error("Unknown content type: {0}")]
     UnknownContentType(String),
-    #[error("Loader process exited early with status '{}'. {cmd}", .status.code().unwrap_or_default())]
+    #[error("Loader process exited early with status '{}'Command:\n {cmd}", .status.code().unwrap_or_default())]
     PrematureExit { status: ExitStatus, cmd: String },
     #[error("Conversion too large")]
     ConversionTooLargerError,

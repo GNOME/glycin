@@ -9,8 +9,9 @@ use std::sync::Mutex;
 use editor::ImgEditor;
 use glycin_utils::image_rs::Handler;
 use glycin_utils::*;
-use image::io::Limits;
+use image::Limits;
 use image::{codecs, AnimationDecoder, ImageDecoder, ImageResult};
+use log::trace;
 
 init_main_loader_editor!(ImgDecoder::default(), ImgEditor::default());
 
@@ -36,6 +37,8 @@ fn animated_worker(
 
     // Replay animation from beginning
     loop {
+        log::trace!("animated: Start loading loop for {mime_type}");
+
         if format.is_none() {
             format = ImageRsFormat::create(data.clone(), &mime_type).ok();
         }
@@ -63,6 +66,7 @@ fn animated_worker(
         let mut first_frames = Vec::new();
 
         // Decode first two frames to check if actually an animation
+        trace!("animated: Decoding first two frames");
         for _ in 0..2 {
             if let Some(frame) = frames.next() {
                 first_frames.push(frame);
@@ -79,7 +83,7 @@ fn animated_worker(
             _ => true,
         };
 
-        for frame in first_frames.into_iter().chain(frames) {
+        for frame in first_frames.into_iter().chain(frames).enumerate() {
             // Only use FrameDetails for still images because they might not make too much
             // sense otherwise
             let frame_details = (!is_animated).then(|| frame_details.clone()).flatten();
@@ -89,6 +93,7 @@ fn animated_worker(
 
             // If not really an animation no need to keep the thread around
             if !is_animated {
+                log::debug!("animated: Image is actually not animated");
                 return;
             }
 
@@ -98,10 +103,11 @@ fn animated_worker(
 }
 
 pub fn animated_get_frame(
-    frame: Result<image::Frame, image::ImageError>,
+    (n_frame, frame): (usize, Result<image::Frame, image::ImageError>),
     frame_details: Option<FrameDetails>,
     is_animated: bool,
 ) -> Result<Frame, ProcessError> {
+    log::trace!("animated: Treating decoded frame {n_frame}");
     let frame = frame.expected_error()?;
 
     let (delay_num, delay_den) = frame.delay().numer_denom_ms();
@@ -138,6 +144,8 @@ pub fn animated_get_frame(
     if let Some(frame_details) = frame_details {
         out_frame.details = frame_details;
     };
+
+    out_frame.details.n_frame = Some(n_frame.try_u64()?);
 
     Ok(out_frame)
 }

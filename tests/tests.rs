@@ -40,6 +40,11 @@ fn fonts() {
     test_dir("test-images/images/fonts");
 }
 
+#[test]
+fn animated_numbers() {
+    block_on(test_dir_animated("test-images/images/animated-numbers"));
+}
+
 #[allow(dead_code)]
 #[derive(Debug)]
 struct TestResult {
@@ -62,22 +67,53 @@ fn test_dir_no_exif(dir: impl AsRef<Path>) {
     block_on(test_dir_options(dir, false));
 }
 
-async fn test_dir_options(dir: impl AsRef<Path>, exif: bool) {
-    let _ = tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::from_default_env())
-        .with(tracing_subscriber::fmt::Layer::default().compact())
-        .try_init();
+async fn test_dir_animated(dir: impl AsRef<Path>) {
+    init();
 
     let images = std::fs::read_dir(&dir).unwrap();
 
-    let skip_ext: Vec<_> = option_env!("GLYCIN_TEST_SKIP_EXT")
-        .unwrap_or_default()
-        .split(|x| x == ',')
-        .map(OsString::from)
-        .collect();
+    for entry in images {
+        let path = entry.unwrap().path();
+        eprintln!("  - {path:?}");
 
-    let mut reference_path = dir.as_ref().to_path_buf();
-    reference_path.set_extension("png");
+        if skip_file(&path) {
+            eprintln!("    (skipped)");
+            continue;
+        }
+
+        let file = gio::File::for_path(&path);
+        let image_request = glycin::Loader::new(file);
+        let image = image_request.load().await.unwrap();
+
+        for n_frame in [0, 1, 2, 0] {
+            let reference_path = reference_image_path(&dir, Some(n_frame));
+
+            let frame = loop {
+                let frame = image.next_frame().await.unwrap();
+                if frame.details().n_frame.unwrap() == n_frame {
+                    break frame;
+                }
+            };
+
+            let data = texture_to_bytes(&frame.texture());
+            let result = compare_images(reference_path, &path, &data, false).await;
+
+            if result.is_failed() {
+                dbg!(result);
+                panic!();
+            } else {
+                eprintln!("{n_frame}    (OK)");
+            }
+        }
+    }
+}
+
+async fn test_dir_options(dir: impl AsRef<Path>, exif: bool) {
+    init();
+
+    let images = std::fs::read_dir(&dir).unwrap();
+
+    let reference_path = reference_image_path(&dir, None);
 
     let mut some_failed = false;
     let mut list = Vec::new();
@@ -85,12 +121,13 @@ async fn test_dir_options(dir: impl AsRef<Path>, exif: bool) {
         let path = entry.unwrap().path();
         eprintln!("  - {path:?}");
 
-        if skip_ext.contains(&path.extension().unwrap_or_default().into()) {
+        if skip_file(&path) {
             eprintln!("    (skipped)");
             continue;
         }
 
-        let result = compare_images(&reference_path, &path, exif).await;
+        let data = get_downloaded_texture(&path).await;
+        let result = compare_images(&reference_path, &path, &data, exif).await;
 
         if result.is_failed() {
             some_failed = true;
@@ -107,17 +144,17 @@ async fn test_dir_options(dir: impl AsRef<Path>, exif: bool) {
 async fn compare_images(
     reference_path: impl AsRef<Path>,
     path: impl AsRef<Path>,
+    data: &[u8],
     test_exif: bool,
 ) -> TestResult {
     let reference_data = get_downloaded_texture(&reference_path).await;
-    let data = get_downloaded_texture(&path).await;
 
     assert_eq!(reference_data.len(), data.len());
 
     let len = data.len();
 
     let mut dev = 0;
-    for (r, p) in reference_data.into_iter().zip(&data) {
+    for (r, p) in reference_data.into_iter().zip(data) {
         dev += (r as i16 - *p as i16).unsigned_abs() as u64;
     }
 
@@ -153,6 +190,10 @@ async fn compare_images(
 
 async fn get_downloaded_texture(path: impl AsRef<Path>) -> Vec<u8> {
     let texture = get_texture(&path).await;
+    texture_to_bytes(&texture)
+}
+
+fn texture_to_bytes(texture: &gdk::Texture) -> Vec<u8> {
     let mut data = vec![0; texture.width() as usize * texture.height() as usize * 4];
     texture.download(&mut data, texture.width() as usize * 4);
     data
@@ -181,6 +222,36 @@ async fn get_info(path: impl AsRef<Path>) -> glycin::ImageInfo {
     let image_request = glycin::Loader::new(file);
     let image = image_request.load().await.unwrap();
     image.info().clone()
+}
+
+fn init() {
+    let _ = tracing_subscriber::registry()
+        .with(tracing_subscriber::EnvFilter::from_default_env())
+        .with(tracing_subscriber::fmt::Layer::default().compact())
+        .try_init();
+}
+
+fn reference_image_path(dir: impl AsRef<Path>, frame: Option<u64>) -> PathBuf {
+    let mut path = dir.as_ref().to_path_buf();
+    if let Some(frame) = frame {
+        let mut name = path.file_name().unwrap().to_owned();
+        name.push(format!("-{frame}"));
+        path.set_file_name(name);
+    }
+    path.set_extension("png");
+    path
+}
+
+fn skip_file(path: &Path) -> bool {
+    extensions_to_skip().contains(&path.extension().unwrap_or_default().into())
+}
+
+fn extensions_to_skip() -> Vec<OsString> {
+    option_env!("GLYCIN_TEST_SKIP_EXT")
+        .unwrap_or_default()
+        .split(|x| x == ',')
+        .map(OsString::from)
+        .collect()
 }
 
 #[cfg(not(feature = "tokio"))]
