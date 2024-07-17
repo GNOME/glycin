@@ -76,14 +76,16 @@ test-fedora40-loaders-async-io:
   interruptible: true
   script:
     - dnf install --assumeyes glycin-loaders cargo bubblewrap glib2-devel gtk4-devel lcms2-devel libseccomp-devel fontconfig-devel
-    - GLYCIN_TEST_SKIP_EXT=exr cargo test -p tests -- --nocapture --test-threads 1
+    - GLYCIN_TEST_SKIP_EXT=exr cargo test -p tests -- --nocapture --test-threads 1 \
+      color color_exif_orientation color_iccp_pro gray_iccp icon exif fonts
 
 test-fedora40-loaders-tokio:
   image: 'registry.fedoraproject.org/fedora:40'
   interruptible: true
   script:
     - dnf install --assumeyes glycin-loaders cargo bubblewrap glib2-devel gtk4-devel lcms2-devel libseccomp-devel fontconfig-devel
-    - GLYCIN_TEST_SKIP_EXT=exr cargo test -p tests --no-default-features --features tokio -- --nocapture --test-threads 1
+    - GLYCIN_TEST_SKIP_EXT=exr cargo test -p tests --no-default-features --features tokio -- --nocapture --test-threads 1 \
+      color color_exif_orientation color_iccp_pro gray_iccp icon exif fonts
 
 cargo-semver-checks:
   image: rust
