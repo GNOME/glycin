@@ -5,7 +5,7 @@ fn main() {
     glib::MainContext::default().block_on(run()).unwrap();
 }
 
-async fn run() -> Result<(), glycin::ErrorKind> {
+async fn run() -> Result<(), glycin::Error> {
     let mut args = std::env::args();
     let bin = args.next().unwrap();
     let Some(path) = args.next() else {

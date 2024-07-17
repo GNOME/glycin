@@ -13,8 +13,8 @@ pub enum GlyLoaderError {
     UnknownImageFormat = 1,
 }
 
-impl From<&glycin::ErrorKind> for GlyLoaderError {
-    fn from(value: &glycin::ErrorKind) -> Self {
+impl From<&glycin::Error> for GlyLoaderError {
+    fn from(value: &glycin::Error) -> Self {
         if value.unsupported_format().is_some() {
             Self::UnknownImageFormat
         } else {
@@ -33,13 +33,13 @@ pub unsafe extern "C" fn gly_loader_error_get_type() -> glib::ffi::GType {
     GlyLoaderError::static_type().into_glib()
 }
 
-pub unsafe fn set_error(g_error: *mut *mut GError, err: &glycin::Error) {
+pub unsafe fn set_error(g_error: *mut *mut GError, err: &glycin::ErrorCtx) {
     if !g_error.is_null() {
         *g_error = glib_error(err).into_glib_ptr();
     }
 }
 
-pub fn glib_error(err: &glycin::Error) -> glib::Error {
-    let gly_error: GlyLoaderError = err.kind().into();
+pub fn glib_error(err: &glycin::ErrorCtx) -> glib::Error {
+    let gly_error: GlyLoaderError = err.error().into();
     glib::Error::new(gly_error, &err.to_string())
 }

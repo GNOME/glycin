@@ -9,7 +9,7 @@ use crate::api_common::*;
 pub use crate::config::MimeType;
 use crate::dbus::*;
 use crate::error::ResultExt;
-use crate::{config, Result};
+use crate::{config, ErrorCtx};
 
 /// Image request builder
 #[derive(Debug)]
@@ -59,7 +59,7 @@ impl Loader {
     }
 
     /// Load basic image information and enable further operations
-    pub async fn load<'a>(self) -> Result<Image<'a>> {
+    pub async fn load<'a>(self) -> Result<Image<'a>, ErrorCtx> {
         let process_context = spin_up(&self.file, &self.cancellable, &self.sandbox_selector)
             .await
             .err_no_context()?;
@@ -98,7 +98,7 @@ impl<'a> Image<'a> {
     /// Loads texture and information of the next frame. For single still
     /// images, this can only be called once. For animated images, this
     /// function will loop to the first frame, when the last frame is reached.
-    pub async fn next_frame(&self) -> Result<Frame> {
+    pub async fn next_frame(&self) -> Result<Frame, ErrorCtx> {
         self.process
             .request_frame(glycin_utils::FrameRequest::default(), self)
             .await
@@ -110,7 +110,7 @@ impl<'a> Image<'a> {
     ///
     /// Loads a specific frame from the file. Loaders can ignore parts of the
     /// instructions in the `FrameRequest`.
-    pub async fn specific_frame(&self, frame_request: FrameRequest) -> Result<Frame> {
+    pub async fn specific_frame(&self, frame_request: FrameRequest) -> Result<Frame, ErrorCtx> {
         self.process
             .request_frame(frame_request.request, self)
             .await

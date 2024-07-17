@@ -17,9 +17,8 @@ use memfd::{Memfd, MemfdOptions};
 use nix::sys::resource;
 
 use crate::config::ConfigEntry;
-use crate::error::ResultKind;
 use crate::util::{self, new_async_mutex, AsyncMutex};
-use crate::{ErrorKind, SandboxMechanism};
+use crate::{Error, SandboxMechanism};
 
 type SystemSetupStore = Arc<Result<SystemSetup, Arc<io::Error>>>;
 
@@ -191,7 +190,7 @@ impl Sandbox {
         self.ro_bind_extra.push(path);
     }
 
-    pub async fn spawn(self) -> ResultKind<SpawnedSandbox> {
+    pub async fn spawn(self) -> Result<SpawnedSandbox, Error> {
         // Determine command line args
         let (bin, args, seccomp_fd) = match self.sandbox_mechanism {
             SandboxMechanism::Bwrap => {
@@ -274,7 +273,7 @@ impl Sandbox {
 
         let command_dbg = format!("{:?}", command);
         tracing::debug!("Spawning loader/editor:\n    {command_dbg}");
-        let child = command.spawn().map_err(|err| ErrorKind::SpawnError {
+        let child = command.spawn().map_err(|err| Error::SpawnError {
             cmd: command_dbg.clone(),
             err: Arc::new(err),
         })?;
@@ -286,7 +285,7 @@ impl Sandbox {
         })
     }
 
-    async fn bwrap_args(&self) -> ResultKind<Vec<PathBuf>> {
+    async fn bwrap_args(&self) -> Result<Vec<PathBuf>, Error> {
         let mut args: Vec<PathBuf> = Vec::new();
 
         args.extend(
@@ -486,7 +485,7 @@ impl Sandbox {
         Ok(filter)
     }
 
-    fn seccomp_export_bpf(filter: &ScmpFilterContext) -> ResultKind<Memfd> {
+    fn seccomp_export_bpf(filter: &ScmpFilterContext) -> Result<Memfd, Error> {
         let mut memfd = MemfdOptions::default()
             .close_on_exec(false)
             .create("seccomp-bpf-filter")?;
@@ -532,7 +531,7 @@ impl SystemSetup {
     }
 
     async fn load_lib_dirs(&mut self) -> io::Result<()> {
-        let dir_content: Result<std::fs::ReadDir, std::io::Error> = std::fs::read_dir("/");
+        let dir_content = std::fs::read_dir("/");
 
         match dir_content {
             Ok(dir_content) => {

@@ -43,7 +43,7 @@ impl GlyLoader {
         glib::Object::builder().property("file", file).build()
     }
 
-    pub async fn load(&self) -> Result<GlyImage, crate::Error> {
+    pub async fn load(&self) -> Result<GlyImage, crate::ErrorCtx> {
         let mut loader = Loader::new(self.file().unwrap());
 
         loader.sandbox_selector = self.sandbox_selector();

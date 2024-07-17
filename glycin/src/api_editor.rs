@@ -4,8 +4,8 @@ pub use glycin_utils::operations::{Operation, Operations};
 use glycin_utils::{BinaryData, BitChanges, SafeConversion, SparseEditorOutput};
 
 use crate::api_common::*;
-use crate::error::{Result, ResultExt, ResultKind};
-use crate::{util, ErrorKind};
+use crate::error::ResultExt;
+use crate::{util, Error, ErrorCtx};
 
 /// Image edit builder
 #[derive(Debug)]
@@ -46,7 +46,7 @@ impl Editor {
     /// Some operations like rotation can be in some cases be conducted by only
     /// changing one or a few bytes in a file. We call these cases *sparse* and
     /// a [`SparseEdit::Sparse`] is returned.
-    pub async fn apply_sparse(self, operations: Operations) -> Result<SparseEdit> {
+    pub async fn apply_sparse(self, operations: Operations) -> Result<SparseEdit, ErrorCtx> {
         let process_context = spin_up(&self.file, &self.cancellable, &self.sandbox_selector)
             .await
             .err_no_context()?;
@@ -92,7 +92,7 @@ impl SparseEdit {
     ///
     /// If the type does not carry sparse changes, the function will return an
     /// [`EditOutcome::Unchanged`] and the complete image needs to be rewritten.
-    pub async fn apply_to(&self, file: gio::File) -> ResultKind<EditOutcome> {
+    pub async fn apply_to(&self, file: gio::File) -> Result<EditOutcome, Error> {
         match self {
             Self::Sparse(bit_changes) => {
                 let bit_changes = bit_changes.clone();
@@ -122,11 +122,11 @@ impl SparseEdit {
 }
 
 impl TryFrom<SparseEditorOutput> for SparseEdit {
-    type Error = ErrorKind;
+    type Error = Error;
 
     fn try_from(value: SparseEditorOutput) -> std::result::Result<Self, Self::Error> {
         if value.bit_changes.is_some() && value.data.is_some() {
-            Err(ErrorKind::RemoteError(
+            Err(Error::RemoteError(
                 glycin_utils::RemoteError::InternalLoaderError(
                     "Sparse editor output with 'bit_changes' and 'data' returned.".into(),
                 ),
@@ -136,7 +136,7 @@ impl TryFrom<SparseEditorOutput> for SparseEdit {
         } else if let Some(data) = value.data {
             Ok(Self::Complete(data))
         } else {
-            Err(ErrorKind::RemoteError(
+            Err(Error::RemoteError(
                 glycin_utils::RemoteError::InternalLoaderError(
                     "Sparse editor output with neither 'bit_changes' nor 'data' returned.".into(),
                 ),

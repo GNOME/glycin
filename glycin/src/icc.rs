@@ -1,12 +1,12 @@
 use glycin_utils::memory_format::MemoryFormat;
 
-use crate::error::ResultKind;
+use crate::Error;
 
 pub fn apply_transformation(
     iccp: &[u8],
     memory_format: MemoryFormat,
     mmap: &mut [u8],
-) -> ResultKind<()> {
+) -> Result<(), Error> {
     transform(iccp, memory_format, mmap).map_err(Into::into)
 }
 
