@@ -1387,7 +1387,7 @@ dependencies = [
 [[package]]
 name = "image-webp"
 version = "0.1.2"
-source = "git+https://github.com/image-rs/image-webp.git#786650cbbbbc54384e2a6a7f8f58c6e422608a7b"
+source = "git+https://github.com/image-rs/image-webp.git#1082e86d7581e6b51b299c0f032a6fad968985bf"
 dependencies = [
  "byteorder-lite",
  "quick-error",
