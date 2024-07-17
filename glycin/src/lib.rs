@@ -71,7 +71,6 @@ mod api_editor;
 mod api_loader;
 mod config;
 mod dbus;
-mod default_formats;
 mod error;
 mod fontconfig;
 mod icc;
@@ -86,7 +85,6 @@ pub use api_common::*;
 pub use api_editor::*;
 pub use api_loader::*;
 pub use config::COMPAT_VERSION;
-pub use default_formats::DEFAULT_MIME_TYPES;
 pub use error::{Error, ErrorCtx};
 pub use glycin_utils::{ImageInfo, ImageInfoDetails, RemoteError};
 #[cfg(feature = "gdk4")]

@@ -78,6 +78,46 @@ impl Loader {
             active_sandbox_mechanism: process_context.sandbox_mechanism,
         })
     }
+
+    /// Returns a list of mime types for which loaders are configured
+    pub async fn supported_mime_types() -> Vec<MimeType> {
+        config::Config::cached()
+            .await
+            .image_loader
+            .keys()
+            .cloned()
+            .collect()
+    }
+
+    /// Formats that the default glycin loaders support
+    pub const DEFAULT_MIME_TYPES: &'static [&'static str] = &[
+        // image-rs
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "image/tiff",
+        "image/x-tga",
+        "image/vnd-ms.dds",
+        "image/x-dds",
+        "image/bmp",
+        "image/vnd.microsoft.icon",
+        "image/vnd.radiance",
+        "image/x-exr",
+        "image/x-portable-bitmap",
+        "image/x-portable-graymap",
+        "image/x-portable-pixmap",
+        "image/x-portable-anymap",
+        "image/x-qoi",
+        // HEIF
+        "image/avif",
+        "image/heif",
+        // JXL
+        "image/jxl",
+        // SVG
+        "image/svg+xml",
+        "image/svg+xml-compressed",
+    ];
 }
 
 /// Image handle containing metadata and allowing frame requests
@@ -242,16 +282,6 @@ impl FrameRequest {
         self.request.clip = Some((x, y, width, height));
         self
     }
-}
-
-/// Returns a list of mime types for which loaders are configured
-pub async fn supported_loader_mime_types() -> Vec<MimeType> {
-    config::Config::cached()
-        .await
-        .image_loader
-        .keys()
-        .cloned()
-        .collect()
 }
 
 #[cfg(test)]
