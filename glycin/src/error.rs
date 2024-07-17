@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use std::process::ExitStatus;
 use std::sync::Arc;
 
@@ -20,20 +21,30 @@ pub struct Error {
     stdout: Option<String>,
 }
 
+impl Deref for Error {
+    type Target = ErrorKind;
+
+    fn deref(&self) -> &Self::Target {
+        self.kind()
+    }
+}
+
+impl std::error::Error for Error {}
+
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.kind.to_string())?;
 
         if let Some(stderr) = &self.stderr {
             if !stderr.is_empty() {
-                f.write_str("stderr:\n")?;
+                f.write_str("\n\nstderr:\n")?;
                 f.write_str(&stderr)?;
             }
         }
 
         if let Some(stdout) = &self.stdout {
             if !stdout.is_empty() {
-                f.write_str("stdout:\n")?;
+                f.write_str("\n\nstdout:\n")?;
                 f.write_str(&stdout)?;
             }
         }
