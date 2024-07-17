@@ -7,7 +7,7 @@ use std::os::fd::{AsRawFd, OwnedFd};
 use std::os::unix::net::UnixStream;
 use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
-use std::process::{Child, Command};
+use std::process::{Child, Command, Stdio};
 use std::sync::Arc;
 
 use gio::glib;
@@ -17,8 +17,9 @@ use memfd::{Memfd, MemfdOptions};
 use nix::sys::resource;
 
 use crate::config::ConfigEntry;
+use crate::error::ResultKind;
 use crate::util::{self, new_async_mutex, AsyncMutex};
-use crate::{Error, SandboxMechanism};
+use crate::{ErrorKind, SandboxMechanism};
 
 type SystemSetupStore = Arc<Result<SystemSetup, Arc<io::Error>>>;
 
@@ -190,7 +191,7 @@ impl Sandbox {
         self.ro_bind_extra.push(path);
     }
 
-    pub async fn spawn(self) -> crate::Result<SpawnedSandbox> {
+    pub async fn spawn(self) -> ResultKind<SpawnedSandbox> {
         // Determine command line args
         let (bin, args, seccomp_fd) = match self.sandbox_mechanism {
             SandboxMechanism::Bwrap => {
@@ -268,9 +269,12 @@ impl Sandbox {
             }
         }
 
+        command.stderr(Stdio::piped());
+        command.stdout(Stdio::piped());
+
         let command_dbg = format!("{:?}", command);
         tracing::debug!("Spawning loader/editor:\n    {command_dbg}");
-        let child = command.spawn().map_err(|err| Error::SpawnError {
+        let child = command.spawn().map_err(|err| ErrorKind::SpawnError {
             cmd: command_dbg.clone(),
             err: Arc::new(err),
         })?;
@@ -282,7 +286,7 @@ impl Sandbox {
         })
     }
 
-    async fn bwrap_args(&self) -> crate::Result<Vec<PathBuf>> {
+    async fn bwrap_args(&self) -> ResultKind<Vec<PathBuf>> {
         let mut args: Vec<PathBuf> = Vec::new();
 
         args.extend(
@@ -482,7 +486,7 @@ impl Sandbox {
         Ok(filter)
     }
 
-    fn seccomp_export_bpf(filter: &ScmpFilterContext) -> crate::Result<Memfd> {
+    fn seccomp_export_bpf(filter: &ScmpFilterContext) -> ResultKind<Memfd> {
         let mut memfd = MemfdOptions::default()
             .close_on_exec(false)
             .create("seccomp-bpf-filter")?;

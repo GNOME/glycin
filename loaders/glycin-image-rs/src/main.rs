@@ -9,8 +9,7 @@ use std::sync::Mutex;
 use editor::ImgEditor;
 use glycin_utils::image_rs::Handler;
 use glycin_utils::*;
-use image::Limits;
-use image::{codecs, AnimationDecoder, ImageDecoder, ImageResult};
+use image::{codecs, AnimationDecoder, ImageDecoder, ImageResult, Limits};
 use log::trace;
 
 init_main_loader_editor!(ImgDecoder::default(), ImgEditor::default());

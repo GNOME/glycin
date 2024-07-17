@@ -8,6 +8,7 @@ pub use glycin_utils::{FrameDetails, MemoryFormat};
 use crate::api_common::*;
 pub use crate::config::MimeType;
 use crate::dbus::*;
+use crate::error::ResultExt;
 use crate::{config, Result};
 
 /// Image request builder
@@ -59,16 +60,18 @@ impl Loader {
 
     /// Load basic image information and enable further operations
     pub async fn load<'a>(self) -> Result<Image<'a>> {
-        let process_context =
-            spin_up(&self.file, &self.cancellable, &self.sandbox_selector).await?;
+        let process_context = spin_up(&self.file, &self.cancellable, &self.sandbox_selector)
+            .await
+            .err_no_context()?;
 
-        let info = process_context
-            .process
+        let process = process_context.process;
+        let info = process
             .init(process_context.gfile_worker, process_context.base_dir)
-            .await?;
+            .await
+            .err_context(&process)?;
 
         Ok(Image {
-            process: process_context.process,
+            process,
             info,
             loader: self,
             mime_type: process_context.mime_type,
@@ -100,6 +103,7 @@ impl<'a> Image<'a> {
             .request_frame(glycin_utils::FrameRequest::default(), self)
             .await
             .map_err(Into::into)
+            .err_context(&self.process)
     }
 
     /// Loads a specific frame
@@ -111,6 +115,7 @@ impl<'a> Image<'a> {
             .request_frame(frame_request.request, self)
             .await
             .map_err(Into::into)
+            .err_context(&self.process)
     }
 
     /// Returns already obtained info

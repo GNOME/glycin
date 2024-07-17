@@ -2,6 +2,7 @@
 
 //! Internal DBus API
 
+use std::io::{BufRead, Read};
 use std::marker::PhantomData;
 use std::mem;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
@@ -26,7 +27,7 @@ use crate::api_loader::{self};
 use crate::config::{Config, ConfigEntry};
 use crate::sandbox::Sandbox;
 use crate::util::{self, block_on, spawn_blocking, spawn_blocking_detached};
-use crate::{config, icc, orientation, Error, Image, MimeType, SandboxMechanism};
+use crate::{config, icc, orientation, ErrorKind, Image, MimeType, SandboxMechanism};
 
 /// Max texture size 8 GB in bytes
 pub(crate) const MAX_TEXTURE_SIZE: u64 = 8 * 10u64.pow(9);
@@ -37,12 +38,17 @@ pub struct RemoteProcess<'a, P: ZbusProxy<'a>> {
     decoding_instruction: P,
     mime_type: String,
     phantom: PhantomData<&'a P>,
+    pub stderr_content: Arc<Mutex<String>>,
+    pub stdout_content: Arc<Mutex<String>>,
 }
 
 pub trait ZbusProxy<'a>: Sized + Sync + Send + From<zbus::Proxy<'a>> {
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self>;
-    fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error>;
-    fn entry_config(config: &Config, mime_type: &MimeType) -> Result<Box<dyn ConfigEntry>, Error>;
+    fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, ErrorKind>;
+    fn entry_config(
+        config: &Config,
+        mime_type: &MimeType,
+    ) -> Result<Box<dyn ConfigEntry>, ErrorKind>;
 }
 
 impl<'a> ZbusProxy<'a> for LoaderProxy<'a> {
@@ -50,11 +56,14 @@ impl<'a> ZbusProxy<'a> for LoaderProxy<'a> {
         Self::builder(conn)
     }
 
-    fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error> {
+    fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, ErrorKind> {
         Ok(config.get_loader(mime_type)?.expose_base_dir)
     }
 
-    fn entry_config(config: &Config, mime_type: &MimeType) -> Result<Box<dyn ConfigEntry>, Error> {
+    fn entry_config(
+        config: &Config,
+        mime_type: &MimeType,
+    ) -> Result<Box<dyn ConfigEntry>, ErrorKind> {
         Ok(Box::new(config.get_loader(mime_type)?.clone()))
     }
 }
@@ -64,11 +73,14 @@ impl<'a> ZbusProxy<'a> for EditorProxy<'a> {
         Self::builder(conn)
     }
 
-    fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error> {
+    fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, ErrorKind> {
         Ok(config.get_editor(mime_type)?.expose_base_dir)
     }
 
-    fn entry_config(config: &Config, mime_type: &MimeType) -> Result<Box<dyn ConfigEntry>, Error> {
+    fn entry_config(
+        config: &Config,
+        mime_type: &MimeType,
+    ) -> Result<Box<dyn ConfigEntry>, ErrorKind> {
         Ok(Box::new(config.get_editor(mime_type)?.clone()))
     }
 }
@@ -80,7 +92,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         sandbox_mechanism: SandboxMechanism,
         file: &gio::File,
         cancellable: &gio::Cancellable,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, ErrorKind> {
         // UnixStream which facilitates the D-Bus connection. The stream is passed as
         // stdin to loader binaries.
         let (unix_stream, loader_stdin) = std::os::unix::net::UnixStream::pair()?;
@@ -98,6 +110,12 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         let spawned_sandbox = sandbox.spawn().await?;
         let mut subprocess = spawned_sandbox.child;
         let command_dbg = spawned_sandbox.info.command_dbg;
+
+        let stderr_content: Arc<Mutex<String>> = Default::default();
+        spawn_stdio_reader(&mut subprocess.stderr, &stderr_content);
+
+        let stdout_content: Arc<Mutex<String>> = Default::default();
+        spawn_stdio_reader(&mut subprocess.stdout, &stdout_content);
 
         #[cfg(feature = "tokio")]
         let unix_stream = tokio::net::UnixStream::from_std(unix_stream)?;
@@ -119,8 +137,8 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
                 Err(glib::Error::from(gio::Cancelled).into())
             },
             return_status = spawn_blocking(move || subprocess.wait()).fuse() => match return_status {
-                Ok(status) => Err(Error::PrematureExit { status, cmd: command_dbg }),
-                Err(err) => Err(Error::StdIoError{ err: err.into(), info: command_dbg }),
+                Ok(status) => Err(ErrorKind::PrematureExit { status, cmd: command_dbg }),
+                Err(err) => Err(ErrorKind::StdIoError{ err: err.into(), info: command_dbg }),
             }
         }?;
 
@@ -141,6 +159,8 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
             decoding_instruction,
             mime_type: mime_type.to_string(),
             phantom: PhantomData,
+            stderr_content,
+            stdout_content,
         })
     }
 
@@ -148,7 +168,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         &self,
         gfile_worker: &GFileWorker,
         base_dir: Option<std::path::PathBuf>,
-    ) -> Result<InitRequest, Error> {
+    ) -> Result<InitRequest, ErrorKind> {
         let (remote_reader, writer) = std::os::unix::net::UnixStream::pair()?;
 
         gfile_worker.write_to(writer)?;
@@ -173,7 +193,7 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
         &self,
         gfile_worker: GFileWorker,
         base_dir: Option<std::path::PathBuf>,
-    ) -> Result<ImageInfo, Error> {
+    ) -> Result<ImageInfo, ErrorKind> {
         let init_request = self.init_request(&gfile_worker, base_dir)?;
 
         let image_info = self.decoding_instruction.init(init_request).shared();
@@ -203,7 +223,7 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
         &self,
         frame_request: FrameRequest,
         image: &Image<'b>,
-    ) -> Result<api_loader::Frame, Error> {
+    ) -> Result<api_loader::Frame, ErrorKind> {
         let mut frame = self.decoding_instruction.frame(frame_request).await?;
 
         // Seal all constant data
@@ -271,7 +291,7 @@ impl<'a> RemoteProcess<'a, EditorProxy<'a>> {
         gfile_worker: &GFileWorker,
         base_dir: Option<std::path::PathBuf>,
         operations: Operations,
-    ) -> Result<SparseEditorOutput, Error> {
+    ) -> Result<SparseEditorOutput, ErrorKind> {
         let init_request = self.init_request(gfile_worker, base_dir)?;
         let edit_request = EditRequest::for_operations(operations);
 
@@ -294,7 +314,7 @@ impl<'a> RemoteProcess<'a, EditorProxy<'a>> {
     }
 }
 
-use std::io::Write;
+use std::io::{BufReader, Write};
 const BUF_SIZE: usize = u16::MAX as usize;
 
 #[zbus::proxy(
@@ -322,7 +342,7 @@ pub struct GFileWorker {
     file: gio::File,
     writer_send: Mutex<Option<oneshot::Sender<UnixStream>>>,
     first_bytes_recv: future::Shared<oneshot::Receiver<Arc<Vec<u8>>>>,
-    error_recv: future::Shared<oneshot::Receiver<Result<(), Error>>>,
+    error_recv: future::Shared<oneshot::Receiver<Result<(), ErrorKind>>>,
 }
 use std::sync::Mutex;
 impl GFileWorker {
@@ -342,7 +362,7 @@ impl GFileWorker {
                 let first_bytes = Arc::new(buf[..n].to_vec());
                 first_bytes_send
                     .send(first_bytes.clone())
-                    .or(Err(Error::InternalCommunicationCanceled))?;
+                    .or(Err(ErrorKind::InternalCommunicationCanceled))?;
 
                 let mut writer: UnixStream = block_on(writer_recv)?;
 
@@ -370,35 +390,35 @@ impl GFileWorker {
     }
 
     fn handle_errors(
-        error_send: oneshot::Sender<Result<(), Error>>,
-        f: impl FnOnce() -> Result<(), Error>,
+        error_send: oneshot::Sender<Result<(), ErrorKind>>,
+        f: impl FnOnce() -> Result<(), ErrorKind>,
     ) {
         let result = f();
         let _result = error_send.send(result);
     }
 
-    pub fn write_to(&self, stream: UnixStream) -> Result<(), Error> {
+    pub fn write_to(&self, stream: UnixStream) -> Result<(), ErrorKind> {
         let sender = std::mem::take(&mut *self.writer_send.lock().unwrap());
 
         sender
             // TODO: this fails if write_to is called a second time
             .unwrap()
             .send(stream)
-            .or(Err(Error::InternalCommunicationCanceled))
+            .or(Err(ErrorKind::InternalCommunicationCanceled))
     }
 
     pub fn file(&self) -> &gio::File {
         &self.file
     }
 
-    pub async fn error(&self) -> Result<(), Error> {
+    pub async fn error(&self) -> Result<(), ErrorKind> {
         match self.error_recv.clone().await {
             Ok(result) => result,
             Err(_) => Ok(()),
         }
     }
 
-    pub async fn head(&self) -> Result<Arc<Vec<u8>>, Error> {
+    pub async fn head(&self) -> Result<Arc<Vec<u8>>, ErrorKind> {
         futures_util::select!(
             err = self.error_recv.clone() => err?,
             _bytes = self.first_bytes_recv.clone() => Ok(()),
@@ -444,24 +464,24 @@ async fn seal_fd(fd: impl AsRawFd) -> Result<(), memfd::Error> {
     Ok(())
 }
 
-fn validate_frame(frame: &Frame, mmap: &MmapMut) -> Result<(), Error> {
+fn validate_frame(frame: &Frame, mmap: &MmapMut) -> Result<(), ErrorKind> {
     if mmap.len() < frame.n_bytes()? {
-        return Err(Error::TextureTooSmall {
+        return Err(ErrorKind::TextureTooSmall {
             texture_size: mmap.len(),
             frame: format!("{:?}", frame),
         });
     }
 
     if frame.stride < frame.width.smul(frame.memory_format.n_bytes().u32())? {
-        return Err(Error::StrideTooSmall(format!("{:?}", frame)));
+        return Err(ErrorKind::StrideTooSmall(format!("{:?}", frame)));
     }
 
     if frame.width < 1 || frame.height < 1 {
-        return Err(Error::WidgthOrHeightZero(format!("{:?}", frame)));
+        return Err(ErrorKind::WidgthOrHeightZero(format!("{:?}", frame)));
     }
 
     if (frame.stride as u64).smul(frame.height as u64)? > MAX_TEXTURE_SIZE {
-        return Err(Error::TextureTooLarge);
+        return Err(ErrorKind::TextureTooLarge);
     }
 
     // Ensure
@@ -472,7 +492,7 @@ fn validate_frame(frame: &Frame, mmap: &MmapMut) -> Result<(), Error> {
     Ok(())
 }
 
-unsafe fn gbytes_from_mmap(raw_fd: RawFd) -> Result<glib::Bytes, Error> {
+unsafe fn gbytes_from_mmap(raw_fd: RawFd) -> Result<glib::Bytes, ErrorKind> {
     let mut error = std::ptr::null_mut();
 
     let mapped_file = glib::ffi::g_mapped_file_new_from_fd(raw_fd, glib::ffi::GFALSE, &mut error);
@@ -493,7 +513,7 @@ fn remove_stride_if_needed(
     img_buf: ImgBuf,
     raw_fd: RawFd,
     frame: &mut Frame,
-) -> Result<ImgBuf, Error> {
+) -> Result<ImgBuf, ErrorKind> {
     if frame.stride.srem(frame.memory_format.n_bytes().u32())? == 0 {
         return Ok(img_buf);
     }
@@ -527,6 +547,24 @@ fn remove_stride_if_needed(
             let mmap = unsafe { memmap::MmapMut::map_mut(raw_fd) }?;
             Ok(ImgBuf::MMap(mmap))
         }
+    }
+}
+
+fn spawn_stdio_reader(stdio: &mut Option<impl Read + Send + 'static>, store: &Arc<Mutex<String>>) {
+    if let Some(stdout) = stdio.take() {
+        let store = store.clone();
+        util::spawn_blocking_detached(move || {
+            let mut stdout = BufReader::new(stdout);
+
+            let mut buf = String::new();
+            while let Ok(len) = stdout.read_line(&mut buf) {
+                if len == 0 {
+                    break;
+                }
+                store.lock().unwrap().push_str(&buf);
+                buf.clear();
+            }
+        });
     }
 }
 

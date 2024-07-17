@@ -7,13 +7,85 @@ use glycin_utils::{DimensionTooLargerError, RemoteError};
 use libseccomp::error::SeccompError;
 
 use crate::config;
-use crate::dbus::MAX_TEXTURE_SIZE;
+use crate::dbus::{RemoteProcess, ZbusProxy, MAX_TEXTURE_SIZE};
 
+pub type ResultKind<T> = std::result::Result<T, ErrorKind>;
 pub type Result<T> = std::result::Result<T, Error>;
+
+#[derive(Debug, Clone)]
+
+pub struct Error {
+    kind: ErrorKind,
+    stderr: Option<String>,
+    stdout: Option<String>,
+}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.kind.to_string())?;
+
+        if let Some(stderr) = &self.stderr {
+            if !stderr.is_empty() {
+                f.write_str("stderr:\n")?;
+                f.write_str(&stderr)?;
+            }
+        }
+
+        if let Some(stdout) = &self.stdout {
+            if !stdout.is_empty() {
+                f.write_str("stdout:\n")?;
+                f.write_str(&stdout)?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
+impl Error {
+    pub fn from_kind(kind: ErrorKind) -> Self {
+        Error {
+            kind,
+            stderr: None,
+            stdout: None,
+        }
+    }
+
+    pub fn kind(&self) -> &ErrorKind {
+        &self.kind
+    }
+}
+
+pub trait ResultExt<T> {
+    fn err_context<'a, S: ZbusProxy<'a>>(self, process: &RemoteProcess<'a, S>) -> Result<T>;
+    fn err_no_context(self) -> Result<T>;
+}
+
+impl<T> ResultExt<T> for ResultKind<T> {
+    fn err_context<'a, S: ZbusProxy<'a>>(self, process: &RemoteProcess<'a, S>) -> Result<T> {
+        match self {
+            Ok(x) => Ok(x),
+            Err(kind) => {
+                let stderr = process.stderr_content.lock().ok().map(|x| x.clone());
+                let stdout = process.stdout_content.lock().ok().map(|x| x.clone());
+
+                Err(Error {
+                    kind,
+                    stderr,
+                    stdout,
+                })
+            }
+        }
+    }
+
+    fn err_no_context(self) -> Result<T> {
+        self.map_err(Error::from_kind)
+    }
+}
 
 #[derive(Debug, Clone, thiserror::Error)]
 #[non_exhaustive]
-pub enum Error {
+pub enum ErrorKind {
     #[error("Remote error: {0}")]
     RemoteError(#[from] RemoteError),
     #[error("GLib error: {0}")]
@@ -62,7 +134,7 @@ pub enum Error {
     IccProfile(#[from] lcms2::Error),
 }
 
-impl Error {
+impl ErrorKind {
     /// Returns if the error is related to unsupported formats.
     ///
     /// Return the mime type of the unsupported format or [`None`] if the error
@@ -76,7 +148,7 @@ impl Error {
     }
 }
 
-impl From<std::io::Error> for Error {
+impl From<std::io::Error> for ErrorKind {
     fn from(err: std::io::Error) -> Self {
         Self::StdIoError {
             err: Arc::new(err),
@@ -85,7 +157,7 @@ impl From<std::io::Error> for Error {
     }
 }
 
-impl From<Arc<std::io::Error>> for Error {
+impl From<Arc<std::io::Error>> for ErrorKind {
     fn from(err: Arc<std::io::Error>) -> Self {
         Self::StdIoError {
             err,
@@ -94,25 +166,25 @@ impl From<Arc<std::io::Error>> for Error {
     }
 }
 
-impl From<memfd::Error> for Error {
+impl From<memfd::Error> for ErrorKind {
     fn from(err: memfd::Error) -> Self {
         Self::MemFd(Arc::new(err))
     }
 }
 
-impl From<SeccompError> for Error {
+impl From<SeccompError> for ErrorKind {
     fn from(err: SeccompError) -> Self {
         Self::Seccomp(Arc::new(err))
     }
 }
 
-impl From<oneshot::Canceled> for Error {
+impl From<oneshot::Canceled> for ErrorKind {
     fn from(_err: oneshot::Canceled) -> Self {
         Self::InternalCommunicationCanceled
     }
 }
 
-impl From<DimensionTooLargerError> for Error {
+impl From<DimensionTooLargerError> for ErrorKind {
     fn from(_err: DimensionTooLargerError) -> Self {
         Self::ConversionTooLargerError
     }

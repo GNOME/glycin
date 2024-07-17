@@ -5,8 +5,9 @@ use gio::glib;
 use gio::prelude::*;
 
 use crate::dbus::{GFileWorker, RemoteProcess, ZbusProxy};
+use crate::error::ResultKind;
 use crate::util::RunEnvironment;
-use crate::{config, Error, MimeType, Result};
+use crate::{config, ErrorKind, MimeType};
 
 #[derive(Debug, Copy, Clone)]
 /// Sandboxing mechanism for image loading and editing
@@ -81,7 +82,7 @@ pub(crate) async fn spin_up<'a, P: ZbusProxy<'a> + 'a>(
     file: &gio::File,
     cancellable: &gio::Cancellable,
     sandbox_selector: &SandboxSelector,
-) -> Result<RemoteProcessContext<'a, P>> {
+) -> ResultKind<RemoteProcessContext<'a, P>> {
     let config = config::Config::cached().await;
 
     let gfile_worker = GFileWorker::spawn(file.clone(), cancellable.clone());
@@ -107,11 +108,11 @@ pub(crate) async fn spin_up<'a, P: ZbusProxy<'a> + 'a>(
     })
 }
 
-pub(crate) async fn guess_mime_type(gfile_worker: &GFileWorker) -> Result<MimeType> {
+pub(crate) async fn guess_mime_type(gfile_worker: &GFileWorker) -> ResultKind<MimeType> {
     let head = gfile_worker.head().await?;
     let (content_type, unsure) = gio::content_type_guess(None::<String>, &head);
     let mime_type = gio::content_type_get_mime_type(&content_type)
-        .ok_or_else(|| Error::UnknownContentType(content_type.to_string()));
+        .ok_or_else(|| ErrorKind::UnknownContentType(content_type.to_string()));
 
     // Prefer file extension for TIFF since it can be a RAW format as well
     let is_tiff = mime_type.clone().ok() == Some("image/tiff".into());
@@ -124,7 +125,7 @@ pub(crate) async fn guess_mime_type(gfile_worker: &GFileWorker) -> Result<MimeTy
         if let Some(filename) = gfile_worker.file().basename() {
             let content_type_fn = gio::content_type_guess(Some(filename), &head).0;
             return gio::content_type_get_mime_type(&content_type_fn)
-                .ok_or_else(|| Error::UnknownContentType(content_type_fn.to_string()))
+                .ok_or_else(|| ErrorKind::UnknownContentType(content_type_fn.to_string()))
                 .map(|x| MimeType(x.to_string()));
         }
     }
