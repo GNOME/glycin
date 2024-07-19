@@ -1,0 +1,1 @@
+Capture the stderr and stdout from loaders and editors and included it in the new ErrorCtx type that the API now returns

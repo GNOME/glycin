@@ -1,3 +1,29 @@
+## 1.1.beta (Unreleased)
+
+### Added
+
+- Add tests for animations
+- Automatically detect if glycin is used inside a Flatpak development
+  environment and disable sandbox in that case. Otherwise, flatpak-spawn
+  wouldn't use the loaders from the right Flatpak or might not find a installed
+  Flatpak at all.
+- Capture the stderr and stdout from loaders and editors and included it in the
+  new ErrorCtx type that the API now returns
+
+### Fixed
+
+- Also include free swap as free memory in the calculation of how much memory a
+  loader can use
+- If the fontconfig cache was not up-to-date, rendering SVGs with text would
+  fail. There is now a loader config option to enable passing a writable
+  fontconfig cache dir into the loader sandbox. This fixes the issue. The cache
+  is per loader binary.
+- Sealing memfds sometimes fails. Is is solved via retrying the seal until it
+  works. In the past this was limited to very short time of retries. The
+  interval is now much longer and properly async.
+- There was an error in the hardcoded limit for the texture size. The limit is
+  now fixed and 8GB as intended.
+
 ## 1.1.alpha (2024-06-28)
 
 ### Added

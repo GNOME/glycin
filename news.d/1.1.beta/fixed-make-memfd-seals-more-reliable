@@ -1,0 +1,1 @@
+Sealing memfds sometimes fails. Is is solved via retrying the seal until it works. In the past this was limited to very short time of retries. The interval is now much longer and properly async.

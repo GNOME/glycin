@@ -1,0 +1,1 @@
+If the fontconfig cache was not up-to-date, rendering SVGs with text would fail. There is now a loader config option to enable passing a writable fontconfig cache dir into the loader sandbox. This fixes the issue. The cache is per loader binary.

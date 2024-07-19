@@ -1,0 +1,1 @@
+Automatically detect if glycin is used inside a Flatpak development environment and disable sandbox in that case. Otherwise, flatpak-spawn wouldn't use the loaders from the right Flatpak or might not find a installed Flatpak at all.

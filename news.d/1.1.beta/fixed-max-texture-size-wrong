@@ -1,0 +1,1 @@
+There was an error in the hardcoded limit for the texture size. The limit is now fixed and 8GB as intended.
