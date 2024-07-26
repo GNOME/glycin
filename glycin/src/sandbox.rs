@@ -15,6 +15,7 @@ use libseccomp::error::SeccompError;
 use libseccomp::{ScmpAction, ScmpFilterContext, ScmpSyscall};
 use memfd::{Memfd, MemfdOptions};
 use nix::sys::resource;
+use tracing::field::debug;
 
 use crate::config::ConfigEntry;
 use crate::util::{self, new_async_mutex, AsyncMutex};
@@ -206,6 +207,8 @@ impl Sandbox {
             }
             SandboxMechanism::FlatpakSpawn => {
                 let memory_limit = Self::memory_limit();
+
+                tracing::debug!("Setting prlimit to {memory_limit} bytes");
 
                 let args = vec![
                     "--sandbox".into(),
@@ -423,6 +426,7 @@ impl Sandbox {
 
             for line in meminfo.lines().map_while(Result::ok) {
                 if line.starts_with("MemAvailable:") || line.starts_with("SwapFree:") {
+                    tracing::trace!("Using /proc/meminfo: {line}");
                     if let Some(mem_avail_kb) = line
                         .split(' ')
                         .filter(|x| !x.is_empty())
@@ -437,6 +441,8 @@ impl Sandbox {
 
             if let Some(total_avail_kb) = total_avail_kb {
                 let mem_available = total_avail_kb.saturating_mul(1024);
+
+                tracing::debug!("Memory available: {mem_available} bytes");
 
                 return Some(Self::calculate_memory_limit(mem_available));
             }
@@ -462,6 +468,8 @@ impl Sandbox {
     /// Set memory limit for the current process
     fn set_memory_limit() {
         let limit = Self::memory_limit();
+
+        tracing::debug!("Setting process memory limit of {limit} bytes");
 
         if let Err(err) = resource::setrlimit(resource::Resource::RLIMIT_AS, limit, limit) {
             eprintln!("Error setrlimit(RLIMIT_AS, {limit}): {err}");
