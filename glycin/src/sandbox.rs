@@ -15,7 +15,6 @@ use libseccomp::error::SeccompError;
 use libseccomp::{ScmpAction, ScmpFilterContext, ScmpSyscall};
 use memfd::{Memfd, MemfdOptions};
 use nix::sys::resource;
-use tracing::field::debug;
 
 use crate::config::ConfigEntry;
 use crate::util::{self, new_async_mutex, AsyncMutex};

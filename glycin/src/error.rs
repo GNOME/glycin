@@ -160,6 +160,10 @@ impl Error {
             _ => None,
         }
     }
+
+    pub fn is_out_of_memory(&self) -> bool {
+        matches!(self, Self::RemoteError(RemoteError::OutOfMemory(_)))
+    }
 }
 
 impl From<std::io::Error> for Error {
