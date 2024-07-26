@@ -411,7 +411,7 @@ impl Sandbox {
         if let Some(mem_available) = Self::mem_available() {
             Self::calculate_memory_limit(mem_available)
         } else {
-            eprintln!("glycin: Unable to determine available memory via /proc/meminfo");
+            tracing::warn!("glycin: Unable to determine available memory via /proc/meminfo");
 
             // Default to 1 GB memory limit
             1024 * 1024 * 1024
@@ -456,7 +456,7 @@ impl Sandbox {
         // Consider max of 10 GB free RAM for use
         let mem_considered = resource::rlim_t::min(
             mem_available,
-            (1024 as resource::rlim_t * 1024 * 1024).saturating_mul(2),
+            (1024 as resource::rlim_t * 1024 * 1024 * 10).saturating_mul(2),
         )
         // Keep at least 200 MB free
         .saturating_sub(1024 * 1024 * 200);
