@@ -74,6 +74,8 @@ mod dbus;
 mod error;
 mod fontconfig;
 mod icc;
+#[cfg(feature = "gdk4")]
+mod memory_texture_builder;
 mod orientation;
 mod sandbox;
 mod util;

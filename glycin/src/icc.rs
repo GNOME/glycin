@@ -1,12 +1,12 @@
 use glycin_utils::memory_format::MemoryFormat;
 
-use crate::Error;
+use crate::{ColorState, Error};
 
 pub fn apply_transformation(
     iccp: &[u8],
     memory_format: MemoryFormat,
     mmap: &mut [u8],
-) -> Result<(), Error> {
+) -> Result<ColorState, Error> {
     transform(iccp, memory_format, mmap).map_err(Into::into)
 }
 
@@ -14,14 +14,20 @@ fn transform(
     icc_profile: &[u8],
     memory_format: MemoryFormat,
     buf: &mut [u8],
-) -> std::result::Result<(), lcms2::Error> {
+) -> std::result::Result<ColorState, lcms2::Error> {
     let icc_pixel_format = lcms_pixel_format(memory_format);
     let src_profile = lcms2::Profile::new_icc(icc_profile)?;
-    let target_profile = if memory_format.n_channels() > 2 {
-        lcms2::Profile::new_srgb()
+
+    let target_profile;
+    let target_color_state;
+
+    if memory_format.n_channels() > 2 {
+        target_profile = rec2020();
+        target_color_state = ColorState::Rec2020;
     } else {
-        lcms2::Profile::new_gray(lcms2_sys::ffi::CIExyY::d50(), &lcms2::ToneCurve::new(2.2))
-            .unwrap()
+        target_profile =
+            lcms2::Profile::new_gray(lcms2_sys::ffi::CIExyY::d50(), &lcms2::ToneCurve::new(2.2))?;
+        target_color_state = ColorState::Srgb;
     };
 
     let transform = lcms2::Transform::new(
@@ -34,7 +40,7 @@ fn transform(
 
     transform.transform_in_place(buf);
 
-    Ok(())
+    Ok(target_color_state)
 }
 
 const fn lcms_pixel_format(format: MemoryFormat) -> lcms2::PixelFormat {
@@ -69,6 +75,27 @@ const fn premul(format: lcms2::PixelFormat) -> lcms2::PixelFormat {
     let mut bytes = format.0;
     bytes |= 0b1 << 23;
     lcms2::PixelFormat(bytes)
+}
+
+fn xy(x: f64, y: f64) -> lcms2::CIExyY {
+    lcms2::CIExyY { x, y, Y: 1. }
+}
+
+fn rec2020() -> lcms2::Profile {
+    let white_point = xy(0.3127, 0.3290);
+    let primaries = lcms2::CIExyYTRIPLE {
+        Red: xy(0.708, 0.292),
+        Green: xy(0.170, 0.797),
+        Blue: xy(0.131, 0.046),
+    };
+    let transfer_function = lcms2::ToneCurve::new(1.);
+
+    lcms2::Profile::new_rgb(
+        &white_point,
+        &primaries,
+        &[&transfer_function, &transfer_function, &transfer_function],
+    )
+    .unwrap()
 }
 
 #[test]

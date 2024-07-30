@@ -28,7 +28,7 @@ use crate::api_loader::{self};
 use crate::config::{Config, ConfigEntry};
 use crate::sandbox::Sandbox;
 use crate::util::{self, block_on, spawn_blocking, spawn_blocking_detached};
-use crate::{config, icc, orientation, Error, Image, MimeType, SandboxMechanism};
+use crate::{config, icc, orientation, ColorState, Error, Image, MimeType, SandboxMechanism};
 
 /// Max texture size 8 GB in bytes
 pub(crate) const MAX_TEXTURE_SIZE: u64 = 8 * 10u64.pow(9);
@@ -236,6 +236,8 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
             img_buf
         };
 
+        let mut color_state = ColorState::Srgb;
+
         let img_buf = if let Some(Ok(icc_profile)) = frame.details.iccp.as_ref().map(|x| x.get()) {
             // Align stride with pixel size if necessary
             let mut img_buf = remove_stride_if_needed(img_buf, raw_fd, &mut frame)?;
@@ -247,8 +249,13 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
             })
             .await;
 
-            if let Err(err) = icc_result {
-                eprintln!("Failed to apply ICC profile: {err}");
+            match icc_result {
+                Err(err) => {
+                    eprintln!("Failed to apply ICC profile: {err}");
+                }
+                Ok(new_color_state) => {
+                    color_state = new_color_state;
+                }
             }
 
             icc_mmap
@@ -273,6 +280,7 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
             memory_format: frame.memory_format,
             delay: frame.delay.into(),
             details: frame.details,
+            color_state,
         })
     }
 }

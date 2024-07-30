@@ -206,6 +206,7 @@ pub struct Frame {
     pub(crate) memory_format: MemoryFormat,
     pub(crate) delay: Option<std::time::Duration>,
     pub(crate) details: FrameDetails,
+    pub(crate) color_state: ColorState,
 }
 
 impl Frame {
@@ -236,6 +237,10 @@ impl Frame {
         self.memory_format
     }
 
+    pub fn color_state(&self) -> ColorState {
+        self.color_state
+    }
+
     /// Duration to show frame for animations.
     ///
     /// If the value is not set, the image is not animated.
@@ -249,15 +254,21 @@ impl Frame {
 
     #[cfg(feature = "gdk4")]
     pub fn texture(&self) -> gdk::Texture {
+        use crate::memory_texture_builder::MemoryTextureBuilder;
+
+        let builder = MemoryTextureBuilder::new();
+
+        builder.set_bytes(Some(&self.buffer));
+
         // Use unwraps here since the compatibility was checked before
-        gdk::MemoryTexture::new(
-            self.width().try_i32().unwrap(),
-            self.height().try_i32().unwrap(),
-            crate::util::gdk_memory_format(self.memory_format()),
-            &self.buffer,
-            self.stride().try_usize().unwrap(),
-        )
-        .upcast()
+        builder.set_width(self.width().try_i32().unwrap());
+        builder.set_height(self.height().try_i32().unwrap());
+        builder.set_stride(self.stride().try_usize().unwrap());
+
+        builder.set_format(crate::util::gdk_memory_format(self.memory_format()));
+        builder.set_color_state(Some(&crate::util::gdk_color_state(self.color_state)));
+
+        builder.build()
     }
 }
 

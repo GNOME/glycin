@@ -69,6 +69,15 @@ impl SandboxSelector {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
+#[cfg_attr(feature = "gobject", derive(gio::glib::Enum))]
+#[cfg_attr(feature = "gobject", enum_type(name = "GlyColorState"))]
+#[repr(i32)]
+pub enum ColorState {
+    Srgb,
+    Rec2020,
+}
+
 pub(crate) struct RemoteProcessContext<'a, P: ZbusProxy<'a>> {
     pub process: RemoteProcess<'a, P>,
     pub gfile_worker: GFileWorker,

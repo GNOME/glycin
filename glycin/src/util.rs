@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
+#[cfg(feature = "gdk4")]
+use crate::ColorState;
 use futures_util::{Stream, StreamExt};
 use gio::glib;
 #[cfg(feature = "gdk4")]
@@ -34,6 +36,14 @@ pub const fn gdk_memory_format(format: MemoryFormat) -> gdk::MemoryFormat {
         MemoryFormat::G16a16Premultiplied => gdk::MemoryFormat::G16a16Premultiplied,
         MemoryFormat::G16a16 => gdk::MemoryFormat::G16a16,
         MemoryFormat::G16 => gdk::MemoryFormat::G16,
+    }
+}
+
+#[cfg(feature = "gdk4")]
+pub fn gdk_color_state(format: ColorState) -> gdk::ColorState {
+    match format {
+        ColorState::Srgb => gdk::ColorState::srgb(),
+        ColorState::Rec2020 => gdk::ColorState::rec2100_linear(),
     }
 }
 
