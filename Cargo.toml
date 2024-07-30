@@ -8,10 +8,6 @@ repository = "https://gitlab.gnome.org/sophie-h/glycin"
 edition = "2021"
 rust-version = "1.77"
 
-[patch.crates-io]
-image-webp = { git = "https://github.com/image-rs/image-webp.git" }
-image = { git = "https://github.com/image-rs/image.git" }
-
 [profile.release]
 lto = true
 codegen-units = 1
@@ -59,10 +55,10 @@ gio = { version = "0.20.0" }
 glib = { version = "0.20.0" }
 glycin = { path = "glycin/", default-features = false }
 glycin-utils = { version = "2.0.0-alpha", path = "glycin-utils/", default-features = false }
-gufo-common = { version = "0.1.0-alpha", features = ["serde"] }
-gufo-exif = { version = "0.1.0-alpha" }
-gufo-jpeg = { version = "0.1.0-alpha" }
-image = { version = "0.25.1", default-features = false }
+gufo-common = { version = "0.1.0", features = ["serde"] }
+gufo-exif = { version = "0.1.0" }
+gufo-jpeg = { version = "0.1.0" }
+image = { version = "0.25.2", default-features = false }
 kamadak-exif = "0.5.5"
 lcms2 = "6.0.3"
 lcms2-sys = "4.0.4"
