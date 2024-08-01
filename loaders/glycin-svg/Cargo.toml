@@ -10,7 +10,7 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-cairo-rs = "0.19"
-gio = "0.19"
+cairo-rs.workspace = true
+gio.workspace = true
 glycin-utils = { workspace = true, features = ["async-io", "loader-utils"] }
-rsvg = { package = "librsvg-rebind", git = "https://gitlab.gnome.org/sophie-h/librsvg-rebind.git" }
+rsvg = { package = "librsvg-rebind", git = "https://gitlab.gnome.org/GNOME/librsvg.git" }
