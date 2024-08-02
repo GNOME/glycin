@@ -284,7 +284,7 @@ impl<'a> RemoteProcess<'a, EditorProxy<'a>> {
         operations: Operations,
     ) -> Result<SparseEditorOutput, Error> {
         let init_request = self.init_request(gfile_worker, base_dir)?;
-        let edit_request = EditRequest::for_operations(operations);
+        let edit_request = EditRequest::for_operations(operations)?;
 
         let editor_output = self
             .decoding_instruction

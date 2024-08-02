@@ -47,13 +47,7 @@ impl SharedMemory {
 
 impl SharedMemory {
     fn from_data(value: impl AsRef<[u8]>) -> Result<Self, ProcessError> {
-        let mut shared_memory = SharedMemory::new(
-            value
-                .as_ref()
-                .len()
-                .try_u64()
-                .expect("Required memory too large"),
-        )?;
+        let mut shared_memory = SharedMemory::new(value.as_ref().len().try_u64()?)?;
 
         shared_memory.copy_from_slice(value.as_ref());
 

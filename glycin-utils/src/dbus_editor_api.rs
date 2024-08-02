@@ -19,16 +19,27 @@ pub struct EditRequest {
 }
 
 impl EditRequest {
-    pub fn for_operations(operations: Operations) -> Self {
-        // TODO: Unwraps
-        let operations = operations.to_message_pack().unwrap();
-        let operations = BinaryData::from_data(operations).unwrap();
-        Self { operations }
+    pub fn for_operations(operations: Operations) -> Result<Self, RemoteError> {
+        let operations = operations
+            .to_message_pack()
+            .expected_error()
+            .map_err(|x| x.into_editor_error())?;
+        let operations = BinaryData::from_data(operations).map_err(|x| x.into_editor_error())?;
+        Ok(Self { operations })
     }
 
-    pub fn operations(&self) -> Operations {
-        // TODO: Unwraps
-        Operations::from_slice(self.operations.get().unwrap()).unwrap()
+    pub fn operations(&self) -> Result<Operations, RemoteError> {
+        let binary_data = self
+            .operations
+            .get()
+            .expected_error()
+            .map_err(|x| x.into_editor_error())?;
+
+        let operations = Operations::from_slice(&binary_data)
+            .expected_error()
+            .map_err(|x| x.into_editor_error())?;
+
+        Ok(operations)
     }
 }
 
@@ -86,7 +97,7 @@ impl Editor {
     ) -> Result<SparseEditorOutput, RemoteError> {
         let fd: OwnedFd = OwnedFd::from(init_request.fd);
         let stream = UnixStream::from(fd);
-        let operations = edit_request.operations();
+        let operations = edit_request.operations()?;
 
         let image_info = self
             .get_editor()?
