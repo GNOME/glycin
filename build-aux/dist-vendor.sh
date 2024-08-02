@@ -23,8 +23,8 @@ VERSION="$($MESON_PROJECT_SOURCE_ROOT/build-aux/crates-version.py)"
 sed -i "s/, path = \"glycin-utils\/\"//g" Cargo.toml
 sed -i "s/path = \"glycin\/\"/version = \"$VERSION\"/g" Cargo.toml
 
-cargo update glycin glycin-utils
+cargo check -p tests
 
 # Vendor crates.io dependencies
 mkdir .cargo
-cargo vendor | sed 's/^directory = ".*"/directory = "vendor"/g' > .cargo/config
+cargo vendor | sed 's/^directory = ".*"/directory = "vendor"/g' > .cargo/config.toml

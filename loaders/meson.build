@@ -128,6 +128,7 @@ if get_option('tests')
         '--destdir', destdir,
       ],
       is_parallel: false,
+      timeout: 1800,
     )
 
     # Rewrite config to point into destdir
