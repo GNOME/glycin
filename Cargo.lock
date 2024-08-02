@@ -1446,21 +1446,22 @@ dependencies = [
 [[package]]
 name = "librsvg-rebind"
 version = "0.1.0"
-source = "git+https://gitlab.gnome.org/GNOME/librsvg.git#064e1feae9590c1df715a9af37e23c6cec13c6d1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15630f09af77f5e84889ce244a8402a1f9ac0b5546171ad77a02fe514a830d06"
 dependencies = [
- "bitflags 1.3.2",
+ "bitflags 2.6.0",
  "cairo-rs",
  "gio",
  "glib",
  "libc",
  "librsvg-rebind-sys",
- "once_cell",
 ]
 
 [[package]]
 name = "librsvg-rebind-sys"
 version = "0.1.0"
-source = "git+https://gitlab.gnome.org/GNOME/librsvg.git#064e1feae9590c1df715a9af37e23c6cec13c6d1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "635a4abf7b375659c9bab1839779487eb2a964934ad4f67ceb4e0364b75c37e2"
 dependencies = [
  "cairo-sys-rs",
  "gdk-pixbuf-sys",

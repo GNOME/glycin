@@ -13,4 +13,4 @@ rust-version.workspace = true
 cairo-rs.workspace = true
 gio.workspace = true
 glycin-utils = { workspace = true, features = ["async-io", "loader-utils"] }
-rsvg = { package = "librsvg-rebind", git = "https://gitlab.gnome.org/GNOME/librsvg.git" }
+rsvg = { package = "librsvg-rebind", version = "0.1.0" }
