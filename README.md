@@ -9,53 +9,25 @@ The decoding happens in sandboxed modular *image loaders*.
 - [glycin-utils](https://docs.rs/glycin-utils/) – Utilities to write loaders for glycin
 - [loaders](loaders) – Glycin loaders for several formats
 
-## Example
+## Usage and Packaging
+
+The Rust client library is available as [glycin on crates.io](https://docs.rs/glycin/). For other programming languages, the libglycin C client library can be used. For the client libraries to work, **loader binaries must be installed additionally**. The project covers a lot of image formats with the provided loader binaries. Both, the loader binaries and libglycin can be built from the released [glycin tarballs](https://download.gnome.org/sources/glycin/). By using `-Dlibglycin=false` or `-Dglycin-loaders=false` it is possible to build only one of these components. In distributions, the loaders are usually packaged as *glycin-loaders*, and libglycin as *libglycin-1*. However, each loader binary could be also packaged as its own binary.
+
+### Example
 
 ```rust
 let file = gio::File::for_path("image.jpg");
 let image = Loader::new(file).load().await?;
 
-let height = image.info().height;
-let texture = image.next_frame().await?.texture;
+let height = image.info().height();
+let texture = image.next_frame().await?.texture();
 ```
 
 ## Limitations
 
 Glycin is based on technologies like memfds, unix sockets, and linux namespaces. It currently only works on Linux. An adoption to other unixoid systems could be possible without usage of the sandbox mechanism. Windows support is currently not planned and might not be feasible.
 
-## Image loader configuration
-
-Loader configurations are read from `XDG_DATA_DIRS` and `XDG_DATA_HOME`. The location is typically of the from
-
-```
-<data-dir>/share/glycin/<compat-version>+/conf.d/<loader-name>.conf
-```
-
-so for example
-
-```
-<data-dir>/share/glycin/0+/conf.d/glyicn-image-rs.conf
-```
-
-The configs are glib KeyFiles of the the form
-
-```ini
-[loader:image/png]
-Exec = /usr/libexec/glycin/1+/glycin-image-rs
-```
-
-Where the part behind `loader` is a mime-type and the value of `Exec` can be any executable path.
-
-### Existing compatibility versions
-
-Not every new major version of the library has to break compatibility with the loaders. If a glycin version X breaks compatibility, the new compativility version will be called X+. Only glycin X and newer version will be compatible with X+ until a new compatibilityv version is used. The definition of the API of each compatibility version is available in [`docs/`](docs/). The following compatibility versions currently exist
-
-| compat-version | Compatible With                |
-|----------------|--------------------------------|
-| 0+             | glycin 0.x                     |
-| 1+             | glycin 1.x, libglycin 1.x      |
-
-## Supported image formats
+## Supported Image Formats
 
 The following features are supported by the glycin loaders provided in the [loaders](loaders) directory.
 
@@ -85,6 +57,38 @@ The following features are supported by the glycin loaders provided in the [load
 | ✘      | Supported by format but not implemented yet |
 | —      | Not available for this format               |
 
+## Image Loader Configuration
+
+Loader configurations are read by the client library from `XDG_DATA_DIRS` and `XDG_DATA_HOME`. The location is typically of the from
+
+```
+<data-dir>/share/glycin/<compat-version>+/conf.d/<loader-name>.conf
+```
+
+so for example
+
+```
+<data-dir>/share/glycin/0+/conf.d/glyicn-image-rs.conf
+```
+
+The configs are [glib KeyFiles](https://docs.gtk.org/glib/struct.KeyFile.html) of the the form
+
+```ini
+[loader:image/png]
+Exec = /usr/libexec/glycin/1+/glycin-image-rs
+```
+
+Where the part behind `loader` is a mime-type and the value of `Exec` can be any executable path.
+
+### Existing Compatibility Versions
+
+Not every new major version of the library has to break compatibility with the loaders. If a glycin version X breaks compatibility, the new compativility version will be called X+. Only glycin X and newer version will be compatible with X+ until a new compatibilityv version is used. The definition of the API of each compatibility version is available in [`docs/`](docs/). The following compatibility versions currently exist
+
+| compat-version | Compatible With                |
+|----------------|--------------------------------|
+| 0+             | glycin 0.x                     |
+| 1+             | glycin 1.x, 2.x; libglycin 1.x |
+
 ## Sandboxing and Inner Workings
 
 Glycin spawns one process per image file. The communication between glycin and the loader takes place via peer-to-peer D-Bus over a Unix socket.
@@ -106,11 +110,7 @@ For information on how to implement a loader, please consult the [`glycin-utils`
 - Running integration tests requires the glycin loaders to be installed. By default, `meson test` creates an separate installation against which the tests are run. This behavior can be changed by setting `-Dtest_skip_install=true`, requiring to manually calling `meson install` before running the tests.
 - The `glycin` crate has an example, `glycin-render` that will load the image passed as a parameter and render it as a PNG into `output.png` in the current directory.
 
-### Packaging
-
-Distributions need to package the loader binaries and their configs independent of apps. The loaders build and installed via meson.
-
-Apps will depend on the `glycin` crate to make use of the installed binary loaders.
+## Packaging Status
 
 [![Packaging Status](https://repology.org/badge/vertical-allrepos/glycin-loaders.svg?exclude_unsupported=1&header=)](https://repology.org/project/glycin-loaders/versions)
 
