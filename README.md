@@ -11,7 +11,7 @@ The decoding happens in sandboxed modular *image loaders*.
 
 ## Usage and Packaging
 
-The Rust client library is available as [glycin on crates.io](https://docs.rs/glycin/). For other programming languages, the libglycin C client library can be used. For the client libraries to work, **loader binaries must be installed additionally**. The project covers a lot of image formats with the provided loader binaries. Both, the loader binaries and libglycin can be built from the released [glycin tarballs](https://download.gnome.org/sources/glycin/). By using `-Dlibglycin=false` or `-Dglycin-loaders=false` it is possible to build only one of these components. In distributions, the loaders are usually packaged as *glycin-loaders*, and libglycin as *libglycin-1*. However, each loader binary could be also packaged as its own binary.
+The Rust client library is available as [glycin on crates.io](https://docs.rs/glycin/). For other programming languages, the libglycin C client library can be used. For the client libraries to work, **loader binaries must also be installed**. The loader binaries provided by the glycin project cover a lot of common image formats (see below). Both, the loader binaries and libglycin can be built from the released [glycin tarballs](https://download.gnome.org/sources/glycin/). By using `-Dlibglycin=false` or `-Dglycin-loaders=false` it is possible to build only one of these components. In distributions, the loaders are usually packaged as *glycin-loaders*, and libglycin as *libglycin-1*. However, each loader binary could be also packaged as its own package.
 
 ### Example
 
