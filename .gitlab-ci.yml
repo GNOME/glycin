@@ -111,11 +111,10 @@ cargo-deny:
     - cargo deny check
 
 cargo-vet:
-  image: "rust:slim"
+  image: "rust"
   allow_failure: true
   interruptible: true
   script:
-    - rustup component add rustfmt
     - cargo install cargo-vet
     - CARGO_BUILD_TARGET=x86_64-unknown-linux-gnu cargo vet
 
