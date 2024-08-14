@@ -118,7 +118,6 @@ cargo-vet:
     - cargo install cargo-vet
     - CARGO_BUILD_TARGET=x86_64-unknown-linux-gnu cargo vet
 
-
 pages:
   stage: deploy
   dependencies:
