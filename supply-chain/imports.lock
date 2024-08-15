@@ -537,13 +537,6 @@ user-id = 3618
 user-login = "dtolnay"
 user-name = "David Tolnay"
 
-[[publisher.system-deps]]
-version = "7.0.1"
-when = "2024-06-18"
-user-id = 52034
-user-login = "gdesmott"
-user-name = "Guillaume Desmottes"
-
 [[publisher.target-lexicon]]
 version = "0.12.16"
 when = "2024-07-30"
@@ -1391,14 +1384,6 @@ user-id = 5059 # Artyom Pavlov (newpavlov)
 start = "2022-01-17"
 end = "2025-07-22"
 notes = "RustCrypto/ repo"
-
-[[audits.gnome-trusted.wildcard-audits.system-deps]]
-who = "Sophie Herold <sophie@hemio.de>"
-criteria = "safe-to-deploy"
-user-id = 52034 # Guillaume Desmottes (gdesmott)
-start = "2020-06-19"
-end = "2025-07-22"
-notes = "rust-lang/ repo"
 
 [[audits.gnome-trusted.wildcard-audits.tracing]]
 who = "Sophie Herold <sophie@hemio.de>"
