@@ -59,3 +59,7 @@ all-features = true
 rustc-args = ["--cfg", "docsrs"]
 rustdoc-args = ["--cfg", "docsrs", "--generate-link-to-definition"]
 features = []
+
+[[example]]
+name = "glycin-render"
+required-features = [ "gdk4" ]
