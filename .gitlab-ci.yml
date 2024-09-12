@@ -22,6 +22,10 @@ variables:
     - echo "deb https://deb.debian.org/debian/ testing main" >> /etc/apt/sources.list
     - apt-get update
     - apt-get install -y libheif-dev libgtk-4-dev libcairo2-dev meson
+    - apt-get install -y librsvg2-2
+    # Required for librsvg/fontconfig, somehow fails to install automatically.
+    # Issue is new, first seen 2024-09-12
+    - apt-get install -y libbz2-dev
   artifacts:
     when: always
     paths:

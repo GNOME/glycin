@@ -8,7 +8,7 @@ use glycin_utils::*;
 use jpegxl_rs::image::ToDynamic;
 use jpegxl_sys::codestream_header::*;
 use jpegxl_sys::decode::*;
-use jpegxl_sys::types::JxlBool;
+use jpegxl_sys::types::{JxlBool, JxlBoxType};
 
 init_main_loader!(ImgDecoder::default());
 
@@ -127,10 +127,10 @@ fn basic_info(data: &[u8]) -> (Option<JxlBasicInfo>, Option<Vec<u8>>, Option<Vec
                     }
                 }
                 JxlDecoderStatus::Box => {
-                    let mut type_ = [0; 4];
+                    let mut type_ = JxlBoxType([0; 4]);
                     JxlDecoderGetBoxType(decoder, &mut type_, JxlBool::True);
 
-                    if &type_.map(|x| x as u8) == b"Exif" {
+                    if &type_.0.map(|x| x as u8) == b"Exif" {
                         buf.resize(65536, 0);
                         JxlDecoderSetBoxBuffer(decoder, buf.as_mut_ptr(), buf.len());
                     }
