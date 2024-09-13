@@ -1,3 +1,16 @@
+## 1.1.0 (2024-09-13)
+
+### Fixed
+
+- tests: Update to test image which uses an explicit font name in SVG, not
+  depending on the correct default font setting on the system for the test to
+  pass.
+
+### Changed
+
+- glycin-utils: Don't use regex feature of env-logger to save almost 1 MB binary
+  size in each loader
+
 ## 1.1.beta (2024-08-02)
 
 ### Added

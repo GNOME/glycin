@@ -93,7 +93,13 @@ class Release:
         return s
 
     def __lt__(self, other):
-         return self.name < other.name
+        self_alpha = any(c.isalpha() for c in self.name)
+        other_alpha = any(c.isalpha() for c in other.name)
+
+        if self_alpha != other_alpha:
+            return self_alpha > other_alpha
+
+        return self.name < other.name
 
 class Changelog:
     def __init__(self, path, heading):
@@ -121,6 +127,7 @@ class Changelog:
 
     def add(self, release: Release):
         self.releases.append(release)
+        self.releases.sort()
 
     def format(self):
         s = ''
@@ -128,7 +135,7 @@ class Changelog:
         if self.heading:
             s += f'# {self.heading}\n'
 
-        for release in reversed(sorted(self.releases)):
+        for release in reversed(self.releases):
             if s != '':
                 s += '\n'
             s += release.format()
