@@ -1,3 +1,10 @@
+## 1.1.1 (2024-09-16)
+
+### Fixed
+
+- Glycin failed to detect the SVGZ format since the files were just detected as
+  gzip files via the magic bytes.
+
 ## 1.1.0 (2024-09-13)
 
 ### Fixed
