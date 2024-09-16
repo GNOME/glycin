@@ -1,0 +1,1 @@
+Glycin failed to detect the SVGZ format since the files were just detected as gzip files via the magic bytes.

@@ -120,7 +120,10 @@ pub(crate) async fn guess_mime_type(gfile_worker: &GFileWorker) -> Result<MimeTy
     // can falsely guess XML instead of SVG
     let is_xml = mime_type.clone().ok() == Some("application/xml".into());
 
-    if unsure || is_tiff || is_xml {
+    // Prefer file extension for gzip since it might be an SVGZ
+    let is_gzip = mime_type.clone().ok() == Some("application/gzip".into());
+
+    if unsure || is_tiff || is_xml || is_gzip {
         if let Some(filename) = gfile_worker.file().basename() {
             let content_type_fn = gio::content_type_guess(Some(filename), &head).0;
             return gio::content_type_get_mime_type(&content_type_fn)
