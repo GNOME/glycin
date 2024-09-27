@@ -7,20 +7,8 @@ use std::sync::Mutex;
 use glycin_utils::*;
 use libopenraw::metadata::Value;
 use libopenraw::{Bitmap, Image};
-use log::LevelFilter;
-use simple_logger::SimpleLogger;
 
-fn main() {
-    SimpleLogger::new()
-        .with_module_level("mp4parse", LevelFilter::Error)
-        .with_module_level("libopenraw", LevelFilter::Error)
-        .with_module_level("async_io", LevelFilter::Error)
-        .with_module_level("polling", LevelFilter::Error)
-        .init()
-        .unwrap();
-
-    Communication::spawn_loader(ImgDecoder::default());
-}
+init_main_loader!(ImgDecoder::default());
 
 #[derive(Default)]
 pub struct ImgDecoder {

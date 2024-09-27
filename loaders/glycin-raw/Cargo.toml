@@ -12,5 +12,3 @@ rust-version.workspace = true
 [dependencies]
 glycin-utils = { path = "../../glycin-utils/", features = ["loader-utils"] }
 libopenraw = "0.4.0-alpha.7"
-log = "0.4.19"
-simple_logger = { version = "5.0.0", default-features = false }
