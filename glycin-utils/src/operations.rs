@@ -1,6 +1,9 @@
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[non_exhaustive]
 pub enum Operation {
     Rotate(gufo_common::orientation::Rotation),
+    MirrorHorizontally,
+    Clip((u32, u32, u32, u32)),
 }
 use std::io::Read;
 
