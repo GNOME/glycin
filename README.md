@@ -117,6 +117,15 @@ For information on how to implement a loader, please consult the [`glycin-utils`
 
 [![Packaging Status](https://repology.org/badge/vertical-allrepos/glycin-loaders.svg?exclude_unsupported=1&header=)](https://repology.org/project/glycin-loaders/versions)
 
+## Apps Using Glycin
+
+- [Camera (Snapshot)](https://flathub.org/apps/org.gnome.Snapshot)
+- [Fotema](https://flathub.org/apps/app.fotema.Fotema)
+- [Fractal](https://flathub.org/apps/org.gnome.Fractal)
+- [Identity](https://flathub.org/apps/org.gnome.gitlab.YaLTeR.Identity)
+- [Image Viewer (Loupe)](https://flathub.org/apps/org.gnome.Loupe)
+- [Shortwave](https://flathub.org/apps/de.haeckerfelix.Shortwave)
+
 ## License
 
 SPDX-License-Identifier: MPL-2.0 OR LGPL-2.1-or-later
