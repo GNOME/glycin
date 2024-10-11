@@ -3,6 +3,7 @@ use std::os::fd::AsRawFd;
 use std::sync::Arc;
 use std::time::Duration;
 
+use memmap::MmapMut;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zbus::zvariant::{self, DeserializeDict, Optional, SerializeDict, Type};
 
@@ -142,6 +143,15 @@ impl Frame {
     }
 }
 
+impl Frame {
+    pub fn as_img_buf(&self) -> std::io::Result<ImgBuf> {
+        let raw_fd = self.texture.as_raw_fd();
+        let original_mmap = unsafe { MmapMut::map_mut(raw_fd) }?;
+
+        Ok(ImgBuf::MMap(original_mmap))
+    }
+}
+
 #[derive(zvariant::Type, Debug, Clone)]
 #[zvariant(signature = "h")]
 pub struct BinaryData {
@@ -210,5 +220,46 @@ impl Deref for BinaryDataRef {
 impl AsRef<[u8]> for BinaryDataRef {
     fn as_ref(&self) -> &[u8] {
         self.mmap.deref()
+    }
+}
+
+pub enum ImgBuf {
+    MMap(memmap::MmapMut),
+    Vec(Vec<u8>),
+}
+
+impl ImgBuf {
+    pub fn as_slice(&self) -> &[u8] {
+        match self {
+            Self::MMap(mmap) => mmap.as_ref(),
+            Self::Vec(v) => v.as_slice(),
+        }
+    }
+
+    pub fn as_mut_slice(&mut self) -> &mut [u8] {
+        match self {
+            Self::MMap(mmap) => mmap.as_mut(),
+            Self::Vec(v) => v.as_mut_slice(),
+        }
+    }
+
+    pub fn into_vec(self) -> Vec<u8> {
+        match self {
+            Self::Vec(vec) => vec,
+            Self::MMap(_) => self.to_vec(),
+        }
+    }
+}
+
+impl std::ops::Deref for ImgBuf {
+    type Target = [u8];
+    fn deref(&self) -> &Self::Target {
+        self.as_slice()
+    }
+}
+
+impl std::ops::DerefMut for ImgBuf {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.as_mut_slice()
     }
 }

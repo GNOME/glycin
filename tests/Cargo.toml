@@ -22,6 +22,7 @@ tokio.workspace = true
 gdk.workspace = true
 zbus = { workspace = true, features = ["p2p"] }
 tracing-subscriber.workspace = true
+serde_yml = "0.0.12"
 
 [[test]]
 name = "tests"
@@ -30,3 +31,10 @@ path = "tests.rs"
 [[test]]
 name = "dbus_api_stability"
 path = "dbus_api_stability.rs"
+
+[[test]]
+name = "editing"
+path = "editing.rs"
+
+[dependencies]
+gufo-common.workspace = true

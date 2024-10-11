@@ -14,6 +14,7 @@ use futures_channel::oneshot;
 use futures_util::{future, FutureExt};
 use gio::glib;
 use gio::prelude::*;
+use glycin_utils::dbus::ImgBuf;
 use glycin_utils::operations::Operations;
 use glycin_utils::{
     DimensionTooLargerError, EditRequest, Frame, FrameRequest, ImageInfo, InitRequest,
@@ -561,39 +562,5 @@ fn spawn_stdio_reader(
                 buf.clear();
             }
         });
-    }
-}
-
-pub enum ImgBuf {
-    MMap(memmap::MmapMut),
-    Vec(Vec<u8>),
-}
-
-impl ImgBuf {
-    pub fn as_slice(&self) -> &[u8] {
-        match self {
-            Self::MMap(mmap) => mmap.as_ref(),
-            Self::Vec(v) => v.as_slice(),
-        }
-    }
-
-    pub fn as_mut_slice(&mut self) -> &mut [u8] {
-        match self {
-            Self::MMap(mmap) => mmap.as_mut(),
-            Self::Vec(v) => v.as_mut_slice(),
-        }
-    }
-}
-
-impl std::ops::Deref for ImgBuf {
-    type Target = [u8];
-    fn deref(&self) -> &Self::Target {
-        self.as_slice()
-    }
-}
-
-impl std::ops::DerefMut for ImgBuf {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        self.as_mut_slice()
     }
 }

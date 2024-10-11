@@ -68,6 +68,13 @@ impl SparseEditorOutput {
             data: None,
         }
     }
+
+    pub fn data(data: BinaryData) -> Self {
+        Self {
+            bit_changes: None,
+            data: Some(data),
+        }
+    }
 }
 
 #[derive(DeserializeDict, SerializeDict, Type, Debug, Clone)]

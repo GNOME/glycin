@@ -1,6 +1,7 @@
 use super::{Frame, ImageInfo, SharedMemory};
+use crate::editing::SimpleFrame;
 use crate::memory_format::MemoryFormat;
-use crate::{BinaryData, FrameDetails, GenericContexts, ProcessError};
+use crate::{BinaryData, DimensionTooLargerError, FrameDetails, GenericContexts, ProcessError};
 
 #[derive(Default, Clone, Debug)]
 pub struct Handler {
@@ -44,11 +45,13 @@ impl Handler {
     }
 
     pub fn frame(&self, mut decoder: impl image::ImageDecoder) -> Result<Frame, ProcessError> {
-        let details = self.frame_details(&mut decoder);
-        let color_type = decoder.color_type();
+        let simple_frame = self.simple_frame(&decoder)?;
 
-        let memory_format = MemoryFormat::from(color_type);
-        let (width, height) = decoder.dimensions();
+        let width = simple_frame.width;
+        let height = simple_frame.height;
+        let memory_format = simple_frame.memory_format;
+
+        let details = self.frame_details(&mut decoder);
 
         let mut memory = SharedMemory::new(decoder.total_bytes()).expected_error()?;
         decoder.read_image(&mut memory).expected_error()?;
@@ -58,6 +61,27 @@ impl Handler {
         frame.details = details.expected_error()?;
 
         Ok(frame)
+    }
+
+    pub fn simple_frame(
+        &self,
+        decoder: &impl image::ImageDecoder,
+    ) -> Result<SimpleFrame, ProcessError> {
+        let color_type = decoder.color_type();
+        let memory_format = MemoryFormat::from(color_type);
+        let (width, height) = decoder.dimensions();
+        let stride = memory_format
+            .n_bytes()
+            .u32()
+            .checked_mul(width)
+            .ok_or(DimensionTooLargerError)?;
+
+        Ok(SimpleFrame {
+            width,
+            height,
+            stride,
+            memory_format,
+        })
     }
 
     pub fn frame_details(
@@ -101,6 +125,24 @@ impl ImageInfo {
         let (width, height) = decoder.dimensions();
 
         Self::new(width, height)
+    }
+}
+
+impl MemoryFormat {
+    pub fn to_color_type(&self) -> Option<image::ColorType> {
+        match self {
+            Self::G8 => Some(image::ColorType::L8),
+            Self::G8a8 => Some(image::ColorType::La8),
+            Self::R8g8b8 => Some(image::ColorType::Rgb8),
+            Self::R8g8b8a8 => Some(image::ColorType::Rgba8),
+            Self::G16 => Some(image::ColorType::L16),
+            Self::G16a16 => Some(image::ColorType::La16),
+            Self::R16g16b16 => Some(image::ColorType::Rgb16),
+            Self::R16g16b16a16 => Some(image::ColorType::Rgba16),
+            Self::R32g32b32Float => Some(image::ColorType::Rgb32F),
+            Self::R32g32b32a32Float => Some(image::ColorType::Rgba32F),
+            _ => None,
+        }
     }
 }
 

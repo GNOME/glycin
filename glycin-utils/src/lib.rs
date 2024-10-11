@@ -16,6 +16,7 @@ mod error_message {
 pub mod dbus;
 pub mod dbus_editor_api;
 pub mod dbus_loader_api;
+pub mod editing;
 pub mod error;
 #[cfg(feature = "image-rs")]
 pub mod image_rs;
