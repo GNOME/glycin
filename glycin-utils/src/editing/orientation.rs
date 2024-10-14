@@ -1,9 +1,8 @@
 use gufo_common::orientation::{Orientation, Rotation};
 
+use super::SimpleFrame;
 use crate::dbus::ImgBuf;
 use crate::{Frame, MemoryFormat};
-
-use super::SimpleFrame;
 
 pub trait FrameDimensions {
     fn width(&self) -> u32;

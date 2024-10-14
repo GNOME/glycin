@@ -81,7 +81,8 @@ fn apply_png(
     let new_png = gufo_png::Png::new(new_png_data.into_inner()).expected_error()?;
     let mut old_png = gufo_png::Png::new(old_png_data).expected_error()?;
 
-    // Keep old PNG with its metadata but replace image data with the one from new one
+    // Keep old PNG with its metadata but replace image data with the one from new
+    // one
     old_png.replace_image_data(&new_png).expected_error()?;
 
     Ok(SparseEditorOutput::data(
