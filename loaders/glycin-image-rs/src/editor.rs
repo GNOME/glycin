@@ -1,7 +1,6 @@
 use std::io::{Cursor, Read};
 
 use glycin_utils::*;
-use gufo_common::orientation::Orientation;
 use image::{ImageDecoder, ImageEncoder};
 use image_rs::Handler;
 use operations::Operation;
@@ -39,24 +38,7 @@ fn apply_png(
     let mut buf = vec![0; decoder.total_bytes() as usize];
     decoder.read_image(&mut buf).expected_error()?;
 
-    for operation in operations.operations() {
-        match operation {
-            Operation::Rotate(rotation) => {
-                buf = glycin_utils::editing::orientation::apply(
-                    ImgBuf::Vec(buf),
-                    &mut simple_frame,
-                    Orientation::new(*rotation, false),
-                )
-                .into_vec();
-            }
-            Operation::Clip(clip) => {
-                buf = glycin_utils::editing::clip::clip(buf, &mut simple_frame, *clip);
-            }
-            _ => {
-                panic!("todo")
-            }
-        }
-    }
+    buf = operations.apply(buf, &mut simple_frame).expected_error()?;
 
     let mut new_png_data = Cursor::new(Vec::new());
     let encoder = image::codecs::png::PngEncoder::new_with_quality(

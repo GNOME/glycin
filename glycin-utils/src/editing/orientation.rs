@@ -75,7 +75,7 @@ impl FrameDimensions for Frame {
 }
 
 #[allow(clippy::arithmetic_side_effects, clippy::cast_possible_truncation)]
-pub fn apply(
+pub fn change_orientation(
     mut img_buf: ImgBuf,
     frame: &mut impl FrameDimensions,
     transformation: Orientation,

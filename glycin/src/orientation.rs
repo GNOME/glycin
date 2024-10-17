@@ -21,7 +21,7 @@ pub fn apply_exif_orientation(
             }
             Ok(data) => {
                 if let Some(orientation) = data.orientation() {
-                    glycin_utils::editing::orientation::apply(img_buf, frame, orientation)
+                    glycin_utils::editing::change_orientation(img_buf, frame, orientation)
                 } else {
                     img_buf
                 }
