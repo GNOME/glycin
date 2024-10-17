@@ -49,6 +49,7 @@ impl EditRequest {
 pub struct SparseEditorOutput {
     pub bit_changes: Option<BitChanges>,
     pub data: Option<BinaryData>,
+    pub info: EditorOutputInfo,
 }
 
 impl SparseEditorOutput {
@@ -66,6 +67,7 @@ impl SparseEditorOutput {
         SparseEditorOutput {
             bit_changes: Some(bit_changes),
             data: None,
+            info: Default::default(),
         }
     }
 
@@ -73,7 +75,14 @@ impl SparseEditorOutput {
         Self {
             bit_changes: None,
             data: Some(data),
+            info: Default::default(),
         }
+    }
+
+    pub fn from_complete(complete: CompleteEditorOutput) -> Self {
+        let sparse = Self::data(complete.data);
+
+        sparse
     }
 }
 
@@ -88,6 +97,34 @@ pub struct BitChanges {
 pub struct BitChange {
     pub offset: u64,
     pub new_value: u8,
+}
+
+#[derive(DeserializeDict, SerializeDict, Type, Debug, Clone)]
+#[zvariant(signature = "dict")]
+#[non_exhaustive]
+pub struct CompleteEditorOutput {
+    pub data: BinaryData,
+    pub info: EditorOutputInfo,
+}
+
+impl CompleteEditorOutput {
+    pub fn new(data: BinaryData) -> Self {
+        Self {
+            data,
+            info: Default::default(),
+        }
+    }
+}
+
+#[derive(DeserializeDict, SerializeDict, Type, Debug, Default, Clone)]
+#[zvariant(signature = "dict")]
+#[non_exhaustive]
+pub struct EditorOutputInfo {
+    /// Operation is considered to be lossless
+    ///
+    /// Operations are considered lossless when all metadata are kept, no image
+    /// data is los, and no image quality is lost.
+    pub lossless: bool,
 }
 
 pub struct Editor {
@@ -124,7 +161,7 @@ impl Editor {
         &self,
         init_request: InitRequest,
         edit_request: EditRequest,
-    ) -> Result<BinaryData, RemoteError> {
+    ) -> Result<CompleteEditorOutput, RemoteError> {
         let fd: OwnedFd = OwnedFd::from(init_request.fd);
         let stream = UnixStream::from(fd);
         let operations = edit_request.operations()?;
@@ -160,9 +197,9 @@ pub trait EditorImplementation: Send {
         details: InitializationDetails,
         operations: Operations,
     ) -> Result<SparseEditorOutput, ProcessError> {
-        Ok(SparseEditorOutput::data(
-            self.apply_complete(stream, mime_type, details, operations)?,
-        ))
+        let complete = self.apply_complete(stream, mime_type, details, operations)?;
+
+        Ok(SparseEditorOutput::from_complete(complete))
     }
 
     fn apply_complete(
@@ -171,7 +208,7 @@ pub trait EditorImplementation: Send {
         mime_type: String,
         details: InitializationDetails,
         operations: Operations,
-    ) -> Result<BinaryData, ProcessError>;
+    ) -> Result<CompleteEditorOutput, ProcessError>;
 }
 
 /// Give a `None` for a non-existent `EditorImplementation`
@@ -195,7 +232,7 @@ pub fn void_editor_none() -> Option<impl EditorImplementation> {
             _mime_type: String,
             _details: InitializationDetails,
             _operations: Operations,
-        ) -> Result<BinaryData, ProcessError> {
+        ) -> Result<CompleteEditorOutput, ProcessError> {
             match *self {}
         }
     }

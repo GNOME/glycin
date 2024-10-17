@@ -17,8 +17,8 @@ use gio::prelude::*;
 use glycin_utils::dbus::ImgBuf;
 use glycin_utils::operations::Operations;
 use glycin_utils::{
-    BinaryData, DimensionTooLargerError, EditRequest, Frame, FrameRequest, ImageInfo, InitRequest,
-    InitializationDetails, RemoteError, SafeConversion, SafeMath, SparseEditorOutput,
+    CompleteEditorOutput, DimensionTooLargerError, EditRequest, Frame, FrameRequest, ImageInfo,
+    InitRequest, InitializationDetails, RemoteError, SafeConversion, SafeMath, SparseEditorOutput,
 };
 use memmap::MmapMut;
 use nix::sys::signal;
@@ -310,7 +310,7 @@ impl<'a> RemoteProcess<'a, EditorProxy<'a>> {
         gfile_worker: &GFileWorker,
         base_dir: Option<std::path::PathBuf>,
         operations: Operations,
-    ) -> Result<BinaryData, Error> {
+    ) -> Result<CompleteEditorOutput, Error> {
         let init_request = self.init_request(gfile_worker, base_dir)?;
         let edit_request = EditRequest::for_operations(operations)?;
 
@@ -360,7 +360,7 @@ trait Editor {
         &self,
         init_request: InitRequest,
         edit_request: EditRequest,
-    ) -> Result<BinaryData, RemoteError>;
+    ) -> Result<CompleteEditorOutput, RemoteError>;
 }
 
 pub struct GFileWorker {
