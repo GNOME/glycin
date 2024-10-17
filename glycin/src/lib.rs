@@ -86,6 +86,6 @@ pub use api_editor::*;
 pub use api_loader::*;
 pub use config::COMPAT_VERSION;
 pub use error::{Error, ErrorCtx};
-pub use glycin_utils::{ImageInfo, ImageInfoDetails, RemoteError};
+pub use glycin_utils::{BinaryData, ImageInfo, ImageInfoDetails, RemoteError};
 #[cfg(feature = "gdk4")]
 pub use util::gdk_memory_format;

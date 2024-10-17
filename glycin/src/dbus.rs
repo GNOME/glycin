@@ -17,7 +17,7 @@ use gio::prelude::*;
 use glycin_utils::dbus::ImgBuf;
 use glycin_utils::operations::Operations;
 use glycin_utils::{
-    DimensionTooLargerError, EditRequest, Frame, FrameRequest, ImageInfo, InitRequest,
+    BinaryData, DimensionTooLargerError, EditRequest, Frame, FrameRequest, ImageInfo, InitRequest,
     InitializationDetails, RemoteError, SafeConversion, SafeMath, SparseEditorOutput,
 };
 use memmap::MmapMut;
@@ -278,7 +278,7 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
 }
 
 impl<'a> RemoteProcess<'a, EditorProxy<'a>> {
-    pub async fn editor_apply(
+    pub async fn editor_apply_sparse(
         &self,
         gfile_worker: &GFileWorker,
         base_dir: Option<std::path::PathBuf>,
@@ -290,6 +290,33 @@ impl<'a> RemoteProcess<'a, EditorProxy<'a>> {
         let editor_output = self
             .decoding_instruction
             .apply(init_request, edit_request)
+            .shared();
+
+        let reader_error = gfile_worker.error();
+        futures_util::pin_mut!(reader_error);
+
+        futures_util::select! {
+            _result = editor_output.clone().fuse() => Ok(()),
+            result = reader_error.fuse() => result,
+        }?;
+
+        let editor_output = editor_output.await?;
+
+        Ok(editor_output)
+    }
+
+    pub async fn editor_apply_complete(
+        &self,
+        gfile_worker: &GFileWorker,
+        base_dir: Option<std::path::PathBuf>,
+        operations: Operations,
+    ) -> Result<BinaryData, Error> {
+        let init_request = self.init_request(gfile_worker, base_dir)?;
+        let edit_request = EditRequest::for_operations(operations)?;
+
+        let editor_output = self
+            .decoding_instruction
+            .apply_complete(init_request, edit_request)
             .shared();
 
         let reader_error = gfile_worker.error();
@@ -328,6 +355,12 @@ trait Editor {
         init_request: InitRequest,
         edit_request: EditRequest,
     ) -> Result<SparseEditorOutput, RemoteError>;
+
+    async fn apply_complete(
+        &self,
+        init_request: InitRequest,
+        edit_request: EditRequest,
+    ) -> Result<BinaryData, RemoteError>;
 }
 
 pub struct GFileWorker {

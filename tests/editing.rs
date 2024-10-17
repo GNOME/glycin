@@ -38,24 +38,27 @@ async fn test(test_name: &str) {
 
     for entry in std::fs::read_dir(folder).unwrap() {
         let path = entry.unwrap().path();
-        let edited = async_io::block_on(apply_operations(&path, &operations_path));
-
         eprintln!("- {path:?}");
 
-        match edited {
-            glycin::SparseEdit::Complete(x) => {
-                let out_name = format!(
-                    "{}-test-out.png",
-                    path.file_name().unwrap().to_string_lossy()
-                );
-                let out_path = write_tmp(&format!("{out_name}-test-out.png"), &x.get().unwrap());
-                let result = compare_images_path(&reference_path, out_path, true).await;
-
-                results.push(result);
-            }
+        let edited_sparse = async_io::block_on(apply_operations_sparse(&path, &operations_path));
+        let data_sparse = match edited_sparse {
+            glycin::SparseEdit::Complete(x) => x,
             _ => {
-                todo!()
+                panic!("Expected non-sparse data")
             }
+        };
+
+        let data_complete = async_io::block_on(apply_operations_complete(&path, &operations_path));
+
+        for (apply_type, data) in [("sparse", data_sparse), ("complete", data_complete)] {
+            let out_name = format!(
+                "{}-{apply_type}-test-out.png",
+                path.file_name().unwrap().to_string_lossy()
+            );
+            let out_path = write_tmp(&format!("{out_name}"), &data.get().unwrap());
+            let result = compare_images_path(&reference_path, out_path, true).await;
+
+            results.push(result);
         }
     }
 
@@ -69,7 +72,7 @@ fn write_tmp(path: impl AsRef<Path>, data: &[u8]) -> PathBuf {
     tmp_path
 }
 
-async fn apply_operations(image: &Path, operations: &Path) -> glycin::SparseEdit {
+async fn apply_operations_sparse(image: &Path, operations: &Path) -> glycin::SparseEdit {
     let reader = std::fs::File::open(operations).unwrap();
     let operations: glycin::Operations = serde_yml::from_reader(reader).unwrap();
 
@@ -77,4 +80,14 @@ async fn apply_operations(image: &Path, operations: &Path) -> glycin::SparseEdit
     let editor = glycin::Editor::new(file);
 
     editor.apply_sparse(operations).await.unwrap()
+}
+
+async fn apply_operations_complete(image: &Path, operations: &Path) -> glycin::BinaryData {
+    let reader = std::fs::File::open(operations).unwrap();
+    let operations: glycin::Operations = serde_yml::from_reader(reader).unwrap();
+
+    let file = gio::File::for_path(image);
+    let editor = glycin::Editor::new(file);
+
+    editor.apply_complete(operations).await.unwrap()
 }
