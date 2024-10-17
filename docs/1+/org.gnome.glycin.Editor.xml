@@ -7,5 +7,13 @@
       <arg name="edit_request" type="a{sv}" direction="in"/>
       <arg type="a{sv}" direction="out"/>
     </method>
+    <!--
+     Same as [`Self::apply()`] but without potential to return sparse changes
+     -->
+    <method name="ApplyComplete">
+      <arg name="init_request" type="(hsa{sv})" direction="in"/>
+      <arg name="edit_request" type="a{sv}" direction="in"/>
+      <arg type="h" direction="out"/>
+    </method>
   </interface>
 </node>

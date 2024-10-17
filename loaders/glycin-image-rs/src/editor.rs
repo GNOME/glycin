@@ -9,15 +9,29 @@ use operations::Operation;
 pub struct ImgEditor {}
 
 impl EditorImplementation for ImgEditor {
-    fn apply(
+    fn apply_sparse(
         &self,
         stream: glycin_utils::UnixStream,
         mime_type: String,
-        _details: glycin_utils::InitializationDetails,
+        details: glycin_utils::InitializationDetails,
         operations: glycin_utils::operations::Operations,
     ) -> Result<SparseEditorOutput, glycin_utils::ProcessError> {
         match mime_type.as_str() {
             "image/jpeg" => apply_jpeg(stream, operations),
+            _ => Ok(SparseEditorOutput::data(
+                self.apply_complete(stream, mime_type, details, operations)?,
+            )),
+        }
+    }
+
+    fn apply_complete(
+        &self,
+        stream: UnixStream,
+        mime_type: String,
+        _details: InitializationDetails,
+        operations: operations::Operations,
+    ) -> Result<BinaryData, ProcessError> {
+        match mime_type.as_str() {
             "image/png" => apply_png(stream, operations),
             mime_type => Err(ProcessError::UnsupportedImageFormat(mime_type.to_string())),
         }
@@ -27,7 +41,7 @@ impl EditorImplementation for ImgEditor {
 fn apply_png(
     mut stream: glycin_utils::UnixStream,
     operations: glycin_utils::operations::Operations,
-) -> Result<SparseEditorOutput, glycin_utils::ProcessError> {
+) -> Result<BinaryData, glycin_utils::ProcessError> {
     let mut old_png_data: Vec<u8> = Vec::new();
     stream.read_to_end(&mut old_png_data).internal_error()?;
     let cursor = Cursor::new(&old_png_data);
@@ -67,9 +81,7 @@ fn apply_png(
     // one
     old_png.replace_image_data(&new_png).expected_error()?;
 
-    Ok(SparseEditorOutput::data(
-        BinaryData::from_data(&old_png.into_inner()).expected_error()?,
-    ))
+    Ok(BinaryData::from_data(&old_png.into_inner()).expected_error()?)
 }
 
 fn apply_jpeg(

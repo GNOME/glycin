@@ -109,13 +109,23 @@ fn mock_editor() -> glycin_utils::Editor {
     struct MockEditor {}
 
     impl glycin_utils::EditorImplementation for MockEditor {
-        fn apply(
+        fn apply_sparse(
             &self,
             _stream: UnixStream,
             _mime_type: String,
             _details: glycin_utils::InitializationDetails,
             _operations: glycin_utils::operations::Operations,
         ) -> Result<glycin_utils::SparseEditorOutput, glycin_utils::ProcessError> {
+            unimplemented!()
+        }
+
+        fn apply_complete(
+            &self,
+            _stream: UnixStream,
+            _mime_type: String,
+            _details: glycin_utils::InitializationDetails,
+            _operations: glycin_utils::operations::Operations,
+        ) -> Result<glycin_utils::BinaryData, glycin_utils::ProcessError> {
             unimplemented!()
         }
     }

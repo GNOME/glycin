@@ -108,7 +108,30 @@ impl Editor {
 
         let image_info = self
             .get_editor()?
-            .apply(
+            .apply_sparse(
+                stream,
+                init_request.mime_type,
+                init_request.details,
+                operations,
+            )
+            .map_err(|x| x.into_editor_error())?;
+
+        Ok(image_info)
+    }
+
+    /// Same as [`Self::apply()`] but without potential to return sparse changes
+    async fn apply_complete(
+        &self,
+        init_request: InitRequest,
+        edit_request: EditRequest,
+    ) -> Result<BinaryData, RemoteError> {
+        let fd: OwnedFd = OwnedFd::from(init_request.fd);
+        let stream = UnixStream::from(fd);
+        let operations = edit_request.operations()?;
+
+        let image_info = self
+            .get_editor()?
+            .apply_complete(
                 stream,
                 init_request.mime_type,
                 init_request.details,
@@ -130,26 +153,49 @@ impl Editor {
 
 /// Implement this trait to create an image editor
 pub trait EditorImplementation: Send {
-    fn apply(
+    fn apply_sparse(
         &self,
         stream: UnixStream,
         mime_type: String,
         details: InitializationDetails,
         operations: Operations,
-    ) -> Result<SparseEditorOutput, ProcessError>;
+    ) -> Result<SparseEditorOutput, ProcessError> {
+        Ok(SparseEditorOutput::data(
+            self.apply_complete(stream, mime_type, details, operations)?,
+        ))
+    }
+
+    fn apply_complete(
+        &self,
+        stream: UnixStream,
+        mime_type: String,
+        details: InitializationDetails,
+        operations: Operations,
+    ) -> Result<BinaryData, ProcessError>;
 }
 
+/// Give a `None` for a non-existent `EditorImplementation`
 pub fn void_editor_none() -> Option<impl EditorImplementation> {
     enum Void {}
 
     impl EditorImplementation for Void {
-        fn apply(
+        fn apply_sparse(
             &self,
             _stream: UnixStream,
             _mime_type: String,
             _details: InitializationDetails,
             _operations: Operations,
         ) -> Result<SparseEditorOutput, ProcessError> {
+            match *self {}
+        }
+
+        fn apply_complete(
+            &self,
+            _stream: UnixStream,
+            _mime_type: String,
+            _details: InitializationDetails,
+            _operations: Operations,
+        ) -> Result<BinaryData, ProcessError> {
             match *self {}
         }
     }
