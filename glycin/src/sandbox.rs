@@ -216,8 +216,8 @@ impl Sandbox {
                     // change working directory to something that exists
                     "--directory=/".into(),
                     // Start loader with memory limit
-                    "prlimit".into(),
-                    format!("--as={memory_limit}").into(),
+                    //"prlimit".into(),
+                    //format!("--as={memory_limit}").into(),
                     // Loader binary
                     self.exec(),
                 ];
