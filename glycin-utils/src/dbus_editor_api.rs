@@ -19,7 +19,7 @@ pub struct EditRequest {
 }
 
 impl EditRequest {
-    pub fn for_operations(operations: Operations) -> Result<Self, RemoteError> {
+    pub fn for_operations(operations: &Operations) -> Result<Self, RemoteError> {
         let operations = operations
             .to_message_pack()
             .expected_error()

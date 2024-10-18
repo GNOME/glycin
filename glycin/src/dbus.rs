@@ -282,7 +282,7 @@ impl<'a> RemoteProcess<'a, EditorProxy<'a>> {
         &self,
         gfile_worker: &GFileWorker,
         base_dir: Option<std::path::PathBuf>,
-        operations: Operations,
+        operations: &Operations,
     ) -> Result<SparseEditorOutput, Error> {
         let init_request = self.init_request(gfile_worker, base_dir)?;
         let edit_request = EditRequest::for_operations(operations)?;
@@ -309,7 +309,7 @@ impl<'a> RemoteProcess<'a, EditorProxy<'a>> {
         &self,
         gfile_worker: &GFileWorker,
         base_dir: Option<std::path::PathBuf>,
-        operations: Operations,
+        operations: &Operations,
     ) -> Result<CompleteEditorOutput, Error> {
         let init_request = self.init_request(gfile_worker, base_dir)?;
         let edit_request = EditRequest::for_operations(operations)?;

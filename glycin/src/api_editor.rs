@@ -57,7 +57,7 @@ impl Editor {
             .editor_apply_sparse(
                 &process_context.gfile_worker,
                 process_context.base_dir,
-                operations,
+                &operations,
             )
             .await
             .err_context(&process)?;
@@ -66,13 +66,13 @@ impl Editor {
     }
 
     /// Apply operations to the image
-    pub async fn apply_complete(self, operations: Operations) -> Result<BinaryData, ErrorCtx> {
+    pub async fn apply_complete(self, operations: &Operations) -> Result<BinaryData, ErrorCtx> {
         let editor_output = self.apply_complete_full(operations).await?;
         Ok(editor_output.data)
     }
 
     /// Apply operations to the image
-    pub async fn apply_complete_full(self, operations: Operations) -> Result<Edit, ErrorCtx> {
+    pub async fn apply_complete_full(self, operations: &Operations) -> Result<Edit, ErrorCtx> {
         let process_context = spin_up(&self.file, &self.cancellable, &self.sandbox_selector)
             .await
             .err_no_context()?;

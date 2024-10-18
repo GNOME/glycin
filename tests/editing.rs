@@ -79,7 +79,7 @@ async fn apply_operations_sparse(image: &Path, operations: &Path) -> glycin::Spa
     let file = gio::File::for_path(image);
     let editor = glycin::Editor::new(file);
 
-    editor.apply_sparse(operations).await.unwrap()
+    editor.apply_sparse(&operations).await.unwrap()
 }
 
 async fn apply_operations_complete(image: &Path, operations: &Path) -> glycin::BinaryData {
@@ -89,5 +89,5 @@ async fn apply_operations_complete(image: &Path, operations: &Path) -> glycin::B
     let file = gio::File::for_path(image);
     let editor = glycin::Editor::new(file);
 
-    editor.apply_complete(operations).await.unwrap()
+    editor.apply_complete(&operations).await.unwrap()
 }
