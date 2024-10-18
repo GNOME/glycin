@@ -219,7 +219,7 @@ impl Sandbox {
                     //"prlimit".into(),
                     //format!("--as={memory_limit}").into(),
                     // Loader binary
-                    self.exec(),
+                    "ls".into(),
                 ];
 
                 ("flatpak-spawn".into(), args, None)
