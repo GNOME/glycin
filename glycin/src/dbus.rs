@@ -552,6 +552,7 @@ fn spawn_stdio_reader(stdio: &mut Option<impl Read + Send + 'static>, store: &Ar
                 if len == 0 {
                     break;
                 }
+                tracing::debug!("Loader output: {}", buf.trim());
                 store.lock().unwrap().push_str(&buf);
                 buf.clear();
             }
