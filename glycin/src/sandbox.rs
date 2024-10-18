@@ -210,9 +210,9 @@ impl Sandbox {
                 tracing::debug!("Setting prlimit to {memory_limit} bytes");
 
                 let args = vec![
-                    "--sandbox".into(),
+                    //"--sandbox".into(),
                     // die with parent
-                    "--watch-bus".into(),
+                    //"--watch-bus".into(),
                     // change working directory to something that exists
                     "--directory=/".into(),
                     // Start loader with memory limit
