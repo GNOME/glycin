@@ -11,7 +11,7 @@ rust-version = "1.77"
 [profile.release]
 lto = true
 codegen-units = 1
-#panic = "abort"
+panic = "abort"
 #debug = "full"
 
 [profile.release.package]
