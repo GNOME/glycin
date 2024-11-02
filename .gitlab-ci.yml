@@ -112,7 +112,7 @@ cargo-deny:
   interruptible: true
   script:
     - cargo install cargo-deny --locked
-    - cargo deny check
+    - cargo deny --target x86_64-unknown-linux-gnu check
 
 cargo-vet:
   image: "rust"
