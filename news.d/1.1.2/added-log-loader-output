@@ -1,0 +1,1 @@
+Output loader output as debug messages. The loader output is captured and added to errors. But it's not accessible if the loader doesn't return. In that case, this feature is useful.

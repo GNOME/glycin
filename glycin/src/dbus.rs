@@ -103,10 +103,10 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         let command_dbg = spawned_sandbox.info.command_dbg;
 
         let stderr_content: Arc<Mutex<String>> = Default::default();
-        spawn_stdio_reader(&mut subprocess.stderr, &stderr_content);
+        spawn_stdio_reader(&mut subprocess.stderr, &stderr_content, "stderr");
 
         let stdout_content: Arc<Mutex<String>> = Default::default();
-        spawn_stdio_reader(&mut subprocess.stdout, &stdout_content);
+        spawn_stdio_reader(&mut subprocess.stdout, &stdout_content, "stdout");
 
         #[cfg(feature = "tokio")]
         let unix_stream = tokio::net::UnixStream::from_std(unix_stream)?;
@@ -541,7 +541,11 @@ fn remove_stride_if_needed(
     }
 }
 
-fn spawn_stdio_reader(stdio: &mut Option<impl Read + Send + 'static>, store: &Arc<Mutex<String>>) {
+fn spawn_stdio_reader(
+    stdio: &mut Option<impl Read + Send + 'static>,
+    store: &Arc<Mutex<String>>,
+    name: &'static str,
+) {
     if let Some(stdout) = stdio.take() {
         let store = store.clone();
         util::spawn_blocking_detached(move || {
@@ -552,7 +556,7 @@ fn spawn_stdio_reader(stdio: &mut Option<impl Read + Send + 'static>, store: &Ar
                 if len == 0 {
                     break;
                 }
-                tracing::debug!("Loader output: {}", buf.trim());
+                tracing::debug!("Loader {name}: {buf}");
                 store.lock().unwrap().push_str(&buf);
                 buf.clear();
             }
