@@ -423,15 +423,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cmake"
-version = "0.1.51"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb1e43aa7fd152b1f968787f7dbcdeb306d1867ff373c69955211876c053f91a"
-dependencies = [
- "cc",
-]
-
-[[package]]
 name = "color_quant"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1374,9 +1365,9 @@ dependencies = [
 
 [[package]]
 name = "jpegxl-rs"
-version = "0.10.4+libjxl-0.10.3"
+version = "0.10.3+libjxl-0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1052dcf751c8df05c3b2dc07cf584dfda99c3f83090483c527bada9be6fb934"
+checksum = "e697c7532d4a244d91306a19c63763769366fbc61e75d5a08cc602923e478a7a"
 dependencies = [
  "byteorder",
  "derive_builder",
@@ -1387,21 +1378,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "jpegxl-src"
-version = "0.10.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70c58789939a9c46b13020c15ddfd0d9f5fb326b685ae35dece42e639126d43b"
-dependencies = [
- "cmake",
-]
-
-[[package]]
 name = "jpegxl-sys"
-version = "0.10.4+libjxl-0.10.3"
+version = "0.10.3+libjxl-0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8b759db2808767bb744dc780ceb76a235759855e94ff59d98372065abd6ac01"
+checksum = "c8262d19ed55829441dc2a2b1315c8f15e040139443fc1dbc48551890020a5c2"
 dependencies = [
- "jpegxl-src",
  "pkg-config",
 ]
 
