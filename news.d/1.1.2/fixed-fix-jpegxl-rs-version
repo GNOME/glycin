@@ -1,0 +1,1 @@
+Fix jpegxl-rs version to 0.10.3. Version 0.10.4 does not build on arm64 and builds libjxl instead of using the system library.
