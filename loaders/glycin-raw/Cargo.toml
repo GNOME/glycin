@@ -1,7 +1,7 @@
 [package]
 name = "glycin-raw"
 version.workspace = true
-authors = [ "Hubert Figuière <hub@figuiere.net>" ]
+authors = ["Hubert Figuière <hub@figuiere.net>"]
 description.workspace = true
 license.workspace = true
 homepage.workspace = true
@@ -11,4 +11,4 @@ rust-version.workspace = true
 
 [dependencies]
 glycin-utils = { path = "../../glycin-utils/", features = ["loader-utils"] }
-libopenraw = "0.4.0-alpha.7"
+libopenraw = "=0.4.0-alpha.7"
