@@ -1,0 +1,1 @@
+Fix memory format mapping for RGBA 32bit float image from image-rs. This fixes rendering for a lot of OpenEXR images.

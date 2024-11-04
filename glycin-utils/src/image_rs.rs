@@ -116,7 +116,7 @@ impl From<image::ColorType> for MemoryFormat {
             image::ColorType::Rgb16 => Self::R16g16b16,
             image::ColorType::Rgba16 => Self::R16g16b16a16,
             image::ColorType::Rgb32F => Self::R32g32b32Float,
-            image::ColorType::Rgba32F => Self::R32g32b32Float,
+            image::ColorType::Rgba32F => Self::R32g32b32a32Float,
             _ => unimplemented!(),
         }
     }
