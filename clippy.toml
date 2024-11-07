@@ -1,0 +1,1 @@
+arithmetic-side-effects-allowed = ["gufo_common::math::Checked"]

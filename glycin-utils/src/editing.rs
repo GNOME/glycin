@@ -5,6 +5,7 @@ mod operations;
 mod orientation;
 
 pub use clip::clip;
+use gufo_common::math::MathError;
 pub use orientation::change_orientation;
 
 pub struct SimpleFrame {
@@ -19,4 +20,6 @@ pub struct SimpleFrame {
 pub enum Error {
     #[error("IO Error: {0}")]
     Io(#[from] std::io::Error),
+    #[error("Math Error: {0}")]
+    Math(#[from] MathError),
 }
