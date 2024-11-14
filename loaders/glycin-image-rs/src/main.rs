@@ -166,12 +166,24 @@ impl LoaderImplementation for ImgDecoder {
         }
         let mut image_info = format.info();
 
-        let exif = exif::Reader::new().read_from_container(&mut data.clone());
-        image_info.details.exif = exif
-            .ok()
-            .map(|x| BinaryData::from_data(x.buf()))
-            .transpose()
-            .expected_error()?;
+        // TODO: Unnecessary clone of data
+        let metadata = gufo::RawMetadata::for_guessed(data.get_ref().to_vec());
+
+        if let Ok(metadata) = metadata {
+            image_info.details.exif = metadata
+                .exif
+                .first()
+                .map(BinaryData::from_data)
+                .transpose()
+                .expected_error()?;
+
+            image_info.details.xmp = metadata
+                .xmp
+                .first()
+                .map(BinaryData::from_data)
+                .transpose()
+                .expected_error()?;
+        }
 
         if format.decoder.is_animated() {
             let (send, recv) = channel();
