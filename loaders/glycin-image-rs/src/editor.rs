@@ -74,8 +74,8 @@ fn apply_png(
         .write_image(&buf, width, height, color_type)
         .internal_error()?;
 
-    let new_png = gufo_png::Png::new(new_png_data.into_inner()).expected_error()?;
-    let mut old_png = gufo_png::Png::new(old_png_data).expected_error()?;
+    let new_png = gufo::png::Png::new(new_png_data.into_inner()).expected_error()?;
+    let mut old_png = gufo::png::Png::new(old_png_data).expected_error()?;
 
     // Keep old PNG with its metadata but replace image data with the one from new
     // one
@@ -95,7 +95,7 @@ fn apply_jpeg(
             let mut buf = Vec::new();
             stream.read_to_end(&mut buf).internal_error()?;
 
-            let jpeg = gufo_jpeg::Jpeg::new(buf).unwrap();
+            let jpeg = gufo::jpeg::Jpeg::new(buf).unwrap();
             let exif_data = jpeg.exif_data().map(|x| x.to_vec()).collect::<Vec<_>>();
             let mut exif_data = exif_data.into_iter();
             let exif_segment = jpeg.exif().map(|x| x.data_pos()).collect::<Vec<_>>();
@@ -111,7 +111,7 @@ fn apply_jpeg(
                 if let Some(entry) = exif.lookup_entry(gufo_common::field::Orientation) {
                     let pos = exif_segment_data_pos
                         + entry.value_offset_position() as usize
-                        + gufo_jpeg::EXIF_IDENTIFIER_STRING.len();
+                        + gufo::jpeg::EXIF_IDENTIFIER_STRING.len();
 
                     let current_orientation =
                         gufo_common::orientation::Orientation::try_from(buf[pos] as u16)

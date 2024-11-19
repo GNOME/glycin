@@ -64,8 +64,6 @@ gufo-common = { version = "0.2.0", git = "https://github.com/gufo-rs/gufo.git", 
     "serde",
 ] }
 gufo-exif = { version = "0.2.0", git = "https://github.com/gufo-rs/gufo.git" }
-gufo-jpeg = { version = "0.2.0", git = "https://github.com/gufo-rs/gufo.git" }
-gufo-png = { version = "0.2.0", git = "https://github.com/gufo-rs/gufo.git" }
 image = { version = "0.25.2", default-features = false }
 lcms2 = "6.0.3"
 lcms2-sys = "4.0.4"

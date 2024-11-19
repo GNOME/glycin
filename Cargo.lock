@@ -1062,7 +1062,6 @@ dependencies = [
  "gufo",
  "gufo-common",
  "gufo-exif",
- "gufo-jpeg",
  "image",
  "log",
 ]
