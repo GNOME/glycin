@@ -79,7 +79,7 @@ safe-transmute = "0.11.2"
 serde = { version = "1.0.162", features = ["derive"] }
 static_assertions = { version = "1.1.0" }
 system-deps = "7.0"
-thiserror = "1.0.57"
+thiserror = "2.0.3"
 tokio = { version = "1.35.1", features = ["fs", "rt", "rt-multi-thread"] }
 tokio-stream = { version = "0.1.15", features = ["fs"] }
 tracing = "0.1.40"
