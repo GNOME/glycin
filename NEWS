@@ -12,6 +12,8 @@
   builds libjxl instead of using the system library.
 - Fix memory format mapping for RGBA 32bit float image from image-rs. This fixes
   rendering for a lot of OpenEXR images.
+- glycin-heif: Disable bindgen for libheif-rs since it won't build with libheif
+  1.19 or newer otherwise.
 
 ## 1.1.1 (2024-09-16)
 
