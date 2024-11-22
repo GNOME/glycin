@@ -1,1 +1,0 @@
-Fix jpegxl-rs version to 0.10.3, since 0.10.4 does not build.
