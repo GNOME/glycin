@@ -98,7 +98,10 @@ fn apply_jpeg(
             let jpeg = gufo::jpeg::Jpeg::new(buf).unwrap();
             let exif_data = jpeg.exif_data().map(|x| x.to_vec()).collect::<Vec<_>>();
             let mut exif_data = exif_data.into_iter();
-            let exif_segment = jpeg.exif().map(|x| x.data_pos()).collect::<Vec<_>>();
+            let exif_segment = jpeg
+                .exif_segments()
+                .map(|x| x.data_pos())
+                .collect::<Vec<_>>();
             let mut exif_segment = exif_segment.iter();
             let buf = jpeg.into_inner();
 

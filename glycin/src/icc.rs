@@ -1,6 +1,6 @@
 use glycin_utils::memory_format::MemoryFormat;
 
-use crate::{ColorState, Error};
+use crate::{Cicp, ColorState, Error};
 
 pub fn apply_transformation(
     iccp: &[u8],
@@ -23,7 +23,7 @@ fn transform(
 
     if memory_format.n_channels() > 2 {
         target_profile = rec2020();
-        target_color_state = ColorState::Rec2020;
+        target_color_state = ColorState::Cicp(Cicp::REC2020_LINEAR);
     } else {
         target_profile =
             lcms2::Profile::new_gray(lcms2_sys::ffi::CIExyY::d50(), &lcms2::ToneCurve::new(2.2))?;

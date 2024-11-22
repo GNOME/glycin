@@ -20,6 +20,7 @@ use glycin_utils::{
     CompleteEditorOutput, DimensionTooLargerError, EditRequest, Frame, FrameRequest, ImageInfo,
     InitRequest, InitializationDetails, RemoteError, SafeConversion, SafeMath, SparseEditorOutput,
 };
+use gufo_common::cicp::Cicp;
 use memmap::MmapMut;
 use nix::sys::signal;
 use zbus::zvariant;
@@ -238,7 +239,16 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
 
         let mut color_state = ColorState::Srgb;
 
-        let img_buf = if let Some(Ok(icc_profile)) = frame.details.iccp.as_ref().map(|x| x.get()) {
+        let img_buf = if let Some(cicp) = frame
+            .details
+            .cicp
+            .clone()
+            .and_then(|x| x.try_into().ok())
+            .and_then(|x| Cicp::from_bytes(&x).ok())
+        {
+            color_state = ColorState::Cicp(cicp);
+            img_buf
+        } else if let Some(Ok(icc_profile)) = frame.details.iccp.as_ref().map(|x| x.get()) {
             // Align stride with pixel size if necessary
             let mut img_buf = remove_stride_if_needed(img_buf, raw_fd, &mut frame)?;
 

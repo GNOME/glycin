@@ -45,7 +45,7 @@ The following features are supported by the glycin loaders provided in the [load
 | JPEG         | image-rs | ✔   | —    | ✔    | ✔   | —         | image-rs                   |
 | JPEG XL      | jxl      | ✔   | ✘    | ✔    | ✘   | ✘         | jpegxl-rs + libjxl (C++)   |
 | OpenEXR      | image-rs | —   | —    | —    | —   | —         | image-rs                   |
-| PNG          | image-rs | ✔   | ✘    | ✔    | ✘   | ✔         | image-rs                   |
+| PNG          | image-rs | ✔   | ✔    | ✔    | ✔   | ✔         | image-rs                   |
 | PNM          | image-rs | —   | —    | —    | —   | —         | image-rs                   |
 | SVG          | image-rs | ✘   | —    | —    | ✘   | —         | librsvg + gio/cairo (C)    |
 | TGA          | image-rs | —   | —    | —    | —   | —         | image-rs                   |

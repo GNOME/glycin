@@ -9,6 +9,7 @@ use std::sync::Mutex;
 use editor::ImgEditor;
 use glycin_utils::image_rs::Handler;
 use glycin_utils::*;
+use gufo_common::cicp::Cicp;
 use image::{codecs, AnimationDecoder, ImageDecoder, ImageResult, Limits};
 use log::trace;
 
@@ -22,6 +23,7 @@ type FrameSender = Sender<Result<Frame, ProcessError>>;
 pub struct ImgDecoder {
     pub format: Mutex<Option<ImageRsFormat<Reader>>>,
     pub thread: Mutex<Option<(std::thread::JoinHandle<()>, FrameReceiver)>>,
+    pub cicp: Mutex<Option<Cicp>>,
 }
 
 fn animated_worker(
@@ -185,6 +187,16 @@ impl LoaderImplementation for ImgDecoder {
                 .expected_error()?;
         }
 
+        // TODO: Unnecessary clone of data
+        let gufo_image = gufo::Image::new(data.into_inner());
+        let data = Cursor::new(match gufo_image {
+            Ok(gufo_image) => {
+                *self.cicp.lock().unwrap() = gufo_image.cicp();
+                gufo_image.into_inner()
+            }
+            Err(err) => err.into_inner(),
+        });
+
         if format.decoder.is_animated() {
             let (send, recv) = channel();
             let thead = std::thread::spawn(move || animated_worker(format, data, mime_type, send));
@@ -197,7 +209,7 @@ impl LoaderImplementation for ImgDecoder {
     }
 
     fn frame(&self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
-        let frame = if let Some(decoder) = std::mem::take(&mut *self.format.lock().unwrap()) {
+        let mut frame = if let Some(decoder) = std::mem::take(&mut *self.format.lock().unwrap()) {
             decoder.frame().expected_error()?
         } else if let Some((ref thread, ref recv)) = *self.thread.lock().unwrap() {
             thread.thread().unpark();
@@ -205,6 +217,8 @@ impl LoaderImplementation for ImgDecoder {
         } else {
             unreachable!()
         };
+
+        frame.details.cicp = self.cicp.lock().unwrap().map(|x| x.into());
 
         Ok(frame)
     }

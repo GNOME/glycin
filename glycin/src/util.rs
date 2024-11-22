@@ -1,12 +1,13 @@
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
-#[cfg(feature = "gdk4")]
-use crate::ColorState;
 use futures_util::{Stream, StreamExt};
 use gio::glib;
 #[cfg(feature = "gdk4")]
 use glycin_utils::MemoryFormat;
+
+#[cfg(feature = "gdk4")]
+use crate::ColorState;
 
 #[cfg(feature = "gdk4")]
 pub const fn gdk_memory_format(format: MemoryFormat) -> gdk::MemoryFormat {
@@ -40,10 +41,24 @@ pub const fn gdk_memory_format(format: MemoryFormat) -> gdk::MemoryFormat {
 }
 
 #[cfg(feature = "gdk4")]
-pub fn gdk_color_state(format: ColorState) -> gdk::ColorState {
+pub fn gdk_color_state(format: &ColorState) -> Result<gdk::ColorState, crate::Error> {
     match format {
-        ColorState::Srgb => gdk::ColorState::srgb(),
-        ColorState::Rec2020 => gdk::ColorState::rec2100_linear(),
+        ColorState::Srgb => Ok(gdk::ColorState::srgb()),
+        ColorState::Cicp(cicp) => {
+            let cicp_params = gdk::CicpParams::new();
+
+            cicp_params.set_color_primaries(u8::from(cicp.color_primaries).into());
+            cicp_params.set_transfer_function(u8::from(cicp.transfer_characteristics).into());
+            cicp_params.set_matrix_coefficients(u8::from(cicp.matrix_coefficients).into());
+
+            let range = match cicp.video_full_range_flag {
+                crate::VideoRangeFlag::Full => gdk::CicpRange::Full,
+                crate::VideoRangeFlag::Narrow => gdk::CicpRange::Narrow,
+            };
+            cicp_params.set_range(range);
+
+            Ok(cicp_params.build_color_state()?.unwrap())
+        }
     }
 }
 

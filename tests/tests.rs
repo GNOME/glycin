@@ -20,6 +20,11 @@ fn color_iccp_pro() {
 }
 
 #[test]
+fn cicp_p3() {
+    test_dir("test-images/images/cicp-p3");
+}
+
+#[test]
 fn gray_iccp() {
     test_dir("test-images/images/gray-iccp");
 }

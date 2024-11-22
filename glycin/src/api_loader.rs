@@ -237,8 +237,8 @@ impl Frame {
         self.memory_format
     }
 
-    pub fn color_state(&self) -> ColorState {
-        self.color_state
+    pub fn color_state(&self) -> &ColorState {
+        &self.color_state
     }
 
     /// Duration to show frame for animations.
@@ -266,7 +266,13 @@ impl Frame {
         builder.set_stride(self.stride().try_usize().unwrap());
 
         builder.set_format(crate::util::gdk_memory_format(self.memory_format()));
-        builder.set_color_state(Some(&crate::util::gdk_color_state(self.color_state)));
+
+        let color_state = crate::util::gdk_color_state(&self.color_state).unwrap_or({
+            tracing::warn!("Unsupported color state: {:?}", self.color_state);
+            gdk::ColorState::srgb()
+        });
+
+        builder.set_color_state(Some(&color_state));
 
         builder.build()
     }
