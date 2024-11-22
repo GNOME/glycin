@@ -1,3 +1,18 @@
+## 1.1.2 (2024-11-22)
+
+### Added
+
+- Output loader output as debug messages. The loader output is captured and
+  added to errors. But it's not accessible if the loader doesn't return. In that
+  case, this feature is useful.
+
+### Fixed
+
+- Fix jpegxl-rs version to 0.10.3. Version 0.10.4 does not build on arm64 and
+  builds libjxl instead of using the system library.
+- Fix memory format mapping for RGBA 32bit float image from image-rs. This fixes
+  rendering for a lot of OpenEXR images.
+
 ## 1.1.1 (2024-09-16)
 
 ### Fixed
