@@ -86,3 +86,5 @@ tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.0", features = ["env-filter", "fmt"] }
 yeslogic-fontconfig-sys = "6.0.0"
 zbus = { version = "4.3.0", default-features = false, features = ["p2p"] }
+zerocopy = "0.8.12"
+half = "2.4.1"
