@@ -1,5 +1,4 @@
-use glycin_utils::dbus::ImgBuf;
-use glycin_utils::{Frame, ImageInfo};
+use glycin_utils::{Frame, ImageInfo, ImgBuf};
 
 pub fn apply_exif_orientation(
     img_buf: ImgBuf,

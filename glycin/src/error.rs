@@ -146,6 +146,8 @@ pub enum Error {
     Seccomp(Arc<SeccompError>),
     #[error("ICC profile: {0}")]
     IccProfile(#[from] lcms2::Error),
+    #[error("Editing: {0}")]
+    Editing(#[from] glycin_utils::editing::Error),
 }
 
 impl Error {

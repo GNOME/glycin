@@ -20,6 +20,7 @@ pub mod editing;
 pub mod error;
 #[cfg(feature = "image-rs")]
 pub mod image_rs;
+mod img_buf;
 #[cfg(feature = "loader-utils")]
 pub mod instruction_handler;
 pub mod memory_format;
@@ -36,6 +37,7 @@ pub use dbus::*;
 pub use dbus_editor_api::*;
 pub use dbus_loader_api::*;
 pub use error::*;
+pub use img_buf::ImgBuf;
 #[cfg(feature = "loader-utils")]
 pub use instruction_handler::*;
 pub use memory_format::MemoryFormat;

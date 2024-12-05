@@ -1132,7 +1132,7 @@ dependencies = [
 [[package]]
 name = "gufo"
 version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#704168362f788ddf984920261a7171406bc7c1c0"
+source = "git+https://github.com/gufo-rs/gufo.git#63033763825c4b68cd631aa7d0c9d4ff6680752e"
 dependencies = [
  "gufo-common",
  "gufo-exif",
@@ -1148,7 +1148,7 @@ dependencies = [
 [[package]]
 name = "gufo-common"
 version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#704168362f788ddf984920261a7171406bc7c1c0"
+source = "git+https://github.com/gufo-rs/gufo.git#63033763825c4b68cd631aa7d0c9d4ff6680752e"
 dependencies = [
  "paste",
  "serde",
@@ -1158,7 +1158,7 @@ dependencies = [
 [[package]]
 name = "gufo-exif"
 version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#704168362f788ddf984920261a7171406bc7c1c0"
+source = "git+https://github.com/gufo-rs/gufo.git#63033763825c4b68cd631aa7d0c9d4ff6680752e"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.3",
@@ -1168,7 +1168,7 @@ dependencies = [
 [[package]]
 name = "gufo-jpeg"
 version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#704168362f788ddf984920261a7171406bc7c1c0"
+source = "git+https://github.com/gufo-rs/gufo.git#63033763825c4b68cd631aa7d0c9d4ff6680752e"
 dependencies = [
  "gufo-common",
  "jpeg-encoder",
@@ -1179,7 +1179,7 @@ dependencies = [
 [[package]]
 name = "gufo-png"
 version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#704168362f788ddf984920261a7171406bc7c1c0"
+source = "git+https://github.com/gufo-rs/gufo.git#63033763825c4b68cd631aa7d0c9d4ff6680752e"
 dependencies = [
  "gufo-common",
  "hex",
@@ -1190,7 +1190,7 @@ dependencies = [
 [[package]]
 name = "gufo-tiff"
 version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#704168362f788ddf984920261a7171406bc7c1c0"
+source = "git+https://github.com/gufo-rs/gufo.git#63033763825c4b68cd631aa7d0c9d4ff6680752e"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.3",
@@ -1199,7 +1199,7 @@ dependencies = [
 [[package]]
 name = "gufo-webp"
 version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#704168362f788ddf984920261a7171406bc7c1c0"
+source = "git+https://github.com/gufo-rs/gufo.git#63033763825c4b68cd631aa7d0c9d4ff6680752e"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.3",
@@ -1208,7 +1208,7 @@ dependencies = [
 [[package]]
 name = "gufo-xmp"
 version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#704168362f788ddf984920261a7171406bc7c1c0"
+source = "git+https://github.com/gufo-rs/gufo.git#63033763825c4b68cd631aa7d0c9d4ff6680752e"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.3",
