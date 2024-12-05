@@ -148,7 +148,7 @@ impl<T> GenericContexts<T> for Option<T> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DimensionTooLargerError;
 
 impl std::fmt::Display for DimensionTooLargerError {

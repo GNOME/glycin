@@ -18,6 +18,7 @@ pub struct Loader {
     cancellable: gio::Cancellable,
     pub(crate) apply_transformations: bool,
     pub(crate) sandbox_selector: SandboxSelector,
+    pub(crate) transform_to_memory_format: Option<MemoryFormat>,
 }
 
 static_assertions::assert_impl_all!(Loader: Send, Sync);
@@ -30,6 +31,7 @@ impl Loader {
             cancellable: gio::Cancellable::new(),
             apply_transformations: true,
             sandbox_selector: SandboxSelector::default(),
+            transform_to_memory_format: None,
         }
     }
 
@@ -58,11 +60,22 @@ impl Loader {
         self
     }
 
+    /// Sets to transform the image data to the given format for each Frame
+    pub fn transform_to_memory_format(&mut self, memory_format: Option<MemoryFormat>) -> &mut Self {
+        self.transform_to_memory_format = memory_format;
+        self
+    }
+
     /// Load basic image information and enable further operations
     pub async fn load<'a>(self) -> Result<Image<'a>, ErrorCtx> {
-        let process_context = spin_up(&self.file, &self.cancellable, &self.sandbox_selector)
-            .await
-            .err_no_context(&self.cancellable)?;
+        let process_context = spin_up(
+            &self.file,
+            &self.cancellable,
+            &self.sandbox_selector,
+            self.transform_to_memory_format,
+        )
+        .await
+        .err_no_context(&self.cancellable)?;
 
         let process = process_context.process;
         let info = process

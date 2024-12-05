@@ -83,7 +83,7 @@ impl Operations {
     ///     Some(Orientation::Rotation90)
     /// );
     ///
-    ///  assert_eq!(
+    /// assert_eq!(
     ///     Operations::new(vec![
     ///         Operation::Rotate(Rotation::_90),
     ///         Operation::MirrorHorizontally
@@ -92,7 +92,7 @@ impl Operations {
     ///     Some(Orientation::MirroredRotation270)
     /// );
     ///
-    ///  assert_eq!(
+    /// assert_eq!(
     ///     Operations::new(vec![
     ///         Operation::MirrorHorizontally,
     ///         Operation::MirrorVertically,

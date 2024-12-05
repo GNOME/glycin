@@ -60,6 +60,7 @@ gufo = { version = "0.2.0", features = ["all-image-formats"] }
 gufo-common = { version = "0.2.0", features = ["serde"] }
 gufo-exif = { version = "0.2.0" }
 gufo-jpeg = { version = "0.2.0" }
+half = "2.4.1"
 image = { version = "0.25.2", default-features = false }
 lcms2 = "6.0.3"
 lcms2-sys = "4.0.4"
@@ -82,3 +83,4 @@ tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.0", features = ["env-filter", "fmt"] }
 yeslogic-fontconfig-sys = "6.0.0"
 zbus = { version = "5.2.0", default-features = false, features = ["p2p"] }
+zerocopy = "0.8.12"

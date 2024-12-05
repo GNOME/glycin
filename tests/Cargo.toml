@@ -27,8 +27,8 @@ tracing-subscriber.workspace = true
 serde_yaml = { package = "serde_yaml_ng", version = "0.10.0" }
 
 [[test]]
-name = "tests"
-path = "tests.rs"
+name = "change_memory_format"
+path = "change_memory_format.rs"
 
 [[test]]
 name = "dbus_api_stability"
@@ -37,6 +37,10 @@ path = "dbus_api_stability.rs"
 [[test]]
 name = "editing"
 path = "editing.rs"
+
+[[test]]
+name = "tests"
+path = "tests.rs"
 
 [dependencies]
 gufo-common.workspace = true

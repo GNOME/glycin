@@ -166,6 +166,8 @@ pub enum Error {
     IccProfile(#[from] lcms2::Error),
     #[error("Operation was explicitly canceled.\nOriginal error: {0:?}")]
     Canceled(Option<String>),
+    #[error("Editing: {0}")]
+    Editing(#[from] glycin_utils::editing::Error),
 }
 
 impl Error {

@@ -14,12 +14,12 @@ use futures_channel::oneshot;
 use futures_util::{future, FutureExt};
 use gio::glib;
 use gio::prelude::*;
-use glycin_utils::dbus::ImgBuf;
 use glycin_utils::memory_format::MemoryFormatInfo;
 use glycin_utils::operations::Operations;
 use glycin_utils::{
     CompleteEditorOutput, DimensionTooLargerError, EditRequest, Frame, FrameRequest, ImageInfo,
-    InitRequest, InitializationDetails, RemoteError, SafeConversion, SafeMath, SparseEditorOutput,
+    ImgBuf, InitRequest, InitializationDetails, MemoryFormat, RemoteError, SafeConversion,
+    SafeMath, SparseEditorOutput,
 };
 use gufo_common::cicp::Cicp;
 use memmap::MmapMut;
@@ -43,6 +43,7 @@ pub struct RemoteProcess<'a, P: ZbusProxy<'a>> {
     phantom: PhantomData<&'a P>,
     pub stderr_content: Arc<Mutex<String>>,
     pub stdout_content: Arc<Mutex<String>>,
+    transform_to_memory_format: Option<MemoryFormat>,
 }
 
 pub trait ZbusProxy<'a>: Sized + Sync + Send + From<zbus::Proxy<'a>> {
@@ -86,6 +87,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         sandbox_mechanism: SandboxMechanism,
         file: &gio::File,
         cancellable: &gio::Cancellable,
+        transform_to_memory_format: Option<MemoryFormat>,
     ) -> Result<Self, Error> {
         // UnixStream which facilitates the D-Bus connection. The stream is passed as
         // stdin to loader binaries.
@@ -155,6 +157,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
             phantom: PhantomData,
             stderr_content,
             stdout_content,
+            transform_to_memory_format,
         })
     }
 
@@ -270,6 +273,12 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
             }
 
             icc_mmap
+        } else {
+            img_buf
+        };
+
+        let img_buf = if let Some(target_format) = self.transform_to_memory_format {
+            glycin_utils::editing::change_memory_format(img_buf, &mut frame, target_format)?
         } else {
             img_buf
         };

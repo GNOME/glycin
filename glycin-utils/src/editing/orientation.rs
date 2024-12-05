@@ -1,9 +1,8 @@
 use gufo_common::orientation::{Orientation, Rotation};
 
 use super::EditingFrame;
-use crate::dbus::ImgBuf;
 use crate::memory_format::{ExtendedMemoryFormat, MemoryFormatInfo};
-use crate::Frame;
+use crate::{Frame, ImgBuf};
 
 pub trait FrameDimensions {
     fn width(&self) -> u32;
