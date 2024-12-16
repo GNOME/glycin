@@ -3,10 +3,10 @@ version = "1.0"
 description = "Sandboxed and extendable image loading"
 authors = "Sophie Herold"
 license = "MPL-2.0 OR LGPL-2.1-or-later"
-browse_url = "https://gitlab.gnome.org/sophie-h/glycin/"
-repository_url = "https://gitlab.gnome.org/sophie-h/glycin.git"
-website_url = "https://gnome.pages.gitlab.gnome.org/sophie-h/glycin"
-docs_url = "https://sophie-h.pages.gitlab.gnome.org/glycin/libglycin/"
+browse_url = "https://gitlab.gnome.org/GNOME/glycin/"
+repository_url = "https://gitlab.gnome.org/GNOME/glycin.git"
+website_url = "https://gnome.pages.gitlab.gnome.org/glycin"
+docs_url = "https://gnome.pages.gitlab.gnome.org/glycin/libglycin/"
 devhelp = true
 search_index = true
 
@@ -31,10 +31,10 @@ docs_url = "https://docs.gtk.org/gio/"
 [related."GlyGtk4-1"]
 name = "GlyGtk4"
 description = "Convert glycin frames to GDK Textures"
-docs_url = "https://sophie-h.pages.gitlab.gnome.org/glycin/libglycin-gtk4/"
+docs_url = "https://gnome.pages.gitlab.gnome.org/glycin/libglycin-gtk4/"
 
 [source-location]
-base_url = "https://gitlab.gnome.org/sophie-h/glycin/-/blob/main/libglycin/include/"
+base_url = "https://gitlab.gnome.org/GNOME/glycin/-/blob/main/libglycin/include/"
 
 [extra]
 urlmap_file = "urlmap.js"

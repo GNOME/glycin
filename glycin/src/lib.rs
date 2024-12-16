@@ -57,7 +57,7 @@
 //! - `tokio` --- Makes glycin compatible with [`zbus`] using [`tokio`].
 //!
 //! [`gtk4::Image::from_paintable()`]: https://gtk-rs.org/gtk4-rs/git/docs/gtk4/struct.Image.html#method.from_paintable
-//! [loaders]: https://gitlab.gnome.org/sophie-h/glycin#supported-image-formats
+//! [loaders]: https://gitlab.gnome.org/GNOME/glycin#supported-image-formats
 
 #[cfg(all(not(feature = "async-io"), not(feature = "tokio")))]
 mod error_message {

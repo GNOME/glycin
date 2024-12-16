@@ -12,7 +12,7 @@ G_BEGIN_DECLS
  * [class@Loader] prepares loading an image.
  *
  * The following example shows how to obtain a [class@Gdk.Texture]. It uses
- * [GlyGtk4](https://sophie-h.pages.gitlab.gnome.org/glycin/libglycin-gtk4)
+ * [GlyGtk4](https://gnome.pages.gitlab.gnome.org/glycin/libglycin-gtk4)
  * for this.
  *
  * ```c

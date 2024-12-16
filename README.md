@@ -4,8 +4,8 @@ Glycin allows to decode images into [`gdk::Texture`](https://gtk-rs.org/gtk4-rs/
 The decoding happens in sandboxed modular *image loaders*.
 
 - [glycin](https://docs.rs/glycin/) – The Rust image library
-    - [libglycin](https://sophie-h.pages.gitlab.gnome.org/glycin/libglycin/) – C-Bindings for the library
-    - [libglycin-gtk4](https://sophie-h.pages.gitlab.gnome.org/glycin/libglycin-gtk4/) – C-Bindings to convert glycin frames to GDK Textures
+    - [libglycin](https://gnome.pages.gitlab.gnome.org/glycin/libglycin/) – C-Bindings for the library
+    - [libglycin-gtk4](https://gnome.pages.gitlab.gnome.org/glycin/libglycin-gtk4/) – C-Bindings to convert glycin frames to GDK Textures
 - [glycin-utils](https://docs.rs/glycin-utils/) – Utilities to write loaders for glycin
 - [loaders](loaders) – Glycin loaders for several formats
 
