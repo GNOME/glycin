@@ -113,10 +113,15 @@ cargo-semver-checks:
   image: rust
   extends: .install_dependencies
   interruptible: true
+  variables:
+    GIT_DEPTH: 1000
   script:
-    - apt install cmake -y
+    # We need libglycin to be properly installed for pkgconf to work in libglycin-gtk4
+    - meson setup -Dprofile=dev -Dglycin-loaders=true --prefix=/usr builddir
+    - meson install -C builddir
     - cargo install cargo-semver-checks --locked
-    - cargo semver-checks
+    - cargo semver-checks -p glycin -p glycin-utils
+    - cargo semver-checks -p libglycin -p libglycin-gtk4 --baseline-rev 1.1.0
 
 cargo-fmt:
   image: rust
