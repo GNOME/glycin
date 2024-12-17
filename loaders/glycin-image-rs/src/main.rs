@@ -308,7 +308,7 @@ impl ImageRsFormat<Reader> {
                 codecs::pnm::PnmDecoder::new(data).expected_error()?,
             ))
             .format_name("PAM"),
-            "image/x-qoi" => Self::new(ImageRsDecoder::Qoi(
+            "image/x-qoi" | "image/qoi" => Self::new(ImageRsDecoder::Qoi(
                 codecs::qoi::QoiDecoder::new(data).expected_error()?,
             ))
             .format_name("QOI")

@@ -1,0 +1,1 @@
+image-rs: Support `image/qoi` mime-type for QOI in addition to `image/x-qoi`.
