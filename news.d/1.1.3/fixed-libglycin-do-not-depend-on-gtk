@@ -1,0 +1,1 @@
+libglycin: Remove dependency on gtk in header and move it to libglycin-gtk4.
