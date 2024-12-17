@@ -2,6 +2,7 @@
 
 #include <glib-object.h>
 #include <gio/gio.h>
+#include <stdint.h>
 
 G_BEGIN_DECLS
 
