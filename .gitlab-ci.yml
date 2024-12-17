@@ -23,6 +23,8 @@ variables:
     - apt-get update
     - apt-get install -y libheif-dev libgtk-4-dev libcairo2-dev meson
     - apt-get install -y librsvg2-2
+    # Get QOI support in bookworm
+    - apt-get install -y shared-mime-info
     # Required for librsvg/fontconfig, somehow fails to install automatically.
     # Issue is new, first seen 2024-09-12
     - apt-get install -y libbz2-dev
