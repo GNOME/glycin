@@ -2,7 +2,6 @@
 
 #include <glib-object.h>
 #include <gio/gio.h>
-#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
