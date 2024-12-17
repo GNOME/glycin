@@ -109,6 +109,7 @@ impl Loader {
         "image/x-portable-pixmap",
         "image/x-portable-anymap",
         "image/x-qoi",
+        "image/qoi",
         // HEIF
         "image/avif",
         "image/heif",
