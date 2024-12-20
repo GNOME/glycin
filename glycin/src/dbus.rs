@@ -56,11 +56,11 @@ impl<'a> ZbusProxy<'a> for LoaderProxy<'a> {
     }
 
     fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error> {
-        Ok(config.get_loader(mime_type)?.expose_base_dir)
+        Ok(config.loader(mime_type)?.expose_base_dir)
     }
 
     fn entry_config(config: &Config, mime_type: &MimeType) -> Result<Box<dyn ConfigEntry>, Error> {
-        Ok(Box::new(config.get_loader(mime_type)?.clone()))
+        Ok(Box::new(config.loader(mime_type)?.clone()))
     }
 }
 
@@ -70,11 +70,11 @@ impl<'a> ZbusProxy<'a> for EditorProxy<'a> {
     }
 
     fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error> {
-        Ok(config.get_editor(mime_type)?.expose_base_dir)
+        Ok(config.editor(mime_type)?.expose_base_dir)
     }
 
     fn entry_config(config: &Config, mime_type: &MimeType) -> Result<Box<dyn ConfigEntry>, Error> {
-        Ok(Box::new(config.get_editor(mime_type)?.clone()))
+        Ok(Box::new(config.editor(mime_type)?.clone()))
     }
 }
 

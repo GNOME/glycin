@@ -21,6 +21,12 @@ impl MimeType {
     }
 }
 
+impl From<&str> for MimeType {
+    fn from(value: &str) -> Self {
+        Self(value.to_string())
+    }
+}
+
 impl std::fmt::Display for MimeType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.0)
@@ -88,7 +94,7 @@ impl Config {
         }
     }
 
-    pub fn get_loader(&self, mime_type: &MimeType) -> Result<&ImageLoaderConfig, Error> {
+    pub fn loader(&self, mime_type: &MimeType) -> Result<&ImageLoaderConfig, Error> {
         if self.image_loader.is_empty() {
             return Err(Error::NoLoadersConfigured(self.clone()));
         }
@@ -98,7 +104,7 @@ impl Config {
             .ok_or_else(|| Error::UnknownImageFormat(mime_type.to_string(), self.clone()))
     }
 
-    pub fn get_editor(&self, mime_type: &MimeType) -> Result<&ImageEditorConfig, Error> {
+    pub fn editor(&self, mime_type: &MimeType) -> Result<&ImageEditorConfig, Error> {
         self.image_editor
             .get(mime_type)
             .ok_or_else(|| Error::UnknownImageFormat(mime_type.to_string(), self.clone()))
