@@ -69,6 +69,8 @@ test-aarch64:
     - aarch64
   extends: .install_dependencies
   interruptible: true
+  # As long as runners fail to start bwrap
+  allow_failure: true
   script:
     - export LD_LIBRARY_PATH=/usr/local/lib/aarch64-linux-gnu/
     - meson setup -Dprofile=dev -Dpython_tests=true -Dtest_skip_install=true --prefix=/usr builddir
