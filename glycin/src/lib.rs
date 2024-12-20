@@ -69,7 +69,7 @@ mod error_message {
 mod api_common;
 mod api_editor;
 mod api_loader;
-mod config;
+pub mod config;
 mod dbus;
 mod error;
 mod fontconfig;

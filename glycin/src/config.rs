@@ -1,15 +1,17 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 use std::sync::OnceLock;
 
 use futures_util::StreamExt;
 use gio::glib;
+use glycin_utils::operations::OperationId;
 
 use crate::util::{read, read_dir};
 use crate::Error;
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 /// Mime type
 pub struct MimeType(pub(crate) String);
 
@@ -30,11 +32,11 @@ pub const COMPAT_VERSION: u8 = 1;
 
 #[derive(Debug, Clone, Default)]
 pub struct Config {
-    pub image_loader: HashMap<MimeType, ImageLoaderConfig>,
-    pub image_editor: HashMap<MimeType, ImageEditorConfig>,
+    pub(crate) image_loader: BTreeMap<MimeType, ImageLoaderConfig>,
+    pub(crate) image_editor: BTreeMap<MimeType, ImageEditorConfig>,
 }
 
-pub trait ConfigEntry: Send + Sync {
+pub(crate) trait ConfigEntry: Send + Sync {
     fn fontconfig(&self) -> bool;
     fn exec(&self) -> PathBuf;
 }
@@ -61,6 +63,7 @@ pub struct ImageEditorConfig {
     pub exec: PathBuf,
     pub expose_base_dir: bool,
     pub fontconfig: bool,
+    pub operations: Vec<OperationId>,
 }
 
 impl ConfigEntry for ImageEditorConfig {
@@ -165,10 +168,18 @@ impl Config {
                             let fontconfig =
                                 keyfile.boolean(group, "Fontconfig").unwrap_or_default();
 
+                            let operations_str =
+                                keyfile.string_list(group, "Operations").unwrap_or_default();
+                            let operations = operations_str
+                                .into_iter()
+                                .flat_map(|x| OperationId::from_str(&x))
+                                .collect();
+
                             let cfg = ImageEditorConfig {
                                 exec: exec.into(),
                                 expose_base_dir,
                                 fontconfig,
+                                operations,
                             };
 
                             config

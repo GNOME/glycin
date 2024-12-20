@@ -1,13 +1,24 @@
+use std::io::Read;
+use std::str::FromStr;
+
+use serde::de::{value, IntoDeserializer};
+use serde::{Deserialize, Deserializer, Serialize};
+
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[non_exhaustive]
 pub enum Operation {
-    Rotate(gufo_common::orientation::Rotation),
-    MirrorHorizontally,
     Clip((u32, u32, u32, u32)),
+    MirrorHorizontally,
+    Rotate(gufo_common::orientation::Rotation),
 }
-use std::io::Read;
 
-use serde::{Deserialize, Deserializer, Serialize};
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[non_exhaustive]
+pub enum OperationId {
+    Clip,
+    MirrorHorizontally,
+    Rotate,
+}
 
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 #[serde(from = "OperationsIntermediate")]
@@ -44,6 +55,10 @@ impl Operations {
         &self.operations
     }
 
+    pub fn operation_ids(&self) -> Vec<OperationId> {
+        self.operations.iter().map(|x| x.id()).collect()
+    }
+
     /// Returns information about all operations that were unknown when
     /// deserializing
     pub fn unknown_operations(&self) -> &[String] {
@@ -52,15 +67,15 @@ impl Operations {
 }
 
 impl From<OperationsIntermediate> for Operations {
-    fn from(operationsx: OperationsIntermediate) -> Operations {
+    fn from(operations: OperationsIntermediate) -> Operations {
         Operations {
-            operations: operationsx
+            operations: operations
                 .operations
                 .iter()
                 .filter_map(|x| x.operation().cloned())
                 .collect(),
 
-            unknown_operations: operationsx
+            unknown_operations: operations
                 .operations
                 .iter()
                 .filter_map(|x| x.unknown())
@@ -106,5 +121,28 @@ impl<'de> Deserialize<'de> for MaybeOperation {
             Ok(val) => Ok(Self::Operation(val)),
             Err(err) => Ok(Self::Unknown(err.to_string())),
         }
+    }
+}
+
+impl Operation {
+    pub fn id(&self) -> OperationId {
+        match self {
+            Self::Clip(_) => OperationId::Clip,
+            Self::MirrorHorizontally => OperationId::MirrorHorizontally,
+            Self::Rotate(_) => OperationId::Rotate,
+        }
+    }
+}
+
+impl FromStr for OperationId {
+    type Err = value::Error;
+
+    /// ```
+    /// # use glycin_utils::operations::OperationId;
+    /// let id = OperationId::from_slice("Clip").unwrap();
+    /// assert_eq!(id, OperationId::Clip)
+    /// ```
+    fn from_str(slice: &str) -> Result<Self, value::Error> {
+        Self::deserialize(slice.into_deserializer())
     }
 }

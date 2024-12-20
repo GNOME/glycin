@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use gio::glib;
 use gio::prelude::{IsA, *};
 pub use glycin_utils::operations::{Operation, Operations};
@@ -5,7 +7,7 @@ use glycin_utils::{BinaryData, BitChanges, SafeConversion, SparseEditorOutput};
 
 use crate::api_common::*;
 use crate::error::ResultExt;
-use crate::{util, Error, ErrorCtx};
+use crate::{config, util, Error, ErrorCtx, MimeType};
 
 /// Image edit builder
 #[derive(Debug)]
@@ -92,6 +94,12 @@ impl Editor {
             data: editor_output.data,
             info: editor_output.info,
         })
+    }
+
+    /// List all configured image editors
+    pub async fn supported_formats() -> BTreeMap<MimeType, config::ImageEditorConfig> {
+        let config = config::Config::cached().await;
+        config.image_editor.clone()
     }
 }
 

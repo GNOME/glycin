@@ -57,7 +57,7 @@ pub fn gdk_color_state(format: &ColorState) -> Result<gdk::ColorState, crate::Er
             };
             cicp_params.set_range(range);
 
-            Ok(cicp_params.build_color_state()?.unwrap())
+            Ok(cicp_params.build_color_state()?)
         }
     }
 }
