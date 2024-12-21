@@ -9,6 +9,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 pub enum Operation {
     Clip((u32, u32, u32, u32)),
     MirrorHorizontally,
+    MirrorVertically,
     Rotate(gufo_common::orientation::Rotation),
 }
 
@@ -17,6 +18,7 @@ pub enum Operation {
 pub enum OperationId {
     Clip,
     MirrorHorizontally,
+    MirrorVertically,
     Rotate,
 }
 
@@ -129,6 +131,7 @@ impl Operation {
         match self {
             Self::Clip(_) => OperationId::Clip,
             Self::MirrorHorizontally => OperationId::MirrorHorizontally,
+            Self::MirrorVertically => OperationId::MirrorVertically,
             Self::Rotate(_) => OperationId::Rotate,
         }
     }

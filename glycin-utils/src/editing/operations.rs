@@ -28,6 +28,14 @@ impl Operations {
                     )
                     .into_vec();
                 }
+                Operation::MirrorVertically => {
+                    buf = editing::change_orientation(
+                        ImgBuf::Vec(buf),
+                        simple_frame,
+                        Orientation::new(Rotation::_180, true),
+                    )
+                    .into_vec();
+                }
                 Operation::Clip(clip) => {
                     buf = editing::clip(buf, simple_frame, *clip)?;
                 }
