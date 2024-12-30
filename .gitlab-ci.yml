@@ -1,7 +1,15 @@
+include:
+  - component: gitlab.gnome.org/GNOME/citemplates/release-service@master
+    inputs:
+      dist-job-name: "build-release-tarball"              # <1.>
+      tarball-artifact-path: "${TARBALL_ARTIFACT_PATH}"   # <2.>
+
 variables:
   # Clone test-images
   GIT_SUBMODULE_STRATEGY: recursive
   RUST_BACKTRACE: "full"
+  TARBALL_ARTIFACT_PATH: "builddir/meson-dist/${CI_PROJECT_NAME}-${CI_COMMIT_TAG}.tar.xz"
+
 
 .install_dependencies:
   before_script:
@@ -33,6 +41,20 @@ variables:
     paths:
       - tests/failures
       - builddir/meson-logs
+
+build-release-tarball:
+  stage: build
+  script:
+    - ./build-aux/publish-crates-io.sh
+    - meson setup "${MESON_BUILD_DIR}"
+    - meson dist -C "${MESON_BUILD_DIR}"
+  artifacts:
+    name: "${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
+    when: always
+    paths:
+      - "${TARBALL_ARTIFACT_PATH}"
+  rules:
+    - if: $CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED
 
 test-x86_64:
   image: rust:1.80-bookworm
