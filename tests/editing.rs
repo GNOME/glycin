@@ -40,13 +40,7 @@ async fn test(test_name: &str) {
         let path = entry.unwrap().path();
         eprintln!("- {path:?}");
 
-        let edited_sparse = async_io::block_on(apply_operations_sparse(&path, &operations_path));
-        let data_sparse = match edited_sparse {
-            glycin::SparseEdit::Complete(x) => x,
-            _ => {
-                panic!("Expected non-sparse data")
-            }
-        };
+        let data_sparse = async_io::block_on(apply_operations_complete(&path, &operations_path));
 
         let data_complete = async_io::block_on(apply_operations_complete(&path, &operations_path));
 

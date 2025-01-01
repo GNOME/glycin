@@ -8,7 +8,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zbus::zvariant::{self, DeserializeDict, Optional, SerializeDict, Type};
 
 use crate::error::DimensionTooLargerError;
-use crate::memory_format::MemoryFormat;
+use crate::memory_format::{MemoryFormat, MemoryFormatInfo};
 use crate::{SafeConversion, SafeMath};
 
 #[derive(Deserialize, Serialize, Type, Debug)]

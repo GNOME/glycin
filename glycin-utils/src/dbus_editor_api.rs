@@ -1,5 +1,6 @@
 // Copyright (c) 2024 GNOME Foundation Inc.
 
+use std::io::{Cursor, Seek, SeekFrom, Write};
 use std::os::fd::OwnedFd;
 use std::os::unix::net::UnixStream;
 use std::sync::{Mutex, MutexGuard};
@@ -54,15 +55,7 @@ pub struct SparseEditorOutput {
 
 impl SparseEditorOutput {
     pub fn bit_changes(changes: &[(u64, u8)]) -> Self {
-        let bit_changes = BitChanges {
-            changes: changes
-                .iter()
-                .map(|(offset, new_value)| BitChange {
-                    offset: *offset,
-                    new_value: *new_value,
-                })
-                .collect(),
-        };
+        let bit_changes = BitChanges::from_slice(changes);
 
         SparseEditorOutput {
             bit_changes: Some(bit_changes),
@@ -99,6 +92,28 @@ pub struct BitChange {
     pub new_value: u8,
 }
 
+impl BitChanges {
+    pub fn from_slice(changes: &[(u64, u8)]) -> Self {
+        BitChanges {
+            changes: changes
+                .iter()
+                .map(|(offset, new_value)| BitChange {
+                    offset: *offset,
+                    new_value: *new_value,
+                })
+                .collect(),
+        }
+    }
+
+    pub fn apply(&self, data: &mut [u8]) {
+        let mut cur = Cursor::new(data);
+        for change in self.changes.iter() {
+            cur.seek(SeekFrom::Start(change.offset)).unwrap();
+            cur.write(&[change.new_value]).unwrap();
+        }
+    }
+}
+
 #[derive(DeserializeDict, SerializeDict, Type, Debug, Clone)]
 #[zvariant(signature = "dict")]
 #[non_exhaustive]
@@ -112,6 +127,48 @@ impl CompleteEditorOutput {
         Self {
             data,
             info: Default::default(),
+        }
+    }
+}
+
+pub enum EditorOuput {
+    Sparse(BitChanges, Vec<u8>, EditorOutputInfo),
+    Complete(BinaryData, EditorOutputInfo),
+}
+
+impl EditorOuput {
+    pub fn complete(data: BinaryData) -> Self {
+        Self::Complete(data, Default::default())
+    }
+
+    pub fn sparse(changes: &[(u64, u8)]) -> Self {
+        let bit_changes = BitChanges::from_slice(changes);
+        Self::Sparse(bit_changes, Vec::new(), Default::default())
+    }
+
+    pub fn into_complete(self) -> CompleteEditorOutput {
+        match self {
+            Self::Sparse(bit_changes, mut buf, info) => {
+                bit_changes.apply(&mut buf);
+                let data = BinaryData::from_data(buf).unwrap();
+                CompleteEditorOutput { data, info }
+            }
+            Self::Complete(data, info) => CompleteEditorOutput { data, info },
+        }
+    }
+
+    pub fn into_sparse(self) -> SparseEditorOutput {
+        match self {
+            Self::Sparse(bit_changes, _, info) => SparseEditorOutput {
+                bit_changes: Some(bit_changes),
+                info,
+                data: None,
+            },
+            EditorOuput::Complete(data, info) => SparseEditorOutput {
+                data: Some(data),
+                info,
+                bit_changes: None,
+            },
         }
     }
 }

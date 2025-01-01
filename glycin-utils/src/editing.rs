@@ -1,4 +1,4 @@
-use crate::MemoryFormat;
+use crate::memory_format::ExtendedMemoryFormat;
 
 mod clip;
 mod operations;
@@ -8,12 +8,12 @@ pub use clip::clip;
 use gufo_common::math::MathError;
 pub use orientation::change_orientation;
 
-pub struct SimpleFrame {
+pub struct EditingFrame {
     pub width: u32,
     pub height: u32,
     /// Line stride
     pub stride: u32,
-    pub memory_format: MemoryFormat,
+    pub memory_format: ExtendedMemoryFormat,
 }
 
 #[derive(Debug, thiserror::Error)]

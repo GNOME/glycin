@@ -1,8 +1,9 @@
 use gufo_common::orientation::{Orientation, Rotation};
 
-use super::SimpleFrame;
+use super::EditingFrame;
 use crate::dbus::ImgBuf;
-use crate::{Frame, MemoryFormat};
+use crate::memory_format::{ExtendedMemoryFormat, MemoryFormatInfo};
+use crate::Frame;
 
 pub trait FrameDimensions {
     fn width(&self) -> u32;
@@ -11,10 +12,10 @@ pub trait FrameDimensions {
     fn set_height(&mut self, height: u32);
     fn stride(&self) -> u32;
     fn set_stride(&mut self, stride: u32);
-    fn memory_format(&self) -> MemoryFormat;
+    fn memory_format(&self) -> ExtendedMemoryFormat;
 }
 
-impl FrameDimensions for SimpleFrame {
+impl FrameDimensions for EditingFrame {
     fn width(&self) -> u32 {
         self.width
     }
@@ -39,7 +40,7 @@ impl FrameDimensions for SimpleFrame {
         self.stride = stride;
     }
 
-    fn memory_format(&self) -> MemoryFormat {
+    fn memory_format(&self) -> ExtendedMemoryFormat {
         self.memory_format
     }
 }
@@ -69,8 +70,8 @@ impl FrameDimensions for Frame {
         self.stride = stride;
     }
 
-    fn memory_format(&self) -> MemoryFormat {
-        self.memory_format
+    fn memory_format(&self) -> ExtendedMemoryFormat {
+        self.memory_format.into()
     }
 }
 

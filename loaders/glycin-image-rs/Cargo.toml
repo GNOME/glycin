@@ -14,6 +14,7 @@ glycin-utils = { workspace = true, features = ["async-io", "image-rs"] }
 gufo-common.workspace = true
 gufo-exif.workspace = true
 gufo.workspace = true
+gufo-jpeg = { workspace = true, features = ["encoder"] }
 image = { workspace = true, features = [
     "bmp",
     "dds",
@@ -31,3 +32,5 @@ image = { workspace = true, features = [
     "webp",
 ] }
 log.workspace = true
+zune-jpeg = "0.4.14"
+jpeg-encoder = "0.6.0"

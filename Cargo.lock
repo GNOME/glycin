@@ -1062,8 +1062,11 @@ dependencies = [
  "gufo",
  "gufo-common",
  "gufo-exif",
+ "gufo-jpeg",
  "image",
+ "jpeg-encoder",
  "log",
+ "zune-jpeg",
 ]
 
 [[package]]
@@ -1130,7 +1133,7 @@ dependencies = [
 [[package]]
 name = "gufo"
 version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#704168362f788ddf984920261a7171406bc7c1c0"
+source = "git+https://github.com/gufo-rs/gufo.git#43e0d4ab2d0cdebb75ded1f00e1a7809fa6ed0d1"
 dependencies = [
  "gufo-common",
  "gufo-exif",
@@ -1146,7 +1149,7 @@ dependencies = [
 [[package]]
 name = "gufo-common"
 version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#704168362f788ddf984920261a7171406bc7c1c0"
+source = "git+https://github.com/gufo-rs/gufo.git#43e0d4ab2d0cdebb75ded1f00e1a7809fa6ed0d1"
 dependencies = [
  "paste",
  "serde",
@@ -1156,7 +1159,7 @@ dependencies = [
 [[package]]
 name = "gufo-exif"
 version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#704168362f788ddf984920261a7171406bc7c1c0"
+source = "git+https://github.com/gufo-rs/gufo.git#43e0d4ab2d0cdebb75ded1f00e1a7809fa6ed0d1"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.3",
@@ -1166,7 +1169,7 @@ dependencies = [
 [[package]]
 name = "gufo-jpeg"
 version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#704168362f788ddf984920261a7171406bc7c1c0"
+source = "git+https://github.com/gufo-rs/gufo.git#43e0d4ab2d0cdebb75ded1f00e1a7809fa6ed0d1"
 dependencies = [
  "gufo-common",
  "jpeg-encoder",
@@ -1177,7 +1180,7 @@ dependencies = [
 [[package]]
 name = "gufo-png"
 version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#704168362f788ddf984920261a7171406bc7c1c0"
+source = "git+https://github.com/gufo-rs/gufo.git#43e0d4ab2d0cdebb75ded1f00e1a7809fa6ed0d1"
 dependencies = [
  "gufo-common",
  "hex",
@@ -1188,7 +1191,7 @@ dependencies = [
 [[package]]
 name = "gufo-tiff"
 version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#704168362f788ddf984920261a7171406bc7c1c0"
+source = "git+https://github.com/gufo-rs/gufo.git#43e0d4ab2d0cdebb75ded1f00e1a7809fa6ed0d1"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.3",
@@ -1197,7 +1200,7 @@ dependencies = [
 [[package]]
 name = "gufo-webp"
 version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#704168362f788ddf984920261a7171406bc7c1c0"
+source = "git+https://github.com/gufo-rs/gufo.git#43e0d4ab2d0cdebb75ded1f00e1a7809fa6ed0d1"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.3",
@@ -1206,7 +1209,7 @@ dependencies = [
 [[package]]
 name = "gufo-xmp"
 version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#704168362f788ddf984920261a7171406bc7c1c0"
+source = "git+https://github.com/gufo-rs/gufo.git#43e0d4ab2d0cdebb75ded1f00e1a7809fa6ed0d1"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.3",
@@ -1490,7 +1493,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4979f22fdb869068da03c9f7528f8297c6fd2606bc3a4affe42e6a823fdb8da4"
 dependencies = [
  "cfg-if",
- "windows-targets 0.48.5",
+ "windows-targets 0.52.6",
 ]
 
 [[package]]
@@ -3059,9 +3062,9 @@ dependencies = [
 
 [[package]]
 name = "zune-jpeg"
-version = "0.4.13"
+version = "0.4.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "16099418600b4d8f028622f73ff6e3deaabdff330fb9a2a131dea781ee8b0768"
+checksum = "99a5bab8d7dedf81405c4bb1f2b83ea057643d9cb28778cea9eecddeedd2e028"
 dependencies = [
  "zune-core",
 ]

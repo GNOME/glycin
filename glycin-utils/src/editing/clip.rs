@@ -2,11 +2,12 @@ use std::io::{Cursor, Read, Seek};
 
 use gufo_common::math::{checked, Checked};
 
-use super::{Error, SimpleFrame};
+use super::{EditingFrame, Error};
+use crate::memory_format::MemoryFormatInfo;
 
 pub fn clip(
     buf: Vec<u8>,
-    frame: &mut SimpleFrame,
+    frame: &mut EditingFrame,
     (x, y, width, height): (u32, u32, u32, u32),
 ) -> Result<Vec<u8>, Error> {
     let pixel_size = frame.memory_format.n_bytes().u32();

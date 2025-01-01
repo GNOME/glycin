@@ -1,6 +1,11 @@
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::Type;
 
+pub trait MemoryFormatInfo: Sized {
+    fn n_bytes(self) -> MemoryFormatBytes;
+    fn n_channels(self) -> u8;
+}
+
 gufo_common::maybe_convertible_enum!(
     #[repr(i32)]
     #[derive(Deserialize, Serialize, Type, Debug, Clone, Copy)]
@@ -35,8 +40,8 @@ gufo_common::maybe_convertible_enum!(
     }
 );
 
-impl MemoryFormat {
-    pub const fn n_bytes(self) -> MemoryFormatBytes {
+impl MemoryFormatInfo for MemoryFormat {
+    fn n_bytes(self) -> MemoryFormatBytes {
         match self {
             MemoryFormat::B8g8r8a8Premultiplied => MemoryFormatBytes::B4,
             MemoryFormat::A8r8g8b8Premultiplied => MemoryFormatBytes::B4,
@@ -64,7 +69,7 @@ impl MemoryFormat {
         }
     }
 
-    pub const fn n_channels(self) -> u8 {
+    fn n_channels(self) -> u8 {
         match self {
             MemoryFormat::B8g8r8a8Premultiplied
             | MemoryFormat::A8r8g8b8Premultiplied
@@ -90,7 +95,9 @@ impl MemoryFormat {
             MemoryFormat::G8 | MemoryFormat::G16 => 1,
         }
     }
+}
 
+impl MemoryFormat {
     pub const fn has_alpha(self) -> bool {
         match self {
             MemoryFormat::B8g8r8a8Premultiplied
@@ -145,6 +152,34 @@ impl MemoryFormat {
             | MemoryFormat::G16a16
             | MemoryFormat::G16 => false,
         }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum ExtendedMemoryFormat {
+    Basic(MemoryFormat),
+    Y8Cb8Cr8,
+}
+
+impl MemoryFormatInfo for ExtendedMemoryFormat {
+    fn n_bytes(self) -> MemoryFormatBytes {
+        match self {
+            Self::Basic(basic) => basic.n_bytes(),
+            Self::Y8Cb8Cr8 => MemoryFormatBytes::B3,
+        }
+    }
+
+    fn n_channels(self) -> u8 {
+        match self {
+            Self::Basic(basic) => basic.n_channels(),
+            Self::Y8Cb8Cr8 => 3,
+        }
+    }
+}
+
+impl From<MemoryFormat> for ExtendedMemoryFormat {
+    fn from(value: MemoryFormat) -> Self {
+        Self::Basic(value)
     }
 }
 

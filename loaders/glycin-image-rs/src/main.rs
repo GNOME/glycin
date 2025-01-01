@@ -12,6 +12,7 @@ use glycin_utils::*;
 use gufo_common::cicp::Cicp;
 use image::{codecs, AnimationDecoder, ImageDecoder, ImageResult, Limits};
 use log::trace;
+use memory_format::MemoryFormatInfo;
 
 init_main_loader_editor!(ImgDecoder::default(), ImgEditor::default());
 

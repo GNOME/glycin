@@ -1,6 +1,6 @@
 use super::{Frame, ImageInfo, SharedMemory};
-use crate::editing::SimpleFrame;
-use crate::memory_format::MemoryFormat;
+use crate::editing::EditingFrame;
+use crate::memory_format::{ExtendedMemoryFormat, MemoryFormat, MemoryFormatInfo};
 use crate::{BinaryData, DimensionTooLargerError, FrameDetails, GenericContexts, ProcessError};
 
 #[derive(Default, Clone, Debug)]
@@ -49,7 +49,8 @@ impl Handler {
 
         let width = simple_frame.width;
         let height = simple_frame.height;
-        let memory_format = simple_frame.memory_format;
+        let color_type = decoder.color_type();
+        let memory_format = MemoryFormat::from(color_type);
 
         let details = self.frame_details(&mut decoder);
 
@@ -66,9 +67,9 @@ impl Handler {
     pub fn simple_frame(
         &self,
         decoder: &impl image::ImageDecoder,
-    ) -> Result<SimpleFrame, ProcessError> {
+    ) -> Result<EditingFrame, ProcessError> {
         let color_type = decoder.color_type();
-        let memory_format = MemoryFormat::from(color_type);
+        let memory_format = ExtendedMemoryFormat::from(MemoryFormat::from(color_type));
         let (width, height) = decoder.dimensions();
         let stride = memory_format
             .n_bytes()
@@ -76,7 +77,7 @@ impl Handler {
             .checked_mul(width)
             .ok_or(DimensionTooLargerError)?;
 
-        Ok(SimpleFrame {
+        Ok(EditingFrame {
             width,
             height,
             stride,
@@ -141,6 +142,15 @@ impl MemoryFormat {
             Self::R16g16b16a16 => Some(image::ColorType::Rgba16),
             Self::R32g32b32Float => Some(image::ColorType::Rgb32F),
             Self::R32g32b32a32Float => Some(image::ColorType::Rgba32F),
+            _ => None,
+        }
+    }
+}
+
+impl ExtendedMemoryFormat {
+    pub fn to_color_type(&self) -> Option<image::ColorType> {
+        match self {
+            Self::Basic(basic) => basic.to_color_type(),
             _ => None,
         }
     }

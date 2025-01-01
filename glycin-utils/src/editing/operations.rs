@@ -1,6 +1,6 @@
 use gufo_common::orientation::{Orientation, Rotation};
 
-use super::{Error, SimpleFrame};
+use super::{EditingFrame, Error};
 use crate::operations::{Operation, Operations};
 use crate::{editing, ImgBuf};
 
@@ -8,7 +8,7 @@ impl Operations {
     pub fn apply(
         &self,
         mut buf: Vec<u8>,
-        simple_frame: &mut SimpleFrame,
+        simple_frame: &mut EditingFrame,
     ) -> Result<Vec<u8>, Error> {
         for operation in self.operations() {
             match operation {
