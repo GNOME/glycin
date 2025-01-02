@@ -1,0 +1,1 @@
+glycin: Images with an ICC color profile are now passed in Rec. 2020 linear color space to GTK, supporting a far wider color gamut than the sRGB format before

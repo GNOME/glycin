@@ -93,13 +93,20 @@ class Release:
         return s
 
     def __lt__(self, other):
-        self_alpha = any(c.isalpha() for c in self.name)
-        other_alpha = any(c.isalpha() for c in other.name)
+        (x_major, x_minor, x_patch) = self.name.split('.', maxsplit=2)
+        (y_major, y_minor, y_patch) = other.name.split('.', maxsplit=2)
 
-        if self_alpha != other_alpha:
-            return self_alpha > other_alpha
-
-        return self.name < other.name
+        if x_major != y_major:
+            return x_major < y_major
+        elif x_minor != y_minor:
+            return x_minor < y_minor
+        else:
+            x_alpha = x_patch[0].isalpha()
+            y_alpha = y_patch[0].isalpha()
+            if x_alpha != y_alpha:
+                return x_alpha
+            else:
+                return x_patch < y_patch
 
 class Changelog:
     def __init__(self, path, heading):
