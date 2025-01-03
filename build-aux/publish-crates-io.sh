@@ -3,18 +3,16 @@
 # Publish crates to crates.io
 
 function release_crate () {
-    OUTPUT=$(cargo publish -p $1 2>&1)
-    EXIT_CODE=$?
-    
-    if [[ $EXIT_CODE -ne 0 ]]; then
-        if [[ "${OUTPUT}" == *"already exists"* ]]; then
-            echo "Already released doing nothing: ${OUTPUT}"
-        else
-    	echo "Failed to release crate: ${OUTPUT}"
-    	exit $EXIT_CODE
-        fi
+    LOCAL_VERSION=$(cargo info "$1" | grep ^version:)
+    LOCAL_VERSION=${LOCAL_VERSION#version: }
+    LOCAL_VERSION=${LOCAL_VERSION% (*}
+    PUBLISHED_VERSION=$(cd /tmp/; cargo info "$1@${LOCAL_VERSION}")
+
+    if [ $? -ne 0 ]; then
+        echo "Publishing '$1' with version '${LOCAL_VERSION}'."
+        cargo publish -p $1 2>&1
     else
-        echo "Released crate: ${OUTPUT}"
+        echo "Crate '$1' with version '${LOCAL_VERSION}' already published. Skipping."
     fi
 }
 
