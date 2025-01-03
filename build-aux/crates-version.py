@@ -2,6 +2,6 @@
 
 import tomllib
 
-data = tomllib.load(open('Cargo.toml', 'rb'))
+data = tomllib.load(open('glycin/Cargo.toml', 'rb'))
 
-print(data['workspace']['package']['version'], end='')
+print(data['package']['version'], end='')
