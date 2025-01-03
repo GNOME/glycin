@@ -1132,8 +1132,9 @@ dependencies = [
 
 [[package]]
 name = "gufo"
-version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#43e0d4ab2d0cdebb75ded1f00e1a7809fa6ed0d1"
+version = "0.2.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "123269a8dd94cffac4b2d1d84dde8b184c4597da6b0e838a649c0133b964a903"
 dependencies = [
  "gufo-common",
  "gufo-exif",
@@ -1148,8 +1149,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-common"
-version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#43e0d4ab2d0cdebb75ded1f00e1a7809fa6ed0d1"
+version = "0.2.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "34b07b8af7ba58b6c455183ca059e6e39e461996582ec6b140a374b3201c3c05"
 dependencies = [
  "paste",
  "serde",
@@ -1158,8 +1160,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-exif"
-version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#43e0d4ab2d0cdebb75ded1f00e1a7809fa6ed0d1"
+version = "0.2.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a90da76eeeba60af557e129950bdfc826fa30a04d1f05288ce5c6e0188abc91"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.3",
@@ -1168,8 +1171,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-jpeg"
-version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#43e0d4ab2d0cdebb75ded1f00e1a7809fa6ed0d1"
+version = "0.2.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f9739424d512b0b43a569cb670c4689dd220f49a57180e4b541464f1a1e989ea"
 dependencies = [
  "gufo-common",
  "jpeg-encoder",
@@ -1179,8 +1183,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-png"
-version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#43e0d4ab2d0cdebb75ded1f00e1a7809fa6ed0d1"
+version = "0.2.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d47afa71314cc4e68405050ae096cb86eea8d180c63f476c364ff381ad7ec3d2"
 dependencies = [
  "gufo-common",
  "hex",
@@ -1190,8 +1195,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-tiff"
-version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#43e0d4ab2d0cdebb75ded1f00e1a7809fa6ed0d1"
+version = "0.2.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a108daa4daceb9f40bad4e572a728fe0cdef0eeac29655e5accf520a30f12c56"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.3",
@@ -1199,8 +1205,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-webp"
-version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#43e0d4ab2d0cdebb75ded1f00e1a7809fa6ed0d1"
+version = "0.2.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d9d8e69137a99731e2a8abc854318bc406b6c73d10ef34a44b89d38de4fd0aa"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.3",
@@ -1208,8 +1215,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-xmp"
-version = "0.2.0"
-source = "git+https://github.com/gufo-rs/gufo.git#43e0d4ab2d0cdebb75ded1f00e1a7809fa6ed0d1"
+version = "0.2.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "abf34848989c0ebd3015faebd175140f83c4b64a9450ae68dc9d9f4faee458a7"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.3",
