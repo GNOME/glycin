@@ -1,0 +1,9 @@
+{
+    "glycin-utils": "3.0.0-alpha",
+    "glycin": "2.1.0-alpha",
+    "glycin-heif": "1.2.0-alpha",
+    "glycin-image-rs": "1.2.0-alpha",
+    "glycin-jxl": "1.2.0-alpha",
+    "glycin-raw": "1.2.0-alpha",
+    "glycin-svg": "1.2.0-alpha"
+}

@@ -1,3 +1,44 @@
+## 1.2.alpha (2025-01-03)
+
+This release contains the following new component versions:
+
+- glycin-utils 3.0.0-alpha
+- glycin 2.1.0-alpha
+- glycin-heif 1.2.0-alpha
+- glycin-image-rs 1.2.0-alpha
+- glycin-jxl 1.2.0-alpha
+- glycin-raw 1.2.0-alpha
+- glycin-svg 1.2.0-alpha
+
+### Added
+
+- By using gufo, XMP data are now provided for JPEGs.
+- Support the eXIf chunk for Exif metadata in PNGs.
+- glycin: API to list available editors with their supported operations.
+- image-rs/jpeg: Support for crop and flip in image editing.
+- image-rs/png: CICP support (variant of HDR content)
+- image-rs/png: Editing support for PNGs with crop, rotate, flip.
+
+### Changed
+
+- Repository location is now `GNOME/glycin` on GNOME GitLab.
+- glycin: Images with an ICC color profile are now passed in Rec. 2020 linear
+  color space to GTK, supporting a far wider color gamut than the sRGB format
+  before
+
+## 1.1.3 (2024-01-03)
+
+This release contains the following new component versions:
+
+- libglycin 1.0.0
+- libglycin-gtk4 1.0.0
+
+### Fixed
+
+- image-rs: Support `image/qoi` mime-type for QOI in addition to `image/x-qoi`.
+- libglycin: Include stdint.h.
+- libglycin: Remove dependency on gtk in header and move it to libglycin-gtk4.
+
 ## 1.1.2 (2024-11-22)
 
 ### Added

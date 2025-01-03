@@ -191,12 +191,10 @@ class Components:
             self.components = {}
             for package in packages:
                 name = package['name']
-                print(name)
                 if name not in IGNORED_PACKAGES:
                     version = package['version']
-                    if  name in packages:
+                    if  name in prev_packages:
                         if prev_packages[name] != version:
-                            print(name, version)
                             self.components[name] = version
                     else:
                         self.components[name] = version
