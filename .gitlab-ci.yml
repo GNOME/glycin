@@ -45,6 +45,7 @@ variables:
 build-release-tarball:
   stage: build
   image: rust:1.80-bookworm
+  extends: .install_dependencies
   script:
     - ./build-aux/publish-crates-io.sh
     - meson setup "${MESON_BUILD_DIR}"
