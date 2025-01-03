@@ -48,8 +48,8 @@ build-release-tarball:
   extends: .install_dependencies
   script:
     - ./build-aux/publish-crates-io.py
-    - meson setup "${MESON_BUILD_DIR}"
-    - meson dist -C "${MESON_BUILD_DIR}"
+    - meson setup builddir
+    - meson dist -C builddir
   artifacts:
     name: "${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
     when: always
