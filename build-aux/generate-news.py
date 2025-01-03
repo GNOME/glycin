@@ -4,16 +4,24 @@ import os
 import os.path
 import sys
 import textwrap
+import subprocess
+import json
 
 release_names = []
 
 BASE_DIR = 'news.d'
 OUT_FILE = 'NEWS'
 HEADING = ''
+IGNORED_PACKAGES = ['tests', 'tools']
 
 def main():
     changelog = Changelog(BASE_DIR, HEADING)
     changelog.load()
+
+    this_release = changelog.releases[-1].name
+    last_release = changelog.releases[-2].name
+    componens = Components(this_release, last_release)
+    componens.write()
 
     with open(OUT_FILE, 'w') as f:
         f.write(changelog.format())
@@ -29,6 +37,8 @@ class Release:
         self.changed = []
         self.removed = []
         self.deprecated = []
+
+        self.components = None
 
     def add(self, entry: os.DirEntry):
         with open(entry) as f:
@@ -60,6 +70,9 @@ class Release:
         with open(entry) as f:
             store.append(content)
 
+    def load_components(self):
+        self.components = Components(self.name)
+
     def sections(self):
         categories = []
 
@@ -82,6 +95,10 @@ class Release:
         heading =f'{self.name} ({self.released})'
 
         s = f'## {heading}\n'
+
+        if self.components and self.components.format():
+            s += "\nThis release contains the following new component versions:\n\n"
+            s += self.components.format()
 
         for (section, items) in self.sections():
             s += f'\n### {section}\n\n'
@@ -130,7 +147,10 @@ class Changelog:
             with os.scandir(os.path.join(BASE_DIR, release_name)) as it:
                 for entry in it:
                     if entry.is_file():
-                        release.add(entry)
+                        if entry.name == 'components.json':
+                            release.load_components()
+                        else:
+                            release.add(entry)
 
     def add(self, release: Release):
         self.releases.append(release)
@@ -151,6 +171,47 @@ class Changelog:
             s += '\n'
             s += self.previous
 
+
+        return s
+
+class Components:
+    def __init__(self, release_name, previous_release = None):
+        self.release_name = release_name
+
+        if previous_release:
+            # Get packages (crates) and their versions in current workspace
+            metadata = subprocess.run(['cargo', 'metadata', '--format-version=1', '--no-deps'], capture_output=True, check=True)
+            packages = json.loads(metadata.stdout)['packages']
+            packages.sort(key = lambda x: x['manifest_path'])
+
+            # Get data from previous release
+            with open(os.path.join(BASE_DIR, previous_release, 'components.json')) as f:
+                prev_packages = json.load(f)
+
+            self.components = {}
+            for package in packages:
+                name = package['name']
+                print(name)
+                if name not in IGNORED_PACKAGES:
+                    version = package['version']
+                    if  name in packages:
+                        if prev_packages[name] != version:
+                            print(name, version)
+                            self.components[name] = version
+                    else:
+                        self.components[name] = version
+        else:
+            with open(os.path.join(BASE_DIR, release_name, 'components.json')) as f:
+                self.components = json.load(f)
+
+    def write(self):
+        with open(os.path.join(BASE_DIR, self.release_name, 'components.json'), 'w') as f:
+            json.dump(self.components, f, indent=4)
+
+    def format(self):
+        s = ""
+        for (component, version) in self.components.items():
+            s += f"- {component} {version}\n"
 
         return s
 
