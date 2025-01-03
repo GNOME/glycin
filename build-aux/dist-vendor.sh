@@ -2,6 +2,9 @@
 
 cd "$MESON_PROJECT_DIST_ROOT"
 
+# Use crates.io libraries
+VERSION="$($MESON_PROJECT_SOURCE_ROOT/build-aux/crates-version.py)"
+
 # Remove crates.io packaged part
 sed -i 's/"glycin",\?//' Cargo.toml
 rm -r glycin
@@ -15,10 +18,8 @@ sed -i 's/"tools",\?//' Cargo.toml
 rm -r tools
 awk -i inplace -v RS= -v ORS='\n\n' '!/name = "tools"/' Cargo.lock
 
+echo "Showing changed Cargo.toml:"
 cat Cargo.toml
-
-# Use crates.io libraries
-VERSION="$($MESON_PROJECT_SOURCE_ROOT/build-aux/crates-version.py)"
 
 sed -i "s/, path = \"glycin-utils\/\"//g" Cargo.toml
 sed -i "s/path = \"glycin\/\"/version = \"$VERSION\"/g" Cargo.toml
