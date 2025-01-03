@@ -2,7 +2,7 @@
 name = "glycin"
 readme = "../README.md"
 
-version.workspace = true
+version = "2.0.3"
 authors.workspace = true
 description.workspace = true
 license.workspace = true
@@ -62,4 +62,4 @@ features = []
 
 [[example]]
 name = "glycin-render"
-required-features = [ "gdk4" ]
+required-features = ["gdk4"]
