@@ -47,7 +47,7 @@ build-release-tarball:
   image: rust:1.80-bookworm
   extends: .install_dependencies
   script:
-    - ./build-aux/publish-crates-io.sh
+    - ./build-aux/publish-crates-io.py
     - meson setup "${MESON_BUILD_DIR}"
     - meson dist -C "${MESON_BUILD_DIR}"
   artifacts:
