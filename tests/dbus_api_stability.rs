@@ -63,7 +63,7 @@ fn check_api_stability(interface_name: &str) {
 }
 
 async fn start_dbus() {
-    let _connection = zbus::ConnectionBuilder::session()
+    let _connection = zbus::connection::Builder::session()
         .unwrap()
         .name("org.gnome.glycin.Test")
         .unwrap()
