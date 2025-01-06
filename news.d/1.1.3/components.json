@@ -1,4 +1,10 @@
 {
-    "libglycin": "1.0.0",
-    "libglycin-gtk4": "1.0.0"
+    "libglycin": {
+        "version": "1.0.0",
+        "state": "changed"
+    },
+    "libglycin-gtk4": {
+        "version": "1.0.0",
+        "state": "changed"
+    }
 }

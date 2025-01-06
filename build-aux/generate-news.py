@@ -18,10 +18,11 @@ def main():
     changelog = Changelog(BASE_DIR, HEADING)
     changelog.load()
 
-    this_release = changelog.releases[-1].name
-    last_release = changelog.releases[-2].name
-    componens = Components(this_release, last_release)
+    this_release = changelog.releases[-1]
+    last_release = changelog.releases[-2]
+    componens = Components(this_release.name, last_release.name)
     componens.write()
+    this_release.load_components()
 
     with open(OUT_FILE, 'w') as f:
         f.write(changelog.format())
@@ -194,13 +195,21 @@ class Components:
                 if name not in IGNORED_PACKAGES:
                     version = package['version']
                     if  name in prev_packages:
-                        if prev_packages[name] != version:
-                            self.components[name] = version
+                        self.add(name, version, prev_packages[name]['version'] != version)
                     else:
-                        self.components[name] = version
+                        self.add(name, version, True)
         else:
             with open(os.path.join(BASE_DIR, release_name, 'components.json')) as f:
                 self.components = json.load(f)
+
+    def add(self, name, version, changed):
+        if changed:
+            state = 'changed'
+        else:
+            state = 'unchanged'
+
+        self.components[name] = { 'version': version, 'state': state }
+
 
     def write(self):
         with open(os.path.join(BASE_DIR, self.release_name, 'components.json'), 'w') as f:
@@ -208,8 +217,9 @@ class Components:
 
     def format(self):
         s = ""
-        for (component, version) in self.components.items():
-            s += f"- {component} {version}\n"
+        for (component_name, component) in self.components.items():
+            if component['state'] == "changed":
+                s += f"- {component_name} {component['version']}\n"
 
         return s
 
