@@ -5,6 +5,7 @@ This release contains the following new component versions:
 - glycin-utils 3.0.0-alpha.1
 - glycin 2.1.0-alpha.1
 - libglycin 1.0.1-alpha.1
+- libglycin-gtk4 1.0.1-alpha.1
 - glycin-heif 1.2.0-alpha.1
 - glycin-image-rs 1.2.0-alpha.1
 - glycin-jxl 1.2.0-alpha.1
@@ -43,7 +44,7 @@ This release contains the following new component versions:
   color space to GTK, supporting a far wider color gamut than the sRGB format
   before
 
-## 1.1.3 (2024-01-03)
+## 1.1.4 (2024-01-03)
 
 This release contains the following new component versions:
 
