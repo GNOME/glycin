@@ -115,7 +115,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         let unix_stream = tokio::net::UnixStream::from_std(unix_stream)?;
 
         let guid = zbus::Guid::generate();
-        let dbus_result = zbus::ConnectionBuilder::unix_stream(unix_stream)
+        let dbus_result = zbus::connection::Builder::unix_stream(unix_stream)
             .p2p()
             .server(guid)?
             .auth_mechanism(zbus::AuthMechanism::Anonymous)
@@ -359,7 +359,7 @@ const BUF_SIZE: usize = u16::MAX as usize;
     interface = "org.gnome.glycin.Loader",
     default_path = "/org/gnome/glycin"
 )]
-trait Loader {
+pub trait Loader {
     async fn init(&self, init_request: InitRequest) -> Result<ImageInfo, RemoteError>;
     async fn frame(&self, frame_request: FrameRequest) -> Result<Frame, RemoteError>;
 }
@@ -368,7 +368,7 @@ trait Loader {
     interface = "org.gnome.glycin.Editor",
     default_path = "/org/gnome/glycin"
 )]
-trait Editor {
+pub trait Editor {
     async fn apply(
         &self,
         init_request: InitRequest,
