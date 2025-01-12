@@ -6,9 +6,9 @@ use std::sync::Mutex;
 
 use glycin_utils::*;
 use jpegxl_rs::image::ToDynamic;
-use jpegxl_sys::codestream_header::*;
+use jpegxl_sys::common::types::{JxlBool, JxlBoxType};
 use jpegxl_sys::decode::*;
-use jpegxl_sys::types::{JxlBool, JxlBoxType};
+use jpegxl_sys::metadata::codestream_header::*;
 
 init_main_loader!(ImgDecoder::default());
 
