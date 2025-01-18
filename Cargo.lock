@@ -39,6 +39,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "allocator-api2"
+version = "0.2.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
+
+[[package]]
 name = "android-tzdata"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -636,11 +642,11 @@ dependencies = [
 
 [[package]]
 name = "fallible_collections"
-version = "0.4.9"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a88c69768c0a15262df21899142bc6df9b9b823546d4b4b9a7bc2d6c448ec6fd"
+checksum = "8b3e85d14d419ba3e1db925519461c0d17a49bdd2d67ea6316fa965ca7acdf74"
 dependencies = [
- "hashbrown 0.13.2",
+ "hashbrown 0.14.5",
 ]
 
 [[package]]
@@ -1181,11 +1187,12 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.13.2"
+version = "0.14.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43a3c133739dddd0d2990f9a4bdf8eb4b21ef50e4851ca85ab661199821d510e"
+checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 dependencies = [
  "ahash",
+ "allocator-api2",
 ]
 
 [[package]]
@@ -1446,9 +1453,9 @@ dependencies = [
 
 [[package]]
 name = "libopenraw"
-version = "0.4.0-alpha.7"
+version = "0.4.0-alpha.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ffeb9300b9b792ac3d948ccedbecc324d296ac359aec6aba7f9d5ccdd5b2f3be"
+checksum = "a44a1a700a8ed52408f19b8d3b8e28be61d010dad30068f178be5bae93e0f396"
 dependencies = [
  "bitreader",
  "byteorder",

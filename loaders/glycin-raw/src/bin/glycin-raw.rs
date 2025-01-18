@@ -6,7 +6,7 @@ use std::sync::Mutex;
 
 use glycin_utils::*;
 use libopenraw::metadata::Value;
-use libopenraw::{Bitmap, Image};
+use libopenraw::Bitmap;
 
 init_main_loader!(ImgDecoder::default());
 
