@@ -2,7 +2,7 @@
 name = "glycin"
 readme = "../README.md"
 
-version = "2.1.0-alpha.1"
+version = "2.1.0-beta"
 authors.workspace = true
 description.workspace = true
 license.workspace = true

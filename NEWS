@@ -1,3 +1,24 @@
+## 1.2.beta (2025-01-31)
+
+This release contains the following new component versions:
+
+- glycin-utils 3.0.0-beta
+- glycin 2.1.0-beta
+- libglycin 1.0.1-beta
+- glycin-heif 1.2.0-beta
+- glycin-image-rs 1.2.0-beta
+- glycin-jxl 1.2.0-beta
+- glycin-raw 1.2.0-beta
+- glycin-svg 1.2.0-beta
+
+### Fixed
+
+- libglycin: Fix wrong g-i annotations for callbacks.
+
+### Changed
+
+- raw: Update to libopenraw 0.4.0-alpha.9 with Panasonic support
+
 ## 1.2.alpha.10 (2025-01-06)
 
 This release contains the following new component versions:
