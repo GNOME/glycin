@@ -135,8 +135,8 @@ GlyImage *gly_loader_load(GlyLoader *loader,
  * gly_loader_load_async:
  * @loader:
  * @cancellable: (nullable): A [class@Gio.Cancellable] to cancel the operation
- * @callback: (scope async): A callback to call when the operation is complete
- * @user_data: (closure callback): Data to pass to @callback
+ * @callback: A callback to call when the operation is complete
+ * @user_data: Data to pass to @callback
  *
  * Asynchronous version of [method@Loader.load].
  *
@@ -186,8 +186,8 @@ GlyFrame *gly_image_next_frame(GlyImage *image,
  * gly_image_next_frame_async:
  * @image:
  * @cancellable: (nullable): A [class@Gio.Cancellable] to cancel the operation
- * @callback: (scope async): A callback to call when the operation is complete
- * @user_data: (closure callback): Data to pass to @callback
+ * @callback: A callback to call when the operation is complete
+ * @user_data: Data to pass to @callback
  *
  * Asynchronous version of [method@Image.next_frame].
  *
