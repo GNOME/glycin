@@ -167,7 +167,7 @@ foreach package : packages
     if get_option('vapi')
         # Generate .vapi (Vala)
         gnome.generate_vapi(
-            f'libglycin@suffix@-1',
+            f'glycin@suffix@-1',
             sources: libglycin_gir[0],
             packages: ['glib-2.0', 'gobject-2.0', 'gio-2.0', 'gtk4'],
             gir_dirs: meson.current_build_dir(),
