@@ -14,6 +14,11 @@ fn editing_crop() {
     run_test("crop");
 }
 
+#[test]
+fn editing_crop_too_large_value() {
+    run_test("crop-too-large-value");
+}
+
 fn run_test(test_name: &str) {
     init();
 

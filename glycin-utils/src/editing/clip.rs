@@ -12,14 +12,20 @@ pub fn clip(
 ) -> Result<Vec<u8>, Error> {
     let pixel_size = frame.memory_format.n_bytes().u32();
 
-    checked![y, pixel_size];
+    checked![pixel_size, x, y];
+
+    let max_width = (frame.width - x).check()?;
+    let max_height = (frame.height - y).check()?;
+
+    let width = u32::min(width, max_width);
+    let height = u32::min(height, max_height);
 
     let new_stride = (width * pixel_size).check()?;
     let size = (Checked::new(height) * new_stride).usize().check()?;
     let mut new = Vec::with_capacity(size);
 
     let stride = frame.stride as i64;
-    let x_ = (x as i64 * pixel_size.i64()).check()?;
+    let x_ = (x.i64() * pixel_size.i64()).check()?;
     let width_ = width as i64 * pixel_size.i64();
 
     checked![stride];
