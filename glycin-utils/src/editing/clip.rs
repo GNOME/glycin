@@ -21,7 +21,7 @@ pub fn clip(
     let height = u32::min(height, max_height);
 
     let new_stride = (width * pixel_size).check()?;
-    let size = (Checked::new(height) * new_stride).usize().check()?;
+    let size = (Checked::new(height as usize) * new_stride as usize).check()?;
     let mut new = Vec::with_capacity(size);
 
     let stride = frame.stride as i64;
