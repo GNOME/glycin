@@ -1,0 +1,1 @@
+glycin-utils: Handle clip width/height that would exceed the image boundaries gracefully by reducing them to the image boundaries.
