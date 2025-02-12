@@ -22,7 +22,9 @@ pub fn apply(
         let buf = jpeg.into_inner();
 
         let decoder_options = DecoderOptions::new_fast()
-            .jpeg_set_out_colorspace(zune_jpeg::zune_core::colorspace::ColorSpace::YCbCr);
+            .jpeg_set_out_colorspace(zune_jpeg::zune_core::colorspace::ColorSpace::YCbCr)
+            .set_max_height(u32::MAX as usize)
+            .set_max_width(u32::MAX as usize);
         let mut decoder = zune_jpeg::JpegDecoder::new_with_options(&buf, decoder_options);
         let mut pixels = decoder.decode().expected_error()?;
         let info: zune_jpeg::ImageInfo = decoder.info().expected_error()?;
