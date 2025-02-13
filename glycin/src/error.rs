@@ -3,7 +3,8 @@ use std::process::ExitStatus;
 use std::sync::Arc;
 
 use futures_channel::oneshot;
-use gio::glib;
+use gio::prelude::CancellableExt;
+use gio::{glib, Cancellable};
 use glycin_utils::{DimensionTooLargerError, RemoteError};
 use libseccomp::error::SeccompError;
 
@@ -68,23 +69,31 @@ pub trait ResultExt<T> {
     fn err_context<'a, S: ZbusProxy<'a>>(
         self,
         process: &RemoteProcess<'a, S>,
+        cancellable: &gio::Cancellable,
     ) -> Result<T, ErrorCtx>;
-    fn err_no_context(self) -> Result<T, ErrorCtx>;
+    fn err_no_context(self, cancellable: &gio::Cancellable) -> Result<T, ErrorCtx>;
 }
 
 impl<T> ResultExt<T> for Result<T, Error> {
     fn err_context<'a, S: ZbusProxy<'a>>(
         self,
         process: &RemoteProcess<'a, S>,
+        cancellable: &gio::Cancellable,
     ) -> Result<T, ErrorCtx> {
         match self {
             Ok(x) => Ok(x),
-            Err(kind) => {
+            Err(err) => {
                 let stderr = process.stderr_content.lock().ok().map(|x| x.clone());
                 let stdout = process.stdout_content.lock().ok().map(|x| x.clone());
 
+                let error = if cancellable.is_cancelled() {
+                    Error::Canceled(Some(err.to_string()))
+                } else {
+                    err
+                };
+
                 Err(ErrorCtx {
-                    error: kind,
+                    error,
                     stderr,
                     stdout,
                 })
@@ -92,8 +101,17 @@ impl<T> ResultExt<T> for Result<T, Error> {
         }
     }
 
-    fn err_no_context(self) -> Result<T, ErrorCtx> {
-        self.map_err(ErrorCtx::from_error)
+    fn err_no_context(self, cancellable: &gio::Cancellable) -> Result<T, ErrorCtx> {
+        match self {
+            Ok(x) => Ok(x),
+            Err(err) => {
+                if cancellable.is_cancelled() {
+                    Err(ErrorCtx::from_error(Error::Canceled(Some(err.to_string()))))
+                } else {
+                    Err(ErrorCtx::from_error(err))
+                }
+            }
+        }
     }
 }
 
@@ -146,6 +164,8 @@ pub enum Error {
     Seccomp(Arc<SeccompError>),
     #[error("ICC profile: {0}")]
     IccProfile(#[from] lcms2::Error),
+    #[error("Operation was explicitly canceled.\nOriginal error: {0:?}")]
+    Canceled(Option<String>),
 }
 
 impl Error {

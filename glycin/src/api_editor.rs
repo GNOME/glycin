@@ -51,7 +51,7 @@ impl Editor {
     pub async fn apply_sparse(self, operations: Operations) -> Result<SparseEdit, ErrorCtx> {
         let process_context = spin_up(&self.file, &self.cancellable, &self.sandbox_selector)
             .await
-            .err_no_context()?;
+            .err_no_context(&self.cancellable)?;
 
         let process = process_context.process;
 
@@ -62,9 +62,9 @@ impl Editor {
                 &operations,
             )
             .await
-            .err_context(&process)?;
+            .err_context(&process, &self.cancellable)?;
 
-        SparseEdit::try_from(editor_output).err_no_context()
+        SparseEdit::try_from(editor_output).err_no_context(&self.cancellable)
     }
 
     /// Apply operations to the image
@@ -77,7 +77,7 @@ impl Editor {
     pub async fn apply_complete_full(self, operations: &Operations) -> Result<Edit, ErrorCtx> {
         let process_context = spin_up(&self.file, &self.cancellable, &self.sandbox_selector)
             .await
-            .err_no_context()?;
+            .err_no_context(&self.cancellable)?;
 
         let process = process_context.process;
 
@@ -88,7 +88,7 @@ impl Editor {
                 operations,
             )
             .await
-            .err_context(&process)?;
+            .err_context(&process, &self.cancellable)?;
 
         Ok(Edit {
             data: editor_output.data,

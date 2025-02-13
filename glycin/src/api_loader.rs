@@ -62,13 +62,13 @@ impl Loader {
     pub async fn load<'a>(self) -> Result<Image<'a>, ErrorCtx> {
         let process_context = spin_up(&self.file, &self.cancellable, &self.sandbox_selector)
             .await
-            .err_no_context()?;
+            .err_no_context(&self.cancellable)?;
 
         let process = process_context.process;
         let info = process
             .init(process_context.gfile_worker, process_context.base_dir)
             .await
-            .err_context(&process)?;
+            .err_context(&process, &self.cancellable)?;
 
         Ok(Image {
             process,
@@ -144,7 +144,7 @@ impl<'a> Image<'a> {
             .request_frame(glycin_utils::FrameRequest::default(), self)
             .await
             .map_err(Into::into)
-            .err_context(&self.process)
+            .err_context(&self.process, &self.cancellable())
     }
 
     /// Loads a specific frame
@@ -156,7 +156,7 @@ impl<'a> Image<'a> {
             .request_frame(frame_request.request, self)
             .await
             .map_err(Into::into)
-            .err_context(&self.process)
+            .err_context(&self.process, &self.cancellable())
     }
 
     /// Returns already obtained info
