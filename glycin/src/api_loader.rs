@@ -268,7 +268,7 @@ impl Frame {
 
         builder.set_format(crate::util::gdk_memory_format(self.memory_format()));
 
-        let color_state = crate::util::gdk_color_state(&self.color_state).unwrap_or({
+        let color_state = crate::util::gdk_color_state(&self.color_state).unwrap_or_else(|_| {
             tracing::warn!("Unsupported color state: {:?}", self.color_state);
             gdk::ColorState::srgb()
         });
