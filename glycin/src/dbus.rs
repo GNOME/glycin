@@ -609,7 +609,7 @@ fn spawn_stdio_reader(
                 if len == 0 {
                     break;
                 }
-                tracing::debug!("Loader {name}: {buf}");
+                tracing::debug!("Loader {name}: {buf}", buf = buf.trim_end());
                 store.lock().unwrap().push_str(&buf);
                 buf.clear();
             }
