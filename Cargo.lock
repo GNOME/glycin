@@ -2487,6 +2487,7 @@ dependencies = [
  "gdk4",
  "gio",
  "glycin",
+ "tracing-subscriber",
 ]
 
 [[package]]

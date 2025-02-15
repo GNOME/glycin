@@ -1,11 +1,17 @@
 use gdk::prelude::*;
 use gio::glib;
+use tracing_subscriber::prelude::*;
 
 fn main() {
     glib::MainContext::default().block_on(run()).unwrap();
 }
 
 async fn run() -> Result<(), glycin::ErrorCtx> {
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::EnvFilter::builder().from_env_lossy())
+        .with(tracing_subscriber::fmt::Layer::default().compact())
+        .init();
+
     let mut args = std::env::args();
     let bin = args.next().unwrap();
     let Some(path) = args.next() else {
