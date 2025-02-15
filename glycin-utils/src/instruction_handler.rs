@@ -38,6 +38,12 @@ impl Communication {
     ) -> Self {
         env_logger::builder().format_timestamp_millis().init();
 
+        log::info!(
+            "Loader {} v{} startup",
+            env!("CARGO_PKG_NAME"),
+            env!("CARGO_PKG_VERSION")
+        );
+
         log::debug!("Creating zbus connection to glycin");
 
         let unix_stream: UnixStream =
