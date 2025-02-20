@@ -44,60 +44,58 @@ impl EditRequest {
     }
 }
 
+/// Result of a sparse editor operation
+///
+/// This either contains `byte_changes` or `data`, depending on whether a sparse
+/// application of the operations was possible.
 #[derive(DeserializeDict, SerializeDict, Type, Debug, Clone)]
 #[zvariant(signature = "dict")]
 #[non_exhaustive]
 pub struct SparseEditorOutput {
-    pub bit_changes: Option<BitChanges>,
+    pub byte_changes: Option<ByteChanges>,
     pub data: Option<BinaryData>,
     pub info: EditorOutputInfo,
 }
 
 impl SparseEditorOutput {
-    pub fn bit_changes(changes: &[(u64, u8)]) -> Self {
-        let bit_changes = BitChanges::from_slice(changes);
-
+    pub fn byte_changes(byte_changes: ByteChanges) -> Self {
         SparseEditorOutput {
-            bit_changes: Some(bit_changes),
+            byte_changes: Some(byte_changes),
             data: None,
-            info: Default::default(),
+            info: EditorOutputInfo { lossless: true },
         }
     }
+}
 
-    pub fn data(data: BinaryData) -> Self {
+impl From<CompleteEditorOutput> for SparseEditorOutput {
+    fn from(value: CompleteEditorOutput) -> Self {
         Self {
-            bit_changes: None,
-            data: Some(data),
-            info: Default::default(),
+            byte_changes: None,
+            data: Some(value.data),
+            info: value.info,
         }
-    }
-
-    pub fn from_complete(complete: CompleteEditorOutput) -> Self {
-        let sparse = Self::data(complete.data);
-
-        sparse
     }
 }
 
 #[derive(DeserializeDict, SerializeDict, Type, Debug, Clone)]
 #[zvariant(signature = "dict")]
 #[non_exhaustive]
-pub struct BitChanges {
-    pub changes: Vec<BitChange>,
+pub struct ByteChanges {
+    pub changes: Vec<ByteChange>,
 }
 
 #[derive(Deserialize, Serialize, Type, Debug, Clone)]
-pub struct BitChange {
+pub struct ByteChange {
     pub offset: u64,
     pub new_value: u8,
 }
 
-impl BitChanges {
+impl ByteChanges {
     pub fn from_slice(changes: &[(u64, u8)]) -> Self {
-        BitChanges {
+        ByteChanges {
             changes: changes
                 .iter()
-                .map(|(offset, new_value)| BitChange {
+                .map(|(offset, new_value)| ByteChange {
                     offset: *offset,
                     new_value: *new_value,
                 })
@@ -129,47 +127,11 @@ impl CompleteEditorOutput {
             info: Default::default(),
         }
     }
-}
 
-pub enum EditorOuput {
-    Sparse(BitChanges, Vec<u8>, EditorOutputInfo),
-    Complete(BinaryData, EditorOutputInfo),
-}
-
-impl EditorOuput {
-    pub fn complete(data: BinaryData) -> Self {
-        Self::Complete(data, Default::default())
-    }
-
-    pub fn sparse(changes: &[(u64, u8)]) -> Self {
-        let bit_changes = BitChanges::from_slice(changes);
-        Self::Sparse(bit_changes, Vec::new(), Default::default())
-    }
-
-    pub fn into_complete(self) -> CompleteEditorOutput {
-        match self {
-            Self::Sparse(bit_changes, mut buf, info) => {
-                bit_changes.apply(&mut buf);
-                let data = BinaryData::from_data(buf).unwrap();
-                CompleteEditorOutput { data, info }
-            }
-            Self::Complete(data, info) => CompleteEditorOutput { data, info },
-        }
-    }
-
-    pub fn into_sparse(self) -> SparseEditorOutput {
-        match self {
-            Self::Sparse(bit_changes, _, info) => SparseEditorOutput {
-                bit_changes: Some(bit_changes),
-                info,
-                data: None,
-            },
-            EditorOuput::Complete(data, info) => SparseEditorOutput {
-                data: Some(data),
-                info,
-                bit_changes: None,
-            },
-        }
+    pub fn new_lossless(data: Vec<u8>) -> Result<Self, ProcessError> {
+        let data = BinaryData::from_data(data)?;
+        let info = EditorOutputInfo { lossless: true };
+        Ok(Self { data, info })
     }
 }
 
@@ -180,7 +142,7 @@ pub struct EditorOutputInfo {
     /// Operation is considered to be lossless
     ///
     /// Operations are considered lossless when all metadata are kept, no image
-    /// data is los, and no image quality is lost.
+    /// data is lost, and no image quality is lost.
     pub lossless: bool,
 }
 
@@ -256,7 +218,7 @@ pub trait EditorImplementation: Send {
     ) -> Result<SparseEditorOutput, ProcessError> {
         let complete = self.apply_complete(stream, mime_type, details, operations)?;
 
-        Ok(SparseEditorOutput::from_complete(complete))
+        Ok(SparseEditorOutput::from(complete))
     }
 
     fn apply_complete(

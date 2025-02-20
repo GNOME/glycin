@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use gio::glib;
 use gio::prelude::{IsA, *};
 pub use glycin_utils::operations::{Operation, Operations};
-use glycin_utils::{BinaryData, BitChanges, SafeConversion, SparseEditorOutput};
+use glycin_utils::{BinaryData, ByteChanges, SafeConversion, SparseEditorOutput};
 
 use crate::api_common::*;
 use crate::error::ResultExt;
@@ -111,7 +111,7 @@ pub enum SparseEdit {
     /// The operations can be applied to the image via only changing a few
     /// bytes. The [`apply_to()`](Self::apply_to()) function can be used to
     /// apply these changes.
-    Sparse(BitChanges),
+    Sparse(ByteChanges),
     /// The operations require to completely rewrite the image.
     Complete(BinaryData),
 }
@@ -178,13 +178,13 @@ impl TryFrom<SparseEditorOutput> for SparseEdit {
     type Error = Error;
 
     fn try_from(value: SparseEditorOutput) -> std::result::Result<Self, Self::Error> {
-        if value.bit_changes.is_some() && value.data.is_some() {
+        if value.byte_changes.is_some() && value.data.is_some() {
             Err(Error::RemoteError(
                 glycin_utils::RemoteError::InternalLoaderError(
-                    "Sparse editor output with 'bit_changes' and 'data' returned.".into(),
+                    "Sparse editor output with 'byte_changes' and 'data' returned.".into(),
                 ),
             ))
-        } else if let Some(bit_changes) = value.bit_changes {
+        } else if let Some(bit_changes) = value.byte_changes {
             Ok(Self::Sparse(bit_changes))
         } else if let Some(data) = value.data {
             Ok(Self::Complete(data))
