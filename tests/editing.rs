@@ -2,6 +2,8 @@ use std::path::{Path, PathBuf};
 
 mod utils;
 
+use gio::prelude::FileExt;
+use glycin::{BinaryData, SparseEdit};
 use utils::*;
 
 #[test]
@@ -45,7 +47,7 @@ async fn test(test_name: &str) {
         let path = entry.unwrap().path();
         eprintln!("- {path:?}");
 
-        let data_sparse = async_io::block_on(apply_operations_complete(&path, &operations_path));
+        let data_sparse = async_io::block_on(apply_operations_sparse(&path, &operations_path));
 
         let data_complete = async_io::block_on(apply_operations_complete(&path, &operations_path));
 
@@ -71,14 +73,32 @@ fn write_tmp(path: impl AsRef<Path>, data: &[u8]) -> PathBuf {
     tmp_path
 }
 
-async fn apply_operations_sparse(image: &Path, operations: &Path) -> glycin::SparseEdit {
+async fn apply_operations_sparse(image: &Path, operations: &Path) -> glycin::BinaryData {
     let reader = std::fs::File::open(operations).unwrap();
     let operations: glycin::Operations = serde_yml::from_reader(reader).unwrap();
 
     let file = gio::File::for_path(image);
     let editor = glycin::Editor::new(file);
 
-    editor.apply_sparse(operations).await.unwrap()
+    let sparse_edit = editor.apply_sparse(operations).await.unwrap();
+
+    if let SparseEdit::Complete(data) = sparse_edit {
+        data
+    } else {
+        let (tmp_file, _) = gio::File::new_tmp(None::<PathBuf>).unwrap();
+        let tmp_path = tmp_file.path().unwrap();
+
+        let original = std::fs::read(&image).unwrap();
+        std::fs::write(tmp_path, original).unwrap();
+
+        assert_eq!(
+            sparse_edit.apply_to(tmp_file.clone()).await.unwrap(),
+            glycin::EditOutcome::Changed
+        );
+
+        let data = std::fs::read(tmp_file.path().unwrap()).unwrap();
+        BinaryData::from_data(data).unwrap()
+    }
 }
 
 async fn apply_operations_complete(image: &Path, operations: &Path) -> glycin::BinaryData {
