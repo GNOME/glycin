@@ -2,10 +2,9 @@ use std::io::Read;
 
 use editing::EditingFrame;
 use glycin_utils::*;
-use gufo_common::orientation::Rotation;
+use gufo_common::orientation::Orientation;
 use gufo_jpeg::Jpeg;
 use memory_format::ExtendedMemoryFormat;
-use operations::Operation;
 use zune_jpeg::zune_core::options::DecoderOptions;
 
 pub fn apply_sparse(
@@ -16,11 +15,9 @@ pub fn apply_sparse(
     stream.read_to_end(&mut buf).internal_error()?;
     let jpeg = gufo::jpeg::Jpeg::new(buf).expected_error()?;
 
-    if operations.operations().len() == 1 {
-        if let Operation::Rotate(rotation) = operations.operations().first().expected_error()? {
-            if let Some(byte_changes) = rotate_sparse(rotation, &jpeg)? {
-                return Ok(SparseEditorOutput::byte_changes(byte_changes));
-            }
+    if let Some(orientation) = operations.orientation() {
+        if let Some(byte_changes) = rotate_sparse(orientation, &jpeg)? {
+            return Ok(SparseEditorOutput::byte_changes(byte_changes));
         }
     }
 
@@ -37,13 +34,11 @@ pub fn apply_complete(
     stream.read_to_end(&mut buf).internal_error()?;
     let jpeg = gufo::jpeg::Jpeg::new(buf).expected_error()?;
 
-    if operations.operations().len() == 1 {
-        if let Operation::Rotate(rotation) = operations.operations().first().expected_error()? {
-            if let Some(byte_changes) = rotate_sparse(rotation, &jpeg)? {
-                let mut data = jpeg.into_inner();
-                byte_changes.apply(&mut data);
-                return CompleteEditorOutput::new_lossless(data);
-            }
+    if let Some(orientation) = operations.orientation() {
+        if let Some(byte_changes) = rotate_sparse(orientation, &jpeg)? {
+            let mut data = jpeg.into_inner();
+            byte_changes.apply(&mut data);
+            return CompleteEditorOutput::new_lossless(data);
         }
     }
 
@@ -90,7 +85,7 @@ pub fn apply_complete(
 }
 
 fn rotate_sparse(
-    rotation: &Rotation,
+    orientation: Orientation,
     jpeg: &Jpeg,
 ) -> Result<Option<ByteChanges>, glycin_utils::ProcessError> {
     let exif_data = jpeg.exif_data().map(|x| x.to_vec()).collect::<Vec<_>>();
@@ -119,12 +114,7 @@ fn rotate_sparse(
                 gufo_common::orientation::Orientation::try_from(current_orientation)
                     .expected_error()?;
 
-            let new_rotation = current_orientation.rotate() - *rotation;
-
-            let new_orientation = gufo_common::orientation::Orientation::new(
-                new_rotation,
-                current_orientation.mirror(),
-            );
+            let new_orientation = current_orientation.combine(orientation);
 
             return Ok(Some(ByteChanges::from_slice(&[(
                 pos as u64,

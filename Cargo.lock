@@ -1112,9 +1112,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-common"
-version = "0.2.0-alpha.1"
+version = "0.2.0-alpha.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34b07b8af7ba58b6c455183ca059e6e39e461996582ec6b140a374b3201c3c05"
+checksum = "90c3526dee6b3d1a2a8314538086d70092603c3363025d2b047e3abea1054336"
 dependencies = [
  "paste",
  "serde",

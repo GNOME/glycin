@@ -16,7 +16,7 @@ impl Operations {
                     buf = editing::change_orientation(
                         ImgBuf::Vec(buf),
                         simple_frame,
-                        Orientation::new(*rotation, false),
+                        Orientation::new(false, *rotation),
                     )
                     .into_vec();
                 }
@@ -24,7 +24,7 @@ impl Operations {
                     buf = editing::change_orientation(
                         ImgBuf::Vec(buf),
                         simple_frame,
-                        Orientation::new(Rotation::_0, true),
+                        Orientation::new(true, Rotation::_0),
                     )
                     .into_vec();
                 }
@@ -32,7 +32,7 @@ impl Operations {
                     buf = editing::change_orientation(
                         ImgBuf::Vec(buf),
                         simple_frame,
-                        Orientation::new(Rotation::_180, true),
+                        Orientation::new(true, Rotation::_180),
                     )
                     .into_vec();
                 }

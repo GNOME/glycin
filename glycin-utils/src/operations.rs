@@ -1,6 +1,7 @@
 use std::io::Read;
 use std::str::FromStr;
 
+use gufo_common::orientation::Orientation;
 use serde::de::{value, IntoDeserializer};
 use serde::{Deserialize, Deserializer, Serialize};
 
@@ -10,6 +11,7 @@ pub enum Operation {
     Clip((u32, u32, u32, u32)),
     MirrorHorizontally,
     MirrorVertically,
+    /// Counter-clockwise rotation
     Rotate(gufo_common::orientation::Rotation),
 }
 
@@ -65,6 +67,61 @@ impl Operations {
     /// deserializing
     pub fn unknown_operations(&self) -> &[String] {
         &self.unknown_operations
+    }
+
+    /// Returns an [`Orientation`] if all operations can be reduced to that
+    ///
+    /// ```
+    /// # use glycin_utils::operations::{Operations, Operation};
+    /// # use gufo_common::orientation::{Rotation, Orientation};
+    /// assert_eq!(
+    ///     Operations::new(vec![
+    ///         Operation::Rotate(Rotation::_180),
+    ///         Operation::Rotate(Rotation::_270)
+    ///     ])
+    ///     .orientation(),
+    ///     Some(Orientation::Rotation90)
+    /// );
+    ///
+    ///  assert_eq!(
+    ///     Operations::new(vec![
+    ///         Operation::Rotate(Rotation::_90),
+    ///         Operation::MirrorHorizontally
+    ///     ])
+    ///     .orientation(),
+    ///     Some(Orientation::MirroredRotation270)
+    /// );
+    ///
+    ///  assert_eq!(
+    ///     Operations::new(vec![
+    ///         Operation::MirrorHorizontally,
+    ///         Operation::MirrorVertically,
+    ///         Operation::Rotate(Rotation::_270),
+    ///         Operation::MirrorHorizontally,
+    ///     ])
+    ///     .orientation(),
+    ///     Some(Orientation::MirroredRotation270)
+    /// );
+    /// ```
+    pub fn orientation(&self) -> Option<Orientation> {
+        let mut orientation = Orientation::Id;
+
+        for operation in &self.operations {
+            match operation {
+                Operation::MirrorHorizontally => {
+                    orientation = orientation.add_mirror_horizontally();
+                }
+                Operation::MirrorVertically => {
+                    orientation = orientation.add_mirror_vertically();
+                }
+                Operation::Rotate(rotation) => {
+                    orientation = orientation.add_rotation(*rotation);
+                }
+                _ => return None,
+            }
+        }
+
+        Some(orientation)
     }
 }
 
@@ -142,7 +199,8 @@ impl FromStr for OperationId {
 
     /// ```
     /// # use glycin_utils::operations::OperationId;
-    /// let id = OperationId::from_slice("Clip").unwrap();
+    /// # use std::str::FromStr;
+    /// let id = OperationId::from_str("Clip").unwrap();
     /// assert_eq!(id, OperationId::Clip)
     /// ```
     fn from_str(slice: &str) -> Result<Self, value::Error> {

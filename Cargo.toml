@@ -57,7 +57,7 @@ glib = { version = "0.20.0" }
 glycin = { path = "glycin/", default-features = false }
 glycin-utils = { version = "3.0.0-beta", path = "glycin-utils/", default-features = false }
 gufo = { version = "0.2.0-alpha.1", features = ["all-image-formats"] }
-gufo-common = { version = "0.2.0-alpha.1", features = ["serde"] }
+gufo-common = { version = "0.2.0-alpha.2", features = ["serde"] }
 gufo-exif = { version = "0.2.0-alpha.1" }
 gufo-jpeg = { version = "0.2.0-alpha.1" }
 image = { version = "0.25.2", default-features = false }
