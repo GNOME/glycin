@@ -21,8 +21,8 @@ pub fn apply_sparse(
         }
     }
 
-    Ok(SparseEditorOutput::from(apply_complete(
-        stream, operations,
+    Ok(SparseEditorOutput::from(apply_non_sparse(
+        jpeg, operations,
     )?))
 }
 
@@ -42,6 +42,13 @@ pub fn apply_complete(
         }
     }
 
+    apply_non_sparse(jpeg, operations)
+}
+
+pub fn apply_non_sparse(
+    jpeg: Jpeg,
+    operations: glycin_utils::operations::Operations,
+) -> Result<CompleteEditorOutput, glycin_utils::ProcessError> {
     let mut out_buf = Vec::new();
     let encoder = jpeg.encoder(&mut out_buf).expected_error()?;
     let buf = jpeg.into_inner();
