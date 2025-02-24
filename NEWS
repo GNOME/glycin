@@ -1,3 +1,10 @@
+## 1.1.5 (2025-02-24)
+
+### Fixed
+
+- apng: Support image/apng mime-type to support animated PNGs again. This mime-
+  type is now detected due to upstream changes at xdg/shared-mime-info.
+
 ## 1.1.4 (2025-01-03)
 
 ### Fixed
