@@ -51,19 +51,29 @@ cargo_options = [
   '--manifest-path', manifest,
 ]
 
+git_version = ''
+
+if cargo_profile != 'release'
+  git = find_program('git', required: false)
+
+  if git.found()
+    git_version = run_command(
+      'git',
+      '-C', meson.project_source_root(),
+      'rev-parse',
+      '--short', 'HEAD',
+      check: false,
+    ).stdout().strip()
+  endif
+endif
+
 cargo_env = {
   # Don't use $HOME/.cargo/ for this
   'CARGO_HOME': cargo_home,
   # Gettext translation
   'LOCALEDIR': get_option('prefix') / get_option('localedir'),
   # Git commit for debugging
-  'GIT_DESCRIBE': run_command(
-    'git',
-    '-C', meson.project_source_root(),
-    'rev-parse',
-    '--short', 'HEAD',
-    check: false,
-  ).stdout().strip(),
+  'GIT_DESCRIBE': git_version,
 }
 
 test_args = []
