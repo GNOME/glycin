@@ -1,0 +1,1 @@
+apng: Support image/apng mime-type to support animated PNGs again. This mime-type is now detected due to upstream changes at xdg/shared-mime-info.
