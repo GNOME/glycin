@@ -18,11 +18,13 @@ cargo_options = [
     '--manifest-path', manifest,
 ]
 
-pkg_uninstalled_path = {'PKG_CONFIG_PATH': meson.project_build_root() / 'meson-uninstalled'}
-
-cargo_env = {
-    'CARGO_HOME': cargo_home,
-} + pkg_uninstalled_path
+cargo_env = environment()
+cargo_env.set('CARGO_HOME', cargo_home)
+# Let the libglycin-gtk4 build find the previously built libglycin
+cargo_env.prepend(
+    'PKG_CONFIG_PATH',
+    meson.project_build_root() / 'meson-uninstalled',
+)
 
 packages = [
     {
@@ -60,7 +62,7 @@ foreach package : packages
 
     # Build library with Rust
     libglycin = custom_target(
-        f'libglycin-cargo@suffix@',
+        f'libglycin@suffix@-cargo',
         build_always_stale: true,
         build_by_default: true,
         depends: link_with,
@@ -157,7 +159,6 @@ foreach package : packages
             # Listed as "pkg-config files" in docs
             export_packages: f'libglycin@suffix@-1',
             install: true,
-            env: pkg_uninstalled_path,
         )
         if suffix == ''
             global_libglycin_gir = libglycin_gir[0]
