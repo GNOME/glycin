@@ -222,6 +222,13 @@ pub struct ImageRsFormat<T: std::io::BufRead + std::io::Seek> {
 impl ImageRsFormat<Reader> {
     fn create(data: Reader, mime_type: &str) -> Result<Self, ProcessError> {
         Ok(match mime_type {
+            "image/apng" => Self::new(ImageRsDecoder::Png(
+                codecs::png::PngDecoder::new(data).expected_error()?,
+            ))
+            .format_name("Animated PNG")
+            .supports_two_alpha_modes(true)
+            .supports_two_grayscale_modes(true)
+            .default_bit_depth(8),
             "image/bmp" => Self::new(ImageRsDecoder::Bmp(
                 codecs::bmp::BmpDecoder::new(data).expected_error()?,
             ))
