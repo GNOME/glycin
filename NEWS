@@ -17,6 +17,10 @@ This release contains the following new component versions:
 - glycin-utils: Fix editing for images with more than 4 billion pixels.
 - glycin: Printing a color state error even if there is no problem.
 - jpeg: Allow to edit images with a dimension larger than 16384 px.
+- jpeg: Handle pure rotation or mirror operations correct for non-sparse output.
+  Also, properly combine multiple operations of this type into a single Exif
+  change.
+- libglycin: Generate .vapi with correct names.
 
 ### Changed
 
