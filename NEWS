@@ -1,3 +1,30 @@
+## 1.2.rc (2025-02-28)
+
+This release contains the following new component versions:
+
+- glycin-utils 3.0.0-rc
+- glycin 2.1.0-rc
+- libglycin 1.0.1-rc
+- libglycin-gtk4 1.0.1-rc
+- glycin-heif 1.2.0-rc
+- glycin-image-rs 1.2.0-rc
+- glycin-jxl 1.2.0-rc
+- glycin-raw 1.2.0-rc
+- glycin-svg 1.2.0-rc
+
+### Fixed
+
+- glycin-utils: Fix editing for images with more than 4 billion pixels.
+- glycin: Printing a color state error even if there is no problem.
+- jpeg: Allow to edit images with a dimension larger than 16384 px.
+
+### Changed
+
+- glycin-utils: Handle clip width/height that would exceed the image boundaries
+  gracefully by reducing them to the image boundaries.
+- glycin: Increased maximally considered RAM to 20GB for memory limits.
+- glycin: Use a specific error type for canceled operations.
+
 ## 1.2.beta (2025-01-31)
 
 This release contains the following new component versions:
@@ -64,6 +91,19 @@ This release contains the following new component versions:
 - glycin: Images with an ICC color profile are now passed in Rec. 2020 linear
   color space to GTK, supporting a far wider color gamut than the sRGB format
   before
+
+## 1.1.6 (2025-02-27)
+
+### Fixed
+
+- apng: Also support image/apng mime-type in loader.
+
+## 1.1.5 (2025-02-24)
+
+### Fixed
+
+- apng: Support image/apng mime-type to support animated PNGs again. This mime-
+  type is now detected due to upstream changes at xdg/shared-mime-info.
 
 ## 1.1.4 (2024-01-03)
 
