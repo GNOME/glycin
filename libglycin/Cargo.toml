@@ -1,6 +1,6 @@
 [package]
 name = "libglycin"
-version = "1.0.1-beta"
+version = "1.0.1-rc"
 authors.workspace = true
 description.workspace = true
 license.workspace = true
