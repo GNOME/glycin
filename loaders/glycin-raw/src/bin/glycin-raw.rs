@@ -41,11 +41,13 @@ pub fn thread(
                 None
             }
         });
+    let orientation = rawfile.orientation();
 
     let mut image_info = ImageDetails::new(w, h);
 
     image_info.info_format_name = Some(String::from("RAW"));
     image_info.metadata_xmp = xmp.and_then(|xmp| BinaryData::from_data(xmp).ok());
+    image_info.metadata_orientation = Some(orientation as u16);
     image_info.transformation_ignore_exif = false;
 
     info_send.send(Ok(image_info)).unwrap();

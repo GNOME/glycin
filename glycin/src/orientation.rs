@@ -1,4 +1,5 @@
-use glycin_utils::{Frame, ImgBuf};
+use glycin_utils::{Frame, GenericContexts, ImgBuf};
+use gufo_common::orientation::Orientation;
 
 use crate::ImageDetails;
 
@@ -9,6 +10,11 @@ pub fn apply_exif_orientation(
 ) -> ImgBuf {
     if image_info.transformation_ignore_exif() {
         img_buf
+    } else if let Some(orientation) = image_info
+        .metadata_orientation()
+        .and_then(|orientation| Orientation::try_from(orientation).expected_error().ok())
+    {
+        glycin_utils::editing::change_orientation(img_buf, frame, orientation)
     } else if let Some(exif_data) = image_info
         .metadata_exif()
         .as_ref()

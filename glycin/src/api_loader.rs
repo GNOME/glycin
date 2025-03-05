@@ -336,6 +336,10 @@ impl ImageDetails {
         self.inner.metadata_exif.clone()
     }
 
+    pub fn metadata_orientation(&self) -> Option<u16> {
+        self.inner.metadata_orientation
+    }
+
     pub fn metadata_xmp(&self) -> Option<BinaryData> {
         self.inner.metadata_xmp.clone()
     }
