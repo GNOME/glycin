@@ -4,13 +4,13 @@ project(
   'c',
   # This is a global version that's neither related to the glycin-loaders version
   # nor the libglycin version
-  version: '1.2.rc',
+  version: '1.2.0',
   meson_version: '>=1.2',
 )
 
 lcms2_req = '>= 2.14'
 gio_req = '>=2.60'
-gtk4_req = '>= 4.12.0'
+gtk4_req = '>= 4.16.0'
 seccomp_req = '>= 2.5.0'
 
 compat_version = '1+'

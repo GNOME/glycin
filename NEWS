@@ -1,4 +1,16 @@
-## 1.2.0 (Unreleased)
+## 1.2.0 (2025-03-14)
+
+This release contains the following new component versions:
+
+- glycin-utils 3.0.0
+- glycin 2.1.0
+- libglycin 1.0.1
+- libglycin-gtk4 1.0.1
+- glycin-heif 1.2.0
+- glycin-image-rs 1.2.0
+- glycin-jxl 1.2.0
+- glycin-raw 1.2.0
+- glycin-svg 1.2.0
 
 ### Changed
 
