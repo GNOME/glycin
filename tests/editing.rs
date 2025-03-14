@@ -75,7 +75,7 @@ fn write_tmp(path: impl AsRef<Path>, data: &[u8]) -> PathBuf {
 
 async fn apply_operations_sparse(image: &Path, operations: &Path) -> glycin::BinaryData {
     let reader = std::fs::File::open(operations).unwrap();
-    let operations: glycin::Operations = serde_yml::from_reader(reader).unwrap();
+    let operations: glycin::Operations = serde_yaml::from_reader(reader).unwrap();
 
     let file = gio::File::for_path(image);
     let editor = glycin::Editor::new(file);
@@ -103,7 +103,7 @@ async fn apply_operations_sparse(image: &Path, operations: &Path) -> glycin::Bin
 
 async fn apply_operations_complete(image: &Path, operations: &Path) -> glycin::BinaryData {
     let reader = std::fs::File::open(operations).unwrap();
-    let operations: glycin::Operations = serde_yml::from_reader(reader).unwrap();
+    let operations: glycin::Operations = serde_yaml::from_reader(reader).unwrap();
 
     let file = gio::File::for_path(image);
     let editor = glycin::Editor::new(file);

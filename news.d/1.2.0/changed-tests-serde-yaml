@@ -1,0 +1,1 @@
+tests: Replace `serde_yml` crate with `serde_yaml_ng` due to questionable maintenance of the former. It is also possible to use the (unmaintained) `serde_yaml` crate instead.

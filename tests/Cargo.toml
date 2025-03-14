@@ -22,7 +22,9 @@ tokio.workspace = true
 gdk.workspace = true
 zbus = { workspace = true, features = ["p2p"] }
 tracing-subscriber.workspace = true
-serde_yml = "0.0.12"
+# The unmaintained serde_yaml 0.9 crate should work here as well
+# serde_yaml = "0.9.33"
+serde_yaml = { package = "serde_yaml_ng", version = "0.10.0" }
 
 [[test]]
 name = "tests"

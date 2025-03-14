@@ -1,3 +1,11 @@
+## 1.2.0 (Unreleased)
+
+### Changed
+
+- tests: Replace `serde_yml` crate with `serde_yaml_ng` due to questionable
+  maintenance of the former. It is also possible to use the (unmaintained)
+  `serde_yaml` crate instead.
+
 ## 1.2.rc (2025-02-28)
 
 This release contains the following new component versions:
