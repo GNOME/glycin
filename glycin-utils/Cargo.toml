@@ -10,7 +10,9 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+bitflags.workspace = true
 futures-lite = { workspace = true, optional = true }
+half.workspace = true
 image = { workspace = true, optional = true }
 libseccomp.workspace = true
 memmap.workspace = true
@@ -27,7 +29,6 @@ tokio = { workspace = true, optional = true }
 log.workspace = true
 env_logger.workspace = true
 zerocopy.workspace = true
-half = { workspace = true }
 
 [features]
 default = ["async-io"]

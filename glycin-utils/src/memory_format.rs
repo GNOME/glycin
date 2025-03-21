@@ -192,6 +192,9 @@ impl MemoryFormat {
         }
     }
 
+    /// Defines from which channels to get the RGBA values
+    ///
+    /// The return value is in the order `[R, G, B, A]`.
     const fn source_definition(self) -> [Source; 4] {
         match self {
             MemoryFormat::B8g8r8a8Premultiplied | MemoryFormat::B8g8r8a8 => {
@@ -468,6 +471,7 @@ enum Target {
     RgbAvg,
 }
 
+/// Defines a channel from which to take the value for a color/opacity
 enum Source {
     C0,
     C1,
@@ -476,6 +480,7 @@ enum Source {
     Opaque,
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum ChannelType {
     U8,
     U16,

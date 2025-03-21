@@ -24,6 +24,7 @@ mod img_buf;
 #[cfg(feature = "loader-utils")]
 pub mod instruction_handler;
 pub mod memory_format;
+mod memory_format_selection;
 pub mod save_math;
 pub mod shared_memory;
 
@@ -41,5 +42,6 @@ pub use img_buf::ImgBuf;
 #[cfg(feature = "loader-utils")]
 pub use instruction_handler::*;
 pub use memory_format::MemoryFormat;
+pub use memory_format_selection::MemoryFormatSelection;
 pub use save_math::*;
 pub use shared_memory::*;

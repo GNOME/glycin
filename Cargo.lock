@@ -1045,6 +1045,7 @@ dependencies = [
 name = "glycin-utils"
 version = "3.0.0"
 dependencies = [
+ "bitflags 2.9.0",
  "env_logger",
  "futures-lite",
  "glib",
