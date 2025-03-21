@@ -1,0 +1,1 @@
+glycin: Support setting accepted memory formats. If a texture isn't using a specifieds memory format, it will be transformed into one specified as supported.
