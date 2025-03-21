@@ -6,7 +6,7 @@ license = "MPL-2.0 OR LGPL-2.1-or-later"
 homepage = "https://gitlab.gnome.org/GNOME/glycin"
 repository = "https://gitlab.gnome.org/GNOME/glycin"
 edition = "2021"
-rust-version = "1.80"
+rust-version = "1.81"
 
 [profile.release]
 lto = true
@@ -55,7 +55,7 @@ gdk = { package = "gdk4", version = "0.9.5", features = ["v4_16"] }
 gio = { version = "0.20.0" }
 glib = { version = "0.20.0" }
 glycin = { path = "glycin/", default-features = false }
-glycin-utils = { version = "3.0.0", path = "glycin-utils/", default-features = false }
+glycin-utils = { version = "4.0.0-alpha", path = "glycin-utils/", default-features = false }
 gufo = { version = "0.2.0", features = ["all-image-formats"] }
 gufo-common = { version = "0.2.0", features = ["serde"] }
 gufo-exif = { version = "0.2.0" }
