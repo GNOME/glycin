@@ -16,21 +16,24 @@ variables:
     - apt update
     - apt install -y git curl meson pkg-config gobject-introspection gi-docgen valac libgirepository1.0-dev python3-gi build-essential liblcms2-dev gettext clang mold bubblewrap libseccomp-dev libfontconfig-dev
 
-    - git clone https://github.com/libjxl/libjxl.git --recursive --shallow-submodules
-    - apt-get install -y clang cmake pkg-config libbrotli-dev
-    - export CC=clang CXX=clang++
-    - cd libjxl
-    - mkdir build
-    - cd build
-    - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF ..
-    - cmake --build . -- -j$(nproc)
-    - cmake --install .
-    - cd ../..
+    #- git clone https://github.com/libjxl/libjxl.git --recursive --shallow-submodules
+    #- apt-get install -y clang cmake pkg-config libbrotli-dev
+    #- export CC=clang CXX=clang++
+    #- cd libjxl
+    #- mkdir build
+    #- cd build
+    #- cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF ..
+    #- cmake --build . -- -j$(nproc)
+    #- cmake --install .
+    #- cd ../..
 
     - echo "deb https://deb.debian.org/debian/ testing main" >> /etc/apt/sources.list
     - apt-get update
     - apt-get install -y libheif-dev libgtk-4-dev libcairo2-dev meson
     - apt-get install -y librsvg2-2
+    - apt-get install -y libjxl-dev
+    # Fix valac issue in bookworm
+    - apt-get install -y valac
     # Get QOI support in bookworm
     - apt-get install -y shared-mime-info
     # Required for librsvg/fontconfig, somehow fails to install automatically.
@@ -60,7 +63,7 @@ build-release-tarball:
     - if: $CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED
 
 test-x86_64:
-  image: rust:1.80-bookworm
+  image: rust:1.81-bookworm
   extends: .install_dependencies
   interruptible: true
   script:
@@ -78,7 +81,7 @@ test-x86_64:
 
 test-i386:
   # Use hash to force i386, lookup "MANIFEST DIGEST" here <https://hub.docker.com/r/i386/rust/tags>
-  image: rust@sha256:8f7ec0c462a97974a827203da3d48a0e0b650b3134b6ff62d4351bc4d35fd88e
+  image: rust@sha256:cae43437babe4a513bfaf1ebaed7b47e916e1a96bea4496ee763708f2a2b5bdb
   extends: .install_dependencies
   interruptible: true
   # As long as 32-bit CI is so unstable
@@ -91,7 +94,7 @@ test-i386:
     - meson test -vC builddir
 
 test-aarch64:
-  image: rust:1.80-bookworm
+  image: rust:1.81-bookworm
   tags:
     - aarch64
   extends: .install_dependencies
