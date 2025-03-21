@@ -24,6 +24,7 @@ pub struct EditingFrame {
 }
 
 #[derive(Debug, thiserror::Error, Clone)]
+#[non_exhaustive]
 pub enum Error {
     #[error("IO Error: {0}")]
     Io(#[from] Arc<std::io::Error>),
