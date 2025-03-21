@@ -18,6 +18,12 @@ def main():
     test_image = os.path.join(dir, "test-images/images/color/color.jpg")
     file = Gio.File.new_for_path(test_image)
 
+    # Type tests
+
+    assert Gly.SandboxSelector.AUTO.__gtype__.name == "GlySandboxSelector"
+    assert Gly.MemoryFormat.G8.__gtype__.name == "GlyMemoryFormat"
+    assert Gly.MemoryFormatSelection.G8.__gtype__.name == "GlyMemoryFormatSelection"
+
     # Sync tests
 
     loader = Gly.Loader(file=file)
@@ -47,6 +53,18 @@ def main():
     assert not Gly.MemoryFormat.is_premultiplied(memory_format)
 
     assert texture_width == 600, f"Wrong texture width: {texture_width} px"
+
+    # Memory selection test
+
+    loader = Gly.Loader(file=file)
+    loader.set_accepted_memory_formats(Gly.MemoryFormatSelection.G8)
+
+    image = loader.load()
+    frame = image.next_frame()
+
+    memory_format = frame.get_memory_format()
+
+    assert memory_format == Gly.MemoryFormat.G8, f"Memory format was not accepted: {memory_format}"
 
     # Async tests
 

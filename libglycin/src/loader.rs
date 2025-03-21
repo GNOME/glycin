@@ -7,7 +7,8 @@ use glib::ffi::{gpointer, GError, GType};
 use glib::subclass::prelude::*;
 use glib::translate::*;
 use glycin::gobject;
-pub use glycin::SandboxSelector as GlySandboxSelector;
+use glycin::MemoryFormatSelection as GlyMemoryFormatSelection;
+use glycin::SandboxSelector as GlySandboxSelector;
 
 use crate::common::*;
 use crate::*;
@@ -29,6 +30,18 @@ pub unsafe extern "C" fn gly_loader_set_sandbox_selector(
     let obj = gobject::GlyLoader::from_glib_ptr_borrow(&loader);
 
     obj.set_sandbox_selector(sandbox_selector);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gly_loader_set_accepted_memory_formats(
+    loader: *mut GlyLoader,
+    memory_format_selection: u32,
+) {
+    let memory_format_selection =
+        glycin::MemoryFormatSelection::from_bits_truncate(memory_format_selection);
+    let obj = gobject::GlyLoader::from_glib_ptr_borrow(&loader);
+
+    obj.set_memory_format_selection(memory_format_selection);
 }
 
 #[no_mangle]
@@ -116,4 +129,9 @@ pub extern "C" fn gly_loader_get_type() -> GType {
 #[no_mangle]
 pub extern "C" fn gly_sandbox_selector_get_type() -> GType {
     <GlySandboxSelector as StaticType>::static_type().into_glib()
+}
+
+#[no_mangle]
+pub extern "C" fn gly_memory_format_selection_get_type() -> GType {
+    <GlyMemoryFormatSelection as StaticType>::static_type().into_glib()
 }

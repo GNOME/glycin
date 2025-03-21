@@ -1,6 +1,36 @@
 use crate::memory_format::MemoryFormatInfo;
 use crate::MemoryFormat;
 
+/// Selection of memory formats the API user accepts
+#[cfg(feature = "gobject")]
+#[glib::flags(name = "GlyMemoryFormatSelection")]
+pub enum MemoryFormatSelection {
+    B8g8r8a8Premultiplied = (1 << 0),
+    A8r8g8b8Premultiplied = (1 << 1),
+    R8g8b8a8Premultiplied = (1 << 2),
+    B8g8r8a8 = (1 << 3),
+    A8r8g8b8 = (1 << 4),
+    R8g8b8a8 = (1 << 5),
+    A8b8g8r8 = (1 << 6),
+    R8g8b8 = (1 << 7),
+    B8g8r8 = (1 << 8),
+    R16g16b16 = (1 << 9),
+    R16g16b16a16Premultiplied = (1 << 10),
+    R16g16b16a16 = (1 << 11),
+    R16g16b16Float = (1 << 12),
+    R16g16b16a16Float = (1 << 13),
+    R32g32b32Float = (1 << 14),
+    R32g32b32a32FloatPremultiplied = (1 << 15),
+    R32g32b32a32Float = (1 << 16),
+    G8a8Premultiplied = (1 << 17),
+    G8a8 = (1 << 18),
+    G8 = (1 << 19),
+    G16a16Premultiplied = (1 << 20),
+    G16a16 = (1 << 21),
+    G16 = (1 << 22),
+}
+
+#[cfg(not(feature = "gobject"))]
 bitflags::bitflags! {
     /// Selection of memory formats the API user accepts
     #[derive(Debug, Clone, Copy)]
@@ -28,6 +58,12 @@ bitflags::bitflags! {
         const G16a16Premultiplied = (1 << 20);
         const G16a16 = (1 << 21);
         const G16 = (1 << 22);
+    }
+}
+
+impl Default for MemoryFormatSelection {
+    fn default() -> Self {
+        Self::all()
     }
 }
 

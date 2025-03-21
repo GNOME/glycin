@@ -91,6 +91,67 @@ typedef enum
 
 GType gly_sandbox_selector_get_type(void);
 
+/**************** GlyMemoryFormatSelection ****************/
+
+/**
+ * GlyMemoryFormatSelection:
+ * @GLY_MEMORY_SELECTION_B8G8R8A8_PREMULTIPLIED: 8-bit RGRA premultiplied
+ * @GLY_MEMORY_SELECTION_A8R8G8B8_PREMULTIPLIED: 8-bit ARGB premultiplied
+ * @GLY_MEMORY_SELECTION_R8G8B8A8_PREMULTIPLIED: 8-bit RGBA premultiplied
+ * @GLY_MEMORY_SELECTION_B8G8R8A8: 8-bit RGBA
+ * @GLY_MEMORY_SELECTION_A8R8G8B8: 8-bit AGBR
+ * @GLY_MEMORY_SELECTION_R8G8B8A8: 8-bit RGBA
+ * @GLY_MEMORY_SELECTION_A8B8G8R8: 8-bit ABGR
+ * @GLY_MEMORY_SELECTION_R8G8B8: 8-bit RGB
+ * @GLY_MEMORY_SELECTION_B8G8R8: 8-bit BGR
+ * @GLY_MEMORY_SELECTION_R16G16B16: 16-bit RGB
+ * @GLY_MEMORY_SELECTION_R16G16B16A16_PREMULTIPLIED: 16-bit RGBA premultiplied
+ * @GLY_MEMORY_SELECTION_R16G16B16A16: 16-bit RGBA
+ * @GLY_MEMORY_SELECTION_R16G16B16_FLOAT: 16-bit float RGB
+ * @GLY_MEMORY_SELECTION_R16G16B16A16_FLOAT: 16-bit float RGBA
+ * @GLY_MEMORY_SELECTION_R32G32B32_FLOAT: 32-bit float RGB
+ * @GLY_MEMORY_SELECTION_R32G32B32A32_FLOAT_PREMULTIPLIED: 32-bit float RGBA premultiplied
+ * @GLY_MEMORY_SELECTION_R32G32B32A32_FLOAT: 16-bit float RGBA
+ * @GLY_MEMORY_SELECTION_G8A8_PREMULTIPLIED: 8-bit gray with alpha premultiplied
+ * @GLY_MEMORY_SELECTION_G8A8: 8-bit gray with alpha
+ * @GLY_MEMORY_SELECTION_G8: 8-bit gray
+ * @GLY_MEMORY_SELECTION_G16A16_PREMULTIPLIED: 16-bit gray with alpha premultiplied
+ * @GLY_MEMORY_SELECTION_G16A16: 16-bit gray with alpha
+ * @GLY_MEMORY_SELECTION_G16: 16-bit gray
+ *
+ * Memory format selection
+ *
+ * Since: 1.1
+ */
+typedef enum
+{
+    GLY_MEMORY_SELECTION_B8G8R8A8_PREMULTIPLIED = (1 << 0),
+    GLY_MEMORY_SELECTION_A8R8G8B8_PREMULTIPLIED = (1 << 1),
+    GLY_MEMORY_SELECTION_R8G8B8A8_PREMULTIPLIED = (1 << 2),
+    GLY_MEMORY_SELECTION_B8G8R8A8 = (1 << 3),
+    GLY_MEMORY_SELECTION_A8R8G8B8 = (1 << 4),
+    GLY_MEMORY_SELECTION_R8G8B8A8 = (1 << 5),
+    GLY_MEMORY_SELECTION_A8B8G8R8 = (1 << 6),
+    GLY_MEMORY_SELECTION_R8G8B8 = (1 << 7),
+    GLY_MEMORY_SELECTION_B8G8R8 = (1 << 8),
+    GLY_MEMORY_SELECTION_R16G16B16 = (1 << 9),
+    GLY_MEMORY_SELECTION_R16G16B16A16_PREMULTIPLIED = (1 << 10),
+    GLY_MEMORY_SELECTION_R16G16B16A16 = (1 << 11),
+    GLY_MEMORY_SELECTION_R16G16B16_FLOAT = (1 << 12),
+    GLY_MEMORY_SELECTION_R16G16B16A16_FLOAT = (1 << 13),
+    GLY_MEMORY_SELECTION_R32G32B32_FLOAT = (1 << 14),
+    GLY_MEMORY_SELECTION_R32G32B32A32_FLOAT_PREMULTIPLIED = (1 << 15),
+    GLY_MEMORY_SELECTION_R32G32B32A32_FLOAT = (1 << 16),
+    GLY_MEMORY_SELECTION_G8A8_PREMULTIPLIED = (1 << 17),
+    GLY_MEMORY_SELECTION_G8A8 = (1 << 18),
+    GLY_MEMORY_SELECTION_G8 = (1 << 19),
+    GLY_MEMORY_SELECTION_G16A16_PREMULTIPLIED = (1 << 20),
+    GLY_MEMORY_SELECTION_G16A16 = (1 << 21),
+    GLY_MEMORY_SELECTION_G16 = (1 << 22),
+} GlyMemoryFormatSelection;
+
+GType gly_memory_format_selection_get_type(void);
+
 /**************** GlyLoader ****************/
 
 /**
@@ -116,6 +177,21 @@ GlyLoader *gly_loader_new(GFile *file);
  */
 void gly_loader_set_sandbox_selector(GlyLoader *loader,
                                      GlySandboxSelector sandbox_selector);
+
+/**
+ * gly_loader_set_accepted_memory_formats:
+ * @loader:
+ * @memory_format_selection: Accepted memory formats
+ *
+ * Sets which memory formats can be returned by the loader
+ *
+ * If the memory format doesn't match one of the selected formats, the
+ * format will be transformed into the best suitable format selected.
+ *
+ * Since: 1.1
+ */
+void gly_loader_set_accepted_memory_formats(GlyLoader *loader,
+                                            GlyMemoryFormatSelection memory_format_selection);
 
 /**
  * gly_loader_load:
