@@ -85,15 +85,65 @@ pub(crate) struct RemoteProcessContext<'a, P: ZbusProxy<'a>> {
     pub sandbox_mechanism: SandboxMechanism,
 }
 
+#[derive(Debug, Clone)]
+pub(crate) struct GInputStreamSend(gio::InputStream);
+
+unsafe impl Send for GInputStreamSend {}
+unsafe impl Sync for GInputStreamSend {}
+
+impl GInputStreamSend {
+    pub unsafe fn new(stream: gio::InputStream) -> Self {
+        Self(stream)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) enum Source {
+    File(gio::File),
+    Stream(GInputStreamSend),
+    TransferredStream,
+}
+
+impl Source {
+    pub fn file(&self) -> Option<gio::File> {
+        match self {
+            Self::File(file) => Some(file.clone()),
+            _ => None,
+        }
+    }
+
+    pub fn to_stream(&self, cancellable: &gio::Cancellable) -> Result<gio::InputStream, Error> {
+        match self {
+            Self::File(file) => file
+                .read(Some(cancellable))
+                .map(|x| x.upcast())
+                .map_err(Into::into),
+            Self::Stream(stream) => Ok(stream.0.clone()),
+            Self::TransferredStream => Err(Error::TransferredStream),
+        }
+    }
+
+    pub fn get(&mut self) -> Self {
+        let new = self
+            .file()
+            .map(|x| Self::File(x))
+            .unwrap_or(Self::TransferredStream);
+
+        std::mem::replace(self, new)
+    }
+}
+
 pub(crate) async fn spin_up<'a, P: ZbusProxy<'a> + 'a>(
-    file: &gio::File,
+    source: Source,
     cancellable: &gio::Cancellable,
     sandbox_selector: &SandboxSelector,
     memory_format_selection: MemoryFormatSelection,
 ) -> Result<RemoteProcessContext<'a, P>, Error> {
     let config = config::Config::cached().await;
 
-    let gfile_worker = GFileWorker::spawn(file.clone(), cancellable.clone());
+    let file = source.file();
+
+    let gfile_worker = GFileWorker::spawn(source, cancellable.clone());
     let mime_type = guess_mime_type(&gfile_worker).await?;
 
     let sandbox_mechanism = sandbox_selector.determine_sandbox_mechanism().await;
@@ -102,14 +152,14 @@ pub(crate) async fn spin_up<'a, P: ZbusProxy<'a> + 'a>(
         &mime_type,
         config,
         sandbox_mechanism,
-        file,
+        file.clone(),
         cancellable,
         memory_format_selection,
     )
     .await?;
 
     let base_dir: Option<PathBuf> = if P::expose_base_dir(config, &mime_type)? {
-        file.parent().and_then(|x| x.path())
+        file.and_then(|x| x.parent()).and_then(|x| x.path())
     } else {
         None
     };
@@ -140,7 +190,7 @@ pub(crate) async fn guess_mime_type(gfile_worker: &GFileWorker) -> Result<MimeTy
     let is_gzip = mime_type.clone().ok() == Some("application/gzip".into());
 
     if unsure || is_tiff || is_xml || is_gzip {
-        if let Some(filename) = gfile_worker.file().basename() {
+        if let Some(filename) = gfile_worker.file().and_then(|x| x.basename()) {
             let content_type_fn = gio::content_type_guess(Some(filename), &head).0;
             return gio::content_type_get_mime_type(&content_type_fn)
                 .ok_or_else(|| Error::UnknownContentType(content_type_fn.to_string()))

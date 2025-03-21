@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use gio::prelude::FileExt;
 use utils::*;
 
 mod utils;
@@ -47,6 +48,11 @@ fn fonts() {
 #[test]
 fn animated_numbers() {
     block_on(test_dir_animated("test-images/images/animated-numbers"));
+}
+
+#[test]
+fn input_stream() {
+    block_on(test_input_stream());
 }
 
 fn test_dir(dir: impl AsRef<Path>) {
@@ -121,4 +127,20 @@ async fn test_dir_options(dir: impl AsRef<Path>, exif: bool) {
     }
 
     TestResult::check_multiple(results);
+}
+
+async fn test_input_stream() {
+    let stream = gio::File::for_path("test-images/images/color/color.jpg")
+        .read(gio::Cancellable::NONE)
+        .unwrap();
+    let loader = unsafe { glycin::Loader::for_stream(stream) };
+    let image = loader.load().await.unwrap();
+
+    assert_eq!(image.info().width, 600);
+
+    let data = std::fs::read("test-images/images/color/color.jpg").unwrap();
+    let loader = glycin::Loader::for_vec(data);
+    let image = loader.load().await.unwrap();
+
+    assert_eq!(image.info().width, 600);
 }

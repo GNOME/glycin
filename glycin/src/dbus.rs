@@ -30,7 +30,9 @@ use crate::api_loader::{self};
 use crate::config::{Config, ConfigEntry};
 use crate::sandbox::Sandbox;
 use crate::util::{self, block_on, spawn_blocking, spawn_blocking_detached};
-use crate::{config, icc, orientation, ColorState, Error, Image, MimeType, SandboxMechanism};
+use crate::{
+    config, icc, orientation, ColorState, Error, Image, MimeType, SandboxMechanism, Source,
+};
 
 /// Max texture size 8 GB in bytes
 pub(crate) const MAX_TEXTURE_SIZE: u64 = 8 * 10u64.pow(9);
@@ -85,7 +87,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         mime_type: &config::MimeType,
         config: &config::Config,
         sandbox_mechanism: SandboxMechanism,
-        file: &gio::File,
+        file: Option<gio::File>,
         cancellable: &gio::Cancellable,
         memory_format_selection: MemoryFormatSelection,
     ) -> Result<Self, Error> {
@@ -99,7 +101,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         let mut sandbox = Sandbox::new(sandbox_mechanism, config_entry, loader_stdin);
         // Mount dir that contains the file as read only for formats like SVG
         if P::expose_base_dir(config, mime_type)? {
-            if let Some(base_dir) = file.parent().and_then(|x| x.path()) {
+            if let Some(base_dir) = file.and_then(|x| x.parent()).and_then(|x| x.path()) {
                 sandbox.add_ro_bind(base_dir);
             }
         }
@@ -395,15 +397,15 @@ pub trait Editor {
 }
 
 pub struct GFileWorker {
-    file: gio::File,
+    file: Option<gio::File>,
     writer_send: Mutex<Option<oneshot::Sender<UnixStream>>>,
     first_bytes_recv: future::Shared<oneshot::Receiver<Arc<Vec<u8>>>>,
     error_recv: future::Shared<oneshot::Receiver<Result<(), Error>>>,
 }
 use std::sync::Mutex;
 impl GFileWorker {
-    pub fn spawn(file: gio::File, cancellable: gio::Cancellable) -> GFileWorker {
-        let gfile = file.clone();
+    pub fn spawn(source: Source, cancellable: gio::Cancellable) -> GFileWorker {
+        let file = source.file();
 
         let (error_send, error_recv) = oneshot::channel();
         let (first_bytes_send, first_bytes_recv) = oneshot::channel();
@@ -411,7 +413,7 @@ impl GFileWorker {
 
         spawn_blocking_detached(move || {
             Self::handle_errors(error_send, move || {
-                let reader = gfile.read(Some(&cancellable))?;
+                let reader = source.to_stream(&cancellable)?;
                 let mut buf = vec![0; BUF_SIZE];
 
                 let n = reader.read(&mut buf, Some(&cancellable))?;
@@ -463,8 +465,8 @@ impl GFileWorker {
             .or(Err(Error::InternalCommunicationCanceled))
     }
 
-    pub fn file(&self) -> &gio::File {
-        &self.file
+    pub fn file(&self) -> Option<&gio::File> {
+        self.file.as_ref()
     }
 
     pub async fn error(&self) -> Result<(), Error> {

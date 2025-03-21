@@ -168,6 +168,8 @@ pub enum Error {
     Canceled(Option<String>),
     #[error("Editing: {0}")]
     Editing(#[from] glycin_utils::editing::Error),
+    #[error("Trying to access already trasferred GInputStream")]
+    TransferredStream,
 }
 
 impl Error {

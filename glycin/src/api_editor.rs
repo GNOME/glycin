@@ -14,7 +14,7 @@ use crate::{config, util, Error, ErrorCtx, MimeType};
 /// Image edit builder
 #[derive(Debug)]
 pub struct Editor {
-    file: gio::File,
+    source: Source,
     cancellable: gio::Cancellable,
     pub(crate) sandbox_selector: SandboxSelector,
 }
@@ -25,7 +25,7 @@ impl Editor {
     /// Create an editor.
     pub fn new(file: gio::File) -> Self {
         Self {
-            file,
+            source: Source::File(file),
             cancellable: gio::Cancellable::new(),
             sandbox_selector: SandboxSelector::default(),
         }
@@ -50,9 +50,11 @@ impl Editor {
     /// Some operations like rotation can be in some cases be conducted by only
     /// changing one or a few bytes in a file. We call these cases *sparse* and
     /// a [`SparseEdit::Sparse`] is returned.
-    pub async fn apply_sparse(self, operations: Operations) -> Result<SparseEdit, ErrorCtx> {
+    pub async fn apply_sparse(mut self, operations: Operations) -> Result<SparseEdit, ErrorCtx> {
+        let source = self.source.get();
+
         let process_context = spin_up(
-            &self.file,
+            source,
             &self.cancellable,
             &self.sandbox_selector,
             MemoryFormatSelection::all(),
@@ -81,9 +83,11 @@ impl Editor {
     }
 
     /// Apply operations to the image
-    pub async fn apply_complete_full(self, operations: &Operations) -> Result<Edit, ErrorCtx> {
+    pub async fn apply_complete_full(mut self, operations: &Operations) -> Result<Edit, ErrorCtx> {
+        let source = self.source.get();
+
         let process_context = spin_up(
-            &self.file,
+            source,
             &self.cancellable,
             &self.sandbox_selector,
             MemoryFormatSelection::all(),
