@@ -14,7 +14,7 @@ use crate::{config, ErrorCtx};
 /// Image request builder
 #[derive(Debug)]
 pub struct Loader {
-    file: gio::File,
+    source: Source,
     cancellable: gio::Cancellable,
     pub(crate) apply_transformations: bool,
     pub(crate) sandbox_selector: SandboxSelector,
@@ -26,8 +26,26 @@ static_assertions::assert_impl_all!(Loader: Send, Sync);
 impl Loader {
     /// Create a new loader
     pub fn new(file: gio::File) -> Self {
+        Self::for_source(Source::File(file))
+    }
+
+    pub unsafe fn for_stream(stream: impl IsA<gio::InputStream>) -> Self {
+        Self::for_source(Source::Stream(GInputStreamSend::new(stream.upcast())))
+    }
+
+    pub fn for_bytes(bytes: glib::Bytes) -> Self {
+        let stream = gio::MemoryInputStream::from_bytes(&bytes);
+        unsafe { Self::for_stream(stream) }
+    }
+
+    pub fn for_vec(buf: Vec<u8>) -> Self {
+        let bytes = glib::Bytes::from_owned(buf);
+        Self::for_bytes(bytes)
+    }
+
+    fn for_source(source: Source) -> Self {
         Self {
-            file,
+            source,
             cancellable: gio::Cancellable::new(),
             apply_transformations: true,
             sandbox_selector: SandboxSelector::default(),
@@ -73,9 +91,11 @@ impl Loader {
     }
 
     /// Load basic image information and enable further operations
-    pub async fn load<'a>(self) -> Result<Image<'a>, ErrorCtx> {
+    pub async fn load<'a>(mut self) -> Result<Image<'a>, ErrorCtx> {
+        let source = self.source.get();
+
         let process_context = spin_up(
-            &self.file,
+            source,
             &self.cancellable,
             &self.sandbox_selector,
             self.memory_format_selection,
@@ -195,7 +215,11 @@ impl<'a> Image<'a> {
 
     /// File the image was loaded from
     pub fn file(&self) -> gio::File {
-        self.loader.file.clone()
+        if let Source::File(file) = &self.loader.source {
+            file.clone()
+        } else {
+            gio::File::for_uri("invalid:")
+        }
     }
 
     /// [`Cancellable`](gio::Cancellable) to cancel operations within this image

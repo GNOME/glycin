@@ -6,9 +6,10 @@ use gio::prelude::*;
 use glib::ffi::{gpointer, GError, GType};
 use glib::subclass::prelude::*;
 use glib::translate::*;
-use glycin::gobject;
-use glycin::MemoryFormatSelection as GlyMemoryFormatSelection;
-use glycin::SandboxSelector as GlySandboxSelector;
+use glycin::{
+    gobject, MemoryFormatSelection as GlyMemoryFormatSelection,
+    SandboxSelector as GlySandboxSelector,
+};
 
 use crate::common::*;
 use crate::*;

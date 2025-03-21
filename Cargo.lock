@@ -1349,7 +1349,7 @@ dependencies = [
  "half",
  "image",
  "jpegxl-sys",
- "thiserror 2.0.11",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
