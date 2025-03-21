@@ -1,4 +1,4 @@
-use glycin::MemoryFormat;
+use glycin_utils::MemoryFormatSelection;
 use utils::*;
 
 mod utils;
@@ -15,13 +15,13 @@ async fn change_memory_format_internal() {
     ] {
         let file = gio::File::for_path(path);
 
-        for memory_format in [
-            MemoryFormat::A8b8g8r8,
-            MemoryFormat::R8g8b8,
-            MemoryFormat::R16g16b16,
+        for memory_format_selection in [
+            MemoryFormatSelection::A8b8g8r8,
+            MemoryFormatSelection::R8g8b8,
+            MemoryFormatSelection::R16g16b16,
         ] {
             let mut loader = glycin::Loader::new(file.clone());
-            loader.transform_to_memory_format(Some(memory_format));
+            loader.accepted_memory_formats(memory_format_selection);
 
             let image = loader.load().await.unwrap();
 

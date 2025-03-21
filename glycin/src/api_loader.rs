@@ -2,8 +2,8 @@ use gio::glib;
 use gio::prelude::*;
 #[cfg(feature = "gdk4")]
 use glycin_utils::save_math::*;
-use glycin_utils::ImageInfo;
 pub use glycin_utils::{FrameDetails, MemoryFormat};
+use glycin_utils::{ImageInfo, MemoryFormatSelection};
 
 use crate::api_common::*;
 pub use crate::config::MimeType;
@@ -18,7 +18,7 @@ pub struct Loader {
     cancellable: gio::Cancellable,
     pub(crate) apply_transformations: bool,
     pub(crate) sandbox_selector: SandboxSelector,
-    pub(crate) transform_to_memory_format: Option<MemoryFormat>,
+    pub(crate) memory_format_selection: MemoryFormatSelection,
 }
 
 static_assertions::assert_impl_all!(Loader: Send, Sync);
@@ -31,7 +31,7 @@ impl Loader {
             cancellable: gio::Cancellable::new(),
             apply_transformations: true,
             sandbox_selector: SandboxSelector::default(),
-            transform_to_memory_format: None,
+            memory_format_selection: MemoryFormatSelection::all(),
         }
     }
 
@@ -60,9 +60,15 @@ impl Loader {
         self
     }
 
-    /// Sets to transform the image data to the given format for each Frame
-    pub fn transform_to_memory_format(&mut self, memory_format: Option<MemoryFormat>) -> &mut Self {
-        self.transform_to_memory_format = memory_format;
+    /// Sets which memory formats can be returned by the loader
+    ///
+    /// If the memory format doesn't match one of the selected formats, the
+    /// format will be transformed into the best suitable format selected.
+    pub fn accepted_memory_formats(
+        &mut self,
+        memory_format_selection: MemoryFormatSelection,
+    ) -> &mut Self {
+        self.memory_format_selection = memory_format_selection;
         self
     }
 
@@ -72,7 +78,7 @@ impl Loader {
             &self.file,
             &self.cancellable,
             &self.sandbox_selector,
-            self.transform_to_memory_format,
+            self.memory_format_selection,
         )
         .await
         .err_no_context(&self.cancellable)?;

@@ -3,7 +3,7 @@ use std::path::PathBuf;
 #[cfg(feature = "gobject")]
 use gio::glib;
 use gio::prelude::*;
-use glycin_utils::MemoryFormat;
+use glycin_utils::MemoryFormatSelection;
 
 use crate::dbus::{GFileWorker, RemoteProcess, ZbusProxy};
 use crate::util::RunEnvironment;
@@ -89,7 +89,7 @@ pub(crate) async fn spin_up<'a, P: ZbusProxy<'a> + 'a>(
     file: &gio::File,
     cancellable: &gio::Cancellable,
     sandbox_selector: &SandboxSelector,
-    transform_to_memory_format: Option<MemoryFormat>,
+    memory_format_selection: MemoryFormatSelection,
 ) -> Result<RemoteProcessContext<'a, P>, Error> {
     let config = config::Config::cached().await;
 
@@ -104,7 +104,7 @@ pub(crate) async fn spin_up<'a, P: ZbusProxy<'a> + 'a>(
         sandbox_mechanism,
         file,
         cancellable,
-        transform_to_memory_format,
+        memory_format_selection,
     )
     .await?;
 

@@ -3,7 +3,9 @@ use std::collections::BTreeMap;
 use gio::glib;
 use gio::prelude::{IsA, *};
 pub use glycin_utils::operations::{Operation, Operations};
-use glycin_utils::{BinaryData, ByteChanges, SafeConversion, SparseEditorOutput};
+use glycin_utils::{
+    BinaryData, ByteChanges, MemoryFormatSelection, SafeConversion, SparseEditorOutput,
+};
 
 use crate::api_common::*;
 use crate::error::ResultExt;
@@ -49,9 +51,14 @@ impl Editor {
     /// changing one or a few bytes in a file. We call these cases *sparse* and
     /// a [`SparseEdit::Sparse`] is returned.
     pub async fn apply_sparse(self, operations: Operations) -> Result<SparseEdit, ErrorCtx> {
-        let process_context = spin_up(&self.file, &self.cancellable, &self.sandbox_selector, None)
-            .await
-            .err_no_context(&self.cancellable)?;
+        let process_context = spin_up(
+            &self.file,
+            &self.cancellable,
+            &self.sandbox_selector,
+            MemoryFormatSelection::all(),
+        )
+        .await
+        .err_no_context(&self.cancellable)?;
 
         let process = process_context.process;
 
@@ -75,9 +82,14 @@ impl Editor {
 
     /// Apply operations to the image
     pub async fn apply_complete_full(self, operations: &Operations) -> Result<Edit, ErrorCtx> {
-        let process_context = spin_up(&self.file, &self.cancellable, &self.sandbox_selector, None)
-            .await
-            .err_no_context(&self.cancellable)?;
+        let process_context = spin_up(
+            &self.file,
+            &self.cancellable,
+            &self.sandbox_selector,
+            MemoryFormatSelection::all(),
+        )
+        .await
+        .err_no_context(&self.cancellable)?;
 
         let process = process_context.process;
 

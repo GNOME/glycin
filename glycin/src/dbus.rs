@@ -18,7 +18,7 @@ use glycin_utils::memory_format::MemoryFormatInfo;
 use glycin_utils::operations::Operations;
 use glycin_utils::{
     CompleteEditorOutput, DimensionTooLargerError, EditRequest, Frame, FrameRequest, ImageInfo,
-    ImgBuf, InitRequest, InitializationDetails, MemoryFormat, RemoteError, SafeConversion,
+    ImgBuf, InitRequest, InitializationDetails, MemoryFormatSelection, RemoteError, SafeConversion,
     SafeMath, SparseEditorOutput,
 };
 use gufo_common::cicp::Cicp;
@@ -43,7 +43,7 @@ pub struct RemoteProcess<'a, P: ZbusProxy<'a>> {
     phantom: PhantomData<&'a P>,
     pub stderr_content: Arc<Mutex<String>>,
     pub stdout_content: Arc<Mutex<String>>,
-    transform_to_memory_format: Option<MemoryFormat>,
+    memory_format_selection: MemoryFormatSelection,
 }
 
 pub trait ZbusProxy<'a>: Sized + Sync + Send + From<zbus::Proxy<'a>> {
@@ -87,7 +87,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         sandbox_mechanism: SandboxMechanism,
         file: &gio::File,
         cancellable: &gio::Cancellable,
-        transform_to_memory_format: Option<MemoryFormat>,
+        memory_format_selection: MemoryFormatSelection,
     ) -> Result<Self, Error> {
         // UnixStream which facilitates the D-Bus connection. The stream is passed as
         // stdin to loader binaries.
@@ -157,7 +157,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
             phantom: PhantomData,
             stderr_content,
             stdout_content,
-            transform_to_memory_format,
+            memory_format_selection,
         })
     }
 
@@ -277,7 +277,10 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
             img_buf
         };
 
-        let img_buf = if let Some(target_format) = self.transform_to_memory_format {
+        let img_buf = if let Some(target_format) = self
+            .memory_format_selection
+            .best_format_for(frame.memory_format)
+        {
             glycin_utils::editing::change_memory_format(img_buf, &mut frame, target_format)?
         } else {
             img_buf

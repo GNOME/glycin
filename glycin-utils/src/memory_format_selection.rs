@@ -3,7 +3,7 @@ use crate::MemoryFormat;
 
 bitflags::bitflags! {
     /// Selection of memory formats the API user accepts
-    #[derive(Debug)]
+    #[derive(Debug, Clone, Copy)]
     pub struct MemoryFormatSelection: u32 {
         const B8g8r8a8Premultiplied = (1 << 0);
         const A8r8g8b8Premultiplied = (1 << 1);
