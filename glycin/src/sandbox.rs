@@ -137,9 +137,11 @@ const ALLOWED_SYSCALLS: &[&str] = &[
     "unshare",
     "wait4",
     "write",
+    "writev",
 ];
 
 const ALLOWED_SYSCALLS_FONTCONFIG: &[&str] = &[
+    "chmod",
     "link",
     "linkat",
     "unlink",
