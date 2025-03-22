@@ -27,6 +27,7 @@ static SYSTEM_SETUP: AsyncMutex<Option<SystemSetupStore>> = new_async_mutex(None
 const ALLOWED_SYSCALLS: &[&str] = &[
     "access",
     "arch_prctl",
+    "arm_fadvise64_64",
     "brk",
     "capget",
     "capset",
@@ -60,6 +61,7 @@ const ALLOWED_SYSCALLS: &[&str] = &[
     "fstatfs",
     "fstatfs64",
     "ftruncate",
+    "ftruncate64",
     "futex",
     "futex_time64",
     "get_mempolicy",
@@ -117,6 +119,7 @@ const ALLOWED_SYSCALLS: &[&str] = &[
     "set_robust_list",
     "set_thread_area",
     "set_tid_address",
+    "set_tls",
     "sigaltstack",
     "signalfd4",
     "socket",
