@@ -85,6 +85,10 @@ pub(crate) struct RemoteProcessContext<'a, P: ZbusProxy<'a>> {
     pub sandbox_mechanism: SandboxMechanism,
 }
 
+/// A version of an input stream that can be sent.
+///
+/// Using the stream from multiple threads is UB. Therefore the `new` function
+/// is unsafe.
 #[derive(Debug, Clone)]
 pub(crate) struct GInputStreamSend(gio::InputStream);
 
@@ -97,6 +101,7 @@ impl GInputStreamSend {
     }
 }
 
+/// Image source for a loader/editor
 #[derive(Debug, Clone)]
 pub(crate) enum Source {
     File(gio::File),
@@ -123,7 +128,11 @@ impl Source {
         }
     }
 
-    pub fn get(&mut self) -> Self {
+    /// Get a [`Source`] for sending to [`GFileWorker`]
+    ///
+    /// This will remove the stored stream from `self` to avoid it getting used
+    /// anywhere else than the [`GFileWorker`] it has been sent to.
+    pub fn send(&mut self) -> Self {
         let new = self
             .file()
             .map(|x| Self::File(x))

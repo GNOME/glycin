@@ -51,7 +51,7 @@ impl Editor {
     /// changing one or a few bytes in a file. We call these cases *sparse* and
     /// a [`SparseEdit::Sparse`] is returned.
     pub async fn apply_sparse(mut self, operations: Operations) -> Result<SparseEdit, ErrorCtx> {
-        let source = self.source.get();
+        let source = self.source.send();
 
         let process_context = spin_up(
             source,
@@ -84,7 +84,7 @@ impl Editor {
 
     /// Apply operations to the image
     pub async fn apply_complete_full(mut self, operations: &Operations) -> Result<Edit, ErrorCtx> {
-        let source = self.source.get();
+        let source = self.source.send();
 
         let process_context = spin_up(
             source,

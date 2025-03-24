@@ -24,20 +24,23 @@ pub struct Loader {
 static_assertions::assert_impl_all!(Loader: Send, Sync);
 
 impl Loader {
-    /// Create a new loader
+    /// Create a loader with a [`gio::File`] as source
     pub fn new(file: gio::File) -> Self {
         Self::for_source(Source::File(file))
     }
 
+    /// Create a loader with a [`gio::InputStream`] as source
     pub unsafe fn for_stream(stream: impl IsA<gio::InputStream>) -> Self {
         Self::for_source(Source::Stream(GInputStreamSend::new(stream.upcast())))
     }
 
+    /// Create a loader with [`glib::Bytes`] as source
     pub fn for_bytes(bytes: glib::Bytes) -> Self {
         let stream = gio::MemoryInputStream::from_bytes(&bytes);
         unsafe { Self::for_stream(stream) }
     }
 
+    /// Create a loader with [`Vec<u8>`] as source
     pub fn for_vec(buf: Vec<u8>) -> Self {
         let bytes = glib::Bytes::from_owned(buf);
         Self::for_bytes(bytes)
@@ -92,7 +95,7 @@ impl Loader {
 
     /// Load basic image information and enable further operations
     pub async fn load<'a>(mut self) -> Result<Image<'a>, ErrorCtx> {
-        let source = self.source.get();
+        let source = self.source.send();
 
         let process_context = spin_up(
             source,
