@@ -99,6 +99,10 @@ impl GInputStreamSend {
     pub unsafe fn new(stream: gio::InputStream) -> Self {
         Self(stream)
     }
+
+    pub fn stream(&self) -> gio::InputStream {
+        self.0.clone()
+    }
 }
 
 /// Image source for a loader/editor

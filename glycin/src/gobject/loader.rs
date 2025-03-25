@@ -7,7 +7,7 @@ use glycin_utils::MemoryFormatSelection;
 
 use super::GlyImage;
 use crate::error::ResultExt;
-use crate::{Error, GInputStreamSend, Loader, SandboxSelector, Source};
+use crate::{Error, GInputStreamSend, SandboxSelector, Source};
 
 static_assertions::assert_impl_all!(GlyLoader: Send, Sync);
 
@@ -18,8 +18,11 @@ pub mod imp {
     #[properties(wrapper_type = super::GlyLoader)]
     pub struct GlyLoader {
         #[property(get, construct_only)]
-        file: Mutex<Option<gio::File>>,
-        pub(super) source: Mutex<Option<Source>>,
+        pub(super) file: Mutex<Option<gio::File>>,
+        #[property(get=Self::stream, set=Self::set_stream, construct_only, type=Option<gio::InputStream>)]
+        pub(super) stream: Mutex<Option<GInputStreamSend>>,
+        #[property(get, construct_only)]
+        pub(super) bytes: Mutex<Option<glib::Bytes>>,
 
         #[property(get, set)]
         cancellable: Mutex<gio::Cancellable>,
@@ -40,15 +43,26 @@ pub mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
-            if let Some(file) = self.obj().file() {
-                self.set_source(Source::File(file.clone()));
+            let obj = self.obj();
+
+            if obj.file().is_some() as u8
+                + obj.stream().is_some() as u8
+                + obj.bytes().is_some() as u8
+                != 1
+            {
+                glib::g_critical!("glycin", "A loader needs to be initiatilized with exatly one of 'file', 'stream', or 'bytes'.");
             }
         }
     }
 
     impl GlyLoader {
-        pub(super) fn set_source(&self, source: Source) {
-            *self.source.lock().unwrap() = Some(source);
+        fn stream(&self) -> Option<gio::InputStream> {
+            self.stream.lock().unwrap().as_ref().map(|x| x.stream())
+        }
+
+        fn set_stream(&self, stream: Option<&gio::InputStream>) {
+            let stream = unsafe { stream.map(|x| GInputStreamSend::new(x.clone())) };
+            *self.stream.lock().unwrap() = stream;
         }
     }
 }
@@ -64,26 +78,23 @@ impl GlyLoader {
     }
 
     pub fn for_stream(stream: &gio::InputStream) -> Self {
-        let obj = glib::Object::builder::<GlyLoader>().build();
-        let stream = unsafe { GInputStreamSend::new(stream.clone()) };
-        obj.imp().set_source(Source::Stream(stream));
-        obj
+        glib::Object::builder().property("stream", stream).build()
     }
 
     pub fn for_bytes(bytes: &glib::Bytes) -> Self {
-        let obj = glib::Object::builder::<GlyLoader>().build();
-        let stream =
-            unsafe { GInputStreamSend::new(gio::MemoryInputStream::from_bytes(&bytes).upcast()) };
-        obj.imp().set_source(Source::Stream(stream));
-        obj
+        glib::Object::builder().property("bytes", bytes).build()
     }
 
     pub async fn load(&self) -> Result<GlyImage, crate::ErrorCtx> {
-        let Some(source) = std::mem::take(&mut *self.imp().source.lock().unwrap()) else {
+        let mut loader = if let Some(file) = std::mem::take(&mut *self.imp().file.lock().unwrap()) {
+            crate::Loader::new(file)
+        } else if let Some(stream) = std::mem::take(&mut *self.imp().stream.lock().unwrap()) {
+            crate::Loader::new_source(Source::Stream(stream))
+        } else if let Some(bytes) = std::mem::take(&mut *self.imp().bytes.lock().unwrap()) {
+            crate::Loader::new_bytes(bytes)
+        } else {
             return Err(Error::LoaderUsedTwice).err_no_context(&self.cancellable());
         };
-
-        let mut loader = Loader::with_source(source);
 
         loader.sandbox_selector = self.sandbox_selector();
         loader.memory_format_selection = self.memory_format_selection();
