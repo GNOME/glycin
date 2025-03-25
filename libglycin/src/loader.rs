@@ -23,6 +23,20 @@ pub unsafe extern "C" fn gly_loader_new(file: *mut gio::ffi::GFile) -> *mut GlyL
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn gly_loader_new_for_stream(
+    stream: *mut gio::ffi::GInputStream,
+) -> *mut GlyLoader {
+    let stream = gio::InputStream::from_glib_ptr_borrow(&stream);
+    gobject::GlyLoader::for_stream(&stream).into_glib_ptr()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gly_loader_new_for_bytes(bytes: *mut glib::ffi::GBytes) -> *mut GlyLoader {
+    let bytes = glib::Bytes::from_glib_ptr_borrow(&bytes);
+    gobject::GlyLoader::for_bytes(&bytes).into_glib_ptr()
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn gly_loader_set_sandbox_selector(
     loader: *mut GlyLoader,
     sandbox_selector: i32,

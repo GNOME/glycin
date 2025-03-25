@@ -1,0 +1,1 @@
+glycin: Create loaders from bytes in memory or a `GInputStream` instead of a `GFile`.

@@ -54,6 +54,20 @@ def main():
 
     assert texture_width == 600, f"Wrong texture width: {texture_width} px"
 
+    # Loader sources test
+
+    loader = Gly.Loader.for_stream(file.read())
+    image = loader.load()
+    frame = image.next_frame()
+    assert frame.get_width() == 600
+
+    with open(test_image, 'rb') as f:
+        bytes = f.read()
+    loader = Gly.Loader.for_bytes(GLib.Bytes.new(bytes))
+    image = loader.load()
+    frame = image.next_frame()
+    assert frame.get_width() == 600
+
     # Memory selection test
 
     loader = Gly.Loader(file=file)

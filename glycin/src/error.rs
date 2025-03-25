@@ -170,6 +170,9 @@ pub enum Error {
     Editing(#[from] glycin_utils::editing::Error),
     #[error("Trying to access already trasferred GInputStream")]
     TransferredStream,
+    #[cfg(feature = "gobject")]
+    #[error("A loader can only be used once")]
+    LoaderUsedTwice,
 }
 
 impl Error {

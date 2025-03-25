@@ -156,15 +156,39 @@ GType gly_memory_format_selection_get_type(void);
 
 /**
  * gly_loader_new:
- * @file: A [iface@Gio.File] from which to load
+ * @file: A file from which to load the image data
  *
- * Creates a new [class@Loader].
+ * Creates a new loader for a file.
  *
  * Returns: (transfer full): a new [class@Loader]
  *
  * Since: 1.0
  */
 GlyLoader *gly_loader_new(GFile *file);
+
+/**
+ * gly_loader_new_for_stream:
+ * @stream: A stream from which to load the image data
+ *
+ * Creates a new loader for a stream.
+ *
+ * Returns: (transfer full): a new [class@Loader]
+ *
+ * Since: 1.1
+ */
+GlyLoader *gly_loader_new_for_stream(GInputStream *stream);
+
+/**
+ * gly_loader_new_for_bytes:
+ * @bytes: Data from which to load the image
+ *
+ * Creates a new loader for bytes.
+ *
+ * Returns: (transfer full): a new [class@Loader]
+ *
+ * Since: 1.1
+ */
+GlyLoader *gly_loader_new_for_bytes(GBytes *bytes);
 
 /**
  * gly_loader_set_sandbox_selector:

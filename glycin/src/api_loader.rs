@@ -46,7 +46,7 @@ impl Loader {
         Self::for_bytes(bytes)
     }
 
-    fn for_source(source: Source) -> Self {
+    pub(crate) fn for_source(source: Source) -> Self {
         Self {
             source,
             cancellable: gio::Cancellable::new(),
