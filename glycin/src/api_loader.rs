@@ -26,27 +26,27 @@ static_assertions::assert_impl_all!(Loader: Send, Sync);
 impl Loader {
     /// Create a loader with a [`gio::File`] as source
     pub fn new(file: gio::File) -> Self {
-        Self::for_source(Source::File(file))
+        Self::with_source(Source::File(file))
     }
 
     /// Create a loader with a [`gio::InputStream`] as source
-    pub unsafe fn for_stream(stream: impl IsA<gio::InputStream>) -> Self {
-        Self::for_source(Source::Stream(GInputStreamSend::new(stream.upcast())))
+    pub unsafe fn new_stream(stream: impl IsA<gio::InputStream>) -> Self {
+        Self::with_source(Source::Stream(GInputStreamSend::new(stream.upcast())))
     }
 
     /// Create a loader with [`glib::Bytes`] as source
-    pub fn for_bytes(bytes: glib::Bytes) -> Self {
+    pub fn new_bytes(bytes: glib::Bytes) -> Self {
         let stream = gio::MemoryInputStream::from_bytes(&bytes);
-        unsafe { Self::for_stream(stream) }
+        unsafe { Self::new_stream(stream) }
     }
 
     /// Create a loader with [`Vec<u8>`] as source
-    pub fn for_vec(buf: Vec<u8>) -> Self {
+    pub fn new_vec(buf: Vec<u8>) -> Self {
         let bytes = glib::Bytes::from_owned(buf);
-        Self::for_bytes(bytes)
+        Self::new_bytes(bytes)
     }
 
-    pub(crate) fn for_source(source: Source) -> Self {
+    pub(crate) fn with_source(source: Source) -> Self {
         Self {
             source,
             cancellable: gio::Cancellable::new(),

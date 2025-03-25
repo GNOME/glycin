@@ -83,7 +83,7 @@ impl GlyLoader {
             return Err(Error::LoaderUsedTwice).err_no_context(&self.cancellable());
         };
 
-        let mut loader = Loader::for_source(source);
+        let mut loader = Loader::with_source(source);
 
         loader.sandbox_selector = self.sandbox_selector();
         loader.memory_format_selection = self.memory_format_selection();

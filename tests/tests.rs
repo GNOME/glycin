@@ -133,13 +133,13 @@ async fn test_input_stream() {
     let stream = gio::File::for_path("test-images/images/color/color.jpg")
         .read(gio::Cancellable::NONE)
         .unwrap();
-    let loader = unsafe { glycin::Loader::for_stream(stream) };
+    let loader = unsafe { glycin::Loader::new_stream(stream) };
     let image = loader.load().await.unwrap();
 
     assert_eq!(image.info().width, 600);
 
     let data = std::fs::read("test-images/images/color/color.jpg").unwrap();
-    let loader = glycin::Loader::for_vec(data);
+    let loader = glycin::Loader::new_vec(data);
     let image = loader.load().await.unwrap();
 
     assert_eq!(image.info().width, 600);
