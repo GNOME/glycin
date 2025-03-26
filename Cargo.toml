@@ -36,6 +36,7 @@ default-members = ["glycin", "glycin-utils"]
 arithmetic_side_effects = "forbid"
 cast_possible_truncation = "forbid"
 cast_possible_wrap = "forbid"
+dbg_macro = "forbid"
 
 [workspace.dependencies]
 async-fs = "2.1.0"
