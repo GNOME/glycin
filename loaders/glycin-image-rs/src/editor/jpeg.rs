@@ -1,6 +1,7 @@
 use std::io::Read;
 
 use editing::EditingFrame;
+use glycin_utils::operations::Operations;
 use glycin_utils::*;
 use gufo_common::orientation::Orientation;
 use gufo_jpeg::Jpeg;
@@ -9,11 +10,16 @@ use zune_jpeg::zune_core::options::DecoderOptions;
 
 pub fn apply_sparse(
     mut stream: glycin_utils::UnixStream,
-    operations: glycin_utils::operations::Operations,
+    mut operations: glycin_utils::operations::Operations,
 ) -> Result<SparseEditorOutput, glycin_utils::ProcessError> {
-    let mut buf = Vec::new();
+    let mut buf: Vec<u8> = Vec::new();
     stream.read_to_end(&mut buf).internal_error()?;
     let jpeg = gufo::jpeg::Jpeg::new(buf).expected_error()?;
+
+    let metadata = gufo::Metadata::for_jpeg(&jpeg);
+    if let Some(orientation) = metadata.orientation() {
+        operations.prepend(Operations::new_orientation(orientation));
+    }
 
     if let Some(orientation) = operations.orientation() {
         if let Some(byte_changes) = rotate_sparse(orientation, &jpeg)? {
@@ -28,11 +34,16 @@ pub fn apply_sparse(
 
 pub fn apply_complete(
     mut stream: glycin_utils::UnixStream,
-    operations: glycin_utils::operations::Operations,
+    mut operations: glycin_utils::operations::Operations,
 ) -> Result<CompleteEditorOutput, glycin_utils::ProcessError> {
     let mut buf = Vec::new();
     stream.read_to_end(&mut buf).internal_error()?;
     let jpeg = gufo::jpeg::Jpeg::new(buf).expected_error()?;
+
+    let metadata = gufo::Metadata::for_jpeg(&jpeg);
+    if let Some(orientation) = metadata.orientation() {
+        operations.prepend(Operations::new_orientation(orientation));
+    }
 
     if let Some(orientation) = operations.orientation() {
         if let Some(byte_changes) = rotate_sparse(orientation, &jpeg)? {
@@ -45,7 +56,7 @@ pub fn apply_complete(
     apply_non_sparse(jpeg, operations)
 }
 
-pub fn apply_non_sparse(
+fn apply_non_sparse(
     jpeg: Jpeg,
     operations: glycin_utils::operations::Operations,
 ) -> Result<CompleteEditorOutput, glycin_utils::ProcessError> {
@@ -85,7 +96,15 @@ pub fn apply_non_sparse(
 
     jpeg.replace_image_data(&new_jpeg).expected_error()?;
 
-    let out_buf = jpeg.into_inner();
+    let remove_metadata_rotate = rotate_sparse(Orientation::Id, &jpeg).ok().flatten();
+
+    let mut out_buf = jpeg.into_inner();
+
+    // Since we apply all operionats, including existing exif orientation, to the
+    // image itself, the Exif entry, if it exists, is now wrong
+    if let Some(remove_metadata_rotate) = remove_metadata_rotate {
+        remove_metadata_rotate.apply(&mut out_buf);
+    }
 
     let binary_data = BinaryData::from_data(out_buf)?;
     return Ok(CompleteEditorOutput::new(binary_data));
@@ -108,24 +127,14 @@ fn rotate_sparse(
         let mut exif = gufo_exif::internal::ExifRaw::new(exif_data.to_vec());
         exif.decode().expected_error()?;
 
-        if let (Some(entry), Some(current_orientation)) = (
-            exif.lookup_entry(gufo_common::field::Orientation),
-            exif.lookup_short(gufo_common::field::Orientation)
-                .expected_error()?,
-        ) {
+        if let Some(entry) = exif.lookup_entry(gufo_common::field::Orientation) {
             let pos = exif_segment_data_pos
                 + entry.value_offset_position() as usize
                 + gufo::jpeg::EXIF_IDENTIFIER_STRING.len();
 
-            let current_orientation =
-                gufo_common::orientation::Orientation::try_from(current_orientation)
-                    .expected_error()?;
-
-            let new_orientation = current_orientation.combine(orientation);
-
             return Ok(Some(ByteChanges::from_slice(&[(
                 pos as u64,
-                new_orientation as u8,
+                orientation as u8,
             )])));
         }
     }

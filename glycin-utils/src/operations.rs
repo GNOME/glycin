@@ -1,7 +1,7 @@
 use std::io::Read;
 use std::str::FromStr;
 
-use gufo_common::orientation::Orientation;
+use gufo_common::orientation::{Orientation, Rotation};
 use serde::de::{value, IntoDeserializer};
 use serde::{Deserialize, Deserializer, Serialize};
 
@@ -38,6 +38,46 @@ impl Operations {
             operations,
             unknown_operations: vec![],
         }
+    }
+
+    /// Creates new operations that apply the specified orientation
+    pub fn new_orientation(orientation: Orientation) -> Operations {
+        let mut operations = Vec::new();
+
+        if orientation.mirror() {
+            operations.push(Operation::MirrorHorizontally);
+        }
+
+        let rotate = orientation.rotate();
+        if rotate != Rotation::_0 {
+            operations.push(Operation::Rotate(rotate));
+        }
+
+        Self {
+            operations,
+            unknown_operations: Vec::new(),
+        }
+    }
+
+    /// Prepend operations
+    ///
+    /// ```
+    /// # use glycin_utils::operations::{Operation, Operations};
+    /// # use gufo_common::orientation::{Orientation, Rotation};
+    /// let mut ops = Operations::new(vec![Operation::MirrorVertically]);
+    /// ops.prepend(Operations::new_orientation(Orientation::Rotation90));
+    ///
+    /// assert_eq!(
+    ///     ops.operations(),
+    ///     &[
+    ///         Operation::Rotate(Rotation::_90),
+    ///         Operation::MirrorVertically
+    ///     ]
+    /// );
+    /// ```
+    pub fn prepend(&mut self, mut operations: Operations) {
+        std::mem::swap(self, &mut operations);
+        self.operations.append(&mut operations.operations);
     }
 
     pub fn from_read(reader: impl Read) -> Result<Self, rmp_serde::decode::Error> {
