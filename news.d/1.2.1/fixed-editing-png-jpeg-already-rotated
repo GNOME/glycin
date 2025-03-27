@@ -1,0 +1,1 @@
+Fix editing for PNGs and JPEGs that are already rotated via an orientation tag in the Exif data.
