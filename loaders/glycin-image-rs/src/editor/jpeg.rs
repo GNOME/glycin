@@ -1,7 +1,7 @@
 use std::io::Read;
 
 use editing::EditingFrame;
-use glycin_utils::*;
+use glycin_utils::{operations::Operations, *};
 use gufo_common::orientation::Orientation;
 use gufo_jpeg::Jpeg;
 use memory_format::ExtendedMemoryFormat;
@@ -9,11 +9,16 @@ use zune_jpeg::zune_core::options::DecoderOptions;
 
 pub fn apply_sparse(
     mut stream: glycin_utils::UnixStream,
-    operations: glycin_utils::operations::Operations,
+    mut operations: glycin_utils::operations::Operations,
 ) -> Result<SparseEditorOutput, glycin_utils::ProcessError> {
-    let mut buf = Vec::new();
+    let mut buf: Vec<u8> = Vec::new();
     stream.read_to_end(&mut buf).internal_error()?;
     let jpeg = gufo::jpeg::Jpeg::new(buf).expected_error()?;
+
+    let metadata = gufo::Metadata::for_jpeg(&jpeg);
+    if let Some(orientation) = metadata.orientation() {
+        operations.prepend(Operations::new_orientation(orientation));
+    }
 
     if let Some(orientation) = operations.orientation() {
         if let Some(byte_changes) = rotate_sparse(orientation, &jpeg)? {
@@ -28,11 +33,16 @@ pub fn apply_sparse(
 
 pub fn apply_complete(
     mut stream: glycin_utils::UnixStream,
-    operations: glycin_utils::operations::Operations,
+    mut operations: glycin_utils::operations::Operations,
 ) -> Result<CompleteEditorOutput, glycin_utils::ProcessError> {
     let mut buf = Vec::new();
     stream.read_to_end(&mut buf).internal_error()?;
     let jpeg = gufo::jpeg::Jpeg::new(buf).expected_error()?;
+
+    let metadata = gufo::Metadata::for_jpeg(&jpeg);
+    if let Some(orientation) = metadata.orientation() {
+        operations.prepend(Operations::new_orientation(orientation));
+    }
 
     if let Some(orientation) = operations.orientation() {
         if let Some(byte_changes) = rotate_sparse(orientation, &jpeg)? {

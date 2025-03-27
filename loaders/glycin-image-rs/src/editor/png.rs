@@ -1,12 +1,12 @@
 use std::io::{Cursor, Read};
 
-use glycin_utils::*;
+use glycin_utils::{operations::Operations, *};
 use image::{ImageDecoder, ImageEncoder};
 use image_rs::Handler;
 
 pub fn apply(
     mut stream: glycin_utils::UnixStream,
-    operations: glycin_utils::operations::Operations,
+    mut operations: glycin_utils::operations::Operations,
 ) -> Result<CompleteEditorOutput, glycin_utils::ProcessError> {
     let mut old_png_data: Vec<u8> = Vec::new();
     stream.read_to_end(&mut old_png_data).internal_error()?;
@@ -17,6 +17,12 @@ pub fn apply(
     let mut simple_frame = Handler::default().simple_frame(&decoder).expected_error()?;
     let mut buf = vec![0; decoder.total_bytes() as usize];
     decoder.read_image(&mut buf).expected_error()?;
+
+    let mut old_png = gufo::png::Png::new(old_png_data).expected_error()?;
+    let metadata = gufo::Metadata::for_png(&old_png);
+    if let Some(orientation) = metadata.orientation() {
+        operations.prepend(Operations::new_orientation(orientation));
+    }
 
     buf = operations.apply(buf, &mut simple_frame).expected_error()?;
 
@@ -41,7 +47,6 @@ pub fn apply(
         .internal_error()?;
 
     let new_png = gufo::png::Png::new(new_png_data.into_inner()).expected_error()?;
-    let mut old_png = gufo::png::Png::new(old_png_data).expected_error()?;
 
     // Keep old PNG with its metadata but replace image data with the one from new
     // one
