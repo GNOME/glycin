@@ -1,0 +1,19 @@
+[package]
+name = "glycin-thumbnailer"
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+glycin = { workspace = true, features = ["async-io"] }
+gio.workspace = true
+png.workspace = true
+image.workspace = true
+
+[lints]
+workspace = true

@@ -105,6 +105,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
                 sandbox.add_ro_bind(base_dir);
             }
         }
+
         let spawned_sandbox = sandbox.spawn().await?;
         let mut subprocess = spawned_sandbox.child;
         let command_dbg = spawned_sandbox.info.command_dbg;

@@ -1042,6 +1042,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "glycin-thumbnailer"
+version = "1.2.0"
+dependencies = [
+ "gio",
+ "glycin",
+ "image",
+ "png",
+]
+
+[[package]]
 name = "glycin-utils"
 version = "4.0.0-alpha"
 dependencies = [
