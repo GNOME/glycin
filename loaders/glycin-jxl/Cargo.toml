@@ -15,8 +15,8 @@ glycin-utils = { workspace = true, features = [
     "loader-utils",
     "image-rs",
 ] }
-jpegxl-rs = { version = "0.11.1", default-features = false, features = [
+jpegxl-rs = { version = "=0.10.3", default-features = false, features = [
     "image",
 ] }
-jpegxl-sys = { version = "0.11.1", default-features = false }
+jpegxl-sys = { version = "=0.10.3", default-features = false }
 safe-transmute.workspace = true
