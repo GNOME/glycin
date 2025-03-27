@@ -118,24 +118,14 @@ fn rotate_sparse(
         let mut exif = gufo_exif::internal::ExifRaw::new(exif_data.to_vec());
         exif.decode().expected_error()?;
 
-        if let (Some(entry), Some(current_orientation)) = (
-            exif.lookup_entry(gufo_common::field::Orientation),
-            exif.lookup_short(gufo_common::field::Orientation)
-                .expected_error()?,
-        ) {
+        if let Some(entry) = exif.lookup_entry(gufo_common::field::Orientation) {
             let pos = exif_segment_data_pos
                 + entry.value_offset_position() as usize
                 + gufo::jpeg::EXIF_IDENTIFIER_STRING.len();
 
-            let current_orientation =
-                gufo_common::orientation::Orientation::try_from(current_orientation)
-                    .expected_error()?;
-
-            let new_orientation = current_orientation.combine(orientation);
-
             return Ok(Some(ByteChanges::from_slice(&[(
                 pos as u64,
-                new_orientation as u8,
+                orientation as u8,
             )])));
         }
     }
