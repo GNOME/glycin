@@ -147,7 +147,7 @@ foreach package : packages
         libglycin_gir = gnome.generate_gir(
             libglycin_shim,
             dependencies: extra_gir_deps + libglycin_copy_library_as_dep,
-            sources: f'include/glycin@suffix@.h',
+            sources: [f'include/glycin@suffix@.h', libglycin_copy_library],
             nsversion: '1',
             namespace: f'Gly@namespace_suffix@',
             symbol_prefix: f'gly@symbol_prefix_suffix@',
