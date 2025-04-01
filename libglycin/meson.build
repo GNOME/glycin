@@ -157,7 +157,7 @@ foreach package : packages
             # Listed as "C headers" in docs
             header: f'glycin@suffix@.h',
             # Listed as "pkg-config files" in docs
-            export_packages: f'libglycin@suffix@-1',
+            export_packages: f'glycin@suffix@-1',
             install: true,
         )
         if suffix == ''
