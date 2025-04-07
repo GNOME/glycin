@@ -1,0 +1,1 @@
+Revert to using sRGB instead of Rec2020 to pass images with ICC profile to GTK. This fixes some color deviations when displaying the images.
