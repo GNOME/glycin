@@ -1340,23 +1340,23 @@ checksum = "2fefe5a4fb12fa836172dc53cc36c37af693f6197ae702f931faad8774caf926"
 
 [[package]]
 name = "jpegxl-rs"
-version = "0.11.2+libjxl-0.11.1"
+version = "0.10.3+libjxl-0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "875063ddd0cb50c5668b9c3214152ee54e6ca1f42b662d66c0855f76687033c0"
+checksum = "e697c7532d4a244d91306a19c63763769366fbc61e75d5a08cc602923e478a7a"
 dependencies = [
  "byteorder",
  "derive_builder",
  "half",
  "image",
  "jpegxl-sys",
- "thiserror 2.0.12",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
 name = "jpegxl-sys"
-version = "0.11.2+libjxl-0.11.1"
+version = "0.10.3+libjxl-0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fdaef0388e8220dc89a4ab47f92f942b68dfc237fa2dd3c3881948c5d88ce2f0"
+checksum = "c8262d19ed55829441dc2a2b1315c8f15e040139443fc1dbc48551890020a5c2"
 dependencies = [
  "pkg-config",
 ]
@@ -1462,7 +1462,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc2f4eb4bc735547cfed7c0a4922cbd04a4655978c09b54f1f7b228750664c34"
 dependencies = [
  "cfg-if",
- "windows-targets 0.48.5",
+ "windows-targets 0.52.6",
 ]
 
 [[package]]
