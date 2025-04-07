@@ -22,8 +22,8 @@ fn transform(
     let target_color_state;
 
     if memory_format.n_channels() > 2 {
-        target_profile = rec2020();
-        target_color_state = ColorState::Cicp(Cicp::REC2020_LINEAR);
+        target_profile = lcms2::Profile::new_srgb();
+        target_color_state = ColorState::Srgb;
     } else {
         target_profile =
             lcms2::Profile::new_gray(lcms2_sys::ffi::CIExyY::d50(), &lcms2::ToneCurve::new(2.2))?;
@@ -75,27 +75,6 @@ const fn premul(format: lcms2::PixelFormat) -> lcms2::PixelFormat {
     let mut bytes = format.0;
     bytes |= 0b1 << 23;
     lcms2::PixelFormat(bytes)
-}
-
-fn xy(x: f64, y: f64) -> lcms2::CIExyY {
-    lcms2::CIExyY { x, y, Y: 1. }
-}
-
-fn rec2020() -> lcms2::Profile {
-    let white_point = xy(0.3127, 0.3290);
-    let primaries = lcms2::CIExyYTRIPLE {
-        Red: xy(0.708, 0.292),
-        Green: xy(0.170, 0.797),
-        Blue: xy(0.131, 0.046),
-    };
-    let transfer_function = lcms2::ToneCurve::new(1.);
-
-    lcms2::Profile::new_rgb(
-        &white_point,
-        &primaries,
-        &[&transfer_function, &transfer_function, &transfer_function],
-    )
-    .unwrap()
 }
 
 #[test]
