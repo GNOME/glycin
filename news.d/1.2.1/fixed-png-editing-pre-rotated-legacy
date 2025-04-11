@@ -1,0 +1,1 @@
+Remove rotation via legacy Exif rotation entries when editing PNG images to not make them aditionally rotated after editing. This is a fix just for legacy Exif entries via tEXt and zTEx chunks with keyword "Raw profile type exif".

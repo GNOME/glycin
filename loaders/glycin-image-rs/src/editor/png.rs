@@ -1,7 +1,9 @@
 use std::io::{Cursor, Read};
+use std::sync::Arc;
 
 use glycin_utils::operations::Operations;
 use glycin_utils::*;
+use gufo_exif::internal::ExifRaw;
 use image::{ImageDecoder, ImageEncoder};
 use image_rs::Handler;
 
@@ -71,12 +73,48 @@ fn reset_exif_orientation(mut png: gufo::png::Png) -> Vec<u8> {
     }
 
     let mut byte_pos = Vec::new();
-    for chunk in png.chunks() {
+
+    let mut chunks = png.chunks().into_iter();
+
+    while let Some(chunk) = chunks.next() {
         if matches!(chunk.chunk_type(), gufo::png::ChunkType::eXIf) {
             let exif_data = chunk.chunk_data().to_vec();
             if let Some(tag_position) = exif_orientation_value_position(exif_data) {
                 let chunk_position = chunk.unsafe_raw_chunk().complete_data().start as u64;
                 byte_pos.push(chunk_position + 8 + tag_position as u64);
+            }
+        } else if let Some(exif_data) = chunk.legacy_exif(100 * 1000 * 1000) {
+            let mut exif = ExifRaw::new(exif_data);
+            if let Err(err) = exif.decode() {
+                log::info!("Exif decode failed: {err}");
+            }
+
+            if let Some(orientation_entry) = exif.lookup_entry(gufo_common::field::Orientation) {
+                if orientation_entry.u32() != Some(gufo_common::orientation::Orientation::Id as u32)
+                {
+                    if let Err(err) = exif.set_existing(
+                        gufo_common::field::Orientation,
+                        gufo_common::orientation::Orientation::Id as u32,
+                    ) {
+                        log::info!("Failed to update Exif orientation tag {err}");
+                    }
+                    if let Some(exif_data) =
+                        Arc::into_inner(exif.raw.buffer).and_then(|x| x.into_inner().ok())
+                    {
+                        drop(chunks);
+                        if let Err(err) = gufo::png::remove_chunk!(png, chunk) {
+                            log::info!("Failed to remove chunk: {err}");
+                        }
+                        let new_chunk = gufo::png::NewChunk::new(
+                            gufo::png::ChunkType::eXIf,
+                            exif_data.into_inner(),
+                        );
+                        if let Err(err) = png.insert_chunk(new_chunk) {
+                            log::info!("Failed to insert eXIf chunk: {err}");
+                        }
+                        break;
+                    }
+                }
             }
         }
     }
