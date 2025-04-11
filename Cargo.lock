@@ -959,7 +959,7 @@ dependencies = [
 
 [[package]]
 name = "glycin"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "async-fs",
  "async-io",
@@ -1043,7 +1043,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-utils"
-version = "3.0.0"
+version = "3.0.1"
 dependencies = [
  "env_logger",
  "futures-lite",
@@ -1394,7 +1394,7 @@ checksum = "875b3680cb2f8f71bdcf9a30f38d48282f5d3c95cbf9b3fa57269bb5d5c06828"
 
 [[package]]
 name = "libglycin"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "async-io",
  "futures-task",
@@ -1404,7 +1404,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "gdk4",
  "glycin",

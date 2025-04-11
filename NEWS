@@ -1,3 +1,25 @@
+## 1.2.1 (2025-04-11)
+
+This release contains the following new component versions:
+
+- glycin-utils 3.0.1
+- glycin 2.1.1
+- libglycin 1.0.2
+- libglycin-gtk4 1.0.2
+- glycin-image-rs 1.2.1
+
+### Fixed
+
+- Fix editing for PNGs and JPEGs that are already rotated via an orientation tag
+  in the Exif data.
+- Remove rotation via legacy Exif rotation entries when editing PNG images to
+  not make them aditionally rotated after editing. This is a fix just for legacy
+  Exif entries via tEXt and zTEx chunks with keyword "Raw profile type exif".
+- Revert to using sRGB instead of Rec2020 to pass images with ICC profile to
+  GTK. This fixes some color deviations when displaying the images.
+- glycin: Allow additional syscalls needed for armv7 and on Alpine Linux in
+  sandbox.
+
 ## 1.2.0 (2025-03-14)
 
 This release contains the following new component versions:

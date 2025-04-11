@@ -55,7 +55,7 @@ gdk = { package = "gdk4", version = "0.9.5", features = ["v4_16"] }
 gio = { version = "0.20.0" }
 glib = { version = "0.20.0" }
 glycin = { path = "glycin/", default-features = false }
-glycin-utils = { version = "3.0.0", path = "glycin-utils/", default-features = false }
+glycin-utils = { version = "3.0.1", path = "glycin-utils/", default-features = false }
 gufo = { version = "0.2.3", features = ["all-image-formats"] }
 gufo-common = { version = "0.2.0", features = ["serde"] }
 gufo-exif = { version = "0.2.0" }
