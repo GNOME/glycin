@@ -1079,9 +1079,9 @@ dependencies = [
 
 [[package]]
 name = "gufo"
-version = "0.2.1"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7dd304131fc57dc3449e3687c8e6e88d6bdd80364fe0bdfda1c23e8b17ac35e1"
+checksum = "6d94d1ca1f46778f74bec14c6cc73f99bd6f3f856dcb380deae1d87fe65bca28"
 dependencies = [
  "gufo-common",
  "gufo-exif",
@@ -1107,9 +1107,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-exif"
-version = "0.2.0"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca82b09b4055d19955579ac4d3fc9ead97392d616624863bd55af500d3232ff0"
+checksum = "1448d72e2458b35dd10c0f148ea913b38c61b649552b22a97fa836ec376189ff"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.12",
@@ -1130,10 +1130,11 @@ dependencies = [
 
 [[package]]
 name = "gufo-png"
-version = "0.2.1"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "270aa76c8fb9a963040265df5e13ff4b60864ca0d24d2aa7552b113829672e7e"
+checksum = "bad9fd59eaa8aa35ac015d9b8d396a780b586cf39509f9e121f9fd67bfde5d00"
 dependencies = [
+ "crc32fast",
  "gufo-common",
  "hex",
  "miniz_oxide",
