@@ -100,11 +100,20 @@ def main():
     assert memory_format == Gly.MemoryFormat.G8, f"Memory format was not accepted: {memory_format}"
 
     # Async
+    global async_tests_remaining
+    async_tests_remaining = 0
+
+    loader = Gly.Loader(file=file)
+    image = loader.load()
+    frame_request = Gly.FrameRequest()
+    frame_request.set_scale(32, 32)
+    frame = image.get_specific_frame_async(frame_request, None, specific_image_cb, None)
+    async_tests_remaining += 1
 
     loader = Gly.Loader(file=file)
     loader.set_sandbox_selector(Gly.SandboxSelector.AUTO)
-
     image = loader.load_async(None, loader_cb, "loader_data")
+    async_tests_remaining += 1
 
     GLib.MainLoop().run()
 
@@ -121,7 +130,25 @@ def image_cb(image, result, user_data):
 
     test_frame(frame)
 
-    sys.exit(0)
+    async_test_done()
+
+def specific_image_cb(image, result, user_data):
+    assert user_data is None
+    frame = image.get_specific_frame_finish(result)
+
+    assert image.get_mime_type() == "image/jpeg"
+
+    test_frame(frame)
+
+    async_test_done()
+
+
+def async_test_done():
+    global async_tests_remaining
+    async_tests_remaining -= 1
+    print("Global tests remaining:", async_tests_remaining)
+    if async_tests_remaining == 0:
+        sys.exit(0)
 
 def cb_exit():
     print("Test: Exiting after predefined waiting time.", file=sys.stderr)

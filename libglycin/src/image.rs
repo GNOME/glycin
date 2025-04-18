@@ -24,9 +24,41 @@ pub unsafe extern "C" fn gly_image_next_frame(
     image: *mut GlyImage,
     g_error: *mut *mut GError,
 ) -> *mut GlyFrame {
-    let obj = gobject::GlyImage::from_glib_ptr_borrow(&image);
+    let frame_request = gobject::GlyFrameRequest::new().to_glib_full();
+    gly_image_get_specific_frame(image, frame_request, g_error)
+}
 
-    let result = async_io::block_on(obj.next_frame());
+#[no_mangle]
+pub unsafe extern "C" fn gly_image_next_frame_async(
+    image: *mut GlyImage,
+    cancellable: *mut gio::ffi::GCancellable,
+    callback: GAsyncReadyCallback,
+    user_data: gpointer,
+) {
+    let frame_request = gobject::GlyFrameRequest::new().to_glib_full();
+    gly_image_get_specific_frame_async(image, frame_request, cancellable, callback, user_data);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gly_image_next_frame_finish(
+    image: *mut GlyImage,
+    res: *mut GAsyncResult,
+    error: *mut *mut GError,
+) -> *mut GlyFrame {
+    gly_image_get_specific_frame_finish(image, res, error)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gly_image_get_specific_frame(
+    image: *mut GlyImage,
+    frame_request: *mut GlyFrameRequest,
+    g_error: *mut *mut GError,
+) -> *mut GlyFrame {
+    let obj = gobject::GlyImage::from_glib_ptr_borrow(&image);
+    let frame_request: glycin::FrameRequest =
+        gobject::GlyFrameRequest::from_glib_ptr_borrow(&frame_request).frame_request();
+
+    let result = async_io::block_on(obj.specific_frame(frame_request));
 
     match result {
         Ok(frame) => frame.into_glib_ptr(),
@@ -38,17 +70,19 @@ pub unsafe extern "C" fn gly_image_next_frame(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn gly_image_next_frame_async(
+pub unsafe extern "C" fn gly_image_get_specific_frame_async(
     image: *mut GlyImage,
+    frame_request: *mut GlyFrameRequest,
     cancellable: *mut gio::ffi::GCancellable,
     callback: GAsyncReadyCallback,
     user_data: gpointer,
 ) {
     let obj = gobject::GlyImage::from_glib_none(image);
+    let frame_request: glycin::FrameRequest =
+        gobject::GlyFrameRequest::from_glib_ptr_borrow(&frame_request).frame_request();
     let cancellable =
         (!cancellable.is_null()).then(|| gio::Cancellable::from_glib_none(cancellable));
     let callback: GAsyncReadyCallbackSend = GAsyncReadyCallbackSend::new(callback, user_data);
-
     let cancel_signal = if let Some(cancellable) = &cancellable {
         cancellable.connect_cancelled(glib::clone!(
             #[weak]
@@ -58,7 +92,6 @@ pub unsafe extern "C" fn gly_image_next_frame_async(
     } else {
         None
     };
-
     let cancellable_ = cancellable.clone();
     let closure = move |task: gio::Task<gobject::GlyFrame>, obj: Option<&gobject::GlyImage>| {
         if let (Some(cancel_signal), Some(cancellable)) = (cancel_signal, cancellable) {
@@ -68,17 +101,18 @@ pub unsafe extern "C" fn gly_image_next_frame_async(
         let result = task.upcast_ref::<gio::AsyncResult>().as_ptr();
         callback.call(obj.unwrap(), result);
     };
-
     let task = gio::Task::new(Some(&obj), cancellable_.as_ref(), closure);
-
     glib::MainContext::ref_thread_default().spawn_local(async move {
-        let res = obj.next_frame().await.map_err(|x| glib_error(&x));
+        let res = obj
+            .specific_frame(frame_request)
+            .await
+            .map_err(|x| glib_error(&x));
         task.return_result(res);
     });
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn gly_image_next_frame_finish(
+pub unsafe extern "C" fn gly_image_get_specific_frame_finish(
     _image: *mut GlyImage,
     res: *mut GAsyncResult,
     error: *mut *mut GError,

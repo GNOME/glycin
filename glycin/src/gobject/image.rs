@@ -5,7 +5,7 @@ use glib::subclass::prelude::*;
 use glycin_utils::ImageInfo;
 
 use super::GlyFrame;
-use crate::{ErrorCtx, Image};
+use crate::{ErrorCtx, FrameRequest, Image};
 
 static_assertions::assert_impl_all!(GlyImage: Send, Sync);
 
@@ -45,6 +45,12 @@ impl GlyImage {
 
     pub async fn next_frame(&self) -> Result<GlyFrame, ErrorCtx> {
         Ok(GlyFrame::new(self.image().next_frame().await?))
+    }
+
+    pub async fn specific_frame(&self, frame_request: FrameRequest) -> Result<GlyFrame, ErrorCtx> {
+        Ok(GlyFrame::new(
+            self.image().specific_frame(frame_request).await?,
+        ))
     }
 
     pub fn cancellable(&self) -> Cancellable {

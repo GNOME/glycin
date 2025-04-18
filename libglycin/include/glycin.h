@@ -48,6 +48,21 @@ G_DECLARE_FINAL_TYPE(GlyLoader, gly_loader, GLY, LOADER, GObject)
 G_DECLARE_FINAL_TYPE(GlyImage, gly_image, GLY, IMAGE, GObject)
 
 /**
+ * GlyFrameRequest:
+ *
+ * Defines which parts of an image to load.
+ *
+ * ::: warning
+ *     Loaders can and frequently will ignore instructions set in
+ *     `GlyFrameRequest`. The reason is that for most loaders
+ *     many instructions don't have a meaningful interpretation.
+ *
+ * Since: 1.1
+ */
+#define GLY_TYPE_FRAME_REQUEST (gly_frame_request_get_type())
+G_DECLARE_FINAL_TYPE(GlyFrameRequest, gly_frame_request, GLY, FRAME_REQUEST, GObject)
+
+/**
  * GlyFrame:
  *
  * A frame of an image often being the complete image.
@@ -78,7 +93,8 @@ G_DECLARE_FINAL_TYPE(GlyFrame, gly_frame, GLY, FRAME, GObject)
  * Sandbox mechanisms
  *
  * ::: warning
-    Using @GLY_SANDBOX_SELECTOR_NOT_SANDBOXED will disable an important security layer that sandboxes loaders. It is only intended for testing and development purposes.
+ *     Using @GLY_SANDBOX_SELECTOR_NOT_SANDBOXED will disable an important security layer that sandboxes loaders. It is only intended for testing and development purposes.
+ *
  * Since: 1.0
  */
 typedef enum
@@ -263,6 +279,40 @@ GlyImage *gly_loader_load_finish(GlyLoader *loader,
                                  GAsyncResult *result,
                                  GError **error);
 
+/**************** GlyFrameRequest ****************/
+
+/**
+ * gly_frame_request_new:
+ *
+ * Creates a new frame request.
+ *
+ * Returns: (transfer full): a new [class@FrameRequest]
+ *
+ * Since: 1.1
+ */
+GlyLoader *gly_frame_request_new();
+
+/**
+ * gly_frame_request_set_scale:
+ * @frame_request:
+ * @width: Maximum width
+ * @height: Maximum height
+ *
+ * Set maximum dimensions for the frame. The texture will be scaled
+ * to be within the maximum dimensions while keeping its aspect ratio.
+ * This option is especially useful to SVGs which will be rendered at
+ * the respective size.
+ *
+ * ::: warning
+ *     Most loaders will ignore this option. Currently, only the SVG
+ *     loader is known to obay it.
+ *
+ * Since: 1.1
+ */
+void gly_frame_request_set_scale(GlyFrameRequest *frame_request,
+                                 uint32_t width,
+                                 uint32_t height);
+
 /**************** GlyImage ****************/
 
 /**
@@ -313,6 +363,53 @@ void gly_image_next_frame_async(GlyImage *image,
 GlyFrame *gly_image_next_frame_finish(GlyImage *image,
                                       GAsyncResult *result,
                                       GError **error);
+
+/**
+ * gly_image_get_specific_frame:
+ * @image:
+ * @frame_request:
+ * @error:
+ *
+ *
+ * Since: 1.1
+ */
+GlyFrame *gly_image_get_specific_frame(GlyImage *image,
+                                       GlyFrameRequest *frame_request,
+                                       GError **error);
+
+/**
+ * gly_image_get_specific_frame_async:
+ * @image:
+ * @frame_request:
+ * @cancellable: (nullable): A [class@Gio.Cancellable] to cancel the operation
+ * @callback: A callback to call when the operation is complete
+ * @user_data: Data to pass to @callback
+ *
+ * Asynchronous version of [method@Image.get_specific_frame].
+ *
+ * Since: 1.1
+ */
+void gly_image_get_specific_frame_async(GlyImage *image,
+                                        GlyFrameRequest *frame_request,
+                                        GCancellable *cancellable,
+                                        GAsyncReadyCallback callback,
+                                        gpointer user_data);
+
+/**
+ * gly_image_get_specific_frame_finish:
+ * @image:
+ * @result: a `GAsyncResult`
+ * @error:
+ *
+ * Finishes the [method@Image.get_specific_frame_async] call.
+ *
+ * Returns: (transfer full): Loaded frame.
+ *
+ * Since: 1.1
+ */
+GlyFrame *gly_image_get_specific_frame_finish(GlyImage *image,
+                                              GAsyncResult *result,
+                                              GError **error);
 
 /**
  * gly_image_get_mime_type:

@@ -333,7 +333,7 @@ impl Frame {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 #[must_use]
 /// Request information to get a specific frame
 pub struct FrameRequest {
