@@ -96,11 +96,12 @@ unsafe impl Send for GInputStreamSend {}
 unsafe impl Sync for GInputStreamSend {}
 
 impl GInputStreamSend {
-    pub unsafe fn new(stream: gio::InputStream) -> Self {
+    pub(crate) unsafe fn new(stream: gio::InputStream) -> Self {
         Self(stream)
     }
 
-    pub fn stream(&self) -> gio::InputStream {
+    #[cfg(feature = "gobject")]
+    pub(crate) fn stream(&self) -> gio::InputStream {
         self.0.clone()
     }
 }

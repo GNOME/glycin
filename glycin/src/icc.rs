@@ -1,6 +1,6 @@
 use glycin_utils::memory_format::{MemoryFormat, MemoryFormatInfo};
 
-use crate::{Cicp, ColorState, Error};
+use crate::{ColorState, Error};
 
 pub fn apply_transformation(
     iccp: &[u8],
