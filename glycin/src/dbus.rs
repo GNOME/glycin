@@ -22,7 +22,6 @@ use glycin_utils::{
     SafeMath, SparseEditorOutput,
 };
 use gufo_common::cicp::Cicp;
-use memmap::MmapMut;
 use nix::sys::signal;
 use zbus::zvariant;
 
@@ -232,11 +231,9 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
         }
 
         let raw_fd = frame.texture.as_raw_fd();
-        let original_mmap = unsafe { MmapMut::map_mut(raw_fd) }?;
+        let img_buf = unsafe { ImgBuf::from_raw_fd(raw_fd)? };
 
-        validate_frame(&frame, &original_mmap)?;
-
-        let img_buf = ImgBuf::MMap(original_mmap);
+        validate_frame(&frame, &img_buf)?;
 
         let img_buf = if image.loader.apply_transformations {
             orientation::apply_exif_orientation(img_buf, &mut frame, image.info())
@@ -290,7 +287,7 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
         };
 
         let bytes = match img_buf {
-            ImgBuf::MMap(mmap) => {
+            ImgBuf::MMap { mmap, .. } => {
                 drop(mmap);
                 seal_fd(raw_fd).await?;
                 unsafe { gbytes_from_mmap(raw_fd)? }
@@ -523,10 +520,10 @@ async fn seal_fd(fd: impl AsRawFd) -> Result<(), memfd::Error> {
     Ok(())
 }
 
-fn validate_frame(frame: &Frame, mmap: &MmapMut) -> Result<(), Error> {
-    if mmap.len() < frame.n_bytes()? {
+fn validate_frame(frame: &Frame, img_buf: &ImgBuf) -> Result<(), Error> {
+    if img_buf.len() < frame.n_bytes()? {
         return Err(Error::TextureTooSmall {
-            texture_size: mmap.len(),
+            texture_size: img_buf.len(),
             frame: format!("{:?}", frame),
         });
     }
@@ -579,7 +576,7 @@ fn remove_stride_if_needed(
 
     match img_buf {
         ImgBuf::Vec(_) => Ok(img_buf),
-        ImgBuf::MMap(mut mmap) => {
+        ImgBuf::MMap { mut mmap, .. } => {
             let borrowed_fd = unsafe { std::os::fd::BorrowedFd::borrow_raw(raw_fd) };
 
             let width = frame
@@ -604,7 +601,7 @@ fn remove_stride_if_needed(
 
             // Need a new mmap with correct size
             let mmap = unsafe { memmap::MmapMut::map_mut(raw_fd) }?;
-            Ok(ImgBuf::MMap(mmap))
+            Ok(ImgBuf::MMap { mmap, raw_fd })
         }
     }
 }

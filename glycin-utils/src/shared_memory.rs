@@ -15,7 +15,7 @@ pub struct SharedMemory {
 
 impl SharedMemory {
     pub fn new(size: u64) -> Result<Self, ProcessError> {
-        let memfd = nix::sys::memfd::memfd_create(
+        let memfd: OwnedFd = nix::sys::memfd::memfd_create(
             &CString::new("glycin-frame").unwrap(),
             nix::sys::memfd::MemFdCreateFlag::MFD_CLOEXEC
                 | nix::sys::memfd::MemFdCreateFlag::MFD_ALLOW_SEALING,

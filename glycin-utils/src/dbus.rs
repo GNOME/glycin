@@ -148,7 +148,10 @@ impl Frame {
         let raw_fd = self.texture.as_raw_fd();
         let original_mmap = unsafe { MmapMut::map_mut(raw_fd) }?;
 
-        Ok(ImgBuf::MMap(original_mmap))
+        Ok(ImgBuf::MMap {
+            mmap: original_mmap,
+            raw_fd,
+        })
     }
 }
 
