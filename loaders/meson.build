@@ -127,7 +127,7 @@ foreach loader : get_option('loaders')
 
   # Install .thumbnailer file
   conf = configuration_data()
-  conf.set('DATADIR', datadir)
+  conf.set('DATABINDIR', databindir)
 
   configure_file(
     input: loader / loader + '.thumbnailer.in',
