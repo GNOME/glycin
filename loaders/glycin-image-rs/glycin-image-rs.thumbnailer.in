@@ -1,0 +1,4 @@
+[Thumbnailer Entry]
+TryExec=@DATADIR@/glycin-thumbnailer
+Exec=@DATADIR@/glycin-thumbnailer --input %u --output %o --size %s
+MimeType=image/jpeg;image/png;image/apng;image/gif;image/webp;image/tiff;image/x-tga;image/vnd-ms.dds;image/x-dds;image/bmp;image/vnd.microsoft.icon;image/x-exr;image/x-portable-bitmap;image/x-portable-graymap;image/x-portable-pixmap;image/x-portable-anymap;image/x-qoi;image/qoi;

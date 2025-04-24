@@ -1,0 +1,4 @@
+[Thumbnailer Entry]
+TryExec=@DATADIR@/glycin-thumbnailer
+Exec=@DATADIR@/glycin-thumbnailer --input %u --output %o --size %s
+MimeType=image/jxl;

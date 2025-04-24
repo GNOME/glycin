@@ -111,6 +111,7 @@ foreach loader : get_option('loaders')
     ],
   )
 
+  # Install .conf file
   i18n.merge_file(
     type: 'desktop',
     input: configure_file(
@@ -122,6 +123,18 @@ foreach loader : get_option('loaders')
     po_dir: '..' / 'po',
     install: true,
     install_dir: glycin_datadir / 'conf.d',
+  )
+
+  # Install .thumbnailer file
+  conf = configuration_data()
+  conf.set('DATADIR', datadir)
+
+  configure_file(
+    input: loader / loader + '.thumbnailer.in',
+    output: loader + '.thumbnailer',
+    configuration: conf,
+    install: true,
+    install_dir: datadir / 'thumbnailers',
   )
 endforeach
 
