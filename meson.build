@@ -16,12 +16,14 @@ seccomp_req = '>= 2.5.0'
 compat_version = '1+'
 
 datadir = get_option('prefix') / get_option('datadir')
+databindir = datadir / 'bin'
 libdir = get_option('prefix') / get_option('libdir')
 includedir = get_option('prefix') / get_option('includedir')
 
 cargo_target_dir = meson.project_build_root() / 'cargo-target'
 cargo_home = meson.project_build_root() / 'cargo-home'
 cargo_bin = find_program('cargo')
+cargo_manifest = meson.project_source_root() / 'Cargo.toml'
 
 if get_option('profile') == 'release'
   rust_target = 'release'
@@ -39,3 +41,4 @@ endif
 
 subdir('loaders')
 subdir('libglycin')
+subdir('thumbnailer')

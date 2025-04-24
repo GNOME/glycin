@@ -94,3 +94,11 @@ option(
   value: false,
   description: 'Test python bindings. Needs python3-gi',
 )
+
+# thumbnailer
+
+option(
+  'thumbnailer',
+  type: 'boolean',
+  description: 'Build thumbnailer',
+)
