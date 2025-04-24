@@ -22,6 +22,7 @@ use glycin_utils::{
     SafeMath, SparseEditorOutput,
 };
 use gufo_common::cicp::Cicp;
+use gufo_common::math::ToI64;
 use nix::sys::signal;
 use zbus::zvariant;
 
@@ -566,7 +567,7 @@ unsafe fn gbytes_from_mmap(raw_fd: RawFd) -> Result<glib::Bytes, Error> {
 }
 
 fn remove_stride_if_needed(
-    img_buf: ImgBuf,
+    mut img_buf: ImgBuf,
     raw_fd: RawFd,
     frame: &mut Frame,
 ) -> Result<ImgBuf, Error> {
@@ -574,36 +575,19 @@ fn remove_stride_if_needed(
         return Ok(img_buf);
     }
 
-    match img_buf {
-        ImgBuf::Vec(_) => Ok(img_buf),
-        ImgBuf::MMap { mut mmap, .. } => {
-            let borrowed_fd = unsafe { std::os::fd::BorrowedFd::borrow_raw(raw_fd) };
-
-            let width = frame
-                .width
-                .try_usize()?
-                .smul(frame.memory_format.n_bytes().usize())?;
-            let stride = frame.stride.try_usize()?;
-            let mut source = vec![0; width];
-            for row in 1..frame.height.try_usize()? {
-                source.copy_from_slice(&mmap[row.smul(stride)?..row.smul(stride)?.sadd(width)?]);
-                mmap[row.smul(width)?..row.sadd(1)?.smul(width)?].copy_from_slice(&source);
-            }
-            frame.stride = width.try_u32()?;
-
-            // This mmap would have the wrong size after ftruncate
-            drop(mmap);
-
-            nix::unistd::ftruncate(
-                borrowed_fd,
-                libc::off_t::try_from(frame.n_bytes()?).map_err(|_| DimensionTooLargerError)?,
-            )?;
-
-            // Need a new mmap with correct size
-            let mmap = unsafe { memmap::MmapMut::map_mut(raw_fd) }?;
-            Ok(ImgBuf::MMap { mmap, raw_fd })
-        }
+    let width = frame
+        .width
+        .try_usize()?
+        .smul(frame.memory_format.n_bytes().usize())?;
+    let stride = frame.stride.try_usize()?;
+    let mut source = vec![0; width];
+    for row in 1..frame.height.try_usize()? {
+        source.copy_from_slice(&img_buf[row.smul(stride)?..row.smul(stride)?.sadd(width)?]);
+        img_buf[row.smul(width)?..row.sadd(1)?.smul(width)?].copy_from_slice(&source);
     }
+    frame.stride = width.try_u32()?;
+
+    Ok(img_buf.resize(frame.n_bytes()?.i64()?)?)
 }
 
 fn spawn_stdio_reader(

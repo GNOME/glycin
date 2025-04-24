@@ -39,6 +39,10 @@ impl ImgBuf {
     }
 
     pub fn resize(self, new_len: i64) -> std::io::Result<Self> {
+        if self.len() == new_len as usize {
+            return Ok(self);
+        }
+
         match self {
             ImgBuf::MMap { mmap, raw_fd, .. } => {
                 let borrowed_fd = unsafe { std::os::fd::BorrowedFd::borrow_raw(raw_fd) };

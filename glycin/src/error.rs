@@ -173,6 +173,8 @@ pub enum Error {
     #[cfg(feature = "gobject")]
     #[error("A loader can only be used once")]
     LoaderUsedTwice,
+    #[error("Math error: {0}")]
+    MathError(#[from] gufo_common::math::MathError),
 }
 
 impl Error {
