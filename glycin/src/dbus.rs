@@ -17,9 +17,9 @@ use gio::prelude::*;
 use glycin_utils::memory_format::MemoryFormatInfo;
 use glycin_utils::operations::Operations;
 use glycin_utils::{
-    CompleteEditorOutput, DimensionTooLargerError, EditRequest, Frame, FrameRequest, ImageInfo,
-    ImgBuf, InitRequest, InitializationDetails, MemoryFormatSelection, RemoteError, SafeConversion,
-    SafeMath, SparseEditorOutput,
+    CompleteEditorOutput, EditRequest, Frame, FrameRequest, ImageInfo, ImgBuf, InitRequest,
+    InitializationDetails, MemoryFormatSelection, RemoteError, SafeConversion, SafeMath,
+    SparseEditorOutput,
 };
 use gufo_common::cicp::Cicp;
 use gufo_common::math::ToI64;
@@ -255,7 +255,7 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
             img_buf
         } else if let Some(Ok(icc_profile)) = frame.details.iccp.as_ref().map(|x| x.get()) {
             // Align stride with pixel size if necessary
-            let mut img_buf = remove_stride_if_needed(img_buf, raw_fd, &mut frame)?;
+            let mut img_buf = remove_stride_if_needed(img_buf, &mut frame)?;
 
             let memory_format = frame.memory_format;
             let (icc_mmap, icc_result) = spawn_blocking(move || {
@@ -288,7 +288,7 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
         };
 
         let bytes = match img_buf {
-            ImgBuf::MMap { mmap, .. } => {
+            ImgBuf::MMap { mmap, raw_fd } => {
                 drop(mmap);
                 seal_fd(raw_fd).await?;
                 unsafe { gbytes_from_mmap(raw_fd)? }
@@ -566,11 +566,7 @@ unsafe fn gbytes_from_mmap(raw_fd: RawFd) -> Result<glib::Bytes, Error> {
     Ok(bytes)
 }
 
-fn remove_stride_if_needed(
-    mut img_buf: ImgBuf,
-    raw_fd: RawFd,
-    frame: &mut Frame,
-) -> Result<ImgBuf, Error> {
+fn remove_stride_if_needed(mut img_buf: ImgBuf, frame: &mut Frame) -> Result<ImgBuf, Error> {
     if frame.stride.srem(frame.memory_format.n_bytes().u32())? == 0 {
         return Ok(img_buf);
     }
