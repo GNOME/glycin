@@ -81,13 +81,12 @@ pub fn change_memory_format(
 
 #[cfg(test)]
 mod test {
+    use std::os::fd::{FromRawFd, OwnedFd};
+    use std::sync::Arc;
+
     use zbus::zvariant;
 
     use super::*;
-    use std::{
-        os::fd::{FromRawFd, OwnedFd},
-        sync::Arc,
-    };
 
     #[test]
     fn test() {

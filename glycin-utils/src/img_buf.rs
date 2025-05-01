@@ -1,5 +1,7 @@
 use std::os::fd::{AsRawFd, RawFd};
 
+use crate::{editing, DimensionTooLargerError};
+
 pub enum ImgBuf {
     MMap {
         mmap: memmap::MmapMut,
@@ -38,7 +40,7 @@ impl ImgBuf {
         }
     }
 
-    pub fn resize(self, new_len: i64) -> std::io::Result<Self> {
+    pub fn resize(self, new_len: i64) -> Result<Self, editing::Error> {
         if self.len() == new_len as usize {
             return Ok(self);
         }
@@ -50,7 +52,11 @@ impl ImgBuf {
                 // This mmap would have the wrong size after ftruncate
                 drop(mmap);
 
-                nix::unistd::ftruncate(borrowed_fd, libc::off_t::from(new_len))?;
+                nix::unistd::ftruncate(
+                    borrowed_fd,
+                    libc::off_t::try_from(new_len).map_err(|_| DimensionTooLargerError)?,
+                )
+                .map_err(|x| std::io::Error::from(x))?;
 
                 // Need a new mmap with correct size
                 let mmap = unsafe { memmap::MmapMut::map_mut(raw_fd) }?;
