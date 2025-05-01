@@ -67,14 +67,11 @@ if cargo_profile != 'release'
   endif
 endif
 
-cargo_env = {
-  # Don't use $HOME/.cargo/ for this
-  'CARGO_HOME': cargo_home,
-  # Gettext translation
-  'LOCALEDIR': get_option('prefix') / get_option('localedir'),
-  # Git commit for debugging
-  'GIT_DESCRIBE': git_version,
-}
+cargo_env_module = cargo_env
+# Gettext translation
+cargo_env_module.set('LOCALEDIR', get_option('prefix') / get_option('localedir'))
+# Git commit for debugging
+cargo_env_module.set('GIT_DESCRIBE', git_version)
 
 test_args = []
 foreach loader : get_option('loaders')
@@ -86,7 +83,7 @@ foreach loader : get_option('loaders')
     build_always_stale: true,
     output: loader + '-bin',
     console: true,
-    env: cargo_env,
+    env: cargo_env_module,
     command: [
       cargo_bin,
       'build',

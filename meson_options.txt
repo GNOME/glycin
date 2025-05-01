@@ -1,12 +1,3 @@
-# global
-
-option(
-  'profile',
-  type: 'combo',
-  choices: ['release', 'dev'],
-  value: 'release',
-)
-
 # glycin loaders
 
 option(

@@ -18,10 +18,9 @@ cargo_options = [
     '--manifest-path', manifest,
 ]
 
-cargo_env = environment()
-cargo_env.set('CARGO_HOME', cargo_home)
+cargo_env_module = cargo_env
 # Let the libglycin-gtk4 build find the previously built libglycin
-cargo_env.prepend(
+cargo_env_module.prepend(
     'PKG_CONFIG_PATH',
     meson.project_build_root() / 'meson-uninstalled',
 )
@@ -68,7 +67,7 @@ foreach package : packages
         depends: link_with,
         output: f'Meson-does-not-support-sub-dir-output@suffix@',
         console: true,
-        env: cargo_env,
+        env: cargo_env_module,
         command: [cargo_bin, 'build', cargo_options, '-p', f'libglycin@suffix@'],
     )
 
