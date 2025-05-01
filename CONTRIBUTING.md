@@ -3,7 +3,7 @@
 ## Running tests
 
 ```sh
-$ meson setup -Dprofile=dev builddir
+$ meson setup -Dbuildtype=debug builddir
 $ meson test -vC builddir
 ```
 
@@ -12,7 +12,7 @@ $ meson test -vC builddir
 While `meson test` will ensure to run against the locally built loaders, for other commands, this is not the case. As a first step, you need to install the loaders into a local directory:
 
 ```sh
-$ meson setup -Dprofile=dev --prefix=$(pwd)/install builddir
+$ meson setup -Dbuildtype=debug --prefix=$(pwd)/install builddir
 $ meson install -C builddir
 ```
 

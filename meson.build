@@ -31,6 +31,20 @@ cargo_env.set('CARGO_HOME', cargo_home)
 if get_option('buildtype') == 'release'
   rust_target = 'release'
   cargo_profile = 'release'
+
+  if get_option('lto') == 'auto'
+    cargo_version_details = run_command(cargo_bin, 'version', '-v', check: true).stdout().strip()
+
+    # Disable LTO for architectures other than x86_64 and aarch64
+    # There have been frequent built issues with memory limits on 32-bit architectures
+    if not cargo_version_details.contains('host: x86_64-') and not cargo_version_details.contains('host: aarch64-')
+      message('LTO automatically disabled')
+      cargo_env.set('CARGO_PROFILE_RELEASE_LTO', 'false')
+    endif
+  elif get_option('lto') == 'false'
+    cargo_env.set('CARGO_PROFILE_RELEASE_LTO', 'false')
+  endif
+
 else
   rust_target = 'debug'
   cargo_profile = 'dev'
