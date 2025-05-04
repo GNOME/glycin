@@ -290,7 +290,7 @@ GlyImage *gly_loader_load_finish(GlyLoader *loader,
  *
  * Since: 1.1
  */
-GlyLoader *gly_frame_request_new();
+GlyLoader *gly_frame_request_new(void);
 
 /**
  * gly_frame_request_set_scale:
