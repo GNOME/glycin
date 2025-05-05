@@ -99,6 +99,10 @@ def main():
 
     assert memory_format == Gly.MemoryFormat.G8, f"Memory format was not accepted: {memory_format}"
 
+    # Functions
+
+    assert len(Gly.Loader.get_mime_types()) > 0
+
     # Async
     global async_tests_remaining
     async_tests_remaining = 0
@@ -115,6 +119,9 @@ def main():
     image = loader.load_async(None, loader_cb, "loader_data")
     async_tests_remaining += 1
 
+    Gly.Loader.get_mime_types_async(mime_types_cb, None)
+    async_tests_remaining += 1
+
     GLib.MainLoop().run()
 
 def loader_cb(loader, result, user_data):
@@ -129,6 +136,11 @@ def image_cb(image, result, user_data):
     assert image.get_mime_type() == "image/jpeg"
 
     test_frame(frame)
+
+    async_test_done()
+
+def mime_types_cb(mime_types, user_data):
+    assert len(mime_types) > 0
 
     async_test_done()
 

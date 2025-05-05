@@ -207,6 +207,36 @@ GlyLoader *gly_loader_new_for_stream(GInputStream *stream);
 GlyLoader *gly_loader_new_for_bytes(GBytes *bytes);
 
 /**
+ * gly_loader_get_mime_types:
+ *
+ * Returns a list of MIME types currently supported for loading images.
+ *
+ * This list is generated from the config on first use of a loader or
+ * call of this function and cached afterwards. Hence, the first call
+ * can be blocking.
+ *
+ * Returns: (transfer full): List of supported MIME types
+ *
+ * Since: 1.1
+ */
+GStrv gly_loader_get_mime_types(void);
+
+typedef void (*GlyLoaderGetMimeTypesDoneFunc)(GStrv mime_types,
+                                              gpointer data);
+
+/**
+ * gly_loader_get_mime_types_async:
+ * @done_cb: (scope async): Called when mime types are available
+ * @data: user data to pass to @done_cb
+ *
+ * Async variant of [func@Loader.get_mime_types]
+ *
+ * Since: 1.1
+ */
+void gly_loader_get_mime_types_async(GlyLoaderGetMimeTypesDoneFunc done_cb,
+                                     gpointer data);
+
+/**
  * gly_loader_set_sandbox_selector:
  * @loader:
  * @sandbox_selector: Method by which the sandbox mechanism is selected
