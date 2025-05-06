@@ -400,6 +400,7 @@ GlyFrame *gly_image_next_frame_finish(GlyImage *image,
  * @frame_request:
  * @error:
  *
+ * Returns: (transfer full): Loaded frame.
  *
  * Since: 1.1
  */
