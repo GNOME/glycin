@@ -8,6 +8,7 @@ use std::sync::Mutex;
 
 use editor::ImgEditor;
 use glycin_utils::image_rs::Handler;
+use glycin_utils::safe_math::*;
 use glycin_utils::*;
 use gufo_common::cicp::Cicp;
 use image::{codecs, AnimationDecoder, ImageDecoder, ImageResult, Limits};

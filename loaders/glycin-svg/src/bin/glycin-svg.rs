@@ -3,6 +3,7 @@ use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::Mutex;
 
 use gio::prelude::*;
+use glycin_utils::safe_math::*;
 use glycin_utils::*;
 use rsvg::prelude::*;
 

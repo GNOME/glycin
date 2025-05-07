@@ -5,7 +5,8 @@ use std::sync::Arc;
 
 use zbus::zvariant;
 
-use crate::{BinaryData, ProcessError, SafeConversion};
+use crate::safe_math::SafeConversion;
+use crate::{BinaryData, ProcessError};
 
 #[derive(Debug)]
 pub struct SharedMemory {

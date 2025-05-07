@@ -1,5 +1,5 @@
+use gio::glib;
 use gio::glib::ffi::{gpointer, GStrv};
-use gio::glib::{self};
 
 type GlyLoaderGetMimeTypesDoneFunc = unsafe extern "C" fn(GStrv, gpointer);
 

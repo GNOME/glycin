@@ -4,7 +4,7 @@ use std::os::fd::OwnedFd;
 use std::os::unix::net::UnixStream;
 use std::sync::{Mutex, MutexGuard};
 
-use crate::dbus::*;
+use crate::dbus_types::*;
 use crate::error::*;
 
 pub trait LoaderImplementation: Send {

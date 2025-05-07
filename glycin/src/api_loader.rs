@@ -1,7 +1,7 @@
 use gio::glib;
 use gio::prelude::*;
 #[cfg(feature = "gdk4")]
-use glycin_utils::save_math::*;
+use glycin_utils::safe_math::*;
 pub use glycin_utils::{FrameDetails, MemoryFormat};
 use glycin_utils::{ImageInfo, MemoryFormatSelection};
 

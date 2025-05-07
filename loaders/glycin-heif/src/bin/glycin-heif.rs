@@ -2,6 +2,7 @@ use std::cell::OnceCell;
 use std::io::{Cursor, Read};
 use std::sync::Mutex;
 
+use glycin_utils::safe_math::*;
 use glycin_utils::*;
 use libheif_rs::{ColorProfile, ColorSpace, HeifContext, LibHeif, RgbChroma, StreamReader};
 

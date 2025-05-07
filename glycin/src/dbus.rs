@@ -16,10 +16,10 @@ use gio::glib;
 use gio::prelude::*;
 use glycin_utils::memory_format::MemoryFormatInfo;
 use glycin_utils::operations::Operations;
+use glycin_utils::safe_math::{SafeConversion, SafeMath};
 use glycin_utils::{
     CompleteEditorOutput, EditRequest, Frame, FrameRequest, ImageInfo, ImgBuf, InitRequest,
-    InitializationDetails, MemoryFormatSelection, RemoteError, SafeConversion, SafeMath,
-    SparseEditorOutput,
+    InitializationDetails, MemoryFormatSelection, RemoteError, SparseEditorOutput,
 };
 use gufo_common::cicp::Cicp;
 use gufo_common::math::ToI64;

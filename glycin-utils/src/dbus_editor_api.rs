@@ -8,7 +8,7 @@ use std::sync::{Mutex, MutexGuard};
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::{DeserializeDict, SerializeDict, Type};
 
-use crate::dbus::*;
+use crate::dbus_types::*;
 use crate::error::*;
 use crate::operations::Operations;
 

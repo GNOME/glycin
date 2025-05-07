@@ -13,9 +13,9 @@ mod error_message {
     );
 }
 
-pub mod dbus;
-pub mod dbus_editor_api;
-pub mod dbus_loader_api;
+mod dbus_editor_api;
+mod dbus_loader_api;
+mod dbus_types;
 pub mod editing;
 pub mod error;
 #[cfg(feature = "image-rs")]
@@ -25,8 +25,8 @@ mod img_buf;
 pub mod instruction_handler;
 pub mod memory_format;
 mod memory_format_selection;
-pub mod save_math;
-pub mod shared_memory;
+pub mod safe_math;
+mod shared_memory;
 
 #[cfg(feature = "loader-utils")]
 #[doc(no_inline)]
@@ -34,14 +34,13 @@ pub use std::os::unix::net::UnixStream;
 
 pub mod operations;
 
-pub use dbus::*;
 pub use dbus_editor_api::*;
 pub use dbus_loader_api::*;
+pub use dbus_types::*;
 pub use error::*;
 pub use img_buf::ImgBuf;
 #[cfg(feature = "loader-utils")]
 pub use instruction_handler::*;
 pub use memory_format::MemoryFormat;
 pub use memory_format_selection::MemoryFormatSelection;
-pub use save_math::*;
 pub use shared_memory::*;
