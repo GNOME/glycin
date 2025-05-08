@@ -39,6 +39,8 @@ pub struct FrameRequest {
 }
 
 /// Various image metadata
+///
+/// This is returned from the initial `InitRequest` call
 #[derive(Deserialize, Serialize, Type, Debug, Clone)]
 pub struct ImageInfo {
     /// Early dimension information.
@@ -46,17 +48,15 @@ pub struct ImageInfo {
     /// This information is often correct. However, it should only be used for
     /// an early rendering estimates. For everything else, the specific frame
     /// information should be used.
-    pub width: u32,
-    pub height: u32,
+    pub frame_request: zvariant::OwnedObjectPath,
     pub details: ImageInfoDetails,
 }
 
 impl ImageInfo {
-    pub fn new(width: u32, height: u32) -> Self {
+    pub fn new(image_info: ImageInfoDetails, frame_request: zvariant::OwnedObjectPath) -> Self {
         Self {
-            width,
-            height,
-            details: Default::default(),
+            frame_request,
+            details: image_info,
         }
     }
 }
@@ -65,6 +65,8 @@ impl ImageInfo {
 #[zvariant(signature = "dict")]
 #[non_exhaustive]
 pub struct ImageInfoDetails {
+    pub width: u32,
+    pub height: u32,
     pub format_name: Option<String>,
     pub exif: Option<BinaryData>,
     pub xmp: Option<BinaryData>,
@@ -74,6 +76,22 @@ pub struct ImageInfoDetails {
     pub dimensions_text: Option<String>,
     /// Image dimensions in inch
     pub dimensions_inch: Option<(f64, f64)>,
+}
+
+impl ImageInfoDetails {
+    pub fn new(width: u32, height: u32) -> Self {
+        Self {
+            width,
+            height,
+            format_name: None,
+            exif: None,
+            xmp: None,
+            key_value: None,
+            transformations_applied: false,
+            dimensions_text: None,
+            dimensions_inch: None,
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Type, Debug)]

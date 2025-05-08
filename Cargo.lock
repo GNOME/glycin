@@ -1077,9 +1077,12 @@ dependencies = [
 name = "glycin-utils"
 version = "4.0.0-alpha"
 dependencies = [
+ "async-lock",
  "bitflags 2.9.0",
+ "blocking",
  "env_logger",
  "futures-lite",
+ "futures-util",
  "glib",
  "gufo-common",
  "half",

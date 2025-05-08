@@ -1,19 +1,23 @@
 use std::collections::BTreeMap;
+use std::sync::Arc;
 
 use gio::glib;
+use gio::glib::clone::Downgrade;
 use gio::prelude::{IsA, *};
 pub use glycin_utils::operations::{Operation, Operations};
 use glycin_utils::safe_math::SafeConversion;
-use glycin_utils::{BinaryData, ByteChanges, MemoryFormatSelection, SparseEditorOutput};
+use glycin_utils::{BinaryData, ByteChanges, SparseEditorOutput};
 
 use crate::api_common::*;
 use crate::error::ResultExt;
+use crate::pool::Pool;
 use crate::{config, util, Error, ErrorCtx, MimeType};
 
 /// Image edit builder
 #[derive(Debug)]
 pub struct Editor {
     source: Source,
+    pool: Arc<Pool>,
     cancellable: gio::Cancellable,
     pub(crate) sandbox_selector: SandboxSelector,
 }
@@ -25,6 +29,7 @@ impl Editor {
     pub fn new(file: gio::File) -> Self {
         Self {
             source: Source::File(file),
+            pool: Pool::global(),
             cancellable: gio::Cancellable::new(),
             sandbox_selector: SandboxSelector::default(),
         }
@@ -52,22 +57,24 @@ impl Editor {
     pub async fn apply_sparse(mut self, operations: Operations) -> Result<SparseEdit, ErrorCtx> {
         let source = self.source.send();
 
-        let process_context = spin_up(
+        let process_context = spin_up_editor(
             source,
+            &self.pool,
             &self.cancellable,
             &self.sandbox_selector,
-            MemoryFormatSelection::all(),
+            Arc::new(()).downgrade(),
         )
         .await
         .err_no_context(&self.cancellable)?;
 
-        let process = process_context.process;
+        let process = process_context.process.use_();
 
         let editor_output = process
             .editor_apply_sparse(
-                &process_context.gfile_worker,
+                &process_context.g_file_worker,
                 process_context.base_dir,
                 &operations,
+                &process_context.mime_type,
             )
             .await
             .err_context(&process, &self.cancellable)?;
@@ -85,22 +92,24 @@ impl Editor {
     pub async fn apply_complete_full(mut self, operations: &Operations) -> Result<Edit, ErrorCtx> {
         let source = self.source.send();
 
-        let process_context = spin_up(
+        let process_context = spin_up_editor(
             source,
+            &self.pool,
             &self.cancellable,
             &self.sandbox_selector,
-            MemoryFormatSelection::all(),
+            Arc::new(()).downgrade(),
         )
         .await
         .err_no_context(&self.cancellable)?;
 
-        let process = process_context.process;
+        let process = process_context.process.use_();
 
         let editor_output = process
             .editor_apply_complete(
-                &process_context.gfile_worker,
+                &process_context.g_file_worker,
                 process_context.base_dir,
                 operations,
+                &process_context.mime_type,
             )
             .await
             .err_context(&process, &self.cancellable)?;

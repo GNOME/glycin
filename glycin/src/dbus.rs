@@ -3,10 +3,10 @@
 //! Internal DBus API
 
 use std::io::{BufRead, Read};
-use std::marker::PhantomData;
 use std::mem;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::os::unix::net::UnixStream;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -19,52 +19,50 @@ use glycin_utils::operations::Operations;
 use glycin_utils::safe_math::{SafeConversion, SafeMath};
 use glycin_utils::{
     CompleteEditorOutput, EditRequest, Frame, FrameRequest, ImageInfo, ImgBuf, InitRequest,
-    InitializationDetails, MemoryFormatSelection, RemoteError, SparseEditorOutput,
+    InitializationDetails, RemoteError, SparseEditorOutput,
 };
 use gufo_common::cicp::Cicp;
 use gufo_common::math::ToI64;
 use nix::sys::signal;
-use zbus::zvariant;
+use zbus::zvariant::{self, OwnedObjectPath};
 
-use crate::api_loader::{self};
-use crate::config::{Config, ConfigEntry};
 use crate::sandbox::Sandbox;
 use crate::util::{self, block_on, spawn_blocking, spawn_blocking_detached};
 use crate::{
-    config, icc, orientation, ColorState, Error, Image, MimeType, SandboxMechanism, Source,
+    api_loader, config, icc, orientation, ColorState, Error, Image, MimeType, SandboxMechanism,
+    Source,
 };
 
 /// Max texture size 8 GB in bytes
 pub(crate) const MAX_TEXTURE_SIZE: u64 = 8 * 10u64.pow(9);
 
-#[derive(Clone, Debug)]
-pub struct RemoteProcess<'a, P: ZbusProxy<'a>> {
-    _dbus_connection: zbus::Connection,
+#[derive(Debug)]
+pub struct RemoteProcess<P: ZbusProxy<'static> + 'static> {
+    dbus_connection: zbus::Connection,
     decoding_instruction: P,
-    mime_type: String,
-    phantom: PhantomData<&'a P>,
     pub stderr_content: Arc<Mutex<String>>,
     pub stdout_content: Arc<Mutex<String>>,
-    memory_format_selection: MemoryFormatSelection,
+    pub process_disconnected: Arc<AtomicBool>,
+    cancellable: gio::Cancellable,
 }
+
+impl<P: ZbusProxy<'static> + 'static> Drop for RemoteProcess<P> {
+    fn drop(&mut self) {
+        tracing::debug!("Winding down process");
+        self.cancellable.cancel();
+    }
+}
+
+static_assertions::assert_impl_all!(RemoteProcess<LoaderProxy>: Send, Sync);
+static_assertions::assert_impl_all!(RemoteProcess<EditorProxy>: Send, Sync);
 
 pub trait ZbusProxy<'a>: Sized + Sync + Send + From<zbus::Proxy<'a>> {
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self>;
-    fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error>;
-    fn entry_config(config: &Config, mime_type: &MimeType) -> Result<Box<dyn ConfigEntry>, Error>;
 }
 
 impl<'a> ZbusProxy<'a> for LoaderProxy<'a> {
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self> {
         Self::builder(conn)
-    }
-
-    fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error> {
-        Ok(config.loader(mime_type)?.expose_base_dir)
-    }
-
-    fn entry_config(config: &Config, mime_type: &MimeType) -> Result<Box<dyn ConfigEntry>, Error> {
-        Ok(Box::new(config.loader(mime_type)?.clone()))
     }
 }
 
@@ -72,24 +70,14 @@ impl<'a> ZbusProxy<'a> for EditorProxy<'a> {
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self> {
         Self::builder(conn)
     }
-
-    fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error> {
-        Ok(config.editor(mime_type)?.expose_base_dir)
-    }
-
-    fn entry_config(config: &Config, mime_type: &MimeType) -> Result<Box<dyn ConfigEntry>, Error> {
-        Ok(Box::new(config.editor(mime_type)?.clone()))
-    }
 }
 
-impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
+impl<P: ZbusProxy<'static>> RemoteProcess<P> {
     pub async fn new(
-        mime_type: &config::MimeType,
-        config: &config::Config,
+        config_entry: config::ConfigEntry,
         sandbox_mechanism: SandboxMechanism,
         file: Option<gio::File>,
         cancellable: &gio::Cancellable,
-        memory_format_selection: MemoryFormatSelection,
     ) -> Result<Self, Error> {
         // UnixStream which facilitates the D-Bus connection. The stream is passed as
         // stdin to loader binaries.
@@ -97,10 +85,9 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         unix_stream.set_nonblocking(true)?;
         loader_stdin.set_nonblocking(true)?;
 
-        let config_entry = P::entry_config(config, mime_type)?;
-        let mut sandbox = Sandbox::new(sandbox_mechanism, config_entry, loader_stdin);
+        let mut sandbox = Sandbox::new(sandbox_mechanism, config_entry.clone(), loader_stdin);
         // Mount dir that contains the file as read only for formats like SVG
-        if P::expose_base_dir(config, mime_type)? {
+        if config_entry.expose_base_dir() {
             if let Some(base_dir) = file.and_then(|x| x.parent()).and_then(|x| x.path()) {
                 sandbox.add_ro_bind(base_dir);
             }
@@ -110,11 +97,23 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         let mut subprocess = spawned_sandbox.child;
         let command_dbg = spawned_sandbox.info.command_dbg;
 
+        let process_disconnected = Arc::new(AtomicBool::new(false));
+
         let stderr_content: Arc<Mutex<String>> = Default::default();
-        spawn_stdio_reader(&mut subprocess.stderr, &stderr_content, "stderr");
+        spawn_stdio_reader(
+            &mut subprocess.stderr,
+            &stderr_content,
+            process_disconnected.clone(),
+            "stderr",
+        );
 
         let stdout_content: Arc<Mutex<String>> = Default::default();
-        spawn_stdio_reader(&mut subprocess.stdout, &stdout_content, "stdout");
+        spawn_stdio_reader(
+            &mut subprocess.stdout,
+            &stdout_content,
+            process_disconnected.clone(),
+            "stdout",
+        );
 
         #[cfg(feature = "tokio")]
         let unix_stream = tokio::net::UnixStream::from_std(unix_stream)?;
@@ -129,19 +128,29 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
 
         let subprocess_id = nix::unistd::Pid::from_raw(subprocess.id().try_into().unwrap());
 
+        let process_disconnected_ = process_disconnected.clone();
         futures_util::select! {
             _result = dbus_result.clone().fuse() => Ok(()),
             _result = cancellable.future().fuse() => {
+                tracing::debug!("Killing process due to cancellation.");
                 let _result = signal::kill(subprocess_id, signal::Signal::SIGKILL);
                 Err(glib::Error::from(gio::Cancelled).into())
             },
-            return_status = spawn_blocking(move || subprocess.wait()).fuse() => match return_status {
-                Ok(status) => Err(Error::PrematureExit { status, cmd: command_dbg }),
-                Err(err) => Err(Error::StdIoError{ err: err.into(), info: command_dbg }),
+            return_status = spawn_blocking(move || {
+                let result = subprocess.wait();
+                process_disconnected_.store(true, Ordering::Relaxed);
+                tracing::debug!("Process exited: {:?} {result:?}", result.as_ref().ok().map(|x| x.code()));
+                result
+            }).fuse() => {
+                match return_status {
+                    Ok(status) => Err(Error::PrematureExit { status, cmd: command_dbg }),
+                    Err(err) => Err(Error::StdIoError{ err: err.into(), info: command_dbg }),
+                }
             }
         }?;
 
         cancellable.connect_cancelled(move |_| {
+            tracing::debug!("Killing process due to cancellation (late).");
             let _result = signal::kill(subprocess_id, signal::Signal::SIGKILL);
         });
 
@@ -150,17 +159,17 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         let decoding_instruction = P::builder(&dbus_connection)
             // Unused since P2P connection
             .destination("org.gnome.glycin")?
+            .path("/org/gnome/glycin")?
             .build()
             .await?;
 
         Ok(Self {
-            _dbus_connection: dbus_connection,
+            dbus_connection,
             decoding_instruction,
-            mime_type: mime_type.to_string(),
-            phantom: PhantomData,
             stderr_content,
             stdout_content,
-            memory_format_selection,
+            process_disconnected,
+            cancellable: cancellable.clone(),
         })
     }
 
@@ -168,6 +177,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         &self,
         gfile_worker: &GFileWorker,
         base_dir: Option<std::path::PathBuf>,
+        mime_type: &MimeType,
     ) -> Result<InitRequest, Error> {
         let (remote_reader, writer) = std::os::unix::net::UnixStream::pair()?;
 
@@ -175,7 +185,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
 
         let fd = zvariant::OwnedFd::from(OwnedFd::from(remote_reader));
 
-        let mime_type = self.mime_type.clone();
+        let mime_type = mime_type.to_string();
 
         let mut details = InitializationDetails::default();
         details.base_dir = base_dir;
@@ -188,13 +198,14 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
     }
 }
 
-impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
+impl RemoteProcess<LoaderProxy<'static>> {
     pub async fn init(
         &self,
         gfile_worker: GFileWorker,
         base_dir: Option<std::path::PathBuf>,
+        mime_type: &MimeType,
     ) -> Result<ImageInfo, Error> {
-        let init_request = self.init_request(&gfile_worker, base_dir)?;
+        let init_request = self.init_request(&gfile_worker, base_dir, mime_type)?;
 
         let image_info = self.decoding_instruction.init(init_request).shared();
 
@@ -219,12 +230,37 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
         Ok(image_info)
     }
 
-    pub async fn request_frame<'b>(
+    pub fn done_background(self: Arc<Self>, image: &Image) {
+        let frame_request_path = image.info().frame_request.clone();
+        let arc = self.clone();
+
+        crate::util::spawn_detached(arc.done(frame_request_path));
+    }
+
+    pub async fn done(self: Arc<Self>, frame_request_path: OwnedObjectPath) -> Result<(), Error> {
+        let loader_proxy = LoaderStateProxy::builder(&self.dbus_connection)
+            .destination("org.gnome.glycin")?
+            .path(frame_request_path)?
+            .build()
+            .await?;
+
+        loader_proxy.done().await.map_err(Into::into)
+    }
+
+    pub async fn request_frame(
         &self,
         frame_request: FrameRequest,
-        image: &Image<'b>,
+        image: &Image,
     ) -> Result<api_loader::Frame, Error> {
-        let mut frame = self.decoding_instruction.frame(frame_request).await?;
+        let frame_request_path = &image.info().frame_request;
+
+        let loader_proxy = LoaderStateProxy::builder(&self.dbus_connection)
+            .destination("org.gnome.glycin")?
+            .path(frame_request_path)?
+            .build()
+            .await?;
+
+        let mut frame = loader_proxy.frame(frame_request).await?;
 
         // Seal all constant data
         if let Some(iccp) = &frame.details.iccp {
@@ -278,7 +314,8 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
             img_buf
         };
 
-        let (frame, img_buf) = if let Some(target_format) = self
+        let (frame, img_buf) = if let Some(target_format) = image
+            .loader
             .memory_format_selection
             .best_format_for(frame.memory_format)
         {
@@ -312,14 +349,15 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
     }
 }
 
-impl<'a> RemoteProcess<'a, EditorProxy<'a>> {
+impl RemoteProcess<EditorProxy<'static>> {
     pub async fn editor_apply_sparse(
         &self,
         gfile_worker: &GFileWorker,
         base_dir: Option<std::path::PathBuf>,
         operations: &Operations,
+        mime_type: &MimeType,
     ) -> Result<SparseEditorOutput, Error> {
-        let init_request = self.init_request(gfile_worker, base_dir)?;
+        let init_request = self.init_request(gfile_worker, base_dir, mime_type)?;
         let edit_request = EditRequest::for_operations(operations)?;
 
         let editor_output = self
@@ -345,8 +383,9 @@ impl<'a> RemoteProcess<'a, EditorProxy<'a>> {
         gfile_worker: &GFileWorker,
         base_dir: Option<std::path::PathBuf>,
         operations: &Operations,
+        mime_type: &MimeType,
     ) -> Result<CompleteEditorOutput, Error> {
-        let init_request = self.init_request(gfile_worker, base_dir)?;
+        let init_request = self.init_request(gfile_worker, base_dir, mime_type)?;
         let edit_request = EditRequest::for_operations(operations)?;
 
         let editor_output = self
@@ -371,13 +410,15 @@ impl<'a> RemoteProcess<'a, EditorProxy<'a>> {
 use std::io::{BufReader, Write};
 const BUF_SIZE: usize = u16::MAX as usize;
 
-#[zbus::proxy(
-    interface = "org.gnome.glycin.Loader",
-    default_path = "/org/gnome/glycin"
-)]
+#[zbus::proxy(interface = "org.gnome.glycin.Loader")]
 pub trait Loader {
     async fn init(&self, init_request: InitRequest) -> Result<ImageInfo, RemoteError>;
+}
+
+#[zbus::proxy(name = "org.gnome.glycin.Image")]
+pub trait LoaderState {
     async fn frame(&self, frame_request: FrameRequest) -> Result<Frame, RemoteError>;
+    async fn done(&self) -> Result<(), RemoteError>;
 }
 
 #[zbus::proxy(
@@ -592,6 +633,7 @@ fn remove_stride_if_needed(mut img_buf: ImgBuf, frame: &mut Frame) -> Result<Img
 fn spawn_stdio_reader(
     stdio: &mut Option<impl Read + Send + 'static>,
     store: &Arc<Mutex<String>>,
+    process_disconnected: Arc<AtomicBool>,
     name: &'static str,
 ) {
     if let Some(stdout) = stdio.take() {
@@ -600,13 +642,24 @@ fn spawn_stdio_reader(
             let mut stdout = BufReader::new(stdout);
 
             let mut buf = String::new();
-            while let Ok(len) = stdout.read_line(&mut buf) {
-                if len == 0 {
-                    break;
+            loop {
+                match stdout.read_line(&mut buf) {
+                    Ok(len) => {
+                        if len == 0 {
+                            process_disconnected.store(true, Ordering::Relaxed);
+                            tracing::debug!("{name} disconnected without error");
+                            break;
+                        }
+                        tracing::debug!("Loader {name}: {buf}", buf = buf.trim_end());
+                        store.lock().unwrap().push_str(&buf);
+                        buf.clear();
+                    }
+                    Err(err) => {
+                        process_disconnected.store(true, Ordering::Relaxed);
+                        tracing::debug!("{name} disconnected with error: {err}");
+                        break;
+                    }
                 }
-                tracing::debug!("Loader {name}: {buf}", buf = buf.trim_end());
-                store.lock().unwrap().push_str(&buf);
-                buf.clear();
             }
         });
     }

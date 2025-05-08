@@ -10,8 +10,11 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+async-lock.workspace = true
+blocking.workspace = true
 bitflags.workspace = true
 futures-lite = { workspace = true, optional = true }
+futures-util.workspace = true
 half.workspace = true
 image = { workspace = true, optional = true }
 libseccomp.workspace = true

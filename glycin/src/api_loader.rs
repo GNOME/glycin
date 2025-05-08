@@ -1,4 +1,7 @@
+use std::sync::{Arc, Mutex};
+
 use gio::glib;
+use gio::glib::clone::Downgrade;
 use gio::prelude::*;
 #[cfg(feature = "gdk4")]
 use glycin_utils::safe_math::*;
@@ -9,12 +12,14 @@ use crate::api_common::*;
 pub use crate::config::MimeType;
 use crate::dbus::*;
 use crate::error::ResultExt;
+use crate::pool::{Pool, PooledProcess};
 use crate::{config, ErrorCtx};
 
 /// Image request builder
 #[derive(Debug)]
 pub struct Loader {
     source: Source,
+    pool: Arc<Pool>,
     cancellable: gio::Cancellable,
     pub(crate) apply_transformations: bool,
     pub(crate) sandbox_selector: SandboxSelector,
@@ -49,6 +54,7 @@ impl Loader {
     pub(crate) fn new_source(source: Source) -> Self {
         Self {
             source,
+            pool: Pool::global(),
             cancellable: gio::Cancellable::new(),
             apply_transformations: true,
             sandbox_selector: SandboxSelector::default(),
@@ -94,30 +100,48 @@ impl Loader {
     }
 
     /// Load basic image information and enable further operations
-    pub async fn load<'a>(mut self) -> Result<Image<'a>, ErrorCtx> {
+    pub async fn load(mut self) -> Result<Image, ErrorCtx> {
         let source = self.source.send();
 
-        let process_context = spin_up(
+        let loader_alive = Arc::new(());
+
+        let process_basics = spin_up_loader(
             source,
+            &self.pool,
             &self.cancellable,
             &self.sandbox_selector,
-            self.memory_format_selection,
+            loader_alive.downgrade(),
         )
         .await
         .err_no_context(&self.cancellable)?;
 
-        let process = process_context.process;
+        let process = process_basics.process.use_();
         let info = process
-            .init(process_context.gfile_worker, process_context.base_dir)
+            .init(
+                process_basics.g_file_worker,
+                process_basics.base_dir,
+                &process_basics.mime_type,
+            )
             .await
             .err_context(&process, &self.cancellable)?;
 
+        let path = info.frame_request.clone();
+        self.cancellable.connect_cancelled(glib::clone!(
+            #[strong(rename_to=process)]
+            process_basics.process,
+            move |_| {
+                tracing::debug!("Terminating loader");
+                crate::util::spawn_detached(process.use_().done(path))
+            }
+        ));
+
         Ok(Image {
-            process,
+            process: process_basics.process,
             info,
             loader: self,
-            mime_type: process_context.mime_type,
-            active_sandbox_mechanism: process_context.sandbox_mechanism,
+            mime_type: process_basics.mime_type,
+            active_sandbox_mechanism: process_basics.sandbox_mechanism,
+            loader_alive: Default::default(),
         })
     }
 
@@ -165,28 +189,39 @@ impl Loader {
 
 /// Image handle containing metadata and allowing frame requests
 #[derive(Debug)]
-pub struct Image<'a> {
+pub struct Image {
     pub(crate) loader: Loader,
-    process: RemoteProcess<'a, LoaderProxy<'a>>,
+    pub(crate) process: Arc<PooledProcess<LoaderProxy<'static>>>,
     info: ImageInfo,
     mime_type: MimeType,
     active_sandbox_mechanism: SandboxMechanism,
+    loader_alive: Mutex<Arc<()>>,
 }
 
 static_assertions::assert_impl_all!(Image: Send, Sync);
 
-impl<'a> Image<'a> {
+impl Drop for Image {
+    fn drop(&mut self) {
+        self.process.use_().done_background(&self);
+        *self.loader_alive.lock().unwrap() = Arc::new(());
+        self.loader.pool.clean_loaders();
+    }
+}
+
+impl Image {
     /// Loads next frame
     ///
     /// Loads texture and information of the next frame. For single still
     /// images, this can only be called once. For animated images, this
     /// function will loop to the first frame, when the last frame is reached.
     pub async fn next_frame(&self) -> Result<Frame, ErrorCtx> {
-        self.process
+        let process = self.process.use_();
+
+        process
             .request_frame(glycin_utils::FrameRequest::default(), self)
             .await
             .map_err(Into::into)
-            .err_context(&self.process, &self.cancellable())
+            .err_context(&process, &self.cancellable())
     }
 
     /// Loads a specific frame
@@ -194,11 +229,13 @@ impl<'a> Image<'a> {
     /// Loads a specific frame from the file. Loaders can ignore parts of the
     /// instructions in the `FrameRequest`.
     pub async fn specific_frame(&self, frame_request: FrameRequest) -> Result<Frame, ErrorCtx> {
-        self.process
+        let process = self.process.use_();
+
+        process
             .request_frame(frame_request.request, self)
             .await
             .map_err(Into::into)
-            .err_context(&self.process, &self.cancellable())
+            .err_context(&process, &self.cancellable())
     }
 
     /// Returns already obtained info
@@ -246,7 +283,8 @@ impl<'a> Image<'a> {
 
 impl Drop for Loader {
     fn drop(&mut self) {
-        self.cancellable.cancel();
+        //TODO
+        //self.cancellable.cancel();
     }
 }
 

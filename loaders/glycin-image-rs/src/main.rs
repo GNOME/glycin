@@ -15,7 +15,7 @@ use image::{codecs, AnimationDecoder, ImageDecoder, ImageResult, Limits};
 use log::trace;
 use memory_format::MemoryFormatInfo;
 
-init_main_loader_editor!(ImgDecoder::default(), ImgEditor::default());
+init_main_loader_editor!(ImgDecoder, ImgEditor);
 
 type Reader = Cursor<Vec<u8>>;
 type FrameReceiver = Receiver<Result<Frame, ProcessError>>;
@@ -155,11 +155,10 @@ pub fn animated_get_frame(
 
 impl LoaderImplementation for ImgDecoder {
     fn init(
-        &self,
         mut stream: UnixStream,
         mime_type: String,
         _details: InitializationDetails,
-    ) -> Result<ImageInfo, ProcessError> {
+    ) -> Result<(Self, ImageInfoDetails), ProcessError> {
         let mut buf = Vec::new();
         stream.read_to_end(&mut buf).internal_error()?;
         let data = Cursor::new(buf);
@@ -175,32 +174,34 @@ impl LoaderImplementation for ImgDecoder {
 
         let data = match metadata {
             Ok((metadata, data)) => {
-                image_info.details.exif = metadata
+                image_info.exif = metadata
                     .exif
                     .first()
                     .map(BinaryData::from_data)
                     .transpose()
                     .expected_error()?;
 
-                image_info.details.xmp = metadata
+                image_info.xmp = metadata
                     .xmp
                     .first()
                     .map(BinaryData::from_data)
                     .transpose()
                     .expected_error()?;
 
-                image_info.details.key_value = Some(metadata.key_value);
+                image_info.key_value = Some(metadata.key_value);
 
                 data
             }
             Err(err) => err.into_inner(),
         };
 
+        let loader_impelementation = Self::default();
+
         // TODO: Unnecessary clone of data
         let gufo_image = gufo::Image::new(data);
         let data = Cursor::new(match gufo_image {
             Ok(gufo_image) => {
-                *self.cicp.lock().unwrap() = gufo_image.cicp();
+                *loader_impelementation.cicp.lock().unwrap() = gufo_image.cicp();
                 gufo_image.into_inner()
             }
             Err(err) => err.into_inner(),
@@ -209,22 +210,22 @@ impl LoaderImplementation for ImgDecoder {
         if format.decoder.is_animated() {
             let (send, recv) = channel();
             let thead = std::thread::spawn(move || animated_worker(format, data, mime_type, send));
-            *self.thread.lock().unwrap() = Some((thead, recv));
+            *loader_impelementation.thread.lock().unwrap() = Some((thead, recv));
         } else {
-            *self.format.lock().unwrap() = Some(format);
+            *loader_impelementation.format.lock().unwrap() = Some(format);
         }
 
-        Ok(image_info)
+        Ok((loader_impelementation, image_info))
     }
 
-    fn frame(&self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
+    fn frame(&mut self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
         let mut frame = if let Some(decoder) = std::mem::take(&mut *self.format.lock().unwrap()) {
             decoder.frame().expected_error()?
         } else if let Some((ref thread, ref recv)) = *self.thread.lock().unwrap() {
             thread.thread().unpark();
             recv.recv().internal_error()??
         } else {
-            unreachable!()
+            todo!()
         };
 
         frame.details.cicp = self.cicp.lock().unwrap().map(|x| x.into());
@@ -384,7 +385,7 @@ impl<'a, T: std::io::BufRead + std::io::Seek + 'a> ImageRsFormat<T> {
         }
     }
 
-    fn info(&mut self) -> ImageInfo {
+    fn info(&mut self) -> ImageInfoDetails {
         match self.decoder {
             ImageRsDecoder::Bmp(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Dds(ref mut d) => self.handler.info(d),

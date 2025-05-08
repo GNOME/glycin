@@ -42,9 +42,10 @@ pub struct Config {
     pub(crate) image_editor: BTreeMap<MimeType, ImageEditorConfig>,
 }
 
-pub(crate) trait ConfigEntry: Send + Sync {
-    fn fontconfig(&self) -> bool;
-    fn exec(&self) -> PathBuf;
+#[derive(Debug, Clone)]
+pub enum ConfigEntry {
+    Editor(ImageEditorConfig),
+    Loader(ImageLoaderConfig),
 }
 
 #[derive(Debug, Clone)]
@@ -54,13 +55,16 @@ pub struct ImageLoaderConfig {
     pub fontconfig: bool,
 }
 
-impl ConfigEntry for ImageLoaderConfig {
-    fn fontconfig(&self) -> bool {
-        self.fontconfig
-    }
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ConfigEntryHash {
+    fontconfig: bool,
+    exec: PathBuf,
+    expose_base_dir: bool,
+}
 
-    fn exec(&self) -> PathBuf {
-        self.exec.clone()
+impl ConfigEntryHash {
+    pub fn exec(&self) -> &Path {
+        &self.exec
     }
 }
 
@@ -72,13 +76,34 @@ pub struct ImageEditorConfig {
     pub operations: Vec<OperationId>,
 }
 
-impl ConfigEntry for ImageEditorConfig {
-    fn fontconfig(&self) -> bool {
-        self.fontconfig
+impl ConfigEntry {
+    pub fn hash_value(&self) -> ConfigEntryHash {
+        ConfigEntryHash {
+            fontconfig: self.fontconfig(),
+            exec: self.exec(),
+            expose_base_dir: self.expose_base_dir(),
+        }
     }
 
-    fn exec(&self) -> PathBuf {
-        self.exec.clone()
+    pub fn fontconfig(&self) -> bool {
+        match self {
+            Self::Editor(e) => e.fontconfig,
+            Self::Loader(l) => l.fontconfig,
+        }
+    }
+
+    pub fn exec(&self) -> PathBuf {
+        match self {
+            Self::Editor(e) => e.exec.clone(),
+            Self::Loader(l) => l.exec.clone(),
+        }
+    }
+
+    pub fn expose_base_dir(&self) -> bool {
+        match self {
+            Self::Editor(e) => e.expose_base_dir,
+            Self::Loader(l) => l.expose_base_dir,
+        }
     }
 }
 

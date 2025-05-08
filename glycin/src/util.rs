@@ -1,3 +1,4 @@
+use std::future::Future;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
@@ -148,6 +149,24 @@ pub fn spawn_blocking_detached<F: FnOnce() -> T + Send + 'static, T: Send + 'sta
 #[cfg(feature = "tokio")]
 pub fn spawn_blocking_detached<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(f: F) {
     tokio::task::spawn_blocking(f);
+}
+
+#[cfg(not(feature = "tokio"))]
+pub fn spawn_detached<F>(f: F)
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+    blocking::unblock(move || async_io::block_on(f)).detach()
+}
+
+#[cfg(feature = "tokio")]
+pub fn spawn_detached<F>(f: F)
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+    tokio::task::spawn(f);
 }
 
 #[cfg(not(feature = "tokio"))]

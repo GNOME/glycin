@@ -66,18 +66,18 @@ impl ErrorCtx {
 }
 
 pub trait ResultExt<T> {
-    fn err_context<'a, S: ZbusProxy<'a>>(
+    fn err_context<S: ZbusProxy<'static>>(
         self,
-        process: &RemoteProcess<'a, S>,
+        process: &RemoteProcess<S>,
         cancellable: &gio::Cancellable,
     ) -> Result<T, ErrorCtx>;
     fn err_no_context(self, cancellable: &gio::Cancellable) -> Result<T, ErrorCtx>;
 }
 
 impl<T> ResultExt<T> for Result<T, Error> {
-    fn err_context<'a, S: ZbusProxy<'a>>(
+    fn err_context<S: ZbusProxy<'static>>(
         self,
-        process: &RemoteProcess<'a, S>,
+        process: &RemoteProcess<S>,
         cancellable: &gio::Cancellable,
     ) -> Result<T, ErrorCtx> {
         match self {

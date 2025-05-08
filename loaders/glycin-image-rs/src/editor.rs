@@ -8,7 +8,6 @@ pub struct ImgEditor {}
 
 impl EditorImplementation for ImgEditor {
     fn apply_sparse(
-        &self,
         stream: glycin_utils::UnixStream,
         mime_type: String,
         details: glycin_utils::InitializationDetails,
@@ -16,14 +15,13 @@ impl EditorImplementation for ImgEditor {
     ) -> Result<SparseEditorOutput, glycin_utils::ProcessError> {
         match mime_type.as_str() {
             "image/jpeg" => Ok(jpeg::apply_sparse(stream, operations)?),
-            _ => Ok(SparseEditorOutput::from(
-                self.apply_complete(stream, mime_type, details, operations)?,
-            )),
+            _ => Ok(SparseEditorOutput::from(Self::apply_complete(
+                stream, mime_type, details, operations,
+            )?)),
         }
     }
 
     fn apply_complete(
-        &self,
         stream: UnixStream,
         mime_type: String,
         _details: InitializationDetails,

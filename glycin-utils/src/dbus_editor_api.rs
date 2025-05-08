@@ -1,9 +1,9 @@
 // Copyright (c) 2024 GNOME Foundation Inc.
 
 use std::io::{Cursor, Seek, SeekFrom, Write};
+use std::marker::PhantomData;
 use std::os::fd::OwnedFd;
 use std::os::unix::net::UnixStream;
-use std::sync::{Mutex, MutexGuard};
 
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::{DeserializeDict, SerializeDict, Type};
@@ -146,13 +146,13 @@ pub struct EditorOutputInfo {
     pub lossless: bool,
 }
 
-pub struct Editor {
-    pub editor: Mutex<Box<dyn EditorImplementation>>,
+pub struct Editor<E: EditorImplementation> {
+    pub editor: PhantomData<E>,
 }
 
 /// D-Bus interface for image editors
 #[zbus::interface(name = "org.gnome.glycin.Editor")]
-impl Editor {
+impl<E: EditorImplementation> Editor<E> {
     async fn apply(
         &self,
         init_request: InitRequest,
@@ -162,15 +162,13 @@ impl Editor {
         let stream = UnixStream::from(fd);
         let operations = edit_request.operations()?;
 
-        let image_info = self
-            .get_editor()?
-            .apply_sparse(
-                stream,
-                init_request.mime_type,
-                init_request.details,
-                operations,
-            )
-            .map_err(|x| x.into_editor_error())?;
+        let image_info = E::apply_sparse(
+            stream,
+            init_request.mime_type,
+            init_request.details,
+            operations,
+        )
+        .map_err(|x| x.into_editor_error())?;
 
         Ok(image_info)
     }
@@ -185,44 +183,34 @@ impl Editor {
         let stream = UnixStream::from(fd);
         let operations = edit_request.operations()?;
 
-        let image_info = self
-            .get_editor()?
-            .apply_complete(
-                stream,
-                init_request.mime_type,
-                init_request.details,
-                operations,
-            )
-            .map_err(|x| x.into_editor_error())?;
+        let image_info = E::apply_complete(
+            stream,
+            init_request.mime_type,
+            init_request.details,
+            operations,
+        )
+        .map_err(|x| x.into_editor_error())?;
 
         Ok(image_info)
     }
 }
 
-impl Editor {
-    pub fn get_editor(&self) -> Result<MutexGuard<Box<dyn EditorImplementation>>, RemoteError> {
-        self.editor.lock().map_err(|err| {
-            RemoteError::InternalLoaderError(format!("Failed to lock editor for operation: {err}"))
-        })
-    }
-}
-
 /// Implement this trait to create an image editor
-pub trait EditorImplementation: Send {
+pub trait EditorImplementation: Send + Sync + Sized + 'static {
+    const USEABLE: bool = true;
+
     fn apply_sparse(
-        &self,
         stream: UnixStream,
         mime_type: String,
         details: InitializationDetails,
         operations: Operations,
     ) -> Result<SparseEditorOutput, ProcessError> {
-        let complete = self.apply_complete(stream, mime_type, details, operations)?;
+        let complete = Self::apply_complete(stream, mime_type, details, operations)?;
 
         Ok(SparseEditorOutput::from(complete))
     }
 
     fn apply_complete(
-        &self,
         stream: UnixStream,
         mime_type: String,
         details: InitializationDetails,
@@ -231,30 +219,26 @@ pub trait EditorImplementation: Send {
 }
 
 /// Give a `None` for a non-existent `EditorImplementation`
-pub fn void_editor_none() -> Option<impl EditorImplementation> {
-    enum Void {}
+pub enum VoidEditorImplementation {}
 
-    impl EditorImplementation for Void {
-        fn apply_sparse(
-            &self,
-            _stream: UnixStream,
-            _mime_type: String,
-            _details: InitializationDetails,
-            _operations: Operations,
-        ) -> Result<SparseEditorOutput, ProcessError> {
-            match *self {}
-        }
+impl EditorImplementation for VoidEditorImplementation {
+    const USEABLE: bool = false;
 
-        fn apply_complete(
-            &self,
-            _stream: UnixStream,
-            _mime_type: String,
-            _details: InitializationDetails,
-            _operations: Operations,
-        ) -> Result<CompleteEditorOutput, ProcessError> {
-            match *self {}
-        }
+    fn apply_sparse(
+        _stream: UnixStream,
+        _mime_type: String,
+        _details: InitializationDetails,
+        _operations: Operations,
+    ) -> Result<SparseEditorOutput, ProcessError> {
+        unreachable!()
     }
 
-    None::<Void>
+    fn apply_complete(
+        _stream: UnixStream,
+        _mime_type: String,
+        _details: InitializationDetails,
+        _operations: Operations,
+    ) -> Result<CompleteEditorOutput, ProcessError> {
+        unreachable!()
+    }
 }

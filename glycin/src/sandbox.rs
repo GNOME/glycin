@@ -153,7 +153,7 @@ const ALLOWED_SYSCALLS_FONTCONFIG: &[&str] = &[
 
 pub struct Sandbox {
     sandbox_mechanism: SandboxMechanism,
-    config_entry: Box<dyn ConfigEntry>,
+    config_entry: ConfigEntry,
     stdin: UnixStream,
     ro_bind_extra: Vec<PathBuf>,
 }
@@ -176,7 +176,7 @@ pub struct SandboxInfo {
 impl Sandbox {
     pub fn new(
         sandbox_mechanism: SandboxMechanism,
-        config_entry: Box<dyn ConfigEntry>,
+        config_entry: ConfigEntry,
         stdin: UnixStream,
     ) -> Self {
         Self {

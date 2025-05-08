@@ -14,7 +14,7 @@ pub mod imp {
 
     #[derive(Default, Debug)]
     pub struct GlyImage {
-        pub(super) image: OnceLock<Image<'static>>,
+        pub(super) image: OnceLock<Image>,
         pub(super) mime_type: OnceLock<glib::GString>,
     }
 
@@ -33,7 +33,7 @@ glib::wrapper! {
 }
 
 impl GlyImage {
-    pub(crate) fn new(image: Image<'static>) -> Self {
+    pub(crate) fn new(image: Image) -> Self {
         let obj = glib::Object::new::<Self>();
         obj.imp().image.set(image).unwrap();
         obj
