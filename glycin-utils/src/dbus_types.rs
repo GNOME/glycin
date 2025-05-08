@@ -39,6 +39,8 @@ pub struct FrameRequest {
 }
 
 /// Various image metadata
+///
+/// This is returned from the initial `InitRequest` call
 #[derive(Deserialize, Serialize, Type, Debug, Clone)]
 pub struct ImageInfo {
     /// Early dimension information.
@@ -65,6 +67,7 @@ impl ImageInfo {
 #[zvariant(signature = "dict")]
 #[non_exhaustive]
 pub struct ImageInfoDetails {
+    pub frame_request: Option<zvariant::OwnedObjectPath>,
     pub format_name: Option<String>,
     pub exif: Option<BinaryData>,
     pub xmp: Option<BinaryData>,

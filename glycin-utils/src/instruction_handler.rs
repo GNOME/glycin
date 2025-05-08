@@ -1,21 +1,27 @@
 // Copyright (c) 2024 GNOME Foundation Inc.
 
+use std::collections::HashMap;
 use std::os::fd::{AsRawFd, FromRawFd};
 use std::os::raw::{c_int, c_void};
 use std::os::unix::net::UnixStream;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use nix::libc::{c_uint, siginfo_t};
+use zbus::names::OwnedWellKnownName;
+use zbus::zvariant::OwnedObjectPath;
 
 use crate::dbus_editor_api::{void_editor_none, Editor, EditorImplementation};
 use crate::dbus_loader_api::{Loader, LoaderImplementation};
+use crate::{dbus_loader_api, ProcessError};
+use crate::{GenericContexts, LoaderState};
 
-pub struct Communication {
-    _dbus_connection: zbus::Connection,
+pub struct DbusServer<T: LoaderState> {
+    dbus_connection: zbus::Connection,
+    loader_states: Mutex<HashMap<String, T>>,
 }
 
-impl Communication {
-    pub fn spawn_loader(decoder: impl LoaderImplementation + 'static) {
+impl<T: LoaderState> DbusServer<T> {
+    pub fn spawn_loader(decoder: impl LoaderImplementation<T> + 'static) {
         futures_lite::future::block_on(async move {
             let _connection = Self::connect(Some(decoder), void_editor_none()).await;
             std::future::pending::<()>().await;
@@ -23,7 +29,7 @@ impl Communication {
     }
 
     pub fn spawn_loader_editor(
-        loader: impl LoaderImplementation + 'static,
+        loader: impl LoaderImplementation<T> + 'static,
         editor: impl EditorImplementation + 'static,
     ) {
         futures_lite::future::block_on(async move {
@@ -32,8 +38,27 @@ impl Communication {
         })
     }
 
+    async fn add_image(&self, loader_state: T) -> Result<(), ProcessError> {
+        // TODO: handle return false
+        let path = OwnedObjectPath::try_from("/org/gnome/glycin/image/XXX").internal_error()?;
+
+        self.dbus_connection
+            .object_server()
+            .at(
+                &path,
+                dbus_loader_api::Image {
+                    loader_state: Mutex::new(Box::new(loader_state)),
+                    path: path.clone(),
+                },
+            )
+            .await
+            .internal_error()?;
+
+        Ok(())
+    }
+
     async fn connect(
-        loader: Option<impl LoaderImplementation + 'static>,
+        loader: Option<impl LoaderImplementation<T> + 'static>,
         editor: Option<impl EditorImplementation + 'static>,
     ) -> Self {
         env_logger::builder().format_timestamp_millis().init();
@@ -60,6 +85,7 @@ impl Communication {
         if let Some(loader) = loader {
             let instruction_handler = Loader {
                 loader: Mutex::new(Box::new(loader)),
+                image_id: Mutex::new(1),
             };
             dbus_connection = dbus_connection
                 .serve_at("/org/gnome/glycin", instruction_handler)
@@ -75,71 +101,74 @@ impl Communication {
                 .expect("Failed to setup editor handler");
         }
 
-        let _dbus_connection = dbus_connection
+        let dbus_connection = dbus_connection
             .build()
             .await
             .expect("Failed to create private DBus connection");
 
         log::debug!("D-Bus connection to glycin created");
-        Communication { _dbus_connection }
-    }
-
-    fn setup_sigsys_handler() {
-        let mut mask = nix::sys::signal::SigSet::empty();
-        mask.add(nix::sys::signal::Signal::SIGSYS);
-
-        let sigaction = nix::sys::signal::SigAction::new(
-            nix::sys::signal::SigHandler::SigAction(Self::sigsys_handler),
-            nix::sys::signal::SaFlags::SA_SIGINFO,
-            mask,
-        );
-
-        unsafe {
-            if nix::sys::signal::sigaction(nix::sys::signal::Signal::SIGSYS, &sigaction).is_err() {
-                libc_eprint("glycin sandbox: Failed to init syscall failure signal handler");
-            }
-        };
-    }
-
-    #[allow(non_camel_case_types)]
-    extern "C" fn sigsys_handler(_: c_int, info: *mut siginfo_t, _: *mut c_void) {
-        // Reimplement siginfo_t since the libc crate doesn't support _sigsys
-        // information
-        #[repr(C)]
-        struct siginfo_t {
-            si_signo: c_int,
-            si_errno: c_int,
-            si_code: c_int,
-            _sifields: _sigsys,
-        }
-
-        #[repr(C)]
-        struct _sigsys {
-            _call_addr: *const c_void,
-            _syscall: c_int,
-            _arch: c_uint,
-        }
-
-        let info: *mut siginfo_t = info.cast();
-        let syscall = unsafe { info.as_ref().unwrap()._sifields._syscall };
-
-        let name = libseccomp::ScmpSyscall::from(syscall).get_name().ok();
-
-        libc_eprint("glycin sandbox: Blocked syscall used: ");
-        libc_eprint(&name.unwrap_or_else(|| String::from("Unknown Syscall")));
-        libc_eprint(" (");
-        libc_eprint(&syscall.to_string());
-        libc_eprint(")\n");
-
-        unsafe {
-            libc::exit(128 + libc::SIGSYS);
+        DbusServer {
+            dbus_connection,
+            loader_states: Default::default(),
         }
     }
 }
 
+#[allow(non_camel_case_types)]
+extern "C" fn sigsys_handler(_: c_int, info: *mut siginfo_t, _: *mut c_void) {
+    // Reimplement siginfo_t since the libc crate doesn't support _sigsys
+    // information
+    #[repr(C)]
+    struct siginfo_t {
+        si_signo: c_int,
+        si_errno: c_int,
+        si_code: c_int,
+        _sifields: _sigsys,
+    }
+
+    #[repr(C)]
+    struct _sigsys {
+        _call_addr: *const c_void,
+        _syscall: c_int,
+        _arch: c_uint,
+    }
+
+    let info: *mut siginfo_t = info.cast();
+    let syscall = unsafe { info.as_ref().unwrap()._sifields._syscall };
+
+    let name = libseccomp::ScmpSyscall::from(syscall).get_name().ok();
+
+    libc_eprint("glycin sandbox: Blocked syscall used: ");
+    libc_eprint(&name.unwrap_or_else(|| String::from("Unknown Syscall")));
+    libc_eprint(" (");
+    libc_eprint(&syscall.to_string());
+    libc_eprint(")\n");
+
+    unsafe {
+        libc::exit(128 + libc::SIGSYS);
+    }
+}
+
+fn setup_sigsys_handler() {
+    let mut mask = nix::sys::signal::SigSet::empty();
+    mask.add(nix::sys::signal::Signal::SIGSYS);
+
+    let sigaction = nix::sys::signal::SigAction::new(
+        nix::sys::signal::SigHandler::SigAction(sigsys_handler),
+        nix::sys::signal::SaFlags::SA_SIGINFO,
+        mask,
+    );
+
+    unsafe {
+        if nix::sys::signal::sigaction(nix::sys::signal::Signal::SIGSYS, &sigaction).is_err() {
+            libc_eprint("glycin sandbox: Failed to init syscall failure signal handler");
+        }
+    };
+}
+
 #[allow(dead_code)]
 pub extern "C" fn pre_main() {
-    Communication::setup_sigsys_handler();
+    setup_sigsys_handler();
 }
 
 #[macro_export]
@@ -150,7 +179,7 @@ macro_rules! init_main_loader {
         static __CTOR: extern "C" fn() = pre_main;
 
         fn main() {
-            $crate::Communication::spawn_loader($loader);
+            $crate::DbusServer::spawn_loader($loader);
         }
     };
 }
@@ -163,7 +192,7 @@ macro_rules! init_main_loader_editor {
         static __CTOR: extern "C" fn() = pre_main;
 
         fn main() {
-            $crate::Communication::spawn_loader_editor($loader, $editor);
+            $crate::DbusServer::spawn_loader_editor($loader, $editor);
         }
     };
 }

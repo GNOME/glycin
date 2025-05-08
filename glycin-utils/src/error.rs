@@ -92,7 +92,7 @@ pub trait GenericContexts<T> {
 
 impl<T, E> GenericContexts<T> for Result<T, E>
 where
-    E: std::error::Error + Any + Send + Sync + 'static,
+    E: std::error::Error + Any,
 {
     #[track_caller]
     fn expected_error(self) -> Result<T, ProcessError> {
