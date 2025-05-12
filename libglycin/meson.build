@@ -72,7 +72,7 @@ foreach package : packages
             if get_option('libglycin')
                 extra_gir_deps += declare_dependency(sources: global_libglycin_gir)
             endif
-            extra_girs += 'Gly-1'
+            extra_girs += ['Gly-1', 'Gdk-4.0']
         endif
     endif
 
@@ -169,7 +169,7 @@ foreach package : packages
             nsversion: '1',
             namespace: f'Gly@namespace_suffix@',
             symbol_prefix: f'gly@symbol_prefix_suffix@',
-            includes: ['GLib-2.0', 'GObject-2.0', 'Gio-2.0', 'Gdk-4.0'] + extra_girs,
+            includes: ['GLib-2.0', 'GObject-2.0', 'Gio-2.0'] + extra_girs,
             include_directories: meson.current_build_dir(),
             link_with: link_with,
             # Listed as "C headers" in docs
