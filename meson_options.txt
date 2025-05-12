@@ -32,7 +32,7 @@ option(
     'glycin-jxl',
     'glycin-svg',
   ],
-  description: 'List of loaders to build.',
+  description: 'List of loaders to build. Only has an effect if "glycin-loaders" is enabled.',
 )
 
 option(
@@ -67,7 +67,13 @@ option(
 option(
   'libglycin',
   type: 'boolean',
-  description: 'Build C bindings for the glycin crate',
+  description: 'Build libglycin C bindings for the glycin crate',
+)
+
+option(
+  'libglycin-gtk4',
+  type: 'boolean',
+  description: 'Build libglycin-gtk4 C bindings with contain GTK 4 dependent functions. Only built if "libglycin" is also enabled.',
 )
 
 option(
