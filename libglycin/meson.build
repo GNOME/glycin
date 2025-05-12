@@ -1,4 +1,4 @@
-if not get_option('libglycin')
+if not get_option('libglycin') and not get_option('libglycin-gtk4')
     subdir_done()
 endif
 
@@ -19,27 +19,40 @@ cargo_options = [
 ]
 
 cargo_env_module = cargo_env
-# Let the libglycin-gtk4 build find the previously built libglycin
-cargo_env_module.prepend(
-    'PKG_CONFIG_PATH',
-    meson.project_build_root() / 'meson-uninstalled',
-)
 
-packages = [
-    {
-        'suffix': '',
-        'namespace_suffix': '',
-        'symbol_prefix_suffix': '',
-        'extra_deps': [],
-    },
-]
+packages = []
+
+if get_option('libglycin')
+    # Let the libglycin-gtk4 build find the previously built libglycin
+    cargo_env_module.prepend(
+        'PKG_CONFIG_PATH',
+        meson.project_build_root() / 'meson-uninstalled',
+    )
+
+    packages = [
+        {
+            'suffix': '',
+            'namespace_suffix': '',
+            'symbol_prefix_suffix': '',
+            'extra_deps': [],
+        },
+    ]
+endif
 
 if get_option('libglycin-gtk4')
+    extra_deps = [dependency('gtk4', version: gtk4_req)]
+
+    # Not building libglycin, need to link already installed version
+    if not get_option('libglycin')
+        dependency('glycin-1')
+        global_libglycin = []
+    endif
+
     packages += {
         'suffix': '-gtk4',
         'namespace_suffix': 'Gtk4',
         'symbol_prefix_suffix': '_gtk',
-        'extra_deps': [dependency('gtk4', version: gtk4_req)],
+        'extra_deps': extra_deps,
     }
 endif
 
@@ -55,7 +68,9 @@ foreach package : packages
     if suffix != ''
         link_with += global_libglycin
         if introspection
-            extra_gir_deps += declare_dependency(sources: global_libglycin_gir)
+            if get_option('libglycin')
+                extra_gir_deps += declare_dependency(sources: global_libglycin_gir)
+            endif
             extra_girs += 'Gly-1'
         endif
     endif

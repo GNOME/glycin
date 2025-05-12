@@ -71,7 +71,7 @@ option(
 option(
   'libglycin-gtk4',
   type: 'boolean',
-  description: 'Build libglycin-gtk4 C bindings with contain GTK 4 dependent functions. Only built if "libglycin" is also enabled.',
+  description: 'Build libglycin-gtk4 C bindings with contain GTK 4 dependent functions. If "libglycin" is disabled, this links to an installed libglycin library.',
 )
 
 option(
