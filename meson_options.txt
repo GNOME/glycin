@@ -44,14 +44,12 @@ option(
 option(
   'tests',
   type: 'boolean',
-  value: true,
   description: 'Support running tests.',
 )
 
 option(
   'tokio_tests',
   type: 'boolean',
-  value: true,
   description: 'Also run tests with tokio if tests are enabled.',
 )
 
