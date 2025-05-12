@@ -24,7 +24,7 @@ use glycin_utils::{
 use gufo_common::cicp::Cicp;
 use gufo_common::math::ToI64;
 use nix::sys::signal;
-use zbus::zvariant;
+use zbus::zvariant::{self, OwnedObjectPath};
 
 use crate::api_loader::{self};
 use crate::config::{Config, ConfigEntry};
@@ -39,7 +39,7 @@ pub(crate) const MAX_TEXTURE_SIZE: u64 = 8 * 10u64.pow(9);
 
 #[derive(Clone, Debug)]
 pub struct RemoteProcess<'a, P: ZbusProxy<'a>> {
-    _dbus_connection: zbus::Connection,
+    dbus_connection: zbus::Connection,
     decoding_instruction: P,
     mime_type: String,
     phantom: PhantomData<&'a P>,
@@ -150,11 +150,12 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         let decoding_instruction = P::builder(&dbus_connection)
             // Unused since P2P connection
             .destination("org.gnome.glycin")?
+            .path("/org/gnome/glycin")?
             .build()
             .await?;
 
         Ok(Self {
-            _dbus_connection: dbus_connection,
+            dbus_connection,
             decoding_instruction,
             mime_type: mime_type.to_string(),
             phantom: PhantomData,
@@ -224,7 +225,20 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
         frame_request: FrameRequest,
         image: &Image<'b>,
     ) -> Result<api_loader::Frame, Error> {
-        let mut frame = self.decoding_instruction.frame(frame_request).await?;
+        let y = image
+            .info()
+            .details
+            .frame_request
+            .clone()
+            .unwrap_or_else(|| OwnedObjectPath::try_from("/org/gnome/glycin").unwrap());
+
+        let x = LoaderProxy::builder(&self.dbus_connection)
+            .destination("org.gnome.glycin")?
+            .path(y)?
+            .build()
+            .await?;
+
+        let mut frame = x.frame(frame_request).await?;
 
         // Seal all constant data
         if let Some(iccp) = &frame.details.iccp {
@@ -371,10 +385,7 @@ impl<'a> RemoteProcess<'a, EditorProxy<'a>> {
 use std::io::{BufReader, Write};
 const BUF_SIZE: usize = u16::MAX as usize;
 
-#[zbus::proxy(
-    interface = "org.gnome.glycin.Loader",
-    default_path = "/org/gnome/glycin"
-)]
+#[zbus::proxy(interface = "org.gnome.glycin.Loader")]
 pub trait Loader {
     async fn init(&self, init_request: InitRequest) -> Result<ImageInfo, RemoteError>;
     async fn frame(&self, frame_request: FrameRequest) -> Result<Frame, RemoteError>;

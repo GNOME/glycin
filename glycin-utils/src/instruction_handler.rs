@@ -38,25 +38,6 @@ impl<T: LoaderState> DbusServer<T> {
         })
     }
 
-    async fn add_image(&self, loader_state: T) -> Result<(), ProcessError> {
-        // TODO: handle return false
-        let path = OwnedObjectPath::try_from("/org/gnome/glycin/image/XXX").internal_error()?;
-
-        self.dbus_connection
-            .object_server()
-            .at(
-                &path,
-                dbus_loader_api::Image {
-                    loader_state: Mutex::new(Box::new(loader_state)),
-                    path: path.clone(),
-                },
-            )
-            .await
-            .internal_error()?;
-
-        Ok(())
-    }
-
     async fn connect(
         loader: Option<impl LoaderImplementation<T> + 'static>,
         editor: Option<impl EditorImplementation + 'static>,
