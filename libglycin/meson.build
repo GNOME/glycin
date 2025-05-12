@@ -3,6 +3,7 @@ if not get_option('libglycin') and not get_option('libglycin-gtk4')
 endif
 
 libglycin_deps = [
+    dependency('fontconfig', version: fontconfig_req),
     dependency('gio-2.0', version: gio_req),
     dependency('libseccomp', version: seccomp_req),
     dependency('lcms2', version: lcms2_req),
@@ -44,7 +45,7 @@ if get_option('libglycin-gtk4')
 
     # Not building libglycin, need to link already installed version
     if not get_option('libglycin')
-        dependency('glycin-1')
+        extra_deps += dependency('glycin-1')
         global_libglycin = []
     endif
 
