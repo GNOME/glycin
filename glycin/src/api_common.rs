@@ -189,7 +189,7 @@ pub(crate) async fn spin_up<'a, P: ZbusProxy<'a> + 'a>(
 
 pub(crate) async fn guess_mime_type(gfile_worker: &GFileWorker) -> Result<MimeType, Error> {
     let head = gfile_worker.head().await?;
-    let (content_type, unsure) = gio::content_type_guess(None::<String>, &head);
+    let (content_type, unsure) = gio::content_type_guess(None::<String>, head.as_slice());
     let mime_type = gio::content_type_get_mime_type(&content_type)
         .ok_or_else(|| Error::UnknownContentType(content_type.to_string()));
 
@@ -205,7 +205,7 @@ pub(crate) async fn guess_mime_type(gfile_worker: &GFileWorker) -> Result<MimeTy
 
     if unsure || is_tiff || is_xml || is_gzip {
         if let Some(filename) = gfile_worker.file().and_then(|x| x.basename()) {
-            let content_type_fn = gio::content_type_guess(Some(filename), &head).0;
+            let content_type_fn = gio::content_type_guess(Some(filename), head.as_slice()).0;
             return gio::content_type_get_mime_type(&content_type_fn)
                 .ok_or_else(|| Error::UnknownContentType(content_type_fn.to_string()))
                 .map(|x| MimeType(x.to_string()));
