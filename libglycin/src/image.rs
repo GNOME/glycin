@@ -24,8 +24,8 @@ pub unsafe extern "C" fn gly_image_next_frame(
     image: *mut GlyImage,
     g_error: *mut *mut GError,
 ) -> *mut GlyFrame {
-    let frame_request = gobject::GlyFrameRequest::new().to_glib_full();
-    gly_image_get_specific_frame(image, frame_request, g_error)
+    let frame_request = gobject::GlyFrameRequest::new();
+    gly_image_get_specific_frame(image, frame_request.to_glib_none().0, g_error)
 }
 
 #[no_mangle]
@@ -35,8 +35,14 @@ pub unsafe extern "C" fn gly_image_next_frame_async(
     callback: GAsyncReadyCallback,
     user_data: gpointer,
 ) {
-    let frame_request = gobject::GlyFrameRequest::new().to_glib_full();
-    gly_image_get_specific_frame_async(image, frame_request, cancellable, callback, user_data);
+    let frame_request = gobject::GlyFrameRequest::new();
+    gly_image_get_specific_frame_async(
+        image,
+        frame_request.to_glib_none().0,
+        cancellable,
+        callback,
+        user_data,
+    );
 }
 
 #[no_mangle]
