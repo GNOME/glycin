@@ -86,8 +86,7 @@ pub unsafe extern "C" fn gly_image_get_specific_frame_async(
     let obj = gobject::GlyImage::from_glib_none(image);
     let frame_request: glycin::FrameRequest =
         gobject::GlyFrameRequest::from_glib_ptr_borrow(&frame_request).frame_request();
-    let cancellable =
-        (!cancellable.is_null()).then(|| gio::Cancellable::from_glib_none(cancellable));
+    let cancellable: Option<gio::Cancellable> = from_glib_none(cancellable);
     let callback: GAsyncReadyCallbackSend = GAsyncReadyCallbackSend::new(callback, user_data);
     let cancel_signal = if let Some(cancellable) = &cancellable {
         cancellable.connect_cancelled(glib::clone!(
