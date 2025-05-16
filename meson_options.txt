@@ -8,6 +8,13 @@ option(
   description: 'Control link time optimizations. The "auto" options enables LTO on x86_64 and aarch64 only. Other platforms often do not provide enough memory.',
 )
 
+option(
+  'profile',
+  type: 'combo',
+  choices: ['release', 'dev'],
+  value: 'release',
+)
+
 # glycin loaders
 
 option(

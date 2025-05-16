@@ -29,7 +29,7 @@ cargo_manifest = meson.project_source_root() / 'Cargo.toml'
 cargo_env = environment()
 cargo_env.set('CARGO_HOME', cargo_home)
 
-if get_option('buildtype') == 'release'
+if get_option('profile') == 'release'
   rust_target = 'release'
   cargo_profile = 'release'
 
@@ -49,12 +49,6 @@ if get_option('buildtype') == 'release'
 else
   rust_target = 'debug'
   cargo_profile = 'dev'
-
-  if get_option('buildtype') != 'debug'
-    warning(
-      'Exact buildtype "@0@" not supported. Using settings for "debug" instead.'.format(get_option('buildtype')),
-    )
-  endif
 endif
 
 introspection = (get_option('introspection') or get_option('vapi') or get_option('capi_docs'))
