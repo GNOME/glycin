@@ -142,7 +142,8 @@ test-fedora41-loaders-tokio:
       color color_exif_orientation color_iccp_pro gray_iccp icon exif fonts
 
 cargo-semver-checks:
-  image: rust
+  # Using 1.86 until semver-checks work on newer versions
+  image: rust:1.86
   extends: .install_dependencies
   interruptible: true
   variables:
