@@ -1052,6 +1052,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "glycin-tools"
+version = "1.2.0"
+dependencies = [
+ "async-io",
+ "gdk4",
+ "gio",
+ "glycin",
+ "glycin-utils",
+ "gufo-common",
+]
+
+[[package]]
 name = "glycin-utils"
 version = "4.0.0-alpha"
 dependencies = [

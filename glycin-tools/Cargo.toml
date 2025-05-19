@@ -1,0 +1,21 @@
+[package]
+name = "glycin-tools"
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+glycin = { workspace = true, features = ['gdk4'] }
+gdk.workspace = true
+gio.workspace = true
+async-io.workspace = true
+gufo-common.workspace = true
+glycin-utils.workspace = true
+
+[lints]
+workspace = true

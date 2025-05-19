@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0 OR LGPL-2.1-or-later
 
 use gdk::prelude::*;
-use glycin::Loader;
+use glycin::{Loader, MemoryFormatSelection};
 
 fn main() {
     let Some(path) = std::env::args().nth(1) else {
@@ -16,7 +16,9 @@ where
     P: AsRef<std::path::Path>,
 {
     let file = gio::File::for_path(path);
-    let image = Loader::new(file).load().await.expect("request failed");
+    let mut loader = Loader::new(file);
+    loader.accepted_memory_formats(MemoryFormatSelection::B8g8r8);
+    let image = loader.load().await.expect("request failed");
     let frame = image.next_frame().await.expect("next frame failed");
 
     frame.texture().save_to_png("output.png")?;
