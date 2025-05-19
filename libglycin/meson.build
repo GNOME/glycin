@@ -152,12 +152,24 @@ foreach package : packages
         sources: libglycin_copy_library,
     )
 
+    if suffix == ''
+        version = run_command(crate_version_bin, f'libglycin@suffix@', 'gnome', check: true).stdout()
+    else
+        version = run_command(
+            crate_version_bin,
+            f'libglycin/libglycin@suffix@',
+            'gnome',
+            check: true,
+        ).stdout()
+    endif
+
     # Generate .pc file
     pkg.generate(
         name: f'glycin@suffix@-1',
         description: 'Glycin: Sandboxed and extendable image decoding',
         libraries: deps + libglycin_shim + libglycin_copy_library_as_dep,
         subdirs: f'glycin@suffix@-1',
+        version: version,
     )
 
     if introspection
