@@ -2,8 +2,14 @@
 
 use gdk::prelude::*;
 use glycin::{Loader, MemoryFormatSelection};
+use tracing_subscriber::prelude::*;
 
 fn main() {
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::EnvFilter::builder().from_env_lossy())
+        .with(tracing_subscriber::fmt::Layer::default().compact())
+        .init();
+
     let Some(path) = std::env::args().nth(1) else {
         std::process::exit(2)
     };
@@ -17,7 +23,7 @@ where
 {
     let file = gio::File::for_path(path);
     let mut loader = Loader::new(file);
-    loader.accepted_memory_formats(MemoryFormatSelection::B8g8r8);
+    loader.accepted_memory_formats(MemoryFormatSelection::R8g8b8);
     let image = loader.load().await.expect("request failed");
     let frame = image.next_frame().await.expect("next frame failed");
 

@@ -1061,6 +1061,7 @@ dependencies = [
  "glycin",
  "glycin-utils",
  "gufo-common",
+ "tracing-subscriber",
 ]
 
 [[package]]

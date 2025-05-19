@@ -1,11 +1,8 @@
 use std::io::Read;
 
-use gufo_common::read::*;
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::Type;
 use zerocopy::{FromBytes, IntoBytes};
-
-use crate::editing;
 
 pub trait MemoryFormatInfo: Sized {
     fn n_bytes(self) -> MemoryFormatBytes;
@@ -195,7 +192,7 @@ impl MemoryFormat {
     /// Defines from which channels to get the RGBA values
     ///
     /// The return value is in the order `[R, G, B, A]`.
-    const fn source_definition(self) -> [Source; 4] {
+    pub const fn source_definition(self) -> [Source; 4] {
         match self {
             MemoryFormat::B8g8r8a8Premultiplied | MemoryFormat::B8g8r8a8 => {
                 [Source::C2, Source::C1, Source::C0, Source::C3]
@@ -233,7 +230,7 @@ impl MemoryFormat {
         }
     }
 
-    const fn target_definition(self) -> &'static [Target] {
+    pub const fn target_definition(self) -> &'static [Target] {
         match self {
             MemoryFormat::B8g8r8a8Premultiplied | MemoryFormat::B8g8r8a8 => {
                 &[Target::B, Target::G, Target::R, Target::A]
@@ -262,27 +259,20 @@ impl MemoryFormat {
         }
     }
 
-    pub(crate) fn transform(
-        src_format: Self,
-        src: &[u8],
-        target_format: Self,
-        target: &mut [u8],
-    ) -> Result<(), editing::Error> {
-        let channels_f32 = Self::to_f32(src_format, src)?;
-        Self::from_f32(channels_f32, target_format, target)?;
-
-        Ok(())
+    #[inline]
+    pub(crate) fn transform(src_format: Self, src: &[u8], target_format: Self, target: &mut [u8]) {
+        let channels_f32 = Self::to_f32(src_format, src);
+        Self::from_f32(channels_f32, target_format, target);
     }
 
-    pub(crate) fn to_f32(src_format: Self, mut src: &[u8]) -> Result<[f32; 4], editing::Error> {
+    #[inline]
+    pub(crate) fn to_f32(src_format: Self, mut src: &[u8]) -> [f32; 4] {
         match src_format.channel_type() {
             ChannelType::U8 => {
-                Self::to_f32_internal::<u8>(FromBytes::ref_from_bytes(src)?, src_format)
-                    .map_err(Into::into)
+                Self::to_f32_internal::<u8>(FromBytes::ref_from_bytes(src).unwrap(), src_format)
             }
             ChannelType::U16 => {
-                Self::to_f32_internal::<u16>(FromBytes::ref_from_bytes(src)?, src_format)
-                    .map_err(Into::into)
+                Self::to_f32_internal::<u16>(FromBytes::ref_from_bytes(src).unwrap(), src_format)
             }
             ChannelType::F16 => {
                 let bytes = &mut [0; 2];
@@ -290,30 +280,26 @@ impl MemoryFormat {
                 while let Ok(()) = src.read_exact(bytes) {
                     f16_data.push(half::f16::from_ne_bytes(*bytes));
                 }
-                Self::to_f32_internal::<half::f16>(&f16_data, src_format).map_err(Into::into)
+                Self::to_f32_internal::<half::f16>(&f16_data, src_format)
             }
             ChannelType::F32 => {
-                Self::to_f32_internal::<f32>(FromBytes::ref_from_bytes(src)?, src_format)
-                    .map_err(Into::into)
+                Self::to_f32_internal::<f32>(FromBytes::ref_from_bytes(src).unwrap(), src_format)
             }
         }
     }
 
-    #[allow(clippy::get_first)]
-    fn to_f32_internal<T: ChannelValue>(
-        source_channels: &[T],
-        source_format: Self,
-    ) -> Result<[f32; 4], ReadError> {
+    #[inline]
+    fn to_f32_internal<T: ChannelValue>(source_channels: &[T], source_format: Self) -> [f32; 4] {
         let mut channels_f32 = [0.0_f32; 4];
 
         let source_definition = source_format.source_definition();
 
         for (n, channel) in channels_f32.iter_mut().enumerate() {
-            *channel = match source_definition.e_get(n)? {
-                Source::C0 => (*source_channels.e_get(0)?).to_f32_normed(),
-                Source::C1 => (*source_channels.e_get(1)?).to_f32_normed(),
-                Source::C2 => (*source_channels.e_get(2)?).to_f32_normed(),
-                Source::C3 => (*source_channels.e_get(3)?).to_f32_normed(),
+            *channel = match source_definition[n] {
+                Source::C0 => (source_channels[0]).to_f32_normed(),
+                Source::C1 => (source_channels[1]).to_f32_normed(),
+                Source::C2 => (source_channels[2]).to_f32_normed(),
+                Source::C3 => (source_channels[3]).to_f32_normed(),
                 Source::Opaque => 1.,
             };
         }
@@ -324,14 +310,11 @@ impl MemoryFormat {
             channels_f32[2] /= channels_f32[3];
         }
 
-        Ok(channels_f32)
+        channels_f32
     }
 
-    pub(crate) fn from_f32(
-        channels_f32: [f32; 4],
-        target_format: Self,
-        target: &mut [u8],
-    ) -> Result<(), ReadError> {
+    #[inline]
+    pub(crate) fn from_f32(channels_f32: [f32; 4], target_format: Self, target: &mut [u8]) {
         match target_format.channel_type() {
             ChannelType::U8 => Self::from_f32_internal::<u8>(channels_f32, target_format, target),
             ChannelType::U16 => Self::from_f32_internal::<u16>(channels_f32, target_format, target),
@@ -342,11 +325,12 @@ impl MemoryFormat {
         }
     }
 
+    #[inline]
     fn from_f32_internal<T: ChannelValue>(
         channels_f32: [f32; 4],
         target_format: Self,
         target: &mut [u8],
-    ) -> Result<(), ReadError> {
+    ) {
         let target_channel_size = target_format.channel_type().size();
 
         let premultiply = if target_format.is_premultiplied() {
@@ -369,11 +353,9 @@ impl MemoryFormat {
             let bytes = new_channel.as_bytes_wrapper();
 
             for i in 0..target_channel_size {
-                *target.e_get_mut(n * target_channel_size + i)? = *bytes.e_get(i)?;
+                target[n * target_channel_size + i] = bytes[i];
             }
         }
-
-        Ok(())
     }
 }
 
@@ -463,7 +445,8 @@ impl ChannelValue for f32 {
     }
 }
 
-enum Target {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Target {
     R,
     G,
     B,
@@ -472,7 +455,10 @@ enum Target {
 }
 
 /// Defines a channel from which to take the value for a color/opacity
-enum Source {
+///
+/// These are usually used in an array of sources of the order [R, G, B, A].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Source {
     C0,
     C1,
     C2,
@@ -545,8 +531,7 @@ mod tests {
             &[255, 85, 127],
             MemoryFormat::B8g8r8a8,
             target,
-        )
-        .unwrap();
+        );
 
         assert_eq!(*target, [127, 85, 255, 255]);
     }
@@ -560,8 +545,7 @@ mod tests {
             &[255, 0, 127],
             MemoryFormat::G8,
             target,
-        )
-        .unwrap();
+        );
 
         assert_eq!(*target, [127]);
     }
@@ -575,8 +559,7 @@ mod tests {
             &[255, 0, 127],
             MemoryFormat::R16g16b16,
             target,
-        )
-        .unwrap();
+        );
 
         assert_eq!(*target, [255, 255, 0, 0, 127, 127]);
     }
