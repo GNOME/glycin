@@ -29,6 +29,7 @@ tokio = { workspace = true, optional = true }
 log.workspace = true
 env_logger.workspace = true
 zerocopy.workspace = true
+rayon.workspace = true
 
 [features]
 default = ["async-io"]

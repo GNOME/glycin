@@ -41,6 +41,7 @@ dbg_macro = "forbid"
 async-fs = "2.1.0"
 async-io = "2.3.2"
 async-lock = "3.3.0"
+bitflags = "2.9.0"
 blocking = "1.6.1"
 cairo-rs = "0.20"
 env_logger = { version = "0.11.0", default-features = false, features = [
@@ -72,6 +73,7 @@ memmap = { package = "memmap2", version = "0.9.0" }
 nix = { version = "0.29.0", features = ["fs", "resource", "signal"] }
 paste = "1.0.0"
 png = "0.17.16"
+rayon = "1.10.0"
 rmp-serde = "1.3.0"
 safe-transmute = "0.11.2"
 serde = { version = "1.0.162", features = ["derive"] }
@@ -85,4 +87,3 @@ tracing-subscriber = { version = "0.3.0", features = ["env-filter", "fmt"] }
 yeslogic-fontconfig-sys = "6.0.0"
 zbus = { version = "5.2.0", default-features = false, features = ["p2p"] }
 zerocopy = "0.8.12"
-bitflags = "2.9.0"

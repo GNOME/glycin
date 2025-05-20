@@ -1,8 +1,9 @@
 use gufo_common::math::Checked;
+use rayon::iter::IntoParallelIterator;
+use rayon::prelude::*;
 
 use crate::memory_format::{ChannelType, MemoryFormatInfo, Source, Target};
 use crate::{editing, Frame, ImgBuf, MemoryFormat};
-
 pub fn change_memory_format(
     mut img_buf: ImgBuf,
     frame: &mut Frame,
@@ -29,6 +30,14 @@ pub fn change_memory_format(
 
     let mut new_data = vec![0; new_total_size];
 
+    // Target rows for parralel processing
+    let mut target_rows = Vec::new();
+    (0..frame.height as usize).fold(new_data.as_mut_slice(), |x, y| {
+        let (row, rest) = x.split_at_mut(new_stride as usize);
+        target_rows.push((y, row));
+        rest
+    });
+
     if src_format.channel_type() == target_format.channel_type()
         && src_format.is_premultiplied() == target_format.is_premultiplied()
         && (!src_format.source_definition().contains(&Source::Opaque)
@@ -42,7 +51,7 @@ pub fn change_memory_format(
 
         let target_n_channels = target_format.n_channels();
 
-        for y in 0..frame.height as usize {
+        target_rows.into_par_iter().for_each(|(y, new_row)| {
             for x in 0..frame.width as usize {
                 let x_ = x * src_pixel_n_bytes;
 
@@ -50,16 +59,16 @@ pub fn change_memory_format(
                 let i0 = x_ + y * frame.stride as usize;
 
                 // target bytes for pixel
-                let k0 = x * target_pixel_n_bytes + y * new_stride as usize;
+                let k0 = x * target_pixel_n_bytes;
 
                 for channel_byte in 0..target_format.channel_type().size() {
                     for i in 0..target_n_channels as usize {
-                        new_data[k0 + i + channel_byte] =
+                        new_row[k0 + i + channel_byte] =
                             src_data[i0 + source_target_index_map[i] + channel_byte];
                     }
                 }
             }
-        }
+        });
     } else if src_format.channel_type() == ChannelType::U16
         && target_format.channel_type() == ChannelType::U8
         && src_format.is_premultiplied() == target_format.is_premultiplied()
@@ -75,7 +84,7 @@ pub fn change_memory_format(
         let target_n_channels = target_format.n_channels();
         let source_channel_size = src_format.channel_type().size();
 
-        for y in 0..frame.height as usize {
+        target_rows.into_par_iter().for_each(|(y, new_row)| {
             for x in 0..frame.width as usize {
                 let x_ = x * src_pixel_n_bytes;
 
@@ -83,10 +92,10 @@ pub fn change_memory_format(
                 let i0 = x_ + y * frame.stride as usize;
 
                 // target bytes for pixel
-                let k0 = x * target_pixel_n_bytes + y * new_stride as usize;
+                let k0 = x * target_pixel_n_bytes;
 
                 for i in 0..target_n_channels as usize {
-                    new_data[k0 + i] = (u16::from_ne_bytes([
+                    new_row[k0 + i] = (u16::from_ne_bytes([
                         src_data[i0 + source_target_index_map[i] * source_channel_size],
                         src_data[i0 + source_target_index_map[i] * source_channel_size + 1],
                     ])
@@ -94,9 +103,9 @@ pub fn change_memory_format(
                         >> 8) as u8;
                 }
             }
-        }
+        });
     } else {
-        for y in 0..frame.height as usize {
+        target_rows.into_par_iter().for_each(|(y, new_row)| {
             for x in 0..frame.width as usize {
                 let x_ = x * src_pixel_n_bytes;
 
@@ -105,17 +114,17 @@ pub fn change_memory_format(
                 let i1 = i0 + src_pixel_n_bytes;
 
                 // target bytes for pixel
-                let k0 = x * target_pixel_n_bytes + y * new_stride as usize;
+                let k0 = x * target_pixel_n_bytes;
                 let k1 = k0 + target_pixel_n_bytes;
 
                 MemoryFormat::transform(
                     src_format,
                     &src_data[i0..i1],
                     target_format,
-                    &mut new_data[k0..k1],
+                    &mut new_row[k0..k1],
                 );
             }
-        }
+        });
     }
 
     frame.stride = new_stride;
@@ -167,5 +176,20 @@ mod test {
         let mut frame = Frame::new(2, 2, crate::MemoryFormat::R8g8b8a8, texture).unwrap();
         let x = change_memory_format(img_buf, &mut frame, MemoryFormat::B8g8r8).unwrap();
         assert_eq!(x.as_slice(), &[3, 2, 1, 7, 6, 5, 11, 10, 9, 15, 14, 13]);
+    }
+
+    #[test]
+    fn u8premultiplied_to_u8() {
+        let (a, _) = std::os::unix::net::UnixStream::pair().unwrap();
+        let texture = crate::BinaryData {
+            memfd: Arc::new(unsafe {
+                zvariant::OwnedFd::from(OwnedFd::from_raw_fd(a.into_raw_fd()))
+            }),
+        };
+        let img_buf = ImgBuf::Vec(vec![127, 63, 0, 127, 127, 63, 0, 255]);
+        let mut frame =
+            Frame::new(1, 2, crate::MemoryFormat::R8g8b8a8Premultiplied, texture).unwrap();
+        let x = change_memory_format(img_buf, &mut frame, MemoryFormat::R8g8b8a8).unwrap();
+        assert_eq!(x.as_slice(), &[255, 126, 0, 127, 127, 63, 0, 255]);
     }
 }

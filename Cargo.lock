@@ -1081,6 +1081,7 @@ dependencies = [
  "memmap2",
  "nix",
  "paste",
+ "rayon",
  "rmp-serde",
  "serde",
  "thiserror 2.0.12",
