@@ -278,13 +278,16 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
             img_buf
         };
 
-        let img_buf = if let Some(target_format) = self
+        let (frame, img_buf) = if let Some(target_format) = self
             .memory_format_selection
             .best_format_for(frame.memory_format)
         {
-            glycin_utils::editing::change_memory_format(img_buf, &mut frame, target_format)?
+            util::spawn_blocking(move || {
+                glycin_utils::editing::change_memory_format(img_buf, frame, target_format)
+            })
+            .await?
         } else {
-            img_buf
+            (frame, img_buf)
         };
 
         let bytes = match img_buf {
