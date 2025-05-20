@@ -28,7 +28,7 @@ custom_target(
     build_by_default: true,
     build_always_stale: true,
     install: true,
-    install_dir: databindir,
+    install_dir: bindir,
     output: 'glycin-thumbnailer',
     command: [
         'cp',
