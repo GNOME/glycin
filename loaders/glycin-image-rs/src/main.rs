@@ -170,26 +170,33 @@ impl LoaderImplementation for ImgDecoder {
         let mut image_info = format.info();
 
         // TODO: Unnecessary clone of data
-        let metadata = gufo::RawMetadata::for_guessed(data.get_ref().to_vec());
+        let metadata = gufo::RawMetadata::for_guessed(data.into_inner());
 
-        if let Ok(metadata) = metadata {
-            image_info.details.exif = metadata
-                .exif
-                .first()
-                .map(BinaryData::from_data)
-                .transpose()
-                .expected_error()?;
+        let data = match metadata {
+            Ok((metadata, data)) => {
+                image_info.details.exif = metadata
+                    .exif
+                    .first()
+                    .map(BinaryData::from_data)
+                    .transpose()
+                    .expected_error()?;
 
-            image_info.details.xmp = metadata
-                .xmp
-                .first()
-                .map(BinaryData::from_data)
-                .transpose()
-                .expected_error()?;
-        }
+                image_info.details.xmp = metadata
+                    .xmp
+                    .first()
+                    .map(BinaryData::from_data)
+                    .transpose()
+                    .expected_error()?;
+
+                image_info.details.key_value = Some(metadata.key_value);
+
+                data
+            }
+            Err(err) => err.into_inner(),
+        };
 
         // TODO: Unnecessary clone of data
-        let gufo_image = gufo::Image::new(data.into_inner());
+        let gufo_image = gufo::Image::new(data);
         let data = Cursor::new(match gufo_image {
             Ok(gufo_image) => {
                 *self.cicp.lock().unwrap() = gufo_image.cicp();

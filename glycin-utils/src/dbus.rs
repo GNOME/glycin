@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::ops::Deref;
 use std::os::fd::AsRawFd;
 use std::sync::Arc;
@@ -66,6 +67,7 @@ pub struct ImageInfoDetails {
     pub format_name: Option<String>,
     pub exif: Option<BinaryData>,
     pub xmp: Option<BinaryData>,
+    pub key_value: Option<BTreeMap<String, String>>,
     pub transformations_applied: bool,
     /// Textual description of the image dimensions
     pub dimensions_text: Option<String>,

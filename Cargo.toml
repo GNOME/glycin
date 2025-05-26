@@ -57,10 +57,14 @@ gio = { version = "0.20.0", features = ["v2_62"] }
 glib = { version = "0.20.0" }
 glycin = { path = "glycin/", default-features = false }
 glycin-utils = { version = "4.0.0-alpha", path = "glycin-utils/", default-features = false }
-gufo = { version = "0.2.3", features = ["all-image-formats"] }
-gufo-common = { version = "0.2.0", features = ["serde"] }
-gufo-exif = { version = "0.2.0" }
-gufo-jpeg = { version = "0.2.0" }
+gufo = { version = "0.3.0", features = [
+    "all-image-formats",
+], git = "https://github.com/gufo-rs/gufo.git" }
+gufo-common = { version = "0.3.0", features = [
+    "serde",
+], git = "https://github.com/gufo-rs/gufo.git" }
+gufo-exif = { version = "0.3.0", git = "https://github.com/gufo-rs/gufo.git" }
+gufo-jpeg = { version = "0.3.0", git = "https://github.com/gufo-rs/gufo.git" }
 half = "2.4.1"
 image = { version = "0.25.2", default-features = false }
 lcms2 = "6.0.3"

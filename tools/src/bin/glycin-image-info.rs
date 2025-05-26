@@ -55,6 +55,14 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
             )
             .to_string())
     );
+    if let Some(key_value) = &info.details.key_value {
+        println!("key_value = ");
+        for (key, value) in key_value {
+            println!(" - {key}: {value}");
+        }
+    } else {
+        println!("key_value = -");
+    }
     println!(
         "dimensions_text = {}",
         info.details
