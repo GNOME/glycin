@@ -17,8 +17,10 @@ def test_loader(loader):
 
 def test_image(image):
     mime_type = image.get_mime_type()
+    none_existent_value = image.get_metadata_key_value("does-not-exist")
 
     assert mime_type == "image/jpeg", f"Wrong mime type {mime_type}"
+    assert none_existent_value is None
 
     frame = image.next_frame()
     test_frame(frame)
@@ -50,7 +52,11 @@ def main():
     dir = os.path.dirname(os.path.abspath(__file__))
 
     test_image = os.path.join(dir, "test-images/images/color/color.jpg")
+    test_image_png = os.path.join(dir, "test-images/images/exif.png")
+
     file = Gio.File.new_for_path(test_image)
+    file_png = Gio.File.new_for_path(test_image_png)
+
 
     # Types
 
@@ -98,6 +104,19 @@ def main():
     memory_format = frame.get_memory_format()
 
     assert memory_format == Gly.MemoryFormat.G8, f"Memory format was not accepted: {memory_format}"
+
+    # Metadata: Key-Value
+
+    loader = Gly.Loader.new(file_png)
+    image = loader.load()
+
+    key_value_exif_model = image.get_metadata_key_value("exif:Model")
+    key_value_empty = image.get_metadata_key_value("does-not-exist")
+    key_list = image.get_metadata_keys()
+
+    assert key_value_exif_model == "Canon EOS 400D DIGITAL"
+    assert key_value_empty is None
+    assert "exif:DateTime" in key_list
 
     # Functions
 

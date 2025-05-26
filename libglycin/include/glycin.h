@@ -11,7 +11,7 @@ G_BEGIN_DECLS
  *
  * [class@Loader] prepares loading an image.
  *
- * The following example shows how to obtain a [class@Gdk.Texture]. It uses
+ * The following example shows how to obtain a `Gdk.Texture`. It uses
  * [GlyGtk4](https://gnome.pages.gitlab.gnome.org/glycin/libglycin-gtk4)
  * for this.
  *
@@ -481,6 +481,39 @@ uint32_t gly_image_get_width(GlyImage *image);
  * Since: 1.0
  */
 uint32_t gly_image_get_height(GlyImage *image);
+
+/**
+ * gly_image_get_metadata_key_value:
+ * @image:
+ * @key: A null-terminated string.
+ *
+ * Get metadata that are stored as key-value pairs.
+ * A prominent example are PNG's `tEXt` and `zTXt` chunks.
+ *
+ * ::: note
+ *     In contrast to gdk-pixbuf's *option* feature, the
+ *     keys do not carry prefixes like `tEXt::` or `zTXt::`.
+ *
+ *
+ * Return value: (transfer full) (nullable): The UTF-8 encoded value associated with `key`.
+ *
+ * Since: 1.3
+ **/
+const gchar *
+gly_image_get_metadata_key_value(GlyImage *image,
+                                 const gchar *key);
+
+/**
+ * gly_image_get_metadata_keys:
+ * @image:
+ *
+ * Get the list of available keys for [method@Image.get_metadata_key_value].
+ *
+ * Return value: (transfer full): List of existing keys.
+ *
+ * Since: 1.3
+ **/
+GStrv gly_image_get_metadata_keys(GlyImage *image);
 
 /**************** GlyFrame ****************/
 

@@ -3,6 +3,7 @@ use std::ptr;
 
 use gio::ffi::{GAsyncReadyCallback, GAsyncResult, GTask};
 use gio::glib;
+use gio::glib::ffi::GStrv;
 use gio::prelude::*;
 use glib::ffi::{gpointer, GError, GType};
 use glib::subclass::prelude::*;
@@ -151,4 +152,36 @@ pub unsafe extern "C" fn gly_image_get_width(image: *mut GlyImage) -> u32 {
 pub unsafe extern "C" fn gly_image_get_height(image: *mut GlyImage) -> u32 {
     let image = gobject::GlyImage::from_glib_ptr_borrow(&image);
     image.image_info().height
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gly_image_get_metadata_key_value(
+    image: *mut GlyImage,
+    key: *const c_char,
+) -> *const c_char {
+    let image = gobject::GlyImage::from_glib_ptr_borrow(&image);
+    let key = glib::GStr::from_ptr_checked(key).unwrap().as_str();
+
+    let value = image
+        .image_info()
+        .details
+        .key_value
+        .as_ref()
+        .and_then(|x| x.get(key));
+
+    value.to_glib_full()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gly_image_get_metadata_keys(image: *mut GlyImage) -> GStrv {
+    let image = gobject::GlyImage::from_glib_ptr_borrow(&image);
+
+    image
+        .image_info()
+        .details
+        .key_value
+        .as_ref()
+        .map(|x| glib::StrV::from_iter(x.keys().map(|x| glib::GString::from(x))))
+        .unwrap_or_default()
+        .into_raw()
 }
