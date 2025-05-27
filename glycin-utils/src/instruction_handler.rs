@@ -12,8 +12,7 @@ use zbus::zvariant::OwnedObjectPath;
 
 use crate::dbus_editor_api::{void_editor_none, Editor, EditorImplementation};
 use crate::dbus_loader_api::{Loader, LoaderImplementation};
-use crate::{dbus_loader_api, ProcessError};
-use crate::{GenericContexts, LoaderState};
+use crate::{dbus_loader_api, GenericContexts, LoaderState, ProcessError};
 
 pub struct DbusServer<T: LoaderState> {
     dbus_connection: zbus::Connection,

@@ -24,9 +24,9 @@ use glycin_utils::{
 use gufo_common::cicp::Cicp;
 use gufo_common::math::ToI64;
 use nix::sys::signal;
-use zbus::zvariant::{self, OwnedObjectPath};
+use zbus::zvariant;
 
-use crate::api_loader::{self};
+use crate::api_loader;
 use crate::config::{Config, ConfigEntry};
 use crate::sandbox::Sandbox;
 use crate::util::{self, block_on, spawn_blocking, spawn_blocking_detached};
@@ -225,20 +225,15 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
         frame_request: FrameRequest,
         image: &Image<'b>,
     ) -> Result<api_loader::Frame, Error> {
-        let y = image
-            .info()
-            .details
-            .frame_request
-            .clone()
-            .unwrap_or_else(|| OwnedObjectPath::try_from("/org/gnome/glycin").unwrap());
+        let frame_request_path = &image.info().frame_request;
 
-        let x = LoaderProxy::builder(&self.dbus_connection)
+        let loader_proxy = LoaderStateProxy::builder(&self.dbus_connection)
             .destination("org.gnome.glycin")?
-            .path(y)?
+            .path(frame_request_path)?
             .build()
             .await?;
 
-        let mut frame = x.frame(frame_request).await?;
+        let mut frame = loader_proxy.frame(frame_request).await?;
 
         // Seal all constant data
         if let Some(iccp) = &frame.details.iccp {
@@ -388,6 +383,10 @@ const BUF_SIZE: usize = u16::MAX as usize;
 #[zbus::proxy(interface = "org.gnome.glycin.Loader")]
 pub trait Loader {
     async fn init(&self, init_request: InitRequest) -> Result<ImageInfo, RemoteError>;
+}
+
+#[zbus::proxy(name = "org.gnome.glycin.Image")]
+pub trait LoaderState {
     async fn frame(&self, frame_request: FrameRequest) -> Result<Frame, RemoteError>;
 }
 

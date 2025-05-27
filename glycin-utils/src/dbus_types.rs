@@ -50,14 +50,16 @@ pub struct ImageInfo {
     /// information should be used.
     pub width: u32,
     pub height: u32,
+    pub frame_request: zvariant::OwnedObjectPath,
     pub details: ImageInfoDetails,
 }
 
 impl ImageInfo {
-    pub fn new(width: u32, height: u32) -> Self {
+    pub fn new(width: u32, height: u32, frame_request: zvariant::OwnedObjectPath) -> Self {
         Self {
             width,
             height,
+            frame_request,
             details: Default::default(),
         }
     }
@@ -67,7 +69,6 @@ impl ImageInfo {
 #[zvariant(signature = "dict")]
 #[non_exhaustive]
 pub struct ImageInfoDetails {
-    pub frame_request: Option<zvariant::OwnedObjectPath>,
     pub format_name: Option<String>,
     pub exif: Option<BinaryData>,
     pub xmp: Option<BinaryData>,

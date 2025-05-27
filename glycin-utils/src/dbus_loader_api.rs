@@ -20,7 +20,6 @@ pub trait LoaderImplementation<T>: Send {
         mime_type: String,
         details: InitializationDetails,
     ) -> Result<(ImageInfo, T), ProcessError>;
-    fn frame(&self, loader_state: T, frame_request: FrameRequest) -> Result<Frame, ProcessError>;
 }
 
 pub struct Loader<T: LoaderState> {
@@ -80,12 +79,6 @@ impl<T: LoaderState> Loader<T> {
             .map_err(|x| x.into_loader_error())?;
 
         Ok(image_info)
-    }
-
-    async fn frame(&self, frame_request: FrameRequest) -> Result<Frame, RemoteError> {
-        self.get_loader()?
-            .frame(todo!(), frame_request)
-            .map_err(|x| x.into_loader_error())
     }
 }
 
