@@ -2,7 +2,6 @@
 
 use std::io::{Cursor, Read, Write};
 use std::mem::MaybeUninit;
-use std::sync::Mutex;
 
 use glycin_utils::*;
 use jpegxl_rs::image::ToDynamic;
@@ -10,43 +9,44 @@ use jpegxl_sys::codestream_header::*;
 use jpegxl_sys::decode::*;
 use jpegxl_sys::types::{JxlBool, JxlBoxType};
 
-init_main_loader!(ImgDecoder::default());
+init_main_loader!(ImgDecoder);
 
-type InitData = Option<(Vec<u8>, Option<Vec<u8>>)>;
+type InitData = (Vec<u8>, Option<Vec<u8>>);
 
 #[derive(Default)]
 pub struct ImgDecoder {
-    pub decoder: Mutex<InitData>,
+    pub decoder: InitData,
 }
 
 impl LoaderImplementation for ImgDecoder {
     fn init(
-        &self,
         mut stream: UnixStream,
         _mime_type: String,
         _details: InitializationDetails,
-    ) -> Result<ImageInfo, ProcessError> {
+    ) -> Result<(Self, ImageInfoDetails), ProcessError> {
         let mut data = Vec::new();
         stream.read_to_end(&mut data).expected_error()?;
         let (info, iccp, exif) = basic_info(&data);
 
         let info = info.expected_error()?;
 
-        let mut image_info = ImageInfo::new(info.xsize, info.ysize);
-        image_info.details.format_name = Some(String::from("JPEG XL"));
-        image_info.details.exif = exif
+        let mut image_info = ImageInfoDetails::new(info.xsize, info.ysize);
+        image_info.format_name = Some(String::from("JPEG XL"));
+        image_info.exif = exif
             .map(BinaryData::from_data)
             .transpose()
             .expected_error()?;
-        image_info.details.transformations_applied = true;
+        image_info.transformations_applied = true;
 
-        *self.decoder.lock().unwrap() = Some((data, iccp));
+        let loader_implementation = ImgDecoder {
+            decoder: (data, iccp),
+        };
 
-        Ok(image_info)
+        Ok((loader_implementation, image_info))
     }
 
-    fn frame(&self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
-        let (data, iccp) = std::mem::take(&mut *self.decoder.lock().unwrap()).expected_error()?;
+    fn frame(&mut self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
+        let (data, iccp) = &self.decoder;
 
         let decoder = jpegxl_rs::decode::decoder_builder()
             .build()
@@ -74,6 +74,7 @@ impl LoaderImplementation for ImgDecoder {
         let mut frame = Frame::new(width, height, memory_format, texture).expected_error()?;
 
         frame.details.iccp = iccp
+            .clone()
             .map(BinaryData::from_data)
             .transpose()
             .expected_error()?;

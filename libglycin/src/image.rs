@@ -145,13 +145,13 @@ pub unsafe extern "C" fn gly_image_get_mime_type(image: *mut GlyImage) -> *const
 #[no_mangle]
 pub unsafe extern "C" fn gly_image_get_width(image: *mut GlyImage) -> u32 {
     let image = gobject::GlyImage::from_glib_ptr_borrow(&image);
-    image.image_info().width
+    image.image_info().details.width
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn gly_image_get_height(image: *mut GlyImage) -> u32 {
     let image = gobject::GlyImage::from_glib_ptr_borrow(&image);
-    image.image_info().height
+    image.image_info().details.height
 }
 
 #[no_mangle]

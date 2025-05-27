@@ -1,7 +1,10 @@
-use super::{Frame, ImageInfo, SharedMemory};
+use super::{Frame, SharedMemory};
 use crate::editing::EditingFrame;
 use crate::memory_format::{ExtendedMemoryFormat, MemoryFormat, MemoryFormatInfo};
-use crate::{BinaryData, DimensionTooLargerError, FrameDetails, GenericContexts, ProcessError};
+use crate::{
+    BinaryData, DimensionTooLargerError, FrameDetails, GenericContexts, ImageInfoDetails,
+    ProcessError,
+};
 
 #[derive(Default, Clone, Debug)]
 pub struct Handler {
@@ -36,10 +39,10 @@ impl Handler {
         self
     }
 
-    pub fn info(&self, decoder: &mut impl image::ImageDecoder) -> ImageInfo {
+    pub fn info(&self, decoder: &mut impl image::ImageDecoder) -> ImageInfoDetails {
         let (width, height) = decoder.dimensions();
-        let mut info = ImageInfo::new(width, height);
-        info.details.format_name.clone_from(&self.format_name);
+        let mut info = ImageInfoDetails::new(width, height);
+        info.format_name.clone_from(&self.format_name);
 
         info
     }
@@ -118,6 +121,7 @@ impl Handler {
     }
 }
 
+/*
 impl ImageInfo {
     pub fn from_decoder(
         decoder: &mut impl image::ImageDecoder,
@@ -128,6 +132,7 @@ impl ImageInfo {
         Self::new(width, height)
     }
 }
+     */
 
 impl MemoryFormat {
     pub fn to_color_type(&self) -> Option<image::ColorType> {

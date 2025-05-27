@@ -26,12 +26,12 @@ use gufo_common::math::ToI64;
 use nix::sys::signal;
 use zbus::zvariant;
 
-use crate::api_loader;
 use crate::config::{Config, ConfigEntry};
 use crate::sandbox::Sandbox;
 use crate::util::{self, block_on, spawn_blocking, spawn_blocking_detached};
 use crate::{
-    config, icc, orientation, ColorState, Error, Image, MimeType, SandboxMechanism, Source,
+    api_loader, config, icc, orientation, ColorState, Error, Image, MimeType, SandboxMechanism,
+    Source,
 };
 
 /// Max texture size 8 GB in bytes

@@ -1,44 +1,37 @@
 // Copyright (c) 2024 GNOME Foundation Inc.
 
-use std::collections::HashMap;
 use std::os::fd::{AsRawFd, FromRawFd};
 use std::os::raw::{c_int, c_void};
 use std::os::unix::net::UnixStream;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 
 use nix::libc::{c_uint, siginfo_t};
-use zbus::names::OwnedWellKnownName;
-use zbus::zvariant::OwnedObjectPath;
 
 use crate::dbus_editor_api::{void_editor_none, Editor, EditorImplementation};
 use crate::dbus_loader_api::{Loader, LoaderImplementation};
-use crate::{dbus_loader_api, GenericContexts, LoaderState, ProcessError};
 
-pub struct DbusServer<T: LoaderState> {
-    dbus_connection: zbus::Connection,
-    loader_states: Mutex<HashMap<String, T>>,
+pub struct DbusServer {
+    _dbus_connection: zbus::Connection,
 }
 
-impl<T: LoaderState> DbusServer<T> {
-    pub fn spawn_loader(decoder: impl LoaderImplementation<T> + 'static) {
+impl DbusServer {
+    pub fn spawn_loader<L: LoaderImplementation>() {
         futures_lite::future::block_on(async move {
-            let _connection = Self::connect(Some(decoder), void_editor_none()).await;
+            let _connection = Self::connect::<L>(void_editor_none()).await;
             std::future::pending::<()>().await;
         })
     }
 
-    pub fn spawn_loader_editor(
-        loader: impl LoaderImplementation<T> + 'static,
+    pub fn spawn_loader_editor<L: LoaderImplementation>(
         editor: impl EditorImplementation + 'static,
     ) {
         futures_lite::future::block_on(async move {
-            let _connection = Self::connect(Some(loader), Some(editor)).await;
+            let _connection = Self::connect::<L>(Some(editor)).await;
             std::future::pending::<()>().await;
         })
     }
 
-    async fn connect(
-        loader: Option<impl LoaderImplementation<T> + 'static>,
+    async fn connect<L: LoaderImplementation>(
         editor: Option<impl EditorImplementation + 'static>,
     ) -> Self {
         env_logger::builder().format_timestamp_millis().init();
@@ -62,15 +55,13 @@ impl<T: LoaderState> DbusServer<T> {
             .p2p()
             .auth_mechanism(zbus::AuthMechanism::Anonymous);
 
-        if let Some(loader) = loader {
-            let instruction_handler = Loader {
-                loader: Mutex::new(Box::new(loader)),
-                image_id: Mutex::new(1),
-            };
-            dbus_connection = dbus_connection
-                .serve_at("/org/gnome/glycin", instruction_handler)
-                .expect("Failed to setup loader handler");
-        }
+        let instruction_handler = Loader::<L> {
+            image_id: Mutex::new(1),
+            loader: Default::default(),
+        };
+        dbus_connection = dbus_connection
+            .serve_at("/org/gnome/glycin", instruction_handler)
+            .expect("Failed to setup loader handler");
 
         if let Some(editor) = editor {
             let instruction_handler = Editor {
@@ -88,8 +79,7 @@ impl<T: LoaderState> DbusServer<T> {
 
         log::debug!("D-Bus connection to glycin created");
         DbusServer {
-            dbus_connection,
-            loader_states: Default::default(),
+            _dbus_connection: dbus_connection,
         }
     }
 }
@@ -153,26 +143,26 @@ pub extern "C" fn pre_main() {
 
 #[macro_export]
 macro_rules! init_main_loader {
-    ($loader:expr) => {
+    ($loader:path) => {
         /// Init handler for SIGSYS before main() to catch
         #[cfg_attr(target_os = "linux", link_section = ".ctors")]
         static __CTOR: extern "C" fn() = pre_main;
 
         fn main() {
-            $crate::DbusServer::spawn_loader($loader);
+            $crate::DbusServer::spawn_loader::<$loader>();
         }
     };
 }
 
 #[macro_export]
 macro_rules! init_main_loader_editor {
-    ($loader:expr, $editor:expr) => {
+    ($loader:path, $editor:expr) => {
         /// Init handler for SIGSYS before main() to catch
         #[cfg_attr(target_os = "linux", link_section = ".ctors")]
         static __CTOR: extern "C" fn() = pre_main;
 
         fn main() {
-            $crate::DbusServer::spawn_loader_editor($loader, $editor);
+            $crate::DbusServer::spawn_loader_editor::<$loader>($editor);
         }
     };
 }

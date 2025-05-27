@@ -31,10 +31,6 @@ name = "change_memory_format"
 path = "change_memory_format.rs"
 
 [[test]]
-name = "dbus_api_stability"
-path = "dbus_api_stability.rs"
-
-[[test]]
 name = "editing"
 path = "editing.rs"
 

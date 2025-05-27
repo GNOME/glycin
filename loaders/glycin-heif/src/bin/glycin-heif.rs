@@ -1,26 +1,24 @@
-use std::cell::OnceCell;
 use std::io::{Cursor, Read};
-use std::sync::Mutex;
 
 use glycin_utils::safe_math::*;
 use glycin_utils::*;
 use libheif_rs::{ColorProfile, ColorSpace, HeifContext, LibHeif, RgbChroma, StreamReader};
 
-init_main_loader!(ImgDecoder::default());
+init_main_loader!(ImgDecoder);
 
-#[derive(Default)]
 pub struct ImgDecoder {
-    pub decoder: Mutex<Option<HeifContext<'static>>>,
-    pub mime_type: OnceCell<String>,
+    pub decoder: Option<HeifContext<'static>>,
+    pub mime_type: String,
 }
+
+unsafe impl Sync for ImgDecoder {}
 
 impl LoaderImplementation for ImgDecoder {
     fn init(
-        &self,
         mut stream: UnixStream,
         mime_type: String,
         _details: InitializationDetails,
-    ) -> Result<ImageInfo, ProcessError> {
+    ) -> Result<(Self, ImageInfoDetails), ProcessError> {
         let mut data = Vec::new();
         let total_size = stream.read_to_end(&mut data).internal_error()?;
 
@@ -35,24 +33,26 @@ impl LoaderImplementation for ImgDecoder {
             _ => "HEIF (Unknown)",
         };
 
-        let mut image_info = ImageInfo::new(handle.width(), handle.height());
-        image_info.details.exif = exif(&handle)
+        let mut image_info = ImageInfoDetails::new(handle.width(), handle.height());
+        image_info.exif = exif(&handle)
             .map(BinaryData::from_data)
             .transpose()
             .expected_error()?;
-        image_info.details.format_name = Some(format_name.to_string());
+        image_info.format_name = Some(format_name.to_string());
 
         // TODO: Later use libheif 1.16 to get info if there is a transformation
-        image_info.details.transformations_applied = true;
+        image_info.transformations_applied = true;
 
-        *self.decoder.lock().unwrap() = Some(context);
-        let _ = self.mime_type.set(mime_type);
-        Ok(image_info)
+        let decoder = ImgDecoder {
+            decoder: Some(context),
+            mime_type,
+        };
+
+        Ok((decoder, image_info))
     }
 
-    fn frame(&self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
-        let context = std::mem::take(&mut *self.decoder.lock().unwrap()).expected_error()?;
-        decode(context, self.mime_type.get().unwrap())
+    fn frame(&mut self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
+        decode(self.decoder.take().unwrap(), &self.mime_type)
     }
 }
 

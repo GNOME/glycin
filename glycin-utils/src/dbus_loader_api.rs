@@ -1,5 +1,6 @@
 // Copyright (c) 2024 GNOME Foundation Inc.
 
+use std::marker::PhantomData;
 use std::os::fd::OwnedFd;
 use std::os::unix::net::UnixStream;
 use std::sync::{Mutex, MutexGuard};
@@ -9,34 +10,23 @@ use zbus::zvariant::OwnedObjectPath;
 use crate::dbus_types::*;
 use crate::error::*;
 
-pub trait LoaderState: Send + 'static {
-    fn frame(&self, frame_request: FrameRequest) -> Result<Frame, ProcessError>;
-}
-
-pub trait LoaderImplementation<T>: Send {
+pub trait LoaderImplementation: Send + Sync + Sized + 'static {
     fn init(
-        &self,
         stream: UnixStream,
         mime_type: String,
         details: InitializationDetails,
-    ) -> Result<(ImageInfo, T), ProcessError>;
+    ) -> Result<(Self, ImageInfoDetails), ProcessError>;
+
+    fn frame(&mut self, frame_request: FrameRequest) -> Result<Frame, ProcessError>;
 }
 
-pub struct Loader<T: LoaderState> {
-    pub loader: Mutex<Box<dyn LoaderImplementation<T>>>,
+pub struct Loader<T: LoaderImplementation> {
+    pub loader: PhantomData<T>,
     pub image_id: Mutex<u64>,
 }
 
-impl<T: LoaderState> Loader<T> {
-    pub fn get_loader(&self) -> Result<MutexGuard<Box<dyn LoaderImplementation<T>>>, RemoteError> {
-        self.loader.lock().map_err(|err| {
-            RemoteError::InternalLoaderError(format!("Failed to lock decoder for operation: {err}"))
-        })
-    }
-}
-
 #[zbus::interface(name = "org.gnome.glycin.Loader")]
-impl<T: LoaderState> Loader<T> {
+impl<T: LoaderImplementation> Loader<T> {
     async fn init(
         &self,
         init_request: InitRequest,
@@ -45,10 +35,9 @@ impl<T: LoaderState> Loader<T> {
         let fd = OwnedFd::from(init_request.fd);
         let stream = UnixStream::from(fd);
 
-        let (image_info, loader_state) = self
-            .get_loader()?
-            .init(stream, init_request.mime_type, init_request.details)
-            .map_err(|x| x.into_loader_error())?;
+        let (loader_state, image_info) =
+            T::init(stream, init_request.mime_type, init_request.details)
+                .map_err(|x| x.into_loader_error())?;
 
         let image_id = {
             let lock = self.image_id.lock();
@@ -65,12 +54,14 @@ impl<T: LoaderState> Loader<T> {
             .internal_error()
             .map_err(|x| x.into_loader_error())?;
 
+        let dbus_image = ImageInfo::new(image_info, path.clone());
+
         dbus_connection
             .object_server()
             .at(
                 &path,
                 Image {
-                    loader_state: Mutex::new(Box::new(loader_state)),
+                    loader_implementation: Mutex::new(Box::new(loader_state)),
                     path: path.clone(),
                 },
             )
@@ -78,18 +69,18 @@ impl<T: LoaderState> Loader<T> {
             .internal_error()
             .map_err(|x| x.into_loader_error())?;
 
-        Ok(image_info)
+        Ok(dbus_image)
     }
 }
 
-pub struct Image<T: LoaderState> {
-    pub loader_state: Mutex<Box<T>>,
+pub struct Image<T: LoaderImplementation> {
+    pub loader_implementation: Mutex<Box<T>>,
     pub path: OwnedObjectPath,
 }
 
-impl<T: LoaderState> Image<T> {
+impl<T: LoaderImplementation> Image<T> {
     pub fn get_loader_state(&self) -> Result<MutexGuard<Box<T>>, RemoteError> {
-        self.loader_state.lock().map_err(|err| {
+        self.loader_implementation.lock().map_err(|err| {
             RemoteError::InternalLoaderError(format!(
                 "Failed to lock loader state for operation: {err}"
             ))
@@ -98,7 +89,7 @@ impl<T: LoaderState> Image<T> {
 }
 
 #[zbus::interface(name = "org.gnome.glycin.Image")]
-impl<T: LoaderState> Image<T> {
+impl<T: LoaderImplementation> Image<T> {
     async fn frame(&self, frame_request: FrameRequest) -> Result<Frame, RemoteError> {
         self.get_loader_state()?
             .frame(frame_request)
