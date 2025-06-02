@@ -226,7 +226,6 @@ pub(crate) async fn spin_up_editor<'a>(
 
     let process = Arc::new(
         crate::dbus::RemoteProcess::new(
-            &x.mime_type,
             x.config_entry,
             x.sandbox_mechanism,
             file.clone(),

@@ -42,7 +42,6 @@ pub(crate) const MAX_TEXTURE_SIZE: u64 = 8 * 10u64.pow(9);
 pub struct RemoteProcess<'a, P: ZbusProxy<'a>> {
     dbus_connection: zbus::Connection,
     decoding_instruction: P,
-    mime_type: String,
     phantom: PhantomData<&'a P>,
     pub stderr_content: Arc<Mutex<String>>,
     pub stdout_content: Arc<Mutex<String>>,
@@ -78,7 +77,6 @@ impl<'a> ZbusProxy<'a> for EditorProxy<'a> {
 
 impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
     pub async fn new(
-        mime_type: &config::MimeType,
         config_entry: impl config::ConfigEntry + Clone + 'static,
         sandbox_mechanism: SandboxMechanism,
         file: Option<gio::File>,
@@ -151,7 +149,6 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         Ok(Self {
             dbus_connection,
             decoding_instruction,
-            mime_type: mime_type.to_string(),
             phantom: PhantomData,
             stderr_content,
             stdout_content,
@@ -162,6 +159,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         &self,
         gfile_worker: &GFileWorker,
         base_dir: Option<std::path::PathBuf>,
+        mime_type: &MimeType,
     ) -> Result<InitRequest, Error> {
         let (remote_reader, writer) = std::os::unix::net::UnixStream::pair()?;
 
@@ -169,7 +167,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
 
         let fd = zvariant::OwnedFd::from(OwnedFd::from(remote_reader));
 
-        let mime_type = self.mime_type.clone();
+        let mime_type = mime_type.to_string();
 
         let mut details = InitializationDetails::default();
         details.base_dir = base_dir;
@@ -187,8 +185,9 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
         &self,
         gfile_worker: GFileWorker,
         base_dir: Option<std::path::PathBuf>,
+        mime_type: &MimeType,
     ) -> Result<ImageInfo, Error> {
-        let init_request = self.init_request(&gfile_worker, base_dir)?;
+        let init_request = self.init_request(&gfile_worker, base_dir, mime_type)?;
 
         let image_info = self.decoding_instruction.init(init_request).shared();
 
@@ -321,8 +320,9 @@ impl<'a> RemoteProcess<'a, EditorProxy<'a>> {
         gfile_worker: &GFileWorker,
         base_dir: Option<std::path::PathBuf>,
         operations: &Operations,
+        mime_type: &MimeType,
     ) -> Result<SparseEditorOutput, Error> {
-        let init_request = self.init_request(gfile_worker, base_dir)?;
+        let init_request = self.init_request(gfile_worker, base_dir, mime_type)?;
         let edit_request = EditRequest::for_operations(operations)?;
 
         let editor_output = self
@@ -348,8 +348,9 @@ impl<'a> RemoteProcess<'a, EditorProxy<'a>> {
         gfile_worker: &GFileWorker,
         base_dir: Option<std::path::PathBuf>,
         operations: &Operations,
+        mime_type: &MimeType,
     ) -> Result<CompleteEditorOutput, Error> {
-        let init_request = self.init_request(gfile_worker, base_dir)?;
+        let init_request = self.init_request(gfile_worker, base_dir, mime_type)?;
         let edit_request = EditRequest::for_operations(operations)?;
 
         let editor_output = self

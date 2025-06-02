@@ -63,6 +63,7 @@ impl Editor {
                 &process_context.g_file_worker,
                 process_context.base_dir,
                 &operations,
+                &process_context.mime_type,
             )
             .await
             .err_context(&process, &self.cancellable)?;
@@ -91,6 +92,7 @@ impl Editor {
                 &process_context.g_file_worker,
                 process_context.base_dir,
                 operations,
+                &process_context.mime_type,
             )
             .await
             .err_context(&process, &self.cancellable)?;

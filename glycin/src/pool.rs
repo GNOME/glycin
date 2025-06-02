@@ -49,7 +49,6 @@ impl<'a> Pool<'a> {
 
             let process = Arc::new(
                 dbus::RemoteProcess::new(
-                    &mime_type,
                     loader_config.clone(),
                     sandbox_mechanism,
                     file.clone(),
