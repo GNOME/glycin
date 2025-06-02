@@ -7,6 +7,7 @@ use std::marker::PhantomData;
 use std::mem;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::os::unix::net::UnixStream;
+use std::rc::Rc;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -45,13 +46,14 @@ pub struct RemoteProcess<'a, P: ZbusProxy<'a>> {
     phantom: PhantomData<&'a P>,
     pub stderr_content: Arc<Mutex<String>>,
     pub stdout_content: Arc<Mutex<String>>,
-    memory_format_selection: MemoryFormatSelection,
 }
+
+static_assertions::assert_impl_all!(RemoteProcess<'static, LoaderProxy>: Send, Sync);
+static_assertions::assert_impl_all!(RemoteProcess<'static, EditorProxy>: Send, Sync);
 
 pub trait ZbusProxy<'a>: Sized + Sync + Send + From<zbus::Proxy<'a>> {
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self>;
     fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error>;
-    fn entry_config(config: &Config, mime_type: &MimeType) -> Result<Box<dyn ConfigEntry>, Error>;
 }
 
 impl<'a> ZbusProxy<'a> for LoaderProxy<'a> {
@@ -61,10 +63,6 @@ impl<'a> ZbusProxy<'a> for LoaderProxy<'a> {
 
     fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error> {
         Ok(config.loader(mime_type)?.expose_base_dir)
-    }
-
-    fn entry_config(config: &Config, mime_type: &MimeType) -> Result<Box<dyn ConfigEntry>, Error> {
-        Ok(Box::new(config.loader(mime_type)?.clone()))
     }
 }
 
@@ -76,20 +74,15 @@ impl<'a> ZbusProxy<'a> for EditorProxy<'a> {
     fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error> {
         Ok(config.editor(mime_type)?.expose_base_dir)
     }
-
-    fn entry_config(config: &Config, mime_type: &MimeType) -> Result<Box<dyn ConfigEntry>, Error> {
-        Ok(Box::new(config.editor(mime_type)?.clone()))
-    }
 }
 
 impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
     pub async fn new(
         mime_type: &config::MimeType,
-        config: &config::Config,
+        config_entry: impl config::ConfigEntry + Clone + 'static,
         sandbox_mechanism: SandboxMechanism,
         file: Option<gio::File>,
         cancellable: &gio::Cancellable,
-        memory_format_selection: MemoryFormatSelection,
     ) -> Result<Self, Error> {
         // UnixStream which facilitates the D-Bus connection. The stream is passed as
         // stdin to loader binaries.
@@ -97,10 +90,9 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         unix_stream.set_nonblocking(true)?;
         loader_stdin.set_nonblocking(true)?;
 
-        let config_entry = P::entry_config(config, mime_type)?;
-        let mut sandbox = Sandbox::new(sandbox_mechanism, config_entry, loader_stdin);
+        let mut sandbox = Sandbox::new(sandbox_mechanism, config_entry.clone(), loader_stdin);
         // Mount dir that contains the file as read only for formats like SVG
-        if P::expose_base_dir(config, mime_type)? {
+        if config_entry.expose_base_dir() {
             if let Some(base_dir) = file.and_then(|x| x.parent()).and_then(|x| x.path()) {
                 sandbox.add_ro_bind(base_dir);
             }
@@ -132,6 +124,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         futures_util::select! {
             _result = dbus_result.clone().fuse() => Ok(()),
             _result = cancellable.future().fuse() => {
+                tracing::debug!("Killing process due to cancellation.");
                 let _result = signal::kill(subprocess_id, signal::Signal::SIGKILL);
                 Err(glib::Error::from(gio::Cancelled).into())
             },
@@ -142,6 +135,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         }?;
 
         cancellable.connect_cancelled(move |_| {
+            tracing::debug!("Killing process due to cancellation (late).");
             let _result = signal::kill(subprocess_id, signal::Signal::SIGKILL);
         });
 
@@ -161,7 +155,6 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
             phantom: PhantomData,
             stderr_content,
             stdout_content,
-            memory_format_selection,
         })
     }
 
@@ -287,7 +280,8 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
             img_buf
         };
 
-        let (frame, img_buf) = if let Some(target_format) = self
+        let (frame, img_buf) = if let Some(target_format) = image
+            .loader
             .memory_format_selection
             .best_format_for(frame.memory_format)
         {

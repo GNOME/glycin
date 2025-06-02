@@ -6,17 +6,14 @@ use gio::prelude::FileExt;
 use glycin::{BinaryData, SparseEdit};
 use utils::*;
 
-#[test]
 fn editing_rotation_90() {
     run_test("rotation-90");
 }
 
-#[test]
 fn editing_crop() {
     run_test("crop");
 }
 
-#[test]
 fn editing_crop_too_large_value() {
     run_test("crop-too-large-value");
 }

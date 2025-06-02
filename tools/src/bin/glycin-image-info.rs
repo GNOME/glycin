@@ -26,7 +26,10 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
     let info = image.info();
 
     println!("[info]");
-    println!("dimensions = {} x {}", info.width, info.height);
+    println!(
+        "dimensions = {} x {}",
+        info.details.width, info.details.height
+    );
     println!(
         "format_name = {}",
         info.details

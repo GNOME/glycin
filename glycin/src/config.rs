@@ -45,9 +45,10 @@ pub struct Config {
 pub(crate) trait ConfigEntry: Send + Sync {
     fn fontconfig(&self) -> bool;
     fn exec(&self) -> PathBuf;
+    fn expose_base_dir(&self) -> bool;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ImageLoaderConfig {
     pub exec: PathBuf,
     pub expose_base_dir: bool,
@@ -61,6 +62,24 @@ impl ConfigEntry for ImageLoaderConfig {
 
     fn exec(&self) -> PathBuf {
         self.exec.clone()
+    }
+
+    fn expose_base_dir(&self) -> bool {
+        self.expose_base_dir
+    }
+}
+
+impl ConfigEntry for &ImageLoaderConfig {
+    fn fontconfig(&self) -> bool {
+        self.fontconfig
+    }
+
+    fn exec(&self) -> PathBuf {
+        self.exec.clone()
+    }
+
+    fn expose_base_dir(&self) -> bool {
+        self.expose_base_dir
     }
 }
 
@@ -79,6 +98,10 @@ impl ConfigEntry for ImageEditorConfig {
 
     fn exec(&self) -> PathBuf {
         self.exec.clone()
+    }
+
+    fn expose_base_dir(&self) -> bool {
+        self.expose_base_dir
     }
 }
 

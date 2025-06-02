@@ -176,12 +176,12 @@ pub struct SandboxInfo {
 impl Sandbox {
     pub fn new(
         sandbox_mechanism: SandboxMechanism,
-        config_entry: Box<dyn ConfigEntry>,
+        config_entry: impl ConfigEntry + 'static,
         stdin: UnixStream,
     ) -> Self {
         Self {
             sandbox_mechanism,
-            config_entry,
+            config_entry: Box::new(config_entry),
             stdin,
             ro_bind_extra: Vec::new(),
         }

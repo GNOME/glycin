@@ -11,6 +11,8 @@ use crate::dbus::*;
 use crate::error::ResultExt;
 use crate::{config, ErrorCtx};
 
+use std::sync::Arc;
+
 /// Image request builder
 #[derive(Debug)]
 pub struct Loader {
@@ -97,18 +99,13 @@ impl Loader {
     pub async fn load<'a>(mut self) -> Result<Image<'a>, ErrorCtx> {
         let source = self.source.send();
 
-        let process_context = spin_up(
-            source,
-            &self.cancellable,
-            &self.sandbox_selector,
-            self.memory_format_selection,
-        )
-        .await
-        .err_no_context(&self.cancellable)?;
+        let process_basics = spin_up_loader(source, &self.cancellable, &self.sandbox_selector)
+            .await
+            .err_no_context(&self.cancellable)?;
 
-        let process = process_context.process;
+        let process = process_basics.process;
         let info = process
-            .init(process_context.gfile_worker, process_context.base_dir)
+            .init(process_basics.g_file_worker, process_basics.base_dir)
             .await
             .err_context(&process, &self.cancellable)?;
 
@@ -116,8 +113,8 @@ impl Loader {
             process,
             info,
             loader: self,
-            mime_type: process_context.mime_type,
-            active_sandbox_mechanism: process_context.sandbox_mechanism,
+            mime_type: process_basics.mime_type,
+            active_sandbox_mechanism: process_basics.sandbox_mechanism,
         })
     }
 
@@ -167,7 +164,7 @@ impl Loader {
 #[derive(Debug)]
 pub struct Image<'a> {
     pub(crate) loader: Loader,
-    process: RemoteProcess<'a, LoaderProxy<'a>>,
+    process: Arc<RemoteProcess<'a, LoaderProxy<'a>>>,
     info: ImageInfo,
     mime_type: MimeType,
     active_sandbox_mechanism: SandboxMechanism,
@@ -246,7 +243,8 @@ impl<'a> Image<'a> {
 
 impl Drop for Loader {
     fn drop(&mut self) {
-        self.cancellable.cancel();
+        //TODO
+        //self.cancellable.cancel();
     }
 }
 

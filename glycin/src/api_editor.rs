@@ -52,20 +52,15 @@ impl Editor {
     pub async fn apply_sparse(mut self, operations: Operations) -> Result<SparseEdit, ErrorCtx> {
         let source = self.source.send();
 
-        let process_context = spin_up(
-            source,
-            &self.cancellable,
-            &self.sandbox_selector,
-            MemoryFormatSelection::all(),
-        )
-        .await
-        .err_no_context(&self.cancellable)?;
+        let process_context = spin_up_editor(source, &self.cancellable, &self.sandbox_selector)
+            .await
+            .err_no_context(&self.cancellable)?;
 
         let process = process_context.process;
 
         let editor_output = process
             .editor_apply_sparse(
-                &process_context.gfile_worker,
+                &process_context.g_file_worker,
                 process_context.base_dir,
                 &operations,
             )
@@ -85,20 +80,15 @@ impl Editor {
     pub async fn apply_complete_full(mut self, operations: &Operations) -> Result<Edit, ErrorCtx> {
         let source = self.source.send();
 
-        let process_context = spin_up(
-            source,
-            &self.cancellable,
-            &self.sandbox_selector,
-            MemoryFormatSelection::all(),
-        )
-        .await
-        .err_no_context(&self.cancellable)?;
+        let process_context = spin_up_editor(source, &self.cancellable, &self.sandbox_selector)
+            .await
+            .err_no_context(&self.cancellable)?;
 
         let process = process_context.process;
 
         let editor_output = process
             .editor_apply_complete(
-                &process_context.gfile_worker,
+                &process_context.g_file_worker,
                 process_context.base_dir,
                 operations,
             )

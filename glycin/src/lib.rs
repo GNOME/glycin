@@ -77,6 +77,7 @@ mod icc;
 #[cfg(feature = "gdk4")]
 mod memory_texture_builder;
 mod orientation;
+mod pool;
 mod sandbox;
 mod util;
 
