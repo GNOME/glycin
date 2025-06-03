@@ -1,11 +1,11 @@
 static DEFAULT_POOL: LazyLock<Pool> = LazyLock::new(Pool::new);
 
+use std::collections::BTreeMap;
+use std::sync::atomic::Ordering;
+use std::sync::{Arc, LazyLock, Mutex};
+use std::time::{Duration, Instant};
+
 use crate::{config, dbus, Error, SandboxMechanism};
-use std::{
-    collections::BTreeMap,
-    sync::{Arc, LazyLock, Mutex},
-    time::{Duration, Instant},
-};
 
 type Loader<'a> = dbus::RemoteProcess<'a, dbus::LoaderProxy<'a>>;
 
@@ -41,31 +41,37 @@ impl<'a> Pool<'a> {
         let pooled_loader = self.loaders.lock().unwrap().get(&loader_config).cloned();
 
         if let Some(loader) = pooled_loader {
-            dbg!("existing loader");
-            Ok(loader.loader)
-        } else {
-            dbg!("NEW LOADER");
-
-            let process = Arc::new(
-                dbus::RemoteProcess::new(
-                    loader_config.clone(),
-                    sandbox_mechanism,
-                    file.clone(),
-                    cancellable,
-                )
-                .await?,
-            );
-
-            self.loaders.lock().unwrap().insert(
-                loader_config,
-                PooledLoader {
-                    last_use: Instant::now(),
-                    loader: process.clone(),
-                },
-            );
-
-            Ok(process)
+            if loader.loader.process_disconnected.load(Ordering::Relaxed) {
+                tracing::debug!(
+                    "Existing loader in pool is disconnected. Dropping existing loader."
+                );
+            } else {
+                tracing::debug!("Using existing loader from pool.");
+                return Ok(loader.loader);
+            }
         }
+
+        tracing::debug!("Creating new loader.");
+
+        let process = Arc::new(
+            dbus::RemoteProcess::new(
+                loader_config.clone(),
+                sandbox_mechanism,
+                file.clone(),
+                cancellable,
+            )
+            .await?,
+        );
+
+        self.loaders.lock().unwrap().insert(
+            loader_config,
+            PooledLoader {
+                last_use: Instant::now(),
+                loader: process.clone(),
+            },
+        );
+
+        Ok(process)
     }
 
     pub fn clean_loaders(&self) {}

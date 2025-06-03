@@ -2,11 +2,13 @@
 
 //! Internal DBus API
 
+use std::cell::Cell;
 use std::io::{BufRead, Read};
 use std::marker::PhantomData;
 use std::mem;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::os::unix::net::UnixStream;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -36,13 +38,14 @@ use crate::{
 /// Max texture size 8 GB in bytes
 pub(crate) const MAX_TEXTURE_SIZE: u64 = 8 * 10u64.pow(9);
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct RemoteProcess<'a, P: ZbusProxy<'a>> {
     dbus_connection: zbus::Connection,
     decoding_instruction: P,
     phantom: PhantomData<&'a P>,
     pub stderr_content: Arc<Mutex<String>>,
     pub stdout_content: Arc<Mutex<String>>,
+    pub process_disconnected: Arc<AtomicBool>,
 }
 
 static_assertions::assert_impl_all!(RemoteProcess<'static, LoaderProxy>: Send, Sync);
@@ -89,11 +92,23 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         let mut subprocess = spawned_sandbox.child;
         let command_dbg = spawned_sandbox.info.command_dbg;
 
+        let process_disconnected = Arc::new(AtomicBool::new(false));
+
         let stderr_content: Arc<Mutex<String>> = Default::default();
-        spawn_stdio_reader(&mut subprocess.stderr, &stderr_content, "stderr");
+        spawn_stdio_reader(
+            &mut subprocess.stderr,
+            &stderr_content,
+            process_disconnected.clone(),
+            "stderr",
+        );
 
         let stdout_content: Arc<Mutex<String>> = Default::default();
-        spawn_stdio_reader(&mut subprocess.stdout, &stdout_content, "stdout");
+        spawn_stdio_reader(
+            &mut subprocess.stdout,
+            &stdout_content,
+            process_disconnected.clone(),
+            "stdout",
+        );
 
         #[cfg(feature = "tokio")]
         let unix_stream = tokio::net::UnixStream::from_std(unix_stream)?;
@@ -108,6 +123,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
 
         let subprocess_id = nix::unistd::Pid::from_raw(subprocess.id().try_into().unwrap());
 
+        let process_disconnected_ = process_disconnected.clone();
         futures_util::select! {
             _result = dbus_result.clone().fuse() => Ok(()),
             _result = cancellable.future().fuse() => {
@@ -115,9 +131,16 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
                 let _result = signal::kill(subprocess_id, signal::Signal::SIGKILL);
                 Err(glib::Error::from(gio::Cancelled).into())
             },
-            return_status = spawn_blocking(move || subprocess.wait()).fuse() => match return_status {
-                Ok(status) => Err(Error::PrematureExit { status, cmd: command_dbg }),
-                Err(err) => Err(Error::StdIoError{ err: err.into(), info: command_dbg }),
+            return_status = spawn_blocking(move || {
+                let result = subprocess.wait();
+                process_disconnected_.store(true, Ordering::Relaxed);
+                tracing::debug!("Process exited: {:?} {result:?}", result.as_ref().ok().map(|x| x.code()));
+                result
+            }).fuse() => {
+                match return_status {
+                    Ok(status) => Err(Error::PrematureExit { status, cmd: command_dbg }),
+                    Err(err) => Err(Error::StdIoError{ err: err.into(), info: command_dbg }),
+                }
             }
         }?;
 
@@ -141,6 +164,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
             phantom: PhantomData,
             stderr_content,
             stdout_content,
+            process_disconnected,
         })
     }
 
@@ -586,6 +610,7 @@ fn remove_stride_if_needed(mut img_buf: ImgBuf, frame: &mut Frame) -> Result<Img
 fn spawn_stdio_reader(
     stdio: &mut Option<impl Read + Send + 'static>,
     store: &Arc<Mutex<String>>,
+    process_disconnected: Arc<AtomicBool>,
     name: &'static str,
 ) {
     if let Some(stdout) = stdio.take() {
@@ -594,13 +619,24 @@ fn spawn_stdio_reader(
             let mut stdout = BufReader::new(stdout);
 
             let mut buf = String::new();
-            while let Ok(len) = stdout.read_line(&mut buf) {
-                if len == 0 {
-                    break;
+            loop {
+                match stdout.read_line(&mut buf) {
+                    Ok(len) => {
+                        if len == 0 {
+                            process_disconnected.store(true, Ordering::Relaxed);
+                            tracing::debug!("{name} disconnected without error");
+                            break;
+                        }
+                        tracing::debug!("Loader {name}: {buf}", buf = buf.trim_end());
+                        store.lock().unwrap().push_str(&buf);
+                        buf.clear();
+                    }
+                    Err(err) => {
+                        process_disconnected.store(true, Ordering::Relaxed);
+                        tracing::debug!("{name} disconnected with error: {err}");
+                        break;
+                    }
                 }
-                tracing::debug!("Loader {name}: {buf}", buf = buf.trim_end());
-                store.lock().unwrap().push_str(&buf);
-                buf.clear();
             }
         });
     }

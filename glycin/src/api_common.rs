@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use std::sync::Arc;
 
 #[cfg(feature = "gobject")]
 use gio::glib;
@@ -9,8 +10,6 @@ use crate::dbus::{EditorProxy, GFileWorker, LoaderProxy, RemoteProcess, ZbusProx
 use crate::pool::Pool;
 use crate::util::RunEnvironment;
 use crate::{config, Error, MimeType};
-
-use std::sync::Arc;
 
 #[derive(Debug, Copy, Clone)]
 /// Sandboxing mechanism for image loading and editing

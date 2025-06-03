@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use gio::glib;
 use gio::prelude::*;
 #[cfg(feature = "gdk4")]
@@ -10,8 +12,6 @@ pub use crate::config::MimeType;
 use crate::dbus::*;
 use crate::error::ResultExt;
 use crate::{config, ErrorCtx};
-
-use std::sync::Arc;
 
 /// Image request builder
 #[derive(Debug)]
