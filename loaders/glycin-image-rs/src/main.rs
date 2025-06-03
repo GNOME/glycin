@@ -225,7 +225,7 @@ impl LoaderImplementation for ImgDecoder {
             thread.thread().unpark();
             recv.recv().internal_error()??
         } else {
-            unreachable!()
+            todo!()
         };
 
         frame.details.cicp = self.cicp.lock().unwrap().map(|x| x.into());
