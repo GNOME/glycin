@@ -7,7 +7,6 @@ use std::marker::PhantomData;
 use std::mem;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::os::unix::net::UnixStream;
-use std::rc::Rc;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -20,14 +19,13 @@ use glycin_utils::operations::Operations;
 use glycin_utils::safe_math::{SafeConversion, SafeMath};
 use glycin_utils::{
     CompleteEditorOutput, EditRequest, Frame, FrameRequest, ImageInfo, ImgBuf, InitRequest,
-    InitializationDetails, MemoryFormatSelection, RemoteError, SparseEditorOutput,
+    InitializationDetails, RemoteError, SparseEditorOutput,
 };
 use gufo_common::cicp::Cicp;
 use gufo_common::math::ToI64;
 use nix::sys::signal;
 use zbus::zvariant;
 
-use crate::config::{Config, ConfigEntry};
 use crate::sandbox::Sandbox;
 use crate::util::{self, block_on, spawn_blocking, spawn_blocking_detached};
 use crate::{
@@ -52,26 +50,17 @@ static_assertions::assert_impl_all!(RemoteProcess<'static, EditorProxy>: Send, S
 
 pub trait ZbusProxy<'a>: Sized + Sync + Send + From<zbus::Proxy<'a>> {
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self>;
-    fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error>;
 }
 
 impl<'a> ZbusProxy<'a> for LoaderProxy<'a> {
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self> {
         Self::builder(conn)
     }
-
-    fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error> {
-        Ok(config.loader(mime_type)?.expose_base_dir)
-    }
 }
 
 impl<'a> ZbusProxy<'a> for EditorProxy<'a> {
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self> {
         Self::builder(conn)
-    }
-
-    fn expose_base_dir(config: &Config, mime_type: &MimeType) -> Result<bool, Error> {
-        Ok(config.editor(mime_type)?.expose_base_dir)
     }
 }
 

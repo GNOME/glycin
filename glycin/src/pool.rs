@@ -1,6 +1,6 @@
 static DEFAULT_POOL: LazyLock<Pool> = LazyLock::new(Pool::new);
 
-use crate::{config, dbus, Error, MimeType, SandboxMechanism};
+use crate::{config, dbus, Error, SandboxMechanism};
 use std::{
     collections::BTreeMap,
     sync::{Arc, LazyLock, Mutex},
@@ -34,7 +34,6 @@ impl<'a> Pool<'a> {
     pub async fn get_loader(
         &self,
         loader_config: config::ImageLoaderConfig,
-        mime_type: &config::MimeType,
         sandbox_mechanism: SandboxMechanism,
         file: Option<gio::File>,
         cancellable: &gio::Cancellable,

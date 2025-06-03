@@ -3,9 +3,8 @@ use std::path::PathBuf;
 #[cfg(feature = "gobject")]
 use gio::glib;
 use gio::prelude::*;
-use glycin_utils::MemoryFormatSelection;
 
-use crate::config::{Config, ConfigEntry, ImageEditorConfig, ImageLoaderConfig};
+use crate::config::{Config, ImageEditorConfig, ImageLoaderConfig};
 use crate::dbus::{EditorProxy, GFileWorker, LoaderProxy, RemoteProcess, ZbusProxy};
 use crate::pool::Pool;
 use crate::util::RunEnvironment;
@@ -163,7 +162,7 @@ impl Source {
    .await?;
 */
 
-pub struct ProcessBasics<T> {
+pub(crate) struct ProcessBasics<T> {
     pub mime_type: MimeType,
     pub sandbox_mechanism: SandboxMechanism,
     pub config_entry: T,
@@ -252,13 +251,7 @@ pub(crate) async fn spin_up_loader<'a>(
     let x = spin_up(source, cancellable, sandbox_selector).await?;
 
     let process = Pool::global()
-        .get_loader(
-            x.config_entry,
-            &x.mime_type,
-            x.sandbox_mechanism,
-            file,
-            cancellable,
-        )
+        .get_loader(x.config_entry, x.sandbox_mechanism, file, cancellable)
         .await?;
 
     Ok(RemoteProcessContext {

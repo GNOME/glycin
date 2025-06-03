@@ -4,7 +4,7 @@ use gio::glib;
 use gio::prelude::{IsA, *};
 pub use glycin_utils::operations::{Operation, Operations};
 use glycin_utils::safe_math::SafeConversion;
-use glycin_utils::{BinaryData, ByteChanges, MemoryFormatSelection, SparseEditorOutput};
+use glycin_utils::{BinaryData, ByteChanges, SparseEditorOutput};
 
 use crate::api_common::*;
 use crate::error::ResultExt;
