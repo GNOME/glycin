@@ -2,7 +2,6 @@
 
 //! Internal DBus API
 
-use std::cell::Cell;
 use std::io::{BufRead, Read};
 use std::marker::PhantomData;
 use std::mem;
@@ -26,7 +25,7 @@ use glycin_utils::{
 use gufo_common::cicp::Cicp;
 use gufo_common::math::ToI64;
 use nix::sys::signal;
-use zbus::zvariant;
+use zbus::zvariant::{self, OwnedObjectPath};
 
 use crate::sandbox::Sandbox;
 use crate::util::{self, block_on, spawn_blocking, spawn_blocking_detached};
@@ -39,17 +38,24 @@ use crate::{
 pub(crate) const MAX_TEXTURE_SIZE: u64 = 8 * 10u64.pow(9);
 
 #[derive(Debug)]
-pub struct RemoteProcess<'a, P: ZbusProxy<'a>> {
+pub struct RemoteProcess<P: ZbusProxy<'static> + 'static> {
     dbus_connection: zbus::Connection,
     decoding_instruction: P,
-    phantom: PhantomData<&'a P>,
     pub stderr_content: Arc<Mutex<String>>,
     pub stdout_content: Arc<Mutex<String>>,
     pub process_disconnected: Arc<AtomicBool>,
+    cancellable: gio::Cancellable,
 }
 
-static_assertions::assert_impl_all!(RemoteProcess<'static, LoaderProxy>: Send, Sync);
-static_assertions::assert_impl_all!(RemoteProcess<'static, EditorProxy>: Send, Sync);
+impl<P: ZbusProxy<'static> + 'static> Drop for RemoteProcess<P> {
+    fn drop(&mut self) {
+        tracing::debug!("Winding down process");
+        self.cancellable.cancel();
+    }
+}
+
+static_assertions::assert_impl_all!(RemoteProcess<LoaderProxy>: Send, Sync);
+static_assertions::assert_impl_all!(RemoteProcess<EditorProxy>: Send, Sync);
 
 pub trait ZbusProxy<'a>: Sized + Sync + Send + From<zbus::Proxy<'a>> {
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self>;
@@ -67,7 +73,7 @@ impl<'a> ZbusProxy<'a> for EditorProxy<'a> {
     }
 }
 
-impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
+impl<P: ZbusProxy<'static>> RemoteProcess<P> {
     pub async fn new(
         config_entry: impl config::ConfigEntry + Clone + 'static,
         sandbox_mechanism: SandboxMechanism,
@@ -161,10 +167,10 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
         Ok(Self {
             dbus_connection,
             decoding_instruction,
-            phantom: PhantomData,
             stderr_content,
             stdout_content,
             process_disconnected,
+            cancellable: cancellable.clone(),
         })
     }
 
@@ -193,7 +199,7 @@ impl<'a, P: ZbusProxy<'a>> RemoteProcess<'a, P> {
     }
 }
 
-impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
+impl RemoteProcess<LoaderProxy<'static>> {
     pub async fn init(
         &self,
         gfile_worker: GFileWorker,
@@ -225,10 +231,27 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
         Ok(image_info)
     }
 
-    pub async fn request_frame<'b>(
+    pub fn done_background(self: Arc<Self>, image: &Image) {
+        let frame_request_path = image.info().frame_request.clone();
+        let arc = self.clone();
+
+        crate::util::spawn_detached(arc.done(frame_request_path));
+    }
+
+    pub async fn done(self: Arc<Self>, frame_request_path: OwnedObjectPath) -> Result<(), Error> {
+        let loader_proxy = LoaderStateProxy::builder(&self.dbus_connection)
+            .destination("org.gnome.glycin")?
+            .path(frame_request_path)?
+            .build()
+            .await?;
+
+        loader_proxy.done().await.map_err(Into::into)
+    }
+
+    pub async fn request_frame(
         &self,
         frame_request: FrameRequest,
-        image: &Image<'b>,
+        image: &Image,
     ) -> Result<api_loader::Frame, Error> {
         let frame_request_path = &image.info().frame_request;
 
@@ -327,7 +350,7 @@ impl<'a> RemoteProcess<'a, LoaderProxy<'a>> {
     }
 }
 
-impl<'a> RemoteProcess<'a, EditorProxy<'a>> {
+impl RemoteProcess<EditorProxy<'static>> {
     pub async fn editor_apply_sparse(
         &self,
         gfile_worker: &GFileWorker,
@@ -396,6 +419,7 @@ pub trait Loader {
 #[zbus::proxy(name = "org.gnome.glycin.Image")]
 pub trait LoaderState {
     async fn frame(&self, frame_request: FrameRequest) -> Result<Frame, RemoteError>;
+    async fn done(&self) -> Result<(), RemoteError>;
 }
 
 #[zbus::proxy(

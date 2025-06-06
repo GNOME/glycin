@@ -81,11 +81,9 @@ async fn debug_file(path: impl AsRef<Path>) {
 }
 
 async fn get_texture(path: impl AsRef<Path>) -> gdk::Texture {
-    dbg!(path.as_ref());
     let file = gio::File::for_path(&path);
     let image_request = glycin::Loader::new(file);
     let image = image_request.load().await.unwrap();
-    dbg!(path.as_ref());
     let frame = image.next_frame().await.unwrap();
     frame.texture()
 }

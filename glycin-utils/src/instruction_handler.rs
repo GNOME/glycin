@@ -15,32 +15,30 @@ pub struct DbusServer {
 }
 
 impl DbusServer {
-    pub fn spawn_loader<L: LoaderImplementation>() {
+    pub fn spawn_loader<L: LoaderImplementation>(description: String) {
         futures_lite::future::block_on(async move {
-            let _connection = Self::connect::<L>(void_editor_none()).await;
+            let _connection = Self::connect::<L>(void_editor_none(), description).await;
             std::future::pending::<()>().await;
         })
     }
 
     pub fn spawn_loader_editor<L: LoaderImplementation>(
         editor: impl EditorImplementation + 'static,
+        description: String,
     ) {
         futures_lite::future::block_on(async move {
-            let _connection = Self::connect::<L>(Some(editor)).await;
+            let _connection = Self::connect::<L>(Some(editor), description).await;
             std::future::pending::<()>().await;
         })
     }
 
     async fn connect<L: LoaderImplementation>(
         editor: Option<impl EditorImplementation + 'static>,
+        description: String,
     ) -> Self {
         env_logger::builder().format_timestamp_millis().init();
 
-        log::info!(
-            "Loader {} v{} startup",
-            env!("CARGO_PKG_NAME"),
-            env!("CARGO_PKG_VERSION")
-        );
+        log::info!("Loader {description} startup",);
 
         log::debug!("Creating zbus connection to glycin");
 
@@ -149,7 +147,11 @@ macro_rules! init_main_loader {
         static __CTOR: extern "C" fn() = pre_main;
 
         fn main() {
-            $crate::DbusServer::spawn_loader::<$loader>();
+            $crate::DbusServer::spawn_loader::<$loader>(format!(
+                "{} v{}",
+                env!("CARGO_PKG_NAME"),
+                env!("CARGO_PKG_VERSION")
+            ));
         }
     };
 }
@@ -162,7 +164,10 @@ macro_rules! init_main_loader_editor {
         static __CTOR: extern "C" fn() = pre_main;
 
         fn main() {
-            $crate::DbusServer::spawn_loader_editor::<$loader>($editor);
+            $crate::DbusServer::spawn_loader_editor::<$loader>(
+                $editor,
+                format!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION")),
+            );
         }
     };
 }

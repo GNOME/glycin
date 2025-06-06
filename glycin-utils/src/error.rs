@@ -16,6 +16,7 @@ pub enum RemoteError {
     UnsupportedImageFormat(String),
     ConversionTooLargerError,
     OutOfMemory(String),
+    Aborted,
 }
 
 type Location = std::panic::Location<'static>;

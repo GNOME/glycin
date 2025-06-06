@@ -1,34 +1,49 @@
-static DEFAULT_POOL: LazyLock<Pool> = LazyLock::new(Pool::new);
+static DEFAULT_POOL: LazyLock<Arc<Pool>> = LazyLock::new(Pool::new);
 
 use std::collections::BTreeMap;
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, LazyLock, Mutex};
 use std::time::{Duration, Instant};
 
+use gio::glib;
+use gio::prelude::{CancellableExt, CancellableExtManual};
+
+use crate::dbus::ZbusProxy;
 use crate::{config, dbus, Error, SandboxMechanism};
 
-type Loader<'a> = dbus::RemoteProcess<'a, dbus::LoaderProxy<'a>>;
+type Loader = dbus::RemoteProcess<dbus::LoaderProxy<'static>>;
 
-#[derive(Clone)]
-pub struct PooledLoader<'a> {
-    last_use: Instant,
-    loader: Arc<Loader<'a>>,
+#[derive(Debug)]
+pub struct PooledProcess<P: ZbusProxy<'static> + 'static> {
+    last_use: Mutex<Instant>,
+    process: Arc<dbus::RemoteProcess<P>>,
+    users: Vec<std::sync::Weak<()>>,
 }
-pub struct Pool<'a> {
-    loaders: Mutex<BTreeMap<config::ImageLoaderConfig, PooledLoader<'a>>>,
+
+impl<P: ZbusProxy<'static> + 'static> PooledProcess<P> {
+    pub fn use_(&self) -> Arc<dbus::RemoteProcess<P>> {
+        *self.last_use.lock().unwrap() = Instant::now();
+        self.process.clone()
+    }
+}
+
+#[derive(Debug)]
+pub struct Pool {
+    loaders:
+        Mutex<BTreeMap<config::ImageLoaderConfig, Arc<PooledProcess<dbus::LoaderProxy<'static>>>>>,
     loader_retention_time: Duration,
 }
 
-impl<'a> Pool<'a> {
-    pub fn new() -> Self {
-        Self {
+impl Pool {
+    pub fn new() -> Arc<Self> {
+        Arc::new(Self {
             loader_retention_time: Duration::from_secs(60),
             loaders: Default::default(),
-        }
+        })
     }
 
-    pub fn global() -> &'static Self {
-        &*DEFAULT_POOL
+    pub fn global() -> Arc<Self> {
+        DEFAULT_POOL.clone()
     }
 
     pub async fn get_loader(
@@ -37,42 +52,72 @@ impl<'a> Pool<'a> {
         sandbox_mechanism: SandboxMechanism,
         file: Option<gio::File>,
         cancellable: &gio::Cancellable,
-    ) -> Result<Arc<Loader<'a>>, Error> {
+        loader_alive: std::sync::Weak<()>,
+    ) -> Result<Arc<PooledProcess<dbus::LoaderProxy<'static>>>, Error> {
         let pooled_loader = self.loaders.lock().unwrap().get(&loader_config).cloned();
 
         if let Some(loader) = pooled_loader {
-            if loader.loader.process_disconnected.load(Ordering::Relaxed) {
+            if loader.process.process_disconnected.load(Ordering::Relaxed) {
                 tracing::debug!(
                     "Existing loader in pool is disconnected. Dropping existing loader."
                 );
             } else {
                 tracing::debug!("Using existing loader from pool.");
-                return Ok(loader.loader);
+                return Ok(loader);
             }
         }
 
         tracing::debug!("Creating new loader.");
+
+        let process_cancellable = gio::Cancellable::new();
+        let Some(process_cancellable_tie) = cancellable.connect_cancelled(glib::clone!(
+            #[weak]
+            process_cancellable,
+            move |_| process_cancellable.cancel()
+        )) else {
+            return Err(Error::Canceled(None));
+        };
 
         let process = Arc::new(
             dbus::RemoteProcess::new(
                 loader_config.clone(),
                 sandbox_mechanism,
                 file.clone(),
-                cancellable,
+                &process_cancellable,
             )
             .await?,
         );
 
-        self.loaders.lock().unwrap().insert(
-            loader_config,
-            PooledLoader {
-                last_use: Instant::now(),
-                loader: process.clone(),
-            },
-        );
+        cancellable.disconnect_cancelled(process_cancellable_tie);
 
-        Ok(process)
+        let pp = Arc::new(PooledProcess {
+            last_use: Mutex::new(Instant::now()),
+            process: process.clone(),
+            users: vec![loader_alive],
+        });
+
+        self.loaders
+            .lock()
+            .unwrap()
+            .insert(loader_config, pp.clone());
+
+        Ok(pp)
     }
 
-    pub fn clean_loaders(&self) {}
+    pub fn clean_loaders(&self) {
+        let mut loaders = self.loaders.lock().unwrap();
+
+        loaders.retain(|cfg, loader| {
+            let drop = loader.users.iter().all(|x| x.strong_count() == 0)
+                && loader.last_use.lock().unwrap().elapsed() > self.loader_retention_time;
+            if drop {
+                tracing::debug!(
+                    "Dropping loader {:?} {}",
+                    cfg.exec,
+                    Arc::strong_count(&loader.process)
+                )
+            }
+            !drop
+        });
+    }
 }

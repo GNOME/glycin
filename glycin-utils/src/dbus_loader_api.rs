@@ -3,8 +3,9 @@
 use std::marker::PhantomData;
 use std::os::fd::OwnedFd;
 use std::os::unix::net::UnixStream;
-use std::sync::{Mutex, MutexGuard};
+use std::sync::{Arc, Mutex, MutexGuard};
 
+use futures_util::FutureExt;
 use zbus::zvariant::OwnedObjectPath;
 
 use crate::dbus_types::*;
@@ -61,8 +62,9 @@ impl<T: LoaderImplementation> Loader<T> {
             .at(
                 &path,
                 Image {
-                    loader_implementation: Mutex::new(Box::new(loader_state)),
+                    loader_implementation: Arc::new(Mutex::new(Box::new(loader_state))),
                     path: path.clone(),
+                    dropped: Default::default(),
                 },
             )
             .await
@@ -74,8 +76,9 @@ impl<T: LoaderImplementation> Loader<T> {
 }
 
 pub struct Image<T: LoaderImplementation> {
-    pub loader_implementation: Mutex<Box<T>>,
+    pub loader_implementation: Arc<Mutex<Box<T>>>,
     pub path: OwnedObjectPath,
+    dropped: async_lock::OnceCell<()>,
 }
 
 impl<T: LoaderImplementation> Image<T> {
@@ -91,17 +94,34 @@ impl<T: LoaderImplementation> Image<T> {
 #[zbus::interface(name = "org.gnome.glycin.Image")]
 impl<T: LoaderImplementation> Image<T> {
     async fn frame(&self, frame_request: FrameRequest) -> Result<Frame, RemoteError> {
-        self.get_loader_state()?
-            .frame(frame_request)
-            .map_err(|x| x.into_loader_error())
+        let loader_implementation = self.loader_implementation.clone();
+        let mut frame_request = blocking::unblock(move || {
+            let mut loader_implementation = loader_implementation.lock().map_err(|err| {
+                RemoteError::InternalLoaderError(format!(
+                    "Failed to lock loader state for operation: {err}"
+                ))
+            })?;
+
+            loader_implementation
+                .frame(frame_request)
+                .map_err(|x| x.into_loader_error())
+        })
+        .fuse();
+
+        futures_util::select! {
+            result = frame_request => result,
+            _ = self.dropped.wait().fuse() => Err(RemoteError::Aborted),
+        }
     }
 
     async fn done(
         &self,
         #[zbus(object_server)] object_server: &zbus::ObjectServer,
     ) -> Result<(), RemoteError> {
+        log::error!("Disconnecting {}", self.path);
         object_server.remove::<Image<T>, _>(&self.path).await?;
-
+        log::error!("Returning from running frame() calls");
+        let _ = self.dropped.set(()).await;
         Ok(())
     }
 }

@@ -7,7 +7,7 @@ use gio::prelude::*;
 
 use crate::config::{Config, ImageEditorConfig, ImageLoaderConfig};
 use crate::dbus::{EditorProxy, GFileWorker, LoaderProxy, RemoteProcess, ZbusProxy};
-use crate::pool::Pool;
+use crate::pool::{Pool, PooledProcess};
 use crate::util::RunEnvironment;
 use crate::{config, Error, MimeType};
 
@@ -79,8 +79,8 @@ pub enum ColorState {
     Cicp(crate::Cicp),
 }
 
-pub(crate) struct RemoteProcessContext<'a, P: ZbusProxy<'a>> {
-    pub process: Arc<RemoteProcess<'a, P>>,
+pub(crate) struct RemoteProcessContext<P: ZbusProxy<'static> + 'static> {
+    pub process: Arc<PooledProcess<P>>,
     pub g_file_worker: GFileWorker,
     pub base_dir: Option<PathBuf>,
     pub mime_type: MimeType,
@@ -218,22 +218,24 @@ pub(crate) async fn spin_up_editor<'a>(
     source: Source,
     cancellable: &gio::Cancellable,
     sandbox_selector: &SandboxSelector,
-) -> Result<RemoteProcessContext<'a, EditorProxy<'a>>, Error> {
+) -> Result<RemoteProcessContext<EditorProxy<'static>>, Error> {
     let file = source.file().clone();
     let x = spin_up::<ImageEditorConfig>(source, cancellable, sandbox_selector).await?;
 
-    let process = Arc::new(
-        crate::dbus::RemoteProcess::new(
-            x.config_entry,
-            x.sandbox_mechanism,
-            file.clone(),
-            cancellable,
-        )
-        .await?,
-    );
+    /*
+       let process = Arc::new(
+           crate::dbus::RemoteProcess::new(
+               x.config_entry,
+               x.sandbox_mechanism,
+               file.clone(),
+               cancellable,
+           )
+           .await?,
+       );
+    */
 
     Ok(RemoteProcessContext {
-        process,
+        process: todo!(),
         g_file_worker: x.g_file_worker,
         base_dir: None,
         mime_type: x.mime_type,
@@ -243,14 +245,22 @@ pub(crate) async fn spin_up_editor<'a>(
 
 pub(crate) async fn spin_up_loader<'a>(
     source: Source,
+    pool: &Pool,
     cancellable: &gio::Cancellable,
     sandbox_selector: &SandboxSelector,
-) -> Result<RemoteProcessContext<'a, LoaderProxy<'a>>, Error> {
+    loader_alive: std::sync::Weak<()>,
+) -> Result<RemoteProcessContext<LoaderProxy<'static>>, Error> {
     let file = source.file().clone();
     let x = spin_up(source, cancellable, sandbox_selector).await?;
 
-    let process = Pool::global()
-        .get_loader(x.config_entry, x.sandbox_mechanism, file, cancellable)
+    let process = pool
+        .get_loader(
+            x.config_entry,
+            x.sandbox_mechanism,
+            file,
+            cancellable,
+            loader_alive,
+        )
         .await?;
 
     Ok(RemoteProcessContext {

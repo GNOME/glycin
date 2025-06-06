@@ -56,7 +56,7 @@ impl Editor {
             .await
             .err_no_context(&self.cancellable)?;
 
-        let process = process_context.process;
+        let process = process_context.process.use_();
 
         let editor_output = process
             .editor_apply_sparse(
@@ -85,7 +85,7 @@ impl Editor {
             .await
             .err_no_context(&self.cancellable)?;
 
-        let process = process_context.process;
+        let process = process_context.process.use_();
 
         let editor_output = process
             .editor_apply_complete(
