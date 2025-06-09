@@ -18,8 +18,8 @@ use glycin_utils::memory_format::MemoryFormatInfo;
 use glycin_utils::operations::Operations;
 use glycin_utils::safe_math::{SafeConversion, SafeMath};
 use glycin_utils::{
-    CompleteEditorOutput, EditRequest, Frame, FrameRequest, ImageInfo, ImgBuf, InitRequest,
-    InitializationDetails, RemoteError, SparseEditorOutput,
+    CompleteEditorOutput, EditRequest, Frame, FrameRequest, ImgBuf, InitRequest,
+    InitializationDetails, RemoteError, RemoteImage, SparseEditorOutput,
 };
 use gufo_common::cicp::Cicp;
 use gufo_common::math::ToI64;
@@ -204,7 +204,7 @@ impl RemoteProcess<LoaderProxy<'static>> {
         gfile_worker: GFileWorker,
         base_dir: Option<std::path::PathBuf>,
         mime_type: &MimeType,
-    ) -> Result<ImageInfo, Error> {
+    ) -> Result<RemoteImage, Error> {
         let init_request = self.init_request(&gfile_worker, base_dir, mime_type)?;
 
         let image_info = self.decoding_instruction.init(init_request).shared();
@@ -231,7 +231,7 @@ impl RemoteProcess<LoaderProxy<'static>> {
     }
 
     pub fn done_background(self: Arc<Self>, image: &Image) {
-        let frame_request_path = image.info().frame_request.clone();
+        let frame_request_path = image.frame_request_path();
         let arc = self.clone();
 
         crate::util::spawn_detached(arc.done(frame_request_path));
@@ -252,7 +252,7 @@ impl RemoteProcess<LoaderProxy<'static>> {
         frame_request: FrameRequest,
         image: &Image,
     ) -> Result<api_loader::Frame, Error> {
-        let frame_request_path = &image.info().frame_request;
+        let frame_request_path = image.frame_request_path();
 
         let loader_proxy = LoaderStateProxy::builder(&self.dbus_connection)
             .destination("org.gnome.glycin")?
@@ -412,7 +412,7 @@ const BUF_SIZE: usize = u16::MAX as usize;
 
 #[zbus::proxy(interface = "org.gnome.glycin.Loader")]
 pub trait Loader {
-    async fn init(&self, init_request: InitRequest) -> Result<ImageInfo, RemoteError>;
+    async fn init(&self, init_request: InitRequest) -> Result<RemoteImage, RemoteError>;
 }
 
 #[zbus::proxy(name = "org.gnome.glycin.Image")]

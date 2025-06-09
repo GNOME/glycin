@@ -6,7 +6,8 @@ use gio::prelude::*;
 #[cfg(feature = "gdk4")]
 use glycin_utils::safe_math::*;
 pub use glycin_utils::{FrameDetails, MemoryFormat};
-use glycin_utils::{ImageInfo, MemoryFormatSelection};
+use glycin_utils::{ImageInfo, MemoryFormatSelection, RemoteImage};
+use zbus::zvariant::OwnedObjectPath;
 
 use crate::api_common::*;
 pub use crate::config::MimeType;
@@ -192,7 +193,7 @@ impl Loader {
 pub struct Image {
     pub(crate) loader: Loader,
     pub(crate) process: Arc<PooledProcess<LoaderProxy<'static>>>,
-    info: ImageInfo,
+    info: RemoteImage,
     mime_type: MimeType,
     active_sandbox_mechanism: SandboxMechanism,
     loader_alive: Mutex<Arc<()>>,
@@ -240,7 +241,12 @@ impl Image {
 
     /// Returns already obtained info
     pub fn info(&self) -> &ImageInfo {
-        &self.info
+        &self.info.details
+    }
+
+    /// Returns already obtained info
+    pub(crate) fn frame_request_path(&self) -> OwnedObjectPath {
+        self.info.frame_request.clone()
     }
 
     /// Returns detected MIME type of the file
@@ -250,7 +256,7 @@ impl Image {
 
     /// A textual representation of the image format
     pub fn format_name(&self) -> Option<String> {
-        self.info().details.format_name.as_ref().cloned()
+        self.info().format_name.as_ref().cloned()
     }
 
     /// File the image was loaded from

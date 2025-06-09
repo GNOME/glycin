@@ -21,7 +21,7 @@ pub struct ImgDecoder {
 pub struct ImgDecoderDetails {
     frame_recv: Receiver<Result<Frame, ProcessError>>,
     instr_send: Sender<Instruction>,
-    image_info: ImageInfoDetails,
+    image_info: ImageInfo,
 }
 
 pub struct Instruction {
@@ -32,7 +32,7 @@ pub struct Instruction {
 pub fn thread(
     stream: UnixStream,
     base_file: Option<gio::File>,
-    info_send: Sender<Result<ImageInfoDetails, ProcessError>>,
+    info_send: Sender<Result<ImageInfo, ProcessError>>,
     frame_send: Sender<Result<Frame, ProcessError>>,
     instr_recv: Receiver<Instruction>,
 ) {
@@ -56,7 +56,7 @@ pub fn thread(
 
     let (original_width, original_height) = svg_dimensions(&handle);
 
-    let mut image_info = ImageInfoDetails::new(original_width, original_height);
+    let mut image_info = ImageInfo::new(original_width, original_height);
 
     image_info.format_name = Some(String::from("SVG"));
     image_info.dimensions_text = dimensions_text(handle.intrinsic_dimensions());
@@ -133,7 +133,7 @@ impl LoaderImplementation for ImgDecoder {
         stream: UnixStream,
         _mime_type: String,
         details: InitializationDetails,
-    ) -> Result<(Self, ImageInfoDetails), ProcessError> {
+    ) -> Result<(Self, ImageInfo), ProcessError> {
         let (info_send, info_recv) = channel();
         let (frame_send, frame_recv) = channel();
         let (instr_send, instr_recv) = channel();

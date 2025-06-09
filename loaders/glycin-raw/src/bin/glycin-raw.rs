@@ -22,7 +22,7 @@ pub struct ImgDecoderDetails {
 
 pub fn thread(
     mut stream: UnixStream,
-    info_send: Sender<Result<ImageInfoDetails, ProcessError>>,
+    info_send: Sender<Result<ImageInfo, ProcessError>>,
     frame_send: Sender<Result<Frame, ProcessError>>,
     instr_recv: Receiver<()>,
 ) {
@@ -42,7 +42,7 @@ pub fn thread(
             }
         });
 
-    let mut image_info = ImageInfoDetails::new(w, h);
+    let mut image_info = ImageInfo::new(w, h);
 
     image_info.format_name = Some(String::from("RAW"));
     image_info.xmp = xmp.and_then(|xmp| BinaryData::from_data(xmp).ok());
@@ -91,7 +91,7 @@ impl LoaderImplementation for ImgDecoder {
         stream: UnixStream,
         _mime_type: String,
         _details: InitializationDetails,
-    ) -> Result<(ImgDecoder, ImageInfoDetails), ProcessError> {
+    ) -> Result<(ImgDecoder, ImageInfo), ProcessError> {
         let (info_send, info_recv) = channel();
         let (frame_send, frame_recv) = channel();
         let (instr_send, instr_recv) = channel();

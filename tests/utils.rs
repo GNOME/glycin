@@ -122,10 +122,9 @@ pub async fn compare_images(
 
     let reference_exif = get_info(&reference_path)
         .await
-        .details
         .exif
         .map(|x| x.get().unwrap());
-    let exif = get_info(&path).await.details.exif.map(|x| x.get().unwrap());
+    let exif = get_info(&path).await.exif.map(|x| x.get().unwrap());
 
     let exif_eq = if !test_exif
         || (reference_exif.is_none() && path.as_ref().extension().unwrap() == "tiff")

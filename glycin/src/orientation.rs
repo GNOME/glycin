@@ -5,14 +5,9 @@ pub fn apply_exif_orientation(
     frame: &mut Frame,
     image_info: &ImageInfo,
 ) -> ImgBuf {
-    if image_info.details.transformations_applied {
+    if image_info.transformations_applied {
         img_buf
-    } else if let Some(exif_data) = image_info
-        .details
-        .exif
-        .as_ref()
-        .and_then(|x| x.get_full().ok())
-    {
+    } else if let Some(exif_data) = image_info.exif.as_ref().and_then(|x| x.get_full().ok()) {
         match gufo_exif::Exif::new(exif_data) {
             Err(err) => {
                 eprintln!("exif: Failed to parse data: {err:?}");

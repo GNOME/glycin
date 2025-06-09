@@ -23,14 +23,14 @@ impl LoaderImplementation for ImgDecoder {
         mut stream: UnixStream,
         _mime_type: String,
         _details: InitializationDetails,
-    ) -> Result<(Self, ImageInfoDetails), ProcessError> {
+    ) -> Result<(Self, ImageInfo), ProcessError> {
         let mut data = Vec::new();
         stream.read_to_end(&mut data).expected_error()?;
         let (info, iccp, exif) = basic_info(&data);
 
         let info = info.expected_error()?;
 
-        let mut image_info = ImageInfoDetails::new(info.xsize, info.ysize);
+        let mut image_info = ImageInfo::new(info.xsize, info.ysize);
         image_info.format_name = Some(String::from("JPEG XL"));
         image_info.exif = exif
             .map(BinaryData::from_data)

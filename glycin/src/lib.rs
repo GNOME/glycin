@@ -91,7 +91,7 @@ pub use config::COMPAT_VERSION;
 pub use error::{Error, ErrorCtx};
 pub use glycin_utils::operations::OperationId;
 pub use glycin_utils::{
-    BinaryData, ImageInfo, ImageInfoDetails, MemoryFormatSelection, RemoteError,
+    BinaryData, RemoteImage, ImageInfo, MemoryFormatSelection, RemoteError,
 };
 pub use gufo_common::cicp::{Cicp, VideoRangeFlag};
 #[cfg(feature = "gdk4")]

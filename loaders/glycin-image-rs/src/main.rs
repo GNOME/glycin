@@ -158,7 +158,7 @@ impl LoaderImplementation for ImgDecoder {
         mut stream: UnixStream,
         mime_type: String,
         _details: InitializationDetails,
-    ) -> Result<(Self, ImageInfoDetails), ProcessError> {
+    ) -> Result<(Self, ImageInfo), ProcessError> {
         let mut buf = Vec::new();
         stream.read_to_end(&mut buf).internal_error()?;
         let data = Cursor::new(buf);
@@ -385,7 +385,7 @@ impl<'a, T: std::io::BufRead + std::io::Seek + 'a> ImageRsFormat<T> {
         }
     }
 
-    fn info(&mut self) -> ImageInfoDetails {
+    fn info(&mut self) -> ImageInfo {
         match self.decoder {
             ImageRsDecoder::Bmp(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Dds(ref mut d) => self.handler.info(d),

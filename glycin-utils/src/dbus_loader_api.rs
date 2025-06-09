@@ -16,7 +16,7 @@ pub trait LoaderImplementation: Send + Sync + Sized + 'static {
         stream: UnixStream,
         mime_type: String,
         details: InitializationDetails,
-    ) -> Result<(Self, ImageInfoDetails), ProcessError>;
+    ) -> Result<(Self, ImageInfo), ProcessError>;
 
     fn frame(&mut self, frame_request: FrameRequest) -> Result<Frame, ProcessError>;
 }
@@ -32,7 +32,7 @@ impl<T: LoaderImplementation> Loader<T> {
         &self,
         init_request: InitRequest,
         #[zbus(connection)] dbus_connection: &zbus::Connection,
-    ) -> Result<ImageInfo, RemoteError> {
+    ) -> Result<RemoteImage, RemoteError> {
         let fd = OwnedFd::from(init_request.fd);
         let stream = UnixStream::from(fd);
 
@@ -55,7 +55,7 @@ impl<T: LoaderImplementation> Loader<T> {
             .internal_error()
             .map_err(|x| x.into_loader_error())?;
 
-        let dbus_image = ImageInfo::new(image_info, path.clone());
+        let dbus_image = RemoteImage::new(image_info, path.clone());
 
         dbus_connection
             .object_server()

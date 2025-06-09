@@ -18,7 +18,7 @@ impl LoaderImplementation for ImgDecoder {
         mut stream: UnixStream,
         mime_type: String,
         _details: InitializationDetails,
-    ) -> Result<(Self, ImageInfoDetails), ProcessError> {
+    ) -> Result<(Self, ImageInfo), ProcessError> {
         let mut data = Vec::new();
         let total_size = stream.read_to_end(&mut data).internal_error()?;
 
@@ -33,7 +33,7 @@ impl LoaderImplementation for ImgDecoder {
             _ => "HEIF (Unknown)",
         };
 
-        let mut image_info = ImageInfoDetails::new(handle.width(), handle.height());
+        let mut image_info = ImageInfo::new(handle.width(), handle.height());
         image_info.exif = exif(&handle)
             .map(BinaryData::from_data)
             .transpose()

@@ -26,22 +26,14 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
     let info = image.info();
 
     println!("[info]");
-    println!(
-        "dimensions = {} x {}",
-        info.details.width, info.details.height
-    );
+    println!("dimensions = {} x {}", info.width, info.height);
     println!(
         "format_name = {}",
-        info.details
-            .format_name
-            .as_ref()
-            .cloned()
-            .unwrap_or("-".into())
+        info.format_name.as_ref().cloned().unwrap_or("-".into())
     );
     println!(
         "exif = {}",
-        info.details
-            .exif
+        info.exif
             .as_ref()
             .map_or(String::from("empty"), |x| glib::format_size(
                 x.get_full().unwrap().len() as u64
@@ -50,15 +42,14 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
     );
     println!(
         "xmp = {}",
-        info.details
-            .xmp
+        info.xmp
             .as_ref()
             .map_or(String::from("empty"), |x| glib::format_size(
                 x.get_full().unwrap().len() as u64
             )
             .to_string())
     );
-    if let Some(key_value) = &info.details.key_value {
+    if let Some(key_value) = &info.key_value {
         println!("key_value = ");
         for (key, value) in key_value {
             println!(" - {key}: {value}");
@@ -68,16 +59,14 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
     }
     println!(
         "dimensions_text = {}",
-        info.details
-            .dimensions_text
+        info.dimensions_text
             .as_ref()
             .cloned()
             .unwrap_or(String::from("-"))
     );
     println!(
         "dimensions_inch = {}",
-        info.details
-            .dimensions_inch
+        info.dimensions_inch
             .as_ref()
             .map(|(x, y)| format!("{:.3}” x {:.3}”", x, y))
             .unwrap_or("-".into())

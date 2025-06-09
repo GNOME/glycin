@@ -145,13 +145,13 @@ pub unsafe extern "C" fn gly_image_get_mime_type(image: *mut GlyImage) -> *const
 #[no_mangle]
 pub unsafe extern "C" fn gly_image_get_width(image: *mut GlyImage) -> u32 {
     let image = gobject::GlyImage::from_glib_ptr_borrow(&image);
-    image.image_info().details.width
+    image.image_info().width
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn gly_image_get_height(image: *mut GlyImage) -> u32 {
     let image = gobject::GlyImage::from_glib_ptr_borrow(&image);
-    image.image_info().details.height
+    image.image_info().height
 }
 
 #[no_mangle]
@@ -164,7 +164,6 @@ pub unsafe extern "C" fn gly_image_get_metadata_key_value(
 
     let value = image
         .image_info()
-        .details
         .key_value
         .as_ref()
         .and_then(|x| x.get(key));
@@ -178,7 +177,6 @@ pub unsafe extern "C" fn gly_image_get_metadata_keys(image: *mut GlyImage) -> GS
 
     image
         .image_info()
-        .details
         .key_value
         .as_ref()
         .map(|x| glib::StrV::from_iter(x.keys().map(|x| glib::GString::from(x))))

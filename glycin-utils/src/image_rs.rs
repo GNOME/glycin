@@ -2,8 +2,7 @@ use super::{Frame, SharedMemory};
 use crate::editing::EditingFrame;
 use crate::memory_format::{ExtendedMemoryFormat, MemoryFormat, MemoryFormatInfo};
 use crate::{
-    BinaryData, DimensionTooLargerError, FrameDetails, GenericContexts, ImageInfoDetails,
-    ProcessError,
+    BinaryData, DimensionTooLargerError, FrameDetails, GenericContexts, ImageInfo, ProcessError,
 };
 
 #[derive(Default, Clone, Debug)]
@@ -39,9 +38,9 @@ impl Handler {
         self
     }
 
-    pub fn info(&self, decoder: &mut impl image::ImageDecoder) -> ImageInfoDetails {
+    pub fn info(&self, decoder: &mut impl image::ImageDecoder) -> ImageInfo {
         let (width, height) = decoder.dimensions();
-        let mut info = ImageInfoDetails::new(width, height);
+        let mut info = ImageInfo::new(width, height);
         info.format_name.clone_from(&self.format_name);
 
         info
