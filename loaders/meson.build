@@ -162,6 +162,7 @@ if get_option('tests')
         env: {
           'DESTDIR': destdir,
           'CONFIG_FILE': glycin_datadir / 'conf.d' / loader + '.conf',
+          'RUST_LOG': 'debug',
         },
         is_parallel: false,
       )
