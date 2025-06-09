@@ -33,7 +33,7 @@ name = "Gdk"
 description = "The GTK windowing system abstraction"
 docs_url = "https://docs.gtk.org/gdk4/"
 
-[dependencies."Gly-1"]
+[dependencies."Gly-2"]
 name = "Gly"
 description = "Sandboxed and extendable image loading"
 docs_url = "https://gnome.pages.gitlab.gnome.org/glycin/libglycin/"

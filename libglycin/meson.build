@@ -45,7 +45,7 @@ if get_option('libglycin-gtk4')
 
     # Not building libglycin, need to link already installed version
     if not get_option('libglycin')
-        extra_deps += dependency('glycin-1')
+        extra_deps += dependency('glycin-2')
         global_libglycin = []
     endif
 
@@ -72,7 +72,7 @@ foreach package : packages
             if get_option('libglycin')
                 extra_gir_deps += declare_dependency(sources: global_libglycin_gir)
             endif
-            extra_girs += ['Gly-1', 'Gdk-4.0']
+            extra_girs += ['Gly-2', 'Gdk-4.0']
         endif
     endif
 
@@ -107,7 +107,7 @@ foreach package : packages
 
     # We need a shim "lib" object to pass to "generate_gir" later
     libglycin_shim = library(
-        f'glycin@suffix@-1',
+        f'glycin@suffix@-2',
         f'include/glycin@suffix@.h',
         soversion: '0',
         link_with: link_with,
@@ -144,7 +144,7 @@ foreach package : packages
         ],
     )
 
-    install_headers(f'include/glycin@suffix@.h', subdir: f'glycin@suffix@-1')
+    install_headers(f'include/glycin@suffix@.h', subdir: f'glycin@suffix@-2')
 
     # Generate a dependency such that the following targets only happen
     # after the .so file has been copied to the correct place
@@ -165,10 +165,10 @@ foreach package : packages
 
     # Generate .pc file
     pkg.generate(
-        name: f'glycin@suffix@-1',
+        name: f'glycin@suffix@-2',
         description: 'Glycin: Sandboxed and extendable image decoding',
         libraries: deps + libglycin_shim + libglycin_copy_library_as_dep,
-        subdirs: f'glycin@suffix@-1',
+        subdirs: f'glycin@suffix@-2',
         version: version,
     )
 
@@ -178,7 +178,7 @@ foreach package : packages
             libglycin_shim,
             dependencies: extra_gir_deps + libglycin_copy_library_as_dep,
             sources: [f'include/glycin@suffix@.h', libglycin_copy_library],
-            nsversion: '1',
+            nsversion: '2',
             namespace: f'Gly@namespace_suffix@',
             symbol_prefix: f'gly@symbol_prefix_suffix@',
             includes: ['GLib-2.0', 'GObject-2.0', 'Gio-2.0'] + extra_girs,
@@ -187,7 +187,7 @@ foreach package : packages
             # Listed as "C headers" in docs
             header: f'glycin@suffix@.h',
             # Listed as "pkg-config files" in docs
-            export_packages: f'glycin@suffix@-1',
+            export_packages: f'glycin@suffix@-2',
             install: true,
         )
         if suffix == ''
@@ -198,7 +198,7 @@ foreach package : packages
     if get_option('vapi')
         # Generate .vapi (Vala)
         gnome.generate_vapi(
-            f'glycin@suffix@-1',
+            f'glycin@suffix@-2',
             sources: libglycin_gir[0],
             packages: ['glib-2.0', 'gobject-2.0', 'gio-2.0', 'gtk4'],
             gir_dirs: meson.current_build_dir(),
@@ -215,7 +215,7 @@ foreach package : packages
             # Generate from .gir file
             depends: libglycin_gir,
             input: [f'doc/libglycin@suffix@.toml'] + libglycin_gir[0],
-            output: f'libglycin@suffix@-1',
+            output: f'libglycin@suffix@-2',
             command: [
                 gidocgen,
                 'generate',

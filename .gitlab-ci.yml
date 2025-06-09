@@ -72,8 +72,8 @@ test-x86_64:
     - meson setup -Dbuildtype=debug -Dpython_tests=true -Dtest_skip_install=true -Dcapi_docs=true --prefix=/usr builddir
     - meson install -C builddir
     - meson test -vC builddir
-    - mv builddir/libglycin/libglycin-1 libglycin-docs
-    - mv builddir/libglycin/libglycin-gtk4-1 libglycin-gtk4-docs
+    - mv builddir/libglycin/libglycin-2 libglycin-docs
+    - mv builddir/libglycin/libglycin-gtk4-2 libglycin-gtk4-docs
   artifacts:
     paths:
       - libglycin-docs

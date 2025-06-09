@@ -78,7 +78,7 @@ The configs are [glib KeyFiles](https://docs.gtk.org/glib/struct.KeyFile.html) o
 
 ```ini
 [loader:image/png]
-Exec = /usr/libexec/glycin/1+/glycin-image-rs
+Exec = /usr/libexec/glycin/2+/glycin-image-rs
 ```
 
 Where the part behind `loader` is a mime-type and the value of `Exec` can be any executable path.
@@ -91,6 +91,7 @@ Not every new major version of the library has to break compatibility with the l
 |----------------|--------------------------------|
 | 0+             | glycin 0.x                     |
 | 1+             | glycin 1.x, 2.x; libglycin 1.x |
+| 2+             | glycin 3.x; libglycin 2.x      |
 
 ## Sandboxing and Inner Workings
 

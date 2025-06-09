@@ -28,7 +28,7 @@ name = "Gio"
 description = "GObject Interfaces and Objects, Networking, IPC, and I/O"
 docs_url = "https://docs.gtk.org/gio/"
 
-[related."GlyGtk4-1"]
+[related."GlyGtk4-2"]
 name = "GlyGtk4"
 description = "Convert glycin frames to GDK Textures"
 docs_url = "https://gnome.pages.gitlab.gnome.org/glycin/libglycin-gtk4/"

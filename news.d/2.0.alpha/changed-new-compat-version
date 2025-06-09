@@ -1,0 +1,1 @@
+- Use a new loader/editor D-Bus API version 2+ and simultanously bump libglycin to 2.0 and glycin (Rust API) to 3.0. This was required for supporting pooled loaders.

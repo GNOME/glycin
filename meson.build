@@ -4,7 +4,7 @@ project(
   'c',
   # This is a global version that's neither related to the glycin-loaders version
   # nor the libglycin version
-  version: '1.3.alpha',
+  version: '2.0.alpha',
   meson_version: '>=1.2',
 )
 
@@ -14,7 +14,7 @@ gtk4_req = '>= 4.16.0'
 seccomp_req = '>= 2.5.0'
 fontconfig_req = '>= 2.13.0'
 
-compat_version = '1+'
+compat_version = '2+'
 
 datadir = get_option('prefix') / get_option('datadir')
 bindir = get_option('bindir')

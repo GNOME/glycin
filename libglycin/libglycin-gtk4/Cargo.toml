@@ -1,6 +1,6 @@
 [package]
 name = "libglycin-gtk4"
-version = "1.3.0-alpha"
+version = "2.0.0-alpha"
 authors.workspace = true
 description.workspace = true
 license.workspace = true
@@ -17,7 +17,7 @@ glycin = { workspace = true, features = ["async-io", "gobject", "gdk4"] }
 system-deps.workspace = true
 
 [package.metadata.system-deps]
-glycin-1 = "1.0"
+glycin-2 = "2.0"
 
 [lints]
 workspace = true

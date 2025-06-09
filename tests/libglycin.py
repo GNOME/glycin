@@ -5,8 +5,8 @@ import os
 import os.path
 import sys
 
-gi.require_version("Gly", "1")
-gi.require_version("GlyGtk4", "1")
+gi.require_version("Gly", "2")
+gi.require_version("GlyGtk4", "2")
 
 from gi.repository import Gly, GlyGtk4, Gio, GLib
 
