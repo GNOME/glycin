@@ -4,25 +4,25 @@ use std::io::{Cursor, Read};
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::Mutex;
 
+use glycin_utils::safe_math::SafeConversion;
 use glycin_utils::*;
 use libopenraw::metadata::Value;
 use libopenraw::Bitmap;
 
-init_main_loader!(ImgDecoder::default());
+init_main_loader!(ImgDecoder);
 
-#[derive(Default)]
 pub struct ImgDecoder {
-    thread: Mutex<Option<ImgDecoderDetails>>,
+    thread: ImgDecoderDetails,
 }
 
 pub struct ImgDecoderDetails {
-    frame_recv: Receiver<Result<Frame, ProcessError>>,
+    frame_recv: Mutex<Receiver<Result<Frame, ProcessError>>>,
     instr_send: Sender<()>,
 }
 
 pub fn thread(
     mut stream: UnixStream,
-    info_send: Sender<Result<ImageInfo, ProcessError>>,
+    info_send: Sender<Result<ImageInfoDetails, ProcessError>>,
     frame_send: Sender<Result<Frame, ProcessError>>,
     instr_recv: Receiver<()>,
 ) {
@@ -42,11 +42,11 @@ pub fn thread(
             }
         });
 
-    let mut image_info = ImageInfo::new(w, h);
+    let mut image_info = ImageInfoDetails::new(w, h);
 
-    image_info.details.format_name = Some(String::from("RAW"));
-    image_info.details.xmp = xmp.and_then(|xmp| BinaryData::from_data(xmp).ok());
-    image_info.details.transformations_applied = false;
+    image_info.format_name = Some(String::from("RAW"));
+    image_info.xmp = xmp.and_then(|xmp| BinaryData::from_data(xmp).ok());
+    image_info.transformations_applied = false;
 
     info_send.send(Ok(image_info)).unwrap();
 
@@ -88,11 +88,10 @@ pub fn render(rawdata: &libopenraw::RawImage) -> Result<Frame, ProcessError> {
 
 impl LoaderImplementation for ImgDecoder {
     fn init(
-        &self,
         stream: UnixStream,
         _mime_type: String,
         _details: InitializationDetails,
-    ) -> Result<ImageInfo, ProcessError> {
+    ) -> Result<(ImgDecoder, ImageInfoDetails), ProcessError> {
         let (info_send, info_recv) = channel();
         let (frame_send, frame_recv) = channel();
         let (instr_send, instr_recv) = channel();
@@ -100,20 +99,20 @@ impl LoaderImplementation for ImgDecoder {
         std::thread::spawn(move || thread(stream, info_send, frame_send, instr_recv));
         let image_info = info_recv.recv().unwrap()?;
 
-        *self.thread.lock().unwrap() = Some(ImgDecoderDetails {
-            frame_recv,
-            instr_send,
-        });
+        let decoder = ImgDecoder {
+            thread: ImgDecoderDetails {
+                frame_recv: Mutex::new(frame_recv),
+                instr_send,
+            },
+        };
 
-        Ok(image_info)
+        Ok((decoder, image_info))
     }
 
-    fn frame(&self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
-        let lock = self.thread.lock().unwrap();
-        let thread = lock.as_ref().internal_error()?;
+    fn frame(&mut self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
+        let frame_recv_lock = self.thread.frame_recv.lock().unwrap();
 
-        thread.instr_send.send(()).unwrap();
-
-        thread.frame_recv.recv().unwrap()
+        self.thread.instr_send.send(()).internal_error()?;
+        frame_recv_lock.recv().internal_error()?
     }
 }
