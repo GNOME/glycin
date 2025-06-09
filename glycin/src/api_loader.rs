@@ -14,6 +14,7 @@ pub use crate::config::MimeType;
 use crate::dbus::*;
 use crate::error::ResultExt;
 use crate::pool::{Pool, PooledProcess};
+use crate::util::spawn_detached;
 use crate::{config, ErrorCtx};
 
 /// Image request builder
@@ -205,7 +206,7 @@ impl Drop for Image {
     fn drop(&mut self) {
         self.process.use_().done_background(&self);
         *self.loader_alive.lock().unwrap() = Arc::new(());
-        self.loader.pool.clean_loaders();
+        spawn_detached(self.loader.pool.clone().clean_loaders());
     }
 }
 

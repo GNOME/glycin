@@ -157,12 +157,8 @@ impl Pool {
         Ok(pp)
     }
 
-    pub fn clean_loaders(&self) {
-        #[cfg(not(feature = "tokio"))]
-        let mut loaders = self.loaders.lock_blocking();
-
-        #[cfg(feature = "tokio")]
-        let mut loaders = self.loaders.blocking_lock();
+    pub async fn clean_loaders(self: Arc<Self>) {
+        let mut loaders = self.loaders.lock().await;
 
         loaders.retain(|cfg, loader| {
             let drop = loader.users.iter().all(|x| x.strong_count() == 0)
