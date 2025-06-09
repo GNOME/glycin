@@ -23,6 +23,7 @@ pub struct Loader {
     source: Source,
     pool: Arc<Pool>,
     cancellable: gio::Cancellable,
+    use_expose_base_dir: bool,
     pub(crate) apply_transformations: bool,
     pub(crate) sandbox_selector: SandboxSelector,
     pub(crate) memory_format_selection: MemoryFormatSelection,
@@ -59,6 +60,7 @@ impl Loader {
             pool: Pool::global(),
             cancellable: gio::Cancellable::new(),
             apply_transformations: true,
+            use_expose_base_dir: false,
             sandbox_selector: SandboxSelector::default(),
             memory_format_selection: MemoryFormatSelection::all(),
         }
@@ -101,6 +103,20 @@ impl Loader {
         self
     }
 
+    /// Sets if the file's directory can be exposed to loaders
+    ///
+    /// Some loaders have the `use_base_dir` option enabled to load external
+    /// files. One example is SVGs which can display external images inside the
+    /// picture. By default, `use_expose_base_dir` is set to `false`. You need
+    /// to enable it for the `use_base_dir` option to have any effect. The
+    /// downside of enabling it is that separate sandboxes are needed for
+    /// different base directories, which has a noticable performance impact
+    /// when loading many small SVGs from many different directories.
+    pub fn use_expose_base_dir(&mut self, use_epose_base_dir: bool) -> &mut Self {
+        self.use_expose_base_dir = use_epose_base_dir;
+        self
+    }
+
     /// Load basic image information and enable further operations
     pub async fn load(mut self) -> Result<Image, ErrorCtx> {
         let source = self.source.send();
@@ -109,6 +125,7 @@ impl Loader {
 
         let process_basics = spin_up_loader(
             source,
+            self.use_expose_base_dir,
             &self.pool,
             &self.cancellable,
             &self.sandbox_selector,
@@ -119,11 +136,7 @@ impl Loader {
 
         let process = process_basics.process.use_();
         let info = process
-            .init(
-                process_basics.g_file_worker,
-                process_basics.base_dir,
-                &process_basics.mime_type,
-            )
+            .init(process_basics.g_file_worker, &process_basics.mime_type)
             .await
             .err_context(&process, &self.cancellable)?;
 

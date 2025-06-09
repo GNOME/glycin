@@ -6,6 +6,7 @@ use std::io::{BufRead, Read};
 use std::mem;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::os::unix::net::UnixStream;
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -44,6 +45,7 @@ pub struct RemoteProcess<P: ZbusProxy<'static> + 'static> {
     pub stdout_content: Arc<Mutex<String>>,
     pub process_disconnected: Arc<AtomicBool>,
     cancellable: gio::Cancellable,
+    base_dir: Option<PathBuf>,
 }
 
 impl<P: ZbusProxy<'static> + 'static> Drop for RemoteProcess<P> {
@@ -76,7 +78,7 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
     pub async fn new(
         config_entry: config::ConfigEntry,
         sandbox_mechanism: SandboxMechanism,
-        file: Option<gio::File>,
+        base_dir: Option<PathBuf>,
         cancellable: &gio::Cancellable,
     ) -> Result<Self, Error> {
         // UnixStream which facilitates the D-Bus connection. The stream is passed as
@@ -87,10 +89,8 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
 
         let mut sandbox = Sandbox::new(sandbox_mechanism, config_entry.clone(), loader_stdin);
         // Mount dir that contains the file as read only for formats like SVG
-        if config_entry.expose_base_dir() {
-            if let Some(base_dir) = file.and_then(|x| x.parent()).and_then(|x| x.path()) {
-                sandbox.add_ro_bind(base_dir);
-            }
+        if let Some(base_dir) = &base_dir {
+            sandbox.add_ro_bind(base_dir.clone());
         }
 
         let spawned_sandbox = sandbox.spawn().await?;
@@ -170,13 +170,13 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
             stdout_content,
             process_disconnected,
             cancellable: cancellable.clone(),
+            base_dir,
         })
     }
 
     fn init_request(
         &self,
         gfile_worker: &GFileWorker,
-        base_dir: Option<std::path::PathBuf>,
         mime_type: &MimeType,
     ) -> Result<InitRequest, Error> {
         let (remote_reader, writer) = std::os::unix::net::UnixStream::pair()?;
@@ -188,7 +188,7 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
         let mime_type = mime_type.to_string();
 
         let mut details = InitializationDetails::default();
-        details.base_dir = base_dir;
+        details.base_dir = self.base_dir.clone();
 
         Ok(InitRequest {
             fd,
@@ -202,10 +202,9 @@ impl RemoteProcess<LoaderProxy<'static>> {
     pub async fn init(
         &self,
         gfile_worker: GFileWorker,
-        base_dir: Option<std::path::PathBuf>,
         mime_type: &MimeType,
     ) -> Result<RemoteImage, Error> {
-        let init_request = self.init_request(&gfile_worker, base_dir, mime_type)?;
+        let init_request = self.init_request(&gfile_worker, mime_type)?;
 
         let image_info = self.decoding_instruction.init(init_request).shared();
 
@@ -353,11 +352,10 @@ impl RemoteProcess<EditorProxy<'static>> {
     pub async fn editor_apply_sparse(
         &self,
         gfile_worker: &GFileWorker,
-        base_dir: Option<std::path::PathBuf>,
         operations: &Operations,
         mime_type: &MimeType,
     ) -> Result<SparseEditorOutput, Error> {
-        let init_request = self.init_request(gfile_worker, base_dir, mime_type)?;
+        let init_request = self.init_request(gfile_worker, mime_type)?;
         let edit_request = EditRequest::for_operations(operations)?;
 
         let editor_output = self
@@ -381,11 +379,10 @@ impl RemoteProcess<EditorProxy<'static>> {
     pub async fn editor_apply_complete(
         &self,
         gfile_worker: &GFileWorker,
-        base_dir: Option<std::path::PathBuf>,
         operations: &Operations,
         mime_type: &MimeType,
     ) -> Result<CompleteEditorOutput, Error> {
-        let init_request = self.init_request(gfile_worker, base_dir, mime_type)?;
+        let init_request = self.init_request(gfile_worker, mime_type)?;
         let edit_request = EditRequest::for_operations(operations)?;
 
         let editor_output = self

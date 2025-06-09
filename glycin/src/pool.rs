@@ -1,12 +1,13 @@
 static DEFAULT_POOL: LazyLock<Arc<Pool>> = LazyLock::new(Pool::new);
 
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, LazyLock, Mutex};
 use std::time::{Duration, Instant};
 
 use gio::glib;
-use gio::prelude::{CancellableExt, CancellableExtManual};
+use gio::prelude::*;
 
 use crate::config::{ConfigEntry, ConfigEntryHash};
 use crate::dbus::ZbusProxy;
@@ -55,7 +56,7 @@ impl Pool {
         &self,
         loader_config: config::ImageLoaderConfig,
         sandbox_mechanism: SandboxMechanism,
-        file: Option<gio::File>,
+        base_dir: Option<PathBuf>,
         cancellable: &gio::Cancellable,
         loader_alive: std::sync::Weak<()>,
     ) -> Result<Arc<PooledProcess<dbus::LoaderProxy<'static>>>, Error> {
@@ -66,7 +67,7 @@ impl Pool {
                 pooled_loaders,
                 ConfigEntry::Loader(loader_config.clone()),
                 sandbox_mechanism,
-                file,
+                base_dir,
                 cancellable,
                 loader_alive,
             )
@@ -79,7 +80,7 @@ impl Pool {
         &self,
         editor_config: config::ImageEditorConfig,
         sandbox_mechanism: SandboxMechanism,
-        file: Option<gio::File>,
+        base_dir: Option<PathBuf>,
         cancellable: &gio::Cancellable,
         editor_alive: std::sync::Weak<()>,
     ) -> Result<Arc<PooledProcess<dbus::EditorProxy<'static>>>, Error> {
@@ -90,7 +91,7 @@ impl Pool {
                 pooled_editors,
                 ConfigEntry::Editor(editor_config.clone()),
                 sandbox_mechanism,
-                file,
+                base_dir,
                 cancellable,
                 editor_alive,
             )
@@ -104,13 +105,15 @@ impl Pool {
         pooled_processes: &AsyncMutex<BTreeMap<ConfigEntryHash, Arc<PooledProcess<P>>>>,
         config: config::ConfigEntry,
         sandbox_mechanism: SandboxMechanism,
-        file: Option<gio::File>,
+        base_dir: Option<PathBuf>,
         cancellable: &gio::Cancellable,
         alive: std::sync::Weak<()>,
     ) -> Result<Arc<PooledProcess<P>>, Error> {
         let mut pooled_processes = pooled_processes.lock().await;
 
-        let pooled_process = pooled_processes.get(&config.hash_value()).cloned();
+        let config_hash = config.hash_value(base_dir.clone());
+
+        let pooled_process = pooled_processes.get(&config_hash).cloned();
 
         if let Some(loader) = pooled_process {
             if loader.process.process_disconnected.load(Ordering::Relaxed) {
@@ -138,7 +141,7 @@ impl Pool {
             dbus::RemoteProcess::new(
                 config.clone(),
                 sandbox_mechanism,
-                file.clone(),
+                base_dir,
                 &process_cancellable,
             )
             .await?,
@@ -152,7 +155,7 @@ impl Pool {
             users: vec![alive],
         });
 
-        pooled_processes.insert(config.hash_value(), pp.clone());
+        pooled_processes.insert(config_hash, pp.clone());
 
         Ok(pp)
     }

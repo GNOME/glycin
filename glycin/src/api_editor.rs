@@ -72,7 +72,6 @@ impl Editor {
         let editor_output = process
             .editor_apply_sparse(
                 &process_context.g_file_worker,
-                process_context.base_dir,
                 &operations,
                 &process_context.mime_type,
             )
@@ -107,7 +106,6 @@ impl Editor {
         let editor_output = process
             .editor_apply_complete(
                 &process_context.g_file_worker,
-                process_context.base_dir,
                 operations,
                 &process_context.mime_type,
             )

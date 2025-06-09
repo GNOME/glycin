@@ -1,0 +1,1 @@
+Exposing the base directory is no longer enabled by default. For loading SVGs that include external images, `loader.use_expose_basedir(true)` has to be used.

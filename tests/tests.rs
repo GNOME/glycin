@@ -78,7 +78,8 @@ async fn test_dir_animated(dir: impl AsRef<Path>) {
         }
 
         let file = gio::File::for_path(&path);
-        let image_request = glycin::Loader::new(file);
+        let mut image_request = glycin::Loader::new(file);
+        image_request.use_expose_base_dir(true);
         let image = image_request.load().await.unwrap();
 
         for n_frame in [0, 1, 2, 0] {

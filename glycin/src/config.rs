@@ -60,6 +60,7 @@ pub struct ConfigEntryHash {
     fontconfig: bool,
     exec: PathBuf,
     expose_base_dir: bool,
+    base_dir: Option<PathBuf>,
 }
 
 impl ConfigEntryHash {
@@ -77,11 +78,12 @@ pub struct ImageEditorConfig {
 }
 
 impl ConfigEntry {
-    pub fn hash_value(&self) -> ConfigEntryHash {
+    pub fn hash_value(&self, base_dir: Option<PathBuf>) -> ConfigEntryHash {
         ConfigEntryHash {
             fontconfig: self.fontconfig(),
             exec: self.exec(),
             expose_base_dir: self.expose_base_dir(),
+            base_dir,
         }
     }
 
@@ -143,7 +145,6 @@ impl Config {
             data_dir.push(format!("{COMPAT_VERSION}+"));
             data_dir.push("conf.d");
 
-            dbg!(&data_dir);
             if let Ok(mut config_files) = read_dir(data_dir).await {
                 while let Some(result) = config_files.next().await {
                     if let Ok(path) = result {

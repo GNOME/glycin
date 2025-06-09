@@ -82,7 +82,6 @@ pub enum ColorState {
 pub(crate) struct RemoteProcessContext<P: ZbusProxy<'static> + 'static> {
     pub process: Arc<PooledProcess<P>>,
     pub g_file_worker: GFileWorker,
-    pub base_dir: Option<PathBuf>,
     pub mime_type: MimeType,
     pub sandbox_mechanism: SandboxMechanism,
 }
@@ -154,10 +153,12 @@ pub(crate) struct ProcessBasics<T> {
     pub sandbox_mechanism: SandboxMechanism,
     pub config_entry: T,
     pub g_file_worker: GFileWorker,
+    pub base_dir: Option<PathBuf>,
 }
 
 pub trait GetConfig {
     fn config_entry<'a>(config: &'a Config, mime_type: &'a MimeType) -> Result<&'a Self, Error>;
+    fn expose_base_dir(&self) -> bool;
 }
 
 impl GetConfig for ImageLoaderConfig {
@@ -166,6 +167,10 @@ impl GetConfig for ImageLoaderConfig {
         mime_type: &'a MimeType,
     ) -> Result<&'a ImageLoaderConfig, Error> {
         config.loader(mime_type)
+    }
+
+    fn expose_base_dir(&self) -> bool {
+        self.expose_base_dir
     }
 }
 
@@ -176,24 +181,37 @@ impl GetConfig for ImageEditorConfig {
     ) -> Result<&'a ImageEditorConfig, Error> {
         config.editor(mime_type)
     }
+
+    fn expose_base_dir(&self) -> bool {
+        self.expose_base_dir
+    }
 }
 
 pub(crate) async fn spin_up<T: GetConfig + Clone>(
     source: Source,
+    use_expose_base_dir: bool,
     cancellable: &gio::Cancellable,
     sandbox_selector: &SandboxSelector,
 ) -> Result<ProcessBasics<T>, Error> {
-    let config = config::Config::cached().await;
+    let file = source.file();
 
     let g_file_worker: GFileWorker = GFileWorker::spawn(source, cancellable.clone());
     let mime_type = guess_mime_type(&g_file_worker).await?;
 
-    let sandbox_mechanism = sandbox_selector.determine_sandbox_mechanism().await;
-
+    let config = config::Config::cached().await;
     let config_entry = T::config_entry(config, &mime_type)?.clone().clone();
+
+    let base_dir = if use_expose_base_dir && config_entry.expose_base_dir() {
+        file.and_then(|x| x.parent()).and_then(|x| x.path())
+    } else {
+        None
+    };
+
+    let sandbox_mechanism = sandbox_selector.determine_sandbox_mechanism().await;
 
     Ok(ProcessBasics {
         config_entry,
+        base_dir,
         mime_type,
         sandbox_mechanism,
         g_file_worker,
@@ -207,14 +225,14 @@ pub(crate) async fn spin_up_editor<'a>(
     sandbox_selector: &SandboxSelector,
     loader_alive: std::sync::Weak<()>,
 ) -> Result<RemoteProcessContext<EditorProxy<'static>>, Error> {
-    let file = source.file().clone();
-    let x = spin_up::<ImageEditorConfig>(source, cancellable, sandbox_selector).await?;
+    let process_basics =
+        spin_up::<ImageEditorConfig>(source, false, cancellable, sandbox_selector).await?;
 
     let process = pool
         .get_editor(
-            x.config_entry,
-            x.sandbox_mechanism,
-            file,
+            process_basics.config_entry,
+            process_basics.sandbox_mechanism,
+            process_basics.base_dir,
             cancellable,
             loader_alive,
         )
@@ -222,28 +240,28 @@ pub(crate) async fn spin_up_editor<'a>(
 
     Ok(RemoteProcessContext {
         process,
-        g_file_worker: x.g_file_worker,
-        base_dir: None,
-        mime_type: x.mime_type,
-        sandbox_mechanism: x.sandbox_mechanism,
+        g_file_worker: process_basics.g_file_worker,
+        mime_type: process_basics.mime_type,
+        sandbox_mechanism: process_basics.sandbox_mechanism,
     })
 }
 
 pub(crate) async fn spin_up_loader<'a>(
     source: Source,
+    use_expose_base_dir: bool,
     pool: &Pool,
     cancellable: &gio::Cancellable,
     sandbox_selector: &SandboxSelector,
     loader_alive: std::sync::Weak<()>,
 ) -> Result<RemoteProcessContext<LoaderProxy<'static>>, Error> {
-    let file = source.file().clone();
-    let x = spin_up(source, cancellable, sandbox_selector).await?;
+    let process_basics =
+        spin_up(source, use_expose_base_dir, cancellable, sandbox_selector).await?;
 
     let process = pool
         .get_loader(
-            x.config_entry,
-            x.sandbox_mechanism,
-            file,
+            process_basics.config_entry,
+            process_basics.sandbox_mechanism,
+            process_basics.base_dir,
             cancellable,
             loader_alive,
         )
@@ -251,10 +269,9 @@ pub(crate) async fn spin_up_loader<'a>(
 
     Ok(RemoteProcessContext {
         process,
-        g_file_worker: x.g_file_worker,
-        base_dir: None,
-        mime_type: x.mime_type,
-        sandbox_mechanism: x.sandbox_mechanism,
+        g_file_worker: process_basics.g_file_worker,
+        mime_type: process_basics.mime_type,
+        sandbox_mechanism: process_basics.sandbox_mechanism,
     })
 }
 
