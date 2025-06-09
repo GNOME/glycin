@@ -17,6 +17,7 @@ pub enum RemoteError {
     ConversionTooLargerError,
     OutOfMemory(String),
     Aborted,
+    NoMoreFrames,
 }
 
 type Location = std::panic::Location<'static>;
@@ -31,6 +32,7 @@ impl ProcessError {
             ProcessError::UnsupportedImageFormat(msg) => RemoteError::UnsupportedImageFormat(msg),
             ProcessError::ConversionTooLargerError => RemoteError::ConversionTooLargerError,
             err @ ProcessError::OutOfMemory { .. } => RemoteError::OutOfMemory(err.to_string()),
+            ProcessError::NoMoreFrames => RemoteError::NoMoreFrames,
         }
     }
 
@@ -43,6 +45,7 @@ impl ProcessError {
             ProcessError::UnsupportedImageFormat(msg) => RemoteError::UnsupportedImageFormat(msg),
             ProcessError::ConversionTooLargerError => RemoteError::ConversionTooLargerError,
             err @ ProcessError::OutOfMemory { .. } => RemoteError::OutOfMemory(err.to_string()),
+            ProcessError::NoMoreFrames => RemoteError::NoMoreFrames,
         }
     }
 }
@@ -60,6 +63,8 @@ pub enum ProcessError {
     ConversionTooLargerError,
     #[error("{location}: Not enough memory available")]
     OutOfMemory { location: Location },
+    #[error("No more frames available")]
+    NoMoreFrames,
 }
 
 impl ProcessError {

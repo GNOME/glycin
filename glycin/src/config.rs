@@ -34,7 +34,7 @@ impl std::fmt::Display for MimeType {
 }
 
 const CONFIG_FILE_EXT: &str = "conf";
-pub const COMPAT_VERSION: u8 = 1;
+pub const COMPAT_VERSION: u8 = 2;
 
 #[derive(Debug, Clone, Default)]
 pub struct Config {
@@ -143,6 +143,7 @@ impl Config {
             data_dir.push(format!("{COMPAT_VERSION}+"));
             data_dir.push("conf.d");
 
+            dbg!(&data_dir);
             if let Ok(mut config_files) = read_dir(data_dir).await {
                 while let Some(result) = config_files.next().await {
                     if let Ok(path) = result {
