@@ -2,7 +2,7 @@ static DEFAULT_POOL: LazyLock<Arc<Pool>> = LazyLock::new(Pool::new);
 
 use std::collections::BTreeMap;
 use std::sync::atomic::Ordering;
-use std::sync::{Arc, LazyLock, Mutex, MutexGuard};
+use std::sync::{Arc, LazyLock, Mutex};
 use std::time::{Duration, Instant};
 
 use gio::glib;
@@ -10,6 +10,7 @@ use gio::prelude::{CancellableExt, CancellableExtManual};
 
 use crate::config::{ConfigEntry, ConfigEntryHash};
 use crate::dbus::ZbusProxy;
+use crate::util::AsyncMutex;
 use crate::{config, dbus, Error, SandboxMechanism};
 
 #[derive(Debug)]
@@ -28,10 +29,12 @@ impl<P: ZbusProxy<'static> + 'static> PooledProcess<P> {
 
 #[derive(Debug)]
 pub struct Pool {
-    loaders:
-        Mutex<BTreeMap<config::ConfigEntryHash, Arc<PooledProcess<dbus::LoaderProxy<'static>>>>>,
-    editors:
-        Mutex<BTreeMap<config::ConfigEntryHash, Arc<PooledProcess<dbus::EditorProxy<'static>>>>>,
+    loaders: AsyncMutex<
+        BTreeMap<config::ConfigEntryHash, Arc<PooledProcess<dbus::LoaderProxy<'static>>>>,
+    >,
+    editors: AsyncMutex<
+        BTreeMap<config::ConfigEntryHash, Arc<PooledProcess<dbus::EditorProxy<'static>>>>,
+    >,
     loader_retention_time: Duration,
 }
 
@@ -56,7 +59,7 @@ impl Pool {
         cancellable: &gio::Cancellable,
         loader_alive: std::sync::Weak<()>,
     ) -> Result<Arc<PooledProcess<dbus::LoaderProxy<'static>>>, Error> {
-        let pooled_loaders = self.loaders.lock().unwrap();
+        let pooled_loaders = &self.loaders;
 
         let pp = self
             .get_process(
@@ -80,7 +83,7 @@ impl Pool {
         cancellable: &gio::Cancellable,
         editor_alive: std::sync::Weak<()>,
     ) -> Result<Arc<PooledProcess<dbus::EditorProxy<'static>>>, Error> {
-        let pooled_editors = self.editors.lock().unwrap();
+        let pooled_editors = &self.editors;
 
         let pp = self
             .get_process(
@@ -98,13 +101,15 @@ impl Pool {
 
     pub async fn get_process<P: ZbusProxy<'static> + 'static>(
         &self,
-        mut pooled_processes: MutexGuard<'_, BTreeMap<ConfigEntryHash, Arc<PooledProcess<P>>>>,
+        pooled_processes: &AsyncMutex<BTreeMap<ConfigEntryHash, Arc<PooledProcess<P>>>>,
         config: config::ConfigEntry,
         sandbox_mechanism: SandboxMechanism,
         file: Option<gio::File>,
         cancellable: &gio::Cancellable,
         alive: std::sync::Weak<()>,
     ) -> Result<Arc<PooledProcess<P>>, Error> {
+        let mut pooled_processes = pooled_processes.lock().await;
+
         let pooled_process = pooled_processes.get(&config.hash_value()).cloned();
 
         if let Some(loader) = pooled_process {
@@ -153,7 +158,11 @@ impl Pool {
     }
 
     pub fn clean_loaders(&self) {
-        let mut loaders = self.loaders.lock().unwrap();
+        #[cfg(not(feature = "tokio"))]
+        let mut loaders = self.loaders.lock_blocking();
+
+        #[cfg(feature = "tokio")]
+        let mut loaders = self.loaders.blocking_lock();
 
         loaders.retain(|cfg, loader| {
             let drop = loader.users.iter().all(|x| x.strong_count() == 0)
