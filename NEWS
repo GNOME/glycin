@@ -1,17 +1,17 @@
-## 2.0.alpha.0 (2025-06-13)
+## 2.0.alpha.1 (2025-06-13)
 
 This release contains the following new component versions:
 
-- glycin-tools 2.0.0-alpha.0
+- glycin-tools 2.0.0-alpha.1
 - glycin-utils 4.0.0-alpha
 - glycin 3.0.0-alpha
-- libglycin 2.0.0-alpha.0
-- libglycin-gtk4 2.0.0-alpha.0
-- glycin-heif 2.0.0-alpha.0
-- glycin-jxl 2.0.0-alpha.0
-- glycin-raw 2.0.0-alpha.0
-- glycin-svg 2.0.0-alpha.0
-- glycin-thumbnailer 2.0.0-alpha.0
+- libglycin 2.0.0-alpha.1
+- libglycin-gtk4 2.0.0-alpha.1
+- glycin-heif 2.0.0-alpha.1
+- glycin-jxl 2.0.0-alpha.1
+- glycin-raw 2.0.0-alpha.1
+- glycin-svg 2.0.0-alpha.1
+- glycin-thumbnailer 2.0.0-alpha.1
 
 ### Added
 
