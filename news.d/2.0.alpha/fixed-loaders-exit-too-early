@@ -1,0 +1,1 @@
+Previously, loaders could exit early if the thread in which they were created was terminated.

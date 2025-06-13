@@ -7,7 +7,7 @@ use std::os::fd::{AsRawFd, OwnedFd};
 use std::os::unix::net::UnixStream;
 use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
-use std::process::{Child, Command, Stdio};
+use std::process::{Command, Stdio};
 use std::sync::Arc;
 
 use gio::glib;
@@ -161,17 +161,12 @@ pub struct Sandbox {
 static_assertions::assert_impl_all!(Sandbox: Send, Sync);
 
 pub struct SpawnedSandbox {
-    pub child: Child,
+    pub command: Command,
     // Keep seccomp fd alive until process exits
     pub _seccomp_fd: Option<Memfd>,
-    pub info: SandboxInfo,
 }
 
 static_assertions::assert_impl_all!(SpawnedSandbox: Send, Sync);
-
-pub struct SandboxInfo {
-    pub command_dbg: String,
-}
 
 impl Sandbox {
     pub fn new(
@@ -278,17 +273,9 @@ impl Sandbox {
         command.stderr(Stdio::piped());
         command.stdout(Stdio::piped());
 
-        let command_dbg = format!("{:?}", command);
-        tracing::debug!("Spawning loader/editor:\n    {command_dbg}");
-        let child = command.spawn().map_err(|err| Error::SpawnError {
-            cmd: command_dbg.clone(),
-            err: Arc::new(err),
-        })?;
-
         Ok(SpawnedSandbox {
-            child,
+            command,
             _seccomp_fd: seccomp_fd,
-            info: SandboxInfo { command_dbg },
         })
     }
 

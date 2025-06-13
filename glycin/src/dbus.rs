@@ -94,14 +94,57 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
         }
 
         let spawned_sandbox = sandbox.spawn().await?;
-        let mut subprocess = spawned_sandbox.child;
-        let command_dbg = spawned_sandbox.info.command_dbg;
+
+        let command = spawned_sandbox.command;
+        let command_dbg = format!("{:?}", command);
+
+        let (sender_child, child_process) = oneshot::channel();
+        let (sender_child_return, child_return) = oneshot::channel();
 
         let process_disconnected = Arc::new(AtomicBool::new(false));
 
+        // Spawning an extra thread to run and wait for the loader process since
+        // PR_SET_PDEATHSIG in child processes is bound to the thread.
+        std::thread::spawn(glib::clone!(
+            #[strong]
+            process_disconnected,
+            move || {
+                let mut command = command;
+                let command_dbg = format!("{:?}", command);
+
+                tracing::debug!("Spawning loader/editor:\n    {command_dbg}");
+                let mut child = match command.spawn() {
+                    Ok(mut child) => {
+                        let id = child.id().clone();
+                        let info = Ok((child.stderr.take(), child.stdout.take(), id));
+                        sender_child.send(info).unwrap();
+                        child
+                    }
+                    Err(err) => {
+                        let err = Err(Error::SpawnError {
+                            cmd: command_dbg.clone(),
+                            err: Arc::new(err),
+                        });
+                        sender_child.send(err).unwrap();
+                        return;
+                    }
+                };
+
+                let result = child.wait();
+                process_disconnected.store(true, Ordering::Relaxed);
+                tracing::debug!(
+                    "Process exited: {:?} {result:?}",
+                    result.as_ref().ok().map(|x| x.code())
+                );
+                sender_child_return.send(result).unwrap();
+            }
+        ));
+
+        let mut child_process = child_process.await??;
+
         let stderr_content: Arc<Mutex<String>> = Default::default();
         spawn_stdio_reader(
-            &mut subprocess.stderr,
+            &mut child_process.0,
             &stderr_content,
             process_disconnected.clone(),
             "stderr",
@@ -109,7 +152,7 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
 
         let stdout_content: Arc<Mutex<String>> = Default::default();
         spawn_stdio_reader(
-            &mut subprocess.stdout,
+            &mut child_process.1,
             &stdout_content,
             process_disconnected.clone(),
             "stdout",
@@ -126,9 +169,8 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
             .build()
             .shared();
 
-        let subprocess_id = nix::unistd::Pid::from_raw(subprocess.id().try_into().unwrap());
+        let subprocess_id = nix::unistd::Pid::from_raw(child_process.2.try_into().unwrap());
 
-        let process_disconnected_ = process_disconnected.clone();
         futures_util::select! {
             _result = dbus_result.clone().fuse() => Ok(()),
             _result = cancellable.future().fuse() => {
@@ -136,15 +178,10 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
                 let _result = signal::kill(subprocess_id, signal::Signal::SIGKILL);
                 Err(glib::Error::from(gio::Cancelled).into())
             },
-            return_status = spawn_blocking(move || {
-                let result = subprocess.wait();
-                process_disconnected_.store(true, Ordering::Relaxed);
-                tracing::debug!("Process exited: {:?} {result:?}", result.as_ref().ok().map(|x| x.code()));
-                result
-            }).fuse() => {
-                match return_status {
-                    Ok(status) => Err(Error::PrematureExit { status, cmd: command_dbg }),
-                    Err(err) => Err(Error::StdIoError{ err: err.into(), info: command_dbg }),
+            return_status = child_return.fuse() => {
+                match return_status? {
+                    Ok(status) => Err(Error::PrematureExit { status: status.clone(), cmd: command_dbg }),
+                    Err(err) => Err(Error::StdIoError{ err: Arc::new(err), info: command_dbg }),
                 }
             }
         }?;
