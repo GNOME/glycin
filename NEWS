@@ -1,3 +1,71 @@
+## 2.0.alpha (2025-06-13)
+
+This release contains the following new component versions:
+
+- glycin-tools 2.0.0-alpha
+- glycin-utils 4.0.0-alpha
+- glycin 3.0.0-alpha
+- libglycin 2.0.0-alpha
+- libglycin-gtk4 2.0.0-alpha
+- glycin-heif 2.0.0-alpha
+- glycin-jxl 2.0.0-alpha
+- glycin-raw 2.0.0-alpha
+- glycin-svg 2.0.0-alpha
+- glycin-thumbnailer 2.0.0-alpha
+
+### Added
+
+- Added specific error for when requesting the next frame and there are no more
+  frames left.
+- Pooled loaders and editors. Pooled loaders will re-use existing loader
+  processes, without having to go through the costly process of spawning a new
+  loader. Using pooled loaders will drastically increase the speed for loading a
+  lot of small images, like, for example, thumbnails. Loader and editor pools
+  are now used by default. Loader processes are spawned on demand. The pools are
+  not shared between processes or apps.
+- Return `key_value` metadata from PNG's tEXt and zTXt chunks.
+- glycin: Create loaders from bytes in memory or a `GInputStream` instead of a
+  `GFile`.
+- glycin: Support setting accepted memory formats. If a texture isn't using a
+  specifieds memory format, it will be transformed into one specified as
+  supported.
+
+### Fixed
+
+- Previously, loaders could exit early if the thread in which they were created
+  was terminated.
+
+### Changed
+
+- - Use a new loader/editor D-Bus API version 2+ and simultanously bump
+  libglycin to 2.0 and glycin (Rust API) to 3.0. This was required for
+  supporting pooled loaders.
+- Exposing the base directory is no longer enabled by default. For loading SVGs
+  that include external images, `loader.use_expose_basedir(true)` has to be
+  used.
+
+## 1.2.1 (2025-04-11)
+
+This release contains the following new component versions:
+
+- glycin-utils 3.0.1
+- glycin 2.1.1
+- libglycin 1.0.2
+- libglycin-gtk4 1.0.2
+- glycin-image-rs 1.2.1
+
+### Fixed
+
+- Fix editing for PNGs and JPEGs that are already rotated via an orientation tag
+  in the Exif data.
+- Remove rotation via legacy Exif rotation entries when editing PNG images to
+  not make them aditionally rotated after editing. This is a fix just for legacy
+  Exif entries via tEXt and zTEx chunks with keyword "Raw profile type exif".
+- Revert to using sRGB instead of Rec2020 to pass images with ICC profile to
+  GTK. This fixes some color deviations when displaying the images.
+- glycin: Allow additional syscalls needed for armv7 and on Alpine Linux in
+  sandbox.
+
 ## 1.2.0 (2025-03-14)
 
 This release contains the following new component versions:
