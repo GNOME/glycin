@@ -13,8 +13,8 @@ version = data['package']['version']
 
 if gnome_version:
      if '-' in version:
-        (maj, min, patch) = version.split('.')
-        patch = patch.split('-')[1]
+        (maj, min, patch) = version.split('.', 2)
+        patch = patch.split('-', 1)[1]
         version = f'{maj}.{min}.{patch}'
 
 print(version, end='')
