@@ -3,7 +3,7 @@
 cd "$MESON_PROJECT_DIST_ROOT"
 
 # Use crates.io libraries
-VERSION="$($MESON_PROJECT_SOURCE_ROOT/build-aux/crates-version.py cargo)"
+VERSION="$($MESON_PROJECT_SOURCE_ROOT/build-aux/crates-version.py glycin cargo)"
 
 # Remove crates.io packaged part
 sed -i 's/"glycin",\?//' Cargo.toml
