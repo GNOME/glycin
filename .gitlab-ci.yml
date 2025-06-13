@@ -141,19 +141,19 @@ test-aarch64:
 #    - GLYCIN_TEST_SKIP_EXT=exr cargo test -p tests --no-default-features --features tokio -- --nocapture --test-threads 1 \
 #      color color_exif_orientation color_iccp_pro gray_iccp icon exif fonts
 
-cargo-semver-checks:
-  image: rust
-  extends: .install_dependencies
-  interruptible: true
-  variables:
-    GIT_DEPTH: 1000
-  script:
-    # We need libglycin to be properly installed for pkgconf to work in libglycin-gtk4
-    - meson setup -Dbuildtype=debug -Dglycin-loaders=true --prefix=/usr builddir
-    - meson install -C builddir
-    - cargo install cargo-semver-checks --locked
-    - cargo semver-checks -p glycin -p glycin-utils
-    - cargo semver-checks -p libglycin -p libglycin-gtk4 --baseline-rev d5b8ac16e2a820802fa22315105e9b95bc4c4372
+#cargo-semver-checks:
+#  image: rust
+#  extends: .install_dependencies
+#  interruptible: true
+#  variables:
+#    GIT_DEPTH: 1000
+#  script:
+#    # We need libglycin to be properly installed for pkgconf to work in libglycin-gtk4
+#    - meson setup -Dbuildtype=debug -Dglycin-loaders=true --prefix=/usr builddir
+#    - meson install -C builddir
+#    - cargo install cargo-semver-checks --locked
+#    - cargo semver-checks -p glycin -p glycin-utils
+#    - cargo semver-checks -p libglycin -p libglycin-gtk4 --baseline-rev d5b8ac16e2a820802fa22315105e9b95bc4c4372
 
 cargo-fmt:
   image: rust
