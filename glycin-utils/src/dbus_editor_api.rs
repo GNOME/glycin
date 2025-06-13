@@ -107,7 +107,7 @@ impl ByteChanges {
         let mut cur = Cursor::new(data);
         for change in self.changes.iter() {
             cur.seek(SeekFrom::Start(change.offset)).unwrap();
-            cur.write(&[change.new_value]).unwrap();
+            cur.write_all(&[change.new_value]).unwrap();
         }
     }
 }
