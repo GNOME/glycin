@@ -37,12 +37,12 @@ This release contains the following new component versions:
 
 ### Changed
 
-- - Use a new loader/editor D-Bus API version 2+ and simultanously bump
-  libglycin to 2.0 and glycin (Rust API) to 3.0. This was required for
-  supporting pooled loaders.
 - Exposing the base directory is no longer enabled by default. For loading SVGs
   that include external images, `loader.use_expose_basedir(true)` has to be
   used.
+- Use a new loader/editor D-Bus API version 2+ and simultanously bump libglycin
+  to 2.0 and glycin (Rust API) to 3.0. This was required for supporting pooled
+  loaders.
 
 ## 1.2.1 (2025-04-11)
 
