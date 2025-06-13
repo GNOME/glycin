@@ -47,7 +47,7 @@ variables:
 
 build-release-tarball:
   stage: build
-  image: rust:1.80-bookworm
+  image: rust:1.81-bookworm
   extends: .install_dependencies
   script:
     - apt-get install -y gawk
