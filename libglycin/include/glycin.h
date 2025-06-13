@@ -32,7 +32,7 @@ G_BEGIN_DECLS
  * }
  * ```
  *
- * Since: 1.0
+ * Since: 2.0
  */
 #define GLY_TYPE_LOADER (gly_loader_get_type())
 G_DECLARE_FINAL_TYPE(GlyLoader, gly_loader, GLY, LOADER, GObject)
@@ -42,7 +42,7 @@ G_DECLARE_FINAL_TYPE(GlyLoader, gly_loader, GLY, LOADER, GObject)
  *
  * Image handle containing metadata and allowing frame requests.
  *
- * Since: 1.0
+ * Since: 2.0
  */
 #define GLY_TYPE_IMAGE (gly_image_get_type())
 G_DECLARE_FINAL_TYPE(GlyImage, gly_image, GLY, IMAGE, GObject)
@@ -57,7 +57,7 @@ G_DECLARE_FINAL_TYPE(GlyImage, gly_image, GLY, IMAGE, GObject)
  *     `GlyFrameRequest`. The reason is that for most loaders
  *     many instructions don't have a meaningful interpretation.
  *
- * Since: 1.1
+ * Since: 2.0
  */
 #define GLY_TYPE_FRAME_REQUEST (gly_frame_request_get_type())
 G_DECLARE_FINAL_TYPE(GlyFrameRequest, gly_frame_request, GLY, FRAME_REQUEST, GObject)
@@ -67,7 +67,7 @@ G_DECLARE_FINAL_TYPE(GlyFrameRequest, gly_frame_request, GLY, FRAME_REQUEST, GOb
  *
  * A frame of an image often being the complete image.
  *
- * Since: 1.0
+ * Since: 2.0
  */
 #define GLY_TYPE_FRAME (gly_frame_get_type())
 G_DECLARE_FINAL_TYPE(GlyFrame, gly_frame, GLY, FRAME, GObject)
@@ -95,7 +95,7 @@ G_DECLARE_FINAL_TYPE(GlyFrame, gly_frame, GLY, FRAME, GObject)
  * ::: warning
  *     Using @GLY_SANDBOX_SELECTOR_NOT_SANDBOXED will disable an important security layer that sandboxes loaders. It is only intended for testing and development purposes.
  *
- * Since: 1.0
+ * Since: 2.0
  */
 typedef enum
 {
@@ -137,7 +137,7 @@ GType gly_sandbox_selector_get_type(void);
  *
  * Memory format selection
  *
- * Since: 1.1
+ * Since: 2.0
  */
 typedef enum
 {
@@ -178,7 +178,7 @@ GType gly_memory_format_selection_get_type(void);
  *
  * Returns: (transfer full): a new [class@Loader]
  *
- * Since: 1.0
+ * Since: 2.0
  */
 GlyLoader *gly_loader_new(GFile *file);
 
@@ -190,7 +190,7 @@ GlyLoader *gly_loader_new(GFile *file);
  *
  * Returns: (transfer full): a new [class@Loader]
  *
- * Since: 1.1
+ * Since: 2.0
  */
 GlyLoader *gly_loader_new_for_stream(GInputStream *stream);
 
@@ -202,7 +202,7 @@ GlyLoader *gly_loader_new_for_stream(GInputStream *stream);
  *
  * Returns: (transfer full): a new [class@Loader]
  *
- * Since: 1.1
+ * Since: 2.0
  */
 GlyLoader *gly_loader_new_for_bytes(GBytes *bytes);
 
@@ -217,7 +217,7 @@ GlyLoader *gly_loader_new_for_bytes(GBytes *bytes);
  *
  * Returns: (transfer full): List of supported MIME types
  *
- * Since: 1.1
+ * Since: 2.0
  */
 GStrv gly_loader_get_mime_types(void);
 
@@ -231,7 +231,7 @@ typedef void (*GlyLoaderGetMimeTypesDoneFunc)(GStrv mime_types,
  *
  * Async variant of [func@Loader.get_mime_types]
  *
- * Since: 1.1
+ * Since: 2.0
  */
 void gly_loader_get_mime_types_async(GlyLoaderGetMimeTypesDoneFunc done_cb,
                                      gpointer data);
@@ -243,7 +243,7 @@ void gly_loader_get_mime_types_async(GlyLoaderGetMimeTypesDoneFunc done_cb,
  *
  * Selects which sandbox mechanism should be used. The default without calling this function is [enum@SandboxSelector]`.AUTO`.
  *
- * Since: 1.0
+ * Since: 2.0
  */
 void gly_loader_set_sandbox_selector(GlyLoader *loader,
                                      GlySandboxSelector sandbox_selector);
@@ -258,7 +258,7 @@ void gly_loader_set_sandbox_selector(GlyLoader *loader,
  * If the memory format doesn't match one of the selected formats, the
  * format will be transformed into the best suitable format selected.
  *
- * Since: 1.1
+ * Since: 2.0
  */
 void gly_loader_set_accepted_memory_formats(GlyLoader *loader,
                                             GlyMemoryFormatSelection memory_format_selection);
@@ -272,7 +272,7 @@ void gly_loader_set_accepted_memory_formats(GlyLoader *loader,
  *
  * Returns: (transfer full): a new [class@Image] on success, or `NULL` with @error filled in
  *
- * Since: 1.0
+ * Since: 2.0
  */
 GlyImage *gly_loader_load(GlyLoader *loader,
                           GError **error);
@@ -286,7 +286,7 @@ GlyImage *gly_loader_load(GlyLoader *loader,
  *
  * Asynchronous version of [method@Loader.load].
  *
- * Since: 1.0
+ * Since: 2.0
  */
 void gly_loader_load_async(GlyLoader *loader,
                            GCancellable *cancellable,
@@ -303,7 +303,7 @@ void gly_loader_load_async(GlyLoader *loader,
  *
  * Returns: (transfer full): Loaded frame.
  *
- * Since: 1.0
+ * Since: 2.0
  */
 GlyImage *gly_loader_load_finish(GlyLoader *loader,
                                  GAsyncResult *result,
@@ -318,7 +318,7 @@ GlyImage *gly_loader_load_finish(GlyLoader *loader,
  *
  * Returns: (transfer full): a new [class@FrameRequest]
  *
- * Since: 1.1
+ * Since: 2.0
  */
 GlyFrameRequest *gly_frame_request_new(void);
 
@@ -337,7 +337,7 @@ GlyFrameRequest *gly_frame_request_new(void);
  *     Most loaders will ignore this option. Currently, only the SVG
  *     loader is known to obay it.
  *
- * Since: 1.1
+ * Since: 2.0
  */
 void gly_frame_request_set_scale(GlyFrameRequest *frame_request,
                                  uint32_t width,
@@ -357,7 +357,7 @@ void gly_frame_request_set_scale(GlyFrameRequest *frame_request,
  *
  * Returns: (transfer full): a new [class@Frame] on success, or `NULL` with @error filled in
  *
- * Since: 1.0
+ * Since: 2.0
  */
 GlyFrame *gly_image_next_frame(GlyImage *image,
                                GError **error);
@@ -371,7 +371,7 @@ GlyFrame *gly_image_next_frame(GlyImage *image,
  *
  * Asynchronous version of [method@Image.next_frame].
  *
- * Since: 1.0
+ * Since: 2.0
  */
 void gly_image_next_frame_async(GlyImage *image,
                                 GCancellable *cancellable,
@@ -388,7 +388,7 @@ void gly_image_next_frame_async(GlyImage *image,
  *
  * Returns: (transfer full): Loaded frame.
  *
- * Since: 1.0
+ * Since: 2.0
  */
 GlyFrame *gly_image_next_frame_finish(GlyImage *image,
                                       GAsyncResult *result,
@@ -402,7 +402,7 @@ GlyFrame *gly_image_next_frame_finish(GlyImage *image,
  *
  * Returns: (transfer full): Loaded frame.
  *
- * Since: 1.1
+ * Since: 2.0
  */
 GlyFrame *gly_image_get_specific_frame(GlyImage *image,
                                        GlyFrameRequest *frame_request,
@@ -418,7 +418,7 @@ GlyFrame *gly_image_get_specific_frame(GlyImage *image,
  *
  * Asynchronous version of [method@Image.get_specific_frame].
  *
- * Since: 1.1
+ * Since: 2.0
  */
 void gly_image_get_specific_frame_async(GlyImage *image,
                                         GlyFrameRequest *frame_request,
@@ -436,7 +436,7 @@ void gly_image_get_specific_frame_async(GlyImage *image,
  *
  * Returns: (transfer full): Loaded frame.
  *
- * Since: 1.1
+ * Since: 2.0
  */
 GlyFrame *gly_image_get_specific_frame_finish(GlyImage *image,
                                               GAsyncResult *result,
@@ -450,7 +450,7 @@ GlyFrame *gly_image_get_specific_frame_finish(GlyImage *image,
  *
  * Returns: MIME type
  *
- * Since: 1.0
+ * Since: 2.0
  */
 const char *gly_image_get_mime_type(GlyImage *image);
 
@@ -466,7 +466,7 @@ const char *gly_image_get_mime_type(GlyImage *image);
  *
  * Returns: Width
  *
- * Since: 1.0
+ * Since: 2.0
  */
 uint32_t gly_image_get_width(GlyImage *image);
 
@@ -478,7 +478,7 @@ uint32_t gly_image_get_width(GlyImage *image);
  *
  * Returns: height
  *
- * Since: 1.0
+ * Since: 2.0
  */
 uint32_t gly_image_get_height(GlyImage *image);
 
@@ -497,7 +497,7 @@ uint32_t gly_image_get_height(GlyImage *image);
  *
  * Return value: (transfer full) (nullable): The UTF-8 encoded value associated with `key`.
  *
- * Since: 1.3
+ * Since: 2.0
  **/
 const gchar *
 gly_image_get_metadata_key_value(GlyImage *image,
@@ -511,7 +511,7 @@ gly_image_get_metadata_key_value(GlyImage *image,
  *
  * Return value: (transfer full): List of existing keys.
  *
- * Since: 1.3
+ * Since: 2.0
  **/
 GStrv gly_image_get_metadata_keys(GlyImage *image);
 
@@ -545,7 +545,7 @@ GStrv gly_image_get_metadata_keys(GlyImage *image);
  *
  * Memory format
  *
- * Since: 1.0
+ * Since: 2.0
  */
 typedef enum
 {
@@ -584,7 +584,7 @@ GType gly_memory_format_get_type(void);
  *
  * Returns: Returns `TRUE` if the memory format has an alpha channel
  *
- * Since: 1.0
+ * Since: 2.0
  */
 gboolean gly_memory_format_has_alpha(GlyMemoryFormat memory_format);
 
@@ -597,7 +597,7 @@ gboolean gly_memory_format_has_alpha(GlyMemoryFormat memory_format);
  *
  * Returns: Returns `TRUE` if color channels are premultiplied
  *
- * Since: 1.0
+ * Since: 2.0
  */
 gboolean gly_memory_format_is_premultiplied(GlyMemoryFormat memory_format);
 
@@ -611,7 +611,7 @@ gboolean gly_memory_format_is_premultiplied(GlyMemoryFormat memory_format);
  *
  * Returns: Duration in microseconds.
  *
- * Since: 1.0
+ * Since: 2.0
  */
 int64_t gly_frame_get_delay(GlyFrame *frame);
 
@@ -623,7 +623,7 @@ int64_t gly_frame_get_delay(GlyFrame *frame);
  *
  * Returns: Width in pixels
  *
- * Since: 1.0
+ * Since: 2.0
  */
 uint32_t gly_frame_get_width(GlyFrame *frame);
 
@@ -635,7 +635,7 @@ uint32_t gly_frame_get_width(GlyFrame *frame);
  *
  * Returns: Height in pixels
  *
- * Since: 1.0
+ * Since: 2.0
  */
 uint32_t gly_frame_get_height(GlyFrame *frame);
 
@@ -647,7 +647,7 @@ uint32_t gly_frame_get_height(GlyFrame *frame);
  *
  * Returns: Row stride in bytes
  *
- * Since: 1.0
+ * Since: 2.0
  */
 uint32_t gly_frame_get_stride(GlyFrame *frame);
 
@@ -659,7 +659,7 @@ uint32_t gly_frame_get_stride(GlyFrame *frame);
  *
  * Returns: (transfer none): Image data
  *
- * Since: 1.0
+ * Since: 2.0
  */
 GBytes *gly_frame_get_buf_bytes(GlyFrame *frame);
 
@@ -671,7 +671,7 @@ GBytes *gly_frame_get_buf_bytes(GlyFrame *frame);
  *
  * Returns: Format of image data
  *
- * Since: 1.0
+ * Since: 2.0
  */
 GlyMemoryFormat gly_frame_get_memory_format(GlyFrame *frame);
 
@@ -684,7 +684,7 @@ GlyMemoryFormat gly_frame_get_memory_format(GlyFrame *frame);
  *
  * Errors that can appear while loading images.
  *
- * Since: 1.0
+ * Since: 2.0
  */
 typedef enum
 {

@@ -14,7 +14,7 @@ G_BEGIN_DECLS
  *
  * Returns: (transfer full): A GDK Texture
  *
- * Since: 1.0
+ * Since: 2.0
  */
 GdkTexture *gly_gtk_frame_get_texture(GlyFrame *frame);
 
