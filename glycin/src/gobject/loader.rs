@@ -10,6 +10,7 @@ use crate::error::ResultExt;
 use crate::{Error, GInputStreamSend, SandboxSelector, Source};
 
 static_assertions::assert_impl_all!(GlyLoader: Send, Sync);
+use super::init;
 
 pub mod imp {
     use super::*;
@@ -42,6 +43,8 @@ pub mod imp {
     impl ObjectImpl for GlyLoader {
         fn constructed(&self) {
             self.parent_constructed();
+
+            init();
 
             let obj = self.obj();
 

@@ -979,6 +979,7 @@ dependencies = [
  "futures-util",
  "gdk4",
  "gio",
+ "glib",
  "glycin-utils",
  "gufo-common",
  "gufo-exif",
@@ -994,6 +995,7 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tracing",
+ "tracing-subscriber",
  "yeslogic-fontconfig-sys",
  "zbus",
 ]

@@ -23,7 +23,7 @@ async-io = [
     "zbus/async-io",
 ]
 tokio = ["dep:tokio", "dep:tokio-stream", "glycin-utils/tokio", "zbus/tokio"]
-gobject = ["glycin-utils/gobject"]
+gobject = ["glycin-utils/gobject", "dep:tracing-subscriber"]
 gdk4 = ["dep:gdk"]
 
 [dependencies]
@@ -37,6 +37,7 @@ futures-timer = { workspace = true, optional = true }
 futures-util.workspace = true
 gdk = { workspace = true, optional = true }
 gio.workspace = true
+glib.workspace = true
 glycin-utils = { workspace = true }
 gufo-common.workspace = true
 gufo-exif.workspace = true
@@ -52,6 +53,7 @@ thiserror.workspace = true
 tokio = { workspace = true, optional = true }
 tokio-stream = { workspace = true, optional = true }
 tracing.workspace = true
+tracing-subscriber = { workspace = true, optional = true }
 zbus = { workspace = true, features = ["p2p"] }
 
 [package.metadata.docs.rs]
