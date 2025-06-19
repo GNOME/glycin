@@ -110,7 +110,7 @@ pub unsafe extern "C" fn gly_loader_load_async(
 
     let task = gio::Task::new(Some(&obj), cancellable_.as_ref(), closure);
 
-    glib::MainContext::ref_thread_default().spawn_local(async move {
+    async_io::block_on(async move {
         let res = obj.load().await.map_err(|x| glib_error(&x));
         task.return_result(res);
     });

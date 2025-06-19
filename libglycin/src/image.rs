@@ -108,7 +108,7 @@ pub unsafe extern "C" fn gly_image_get_specific_frame_async(
         callback.call(obj.unwrap(), result);
     };
     let task = gio::Task::new(Some(&obj), cancellable_.as_ref(), closure);
-    glib::MainContext::ref_thread_default().spawn_local(async move {
+    async_io::block_on(async move {
         let res = obj
             .specific_frame(frame_request)
             .await

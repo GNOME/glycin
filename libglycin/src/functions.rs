@@ -20,7 +20,7 @@ pub unsafe extern "C" fn gly_loader_get_mime_types_async(
     callback: GlyLoaderGetMimeTypesDoneFunc,
     data: gpointer,
 ) {
-    glib::MainContext::default().spawn_local(async move {
+    async_io::block_on(async move {
         let mime_types = glycin::Loader::supported_mime_types().await;
         let strv = glib::StrV::from_iter(
             mime_types
