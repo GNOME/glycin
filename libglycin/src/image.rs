@@ -2,10 +2,8 @@ use std::ffi::c_char;
 use std::ptr;
 
 use gio::ffi::{GAsyncReadyCallback, GAsyncResult, GTask};
-use gio::glib;
-use gio::glib::ffi::GStrv;
 use gio::prelude::*;
-use glib::ffi::{gpointer, GError, GType};
+use glib::ffi::{gpointer, GError, GStrv, GType};
 use glib::subclass::prelude::*;
 use glib::translate::*;
 use glycin::gobject;

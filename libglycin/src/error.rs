@@ -1,4 +1,3 @@
-use gio::glib;
 use gio::prelude::*;
 use glib::error::ErrorDomain;
 use glib::ffi::GError;

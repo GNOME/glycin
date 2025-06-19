@@ -1457,7 +1457,10 @@ dependencies = [
  "async-io",
  "futures-task",
  "gio",
+ "glib",
  "glycin",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

@@ -13,7 +13,10 @@ rust-version.workspace = true
 async-io.workspace = true
 futures-task.workspace = true
 gio.workspace = true
+glib.workspace = true
 glycin = { workspace = true, features = ["async-io", "gobject"] }
+tracing-subscriber.workspace = true
+tracing.workspace = true
 
 [lib]
 name = "glycin"

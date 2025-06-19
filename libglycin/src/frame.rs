@@ -1,4 +1,3 @@
-use gio::glib;
 use gio::prelude::*;
 use glib::ffi::GType;
 use glib::subclass::prelude::*;

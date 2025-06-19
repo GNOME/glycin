@@ -54,7 +54,7 @@ futures-timer = "3.0.3"
 futures-util = "0.3.30"
 gdk = { package = "gdk4", version = "0.9.5", features = ["v4_16"] }
 gio = { version = "0.20.0", features = ["v2_62"] }
-glib = { version = "0.20.0" }
+glib = { version = "0.20.0", features = ["v2_68"] }
 glycin = { path = "glycin/", default-features = false }
 glycin-utils = { version = "4.0.0-alpha", path = "glycin-utils/", default-features = false }
 gufo = { version = "0.3.0-alpha", features = ["all-image-formats"] }

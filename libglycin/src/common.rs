@@ -1,5 +1,4 @@
 use gio::ffi::GAsyncReadyCallback;
-use gio::glib;
 use gio::prelude::*;
 use glib::ffi::gpointer;
 
