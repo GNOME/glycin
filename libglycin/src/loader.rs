@@ -3,7 +3,7 @@ use std::ptr;
 use gio::ffi::{GAsyncReadyCallback, GAsyncResult, GTask};
 use gio::glib;
 use gio::prelude::*;
-use glib::ffi::{gpointer, GError, GType};
+use glib::ffi::{gpointer, GError, GStrv, GType};
 use glib::subclass::prelude::*;
 use glib::translate::*;
 use glycin::{
@@ -133,6 +133,36 @@ pub unsafe extern "C" fn gly_loader_load_finish(
             ptr::null_mut()
         }
     }
+}
+
+type GlyLoaderGetMimeTypesDoneFunc = unsafe extern "C" fn(GStrv, gpointer);
+
+#[no_mangle]
+pub extern "C" fn gly_loader_get_mime_types() -> GStrv {
+    let mime_types = glib::StrV::from_iter(
+        glib::MainContext::default()
+            .block_on(glycin::Loader::supported_mime_types())
+            .into_iter()
+            .map(|x| glib::GString::from(x.as_str())),
+    );
+
+    mime_types.into_raw()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gly_loader_get_mime_types_async(
+    callback: GlyLoaderGetMimeTypesDoneFunc,
+    data: gpointer,
+) {
+    async_io::block_on(async move {
+        let mime_types = glycin::Loader::supported_mime_types().await;
+        let strv = glib::StrV::from_iter(
+            mime_types
+                .into_iter()
+                .map(|x| glib::GString::from(x.as_str())),
+        );
+        callback(strv.into_raw(), data);
+    });
 }
 
 #[no_mangle]
