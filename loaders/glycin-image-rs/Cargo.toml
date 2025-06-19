@@ -32,5 +32,6 @@ image = { workspace = true, features = [
     "webp",
 ] }
 log.workspace = true
-zune-jpeg = "0.4.14"
 jpeg-encoder = "0.6.0"
+# Force newer version for bugfixes
+zune-jpeg = "0.4.17"
