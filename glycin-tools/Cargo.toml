@@ -10,7 +10,7 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-glycin = { workspace = true, features = ['gdk4'] }
+glycin = { workspace = true, features = ['gdk4', 'async-io'] }
 gdk.workspace = true
 gio.workspace = true
 async-io.workspace = true
