@@ -16,6 +16,10 @@ use crate::Error;
 pub struct MimeType(pub(crate) String);
 
 impl MimeType {
+    pub fn new(mime_type: String) -> Self {
+        Self(mime_type)
+    }
+
     pub fn as_str(&self) -> &str {
         self.0.as_str()
     }

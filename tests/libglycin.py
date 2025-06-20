@@ -122,6 +122,17 @@ def main():
 
     assert len(Gly.Loader.get_mime_types()) > 0
 
+    # Creator
+
+    data = GLib.Bytes.new([1,2,3])
+    new_image = Gly.NewImage.new(1, 1, Gly.MemoryFormat.R8G8B8, data)
+
+    creator = Gly.Creator.new()
+    encoded_image = creator.create(new_image, "image/jpeg")
+
+    data = encoded_image.get_data().get_data()
+    assert list(data[0:4]) == [0xFF, 0xD8, 0xFF, 0xE0]
+
     # Async
     global async_tests_remaining
     async_tests_remaining = 0
@@ -130,7 +141,7 @@ def main():
     image = loader.load()
     frame_request = Gly.FrameRequest()
     frame_request.set_scale(32, 32)
-    frame = image.get_specific_frame_async(frame_request, None, specific_image_cb, None)
+    frame = image.get_specific_frame_async(frame_request, None, specific_frame_cb, None)
     async_tests_remaining += 1
 
     loader = Gly.Loader(file=file)
@@ -140,6 +151,18 @@ def main():
 
     Gly.Loader.get_mime_types_async(mime_types_cb, None)
     async_tests_remaining += 1
+
+    # Async Creator
+
+    creator = Gly.Creator()
+
+    data = GLib.Bytes.new([1,2,3])
+    new_image = Gly.NewImage(width=1, height=1, memory_format=Gly.MemoryFormat.R8G8B8, texture=data)
+
+    creator.create_async(new_image, "image/jpeg", None, creator_cb, None)
+    async_tests_remaining += 1
+
+    # Main loop
 
     GLib.MainLoop().run()
 
@@ -163,7 +186,7 @@ def mime_types_cb(mime_types, user_data):
 
     async_test_done()
 
-def specific_image_cb(image, result, user_data):
+def specific_frame_cb(image, result, user_data):
     assert user_data is None
     frame = image.get_specific_frame_finish(result)
 
@@ -173,6 +196,12 @@ def specific_image_cb(image, result, user_data):
 
     async_test_done()
 
+def creator_cb(creator, result, user_data):
+    print("a")
+    #encoded_image = creator.create_finish(result)
+    print("b")
+
+    async_test_done()
 
 def async_test_done():
     global async_tests_remaining

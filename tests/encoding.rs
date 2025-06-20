@@ -1,11 +1,11 @@
 mod utils;
 
-use glycin::{Encoder, MimeType, NewImage};
+use glycin::{Creator, MimeType, NewImage};
 use utils::*;
 
 #[test]
 fn write_jpeg() {
-    let encoder = Encoder::new();
+    let encoder = Creator::new();
     let width = 1;
     let height = 1;
     let memory_format = glycin::MemoryFormat::R8g8b8;

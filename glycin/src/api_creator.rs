@@ -1,22 +1,29 @@
-use glib::object::IsA;
-use glib::prelude::*;
-use glycin_utils::{BinaryData, EncodedImage, Frame, ImageInfo, MemoryFormat};
-
-use crate::{
-    error::ResultExt, pool::Pool, spin_up_encoder, Error, ErrorCtx, MimeType, SandboxSelector,
-};
 use std::sync::Arc;
 
+use glib::object::IsA;
+use glib::prelude::*;
+use glycin_utils::{BinaryData, Frame, ImageInfo, MemoryFormat};
+
+use crate::error::ResultExt;
+use crate::pool::Pool;
+use crate::{spin_up_encoder, Error, ErrorCtx, MimeType, SandboxSelector};
+
 #[derive(Debug)]
-pub struct Encoder {
+pub struct Creator {
     pool: Arc<Pool>,
-    cancellable: gio::Cancellable,
+    pub(crate) cancellable: gio::Cancellable,
     pub(crate) sandbox_selector: SandboxSelector,
 }
 
-static_assertions::assert_impl_all!(Encoder: Send, Sync);
+static_assertions::assert_impl_all!(Creator: Send, Sync);
 
-impl Encoder {
+impl Default for Creator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Creator {
     /// Create an encoder.
     pub fn new() -> Self {
         Self {
@@ -58,15 +65,18 @@ impl Encoder {
 
         let process = process_context.process.use_();
 
-        process
-            .create(new_image.into_inner(mime_type))
-            .await
-            .err_context(&process, &self.cancellable)
+        Ok(EncodedImage::new(
+            process
+                .create(new_image.into_inner(mime_type))
+                .await
+                .err_context(&process, &self.cancellable)?,
+        ))
     }
 }
 
+#[derive(Debug)]
 pub struct NewImage {
-    inner: glycin_utils::NewImage,
+    pub(crate) inner: glycin_utils::NewImage,
 }
 
 impl NewImage {
@@ -74,7 +84,7 @@ impl NewImage {
         width: u32,
         height: u32,
         memory_format: MemoryFormat,
-        data: impl AsRef<[u8]>,
+        texture: impl AsRef<[u8]>,
     ) -> Result<Self, Error> {
         let mime_type = String::new();
 
@@ -82,7 +92,7 @@ impl NewImage {
         image_info.width = width;
         image_info.height = height;
 
-        let texture = BinaryData::from_data(data).map_err(|x| x.into_editor_error())?;
+        let texture = BinaryData::from_data(texture).map_err(|x| x.into_editor_error())?;
         let frame = Frame::new(width, height, memory_format, texture)?;
 
         let frames = vec![frame];
@@ -95,5 +105,24 @@ impl NewImage {
     fn into_inner(mut self, mime_type: MimeType) -> glycin_utils::NewImage {
         self.inner.mime_type = mime_type.to_string();
         self.inner
+    }
+}
+
+#[derive(Debug)]
+pub struct EncodedImage {
+    pub(crate) inner: glycin_utils::EncodedImage,
+}
+
+impl EncodedImage {
+    pub fn new(inner: glycin_utils::EncodedImage) -> Self {
+        Self { inner }
+    }
+
+    pub fn data_ref(&self) -> Result<glycin_utils::BinaryDataRef, std::io::Error> {
+        self.inner.data.get()
+    }
+
+    pub fn data_full(&self) -> Result<Vec<u8>, std::io::Error> {
+        self.inner.data.get_full()
     }
 }

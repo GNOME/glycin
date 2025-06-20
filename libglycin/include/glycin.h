@@ -704,4 +704,150 @@ GQuark gly_loader_error_quark(void) G_GNUC_CONST;
 #define GLY_LOADER_ERROR (gly_loader_error_quark())
 GType gly_loader_error_get_type(void);
 
+/**************** GlyNewImage ****************/
+
+/**
+ * GlyNewImage:
+ *
+ * New image
+ *
+ * Since: 2.0
+ */
+#define GLY_TYPE_NEW_IMAGE (gly_new_image_get_type())
+G_DECLARE_FINAL_TYPE(GlyNewImage, gly_new_image, GLY, NEW_IMAGE, GObject)
+
+/**
+ * gly_new_image_new:
+ * @width:
+ * @height:
+ * @memory_format:
+ * @texture: Texture data
+ *
+ * Returns: (transfer full): a new [class@NewImage]
+ *
+ * Since: 2.0
+ */
+GlyNewImage *gly_new_image_new(uint32_t width, uint32_t height, GlyMemoryFormat memory_format, GBytes *texture);
+
+/**
+ * GlyEncodedImage:
+ *
+ * Encoded image
+ *
+ * Since: 2.0
+ */
+#define GLY_TYPE_ENCODED_IMAGE (gly_encoded_image_get_type())
+G_DECLARE_FINAL_TYPE(GlyEncodedImage, gly_encoded_image, GLY, ENCODED_IMAGE, GObject)
+
+/**
+ * gly_encoded_image_get_data:
+ *
+ * Returns: (transfer full): The encoded image data
+ *
+ * Since: 2.0
+ */
+GBytes *gly_encoded_image_get_data(GlyEncodedImage *encoded_image);
+
+/**
+ * GlyCreator:
+ *
+ * Image creator
+ *
+ * ```c
+ * #include <glycin.h>
+ *
+ * // Create image with a single red pixel
+ * guint8 data[] = {255, 0, 0};
+ * gsize length = sizeof(data);
+ * GBytes *texture = g_bytes_new(data, length);
+ * GlyNewImage *new_image = gly_new_image_new(1, 1, GLY_MEMORY_R8G8B8, texture);
+ *
+ * GlyCreator *creator = gly_creator_new();
+ *
+ * // Create JPEG
+ * GlyEncodedImage *encoded_image = gly_creator_create(creator, new_image, "image/jpeg");
+ *
+ * if (encoded_image)
+ * {
+ *   GBytes *binary_data = gly_encoded_image_get_data(encoded_image);
+ *   if (binary_data)
+ *   {
+ *     // Write image to file
+ *     GFile *file = g_file_new_for_path("test.jpg");
+ *     g_file_replace_contents(
+ *         file,
+ *         g_bytes_get_data(binary_data, NULL),
+ *         g_bytes_get_size(binary_data),
+ *         NULL,
+ *         FALSE,
+ *         G_FILE_CREATE_NONE,
+ *         NULL,
+ *         NULL,
+ *         NULL);
+ *   }
+ * }
+ * ```
+ *
+ * Since: 2.0
+ */
+#define GLY_TYPE_CREATOR (gly_creator_get_type())
+G_DECLARE_FINAL_TYPE(GlyCreator, gly_creator, GLY, CREATOR, GObject)
+
+/**
+ * gly_creator_new:
+ *
+ * Returns: (transfer full): a new [class@Creator]
+ *
+ * Since: 2.0
+ */
+GlyCreator *gly_creator_new(void);
+
+/**
+ * gly_creator_create:
+ * @image:
+ * @new_image:
+ * @mime_type: A null-terminated string.
+ *
+ * Return value: (transfer full) (nullable): The encoded image.
+ *
+ * Since: 2.0
+ **/
+GlyEncodedImage *gly_creator_create(GlyCreator *image, GlyNewImage *new_image, const gchar *mime_type);
+
+/**
+ * gly_creator_create_async:
+ * @creator:
+ * @new_image:
+ * @mime_type:
+ * @cancellable: (nullable): A [class@Gio.Cancellable] to cancel the operation
+ * @callback: A callback to call when the operation is complete
+ * @user_data: Data to pass to @callback
+ *
+ * Asynchronous version of [method@Creator.create].
+ *
+ * Since: 2.0
+ */
+void gly_creator_create_async(GlyCreator *creator,
+                              GlyNewImage *new_image,
+                              const gchar *mime_type,
+                              GCancellable *cancellable,
+                              GAsyncReadyCallback callback,
+                              gpointer user_data);
+
+/**
+ * gly_creator_create_finish:
+ * @creator:
+ * @result: A `GAsyncResult`
+ * @error:
+ *
+ * Finishes the [method@Creator.create_async] call.
+ *
+ * Returns: (transfer full): Encoded image.
+ *
+ * Since: 2.0
+ */
+GlyEncodedImage *gly_creator_create_finish(GlyCreator *creator,
+                                           GAsyncResult *result,
+                                           GError **error);
+
 G_END_DECLS
