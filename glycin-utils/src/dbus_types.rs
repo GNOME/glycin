@@ -176,6 +176,38 @@ impl Frame {
     }
 }
 
+#[derive(DeserializeDict, SerializeDict, Type, Debug)]
+#[zvariant(signature = "dict")]
+#[non_exhaustive]
+pub struct NewImage {
+    pub mime_type: String,
+    pub image_info: ImageInfo,
+    pub frames: Vec<Frame>,
+}
+
+impl NewImage {
+    pub fn new(mime_type: String, image_info: ImageInfo, frames: Vec<Frame>) -> Self {
+        Self {
+            mime_type,
+            image_info,
+            frames,
+        }
+    }
+}
+
+#[derive(DeserializeDict, SerializeDict, Type, Debug)]
+#[zvariant(signature = "dict")]
+#[non_exhaustive]
+pub struct EncodedImage {
+    pub data: BinaryData,
+}
+
+impl EncodedImage {
+    pub fn new(data: BinaryData) -> Self {
+        Self { data }
+    }
+}
+
 #[derive(zvariant::Type, Debug, Clone)]
 #[zvariant(signature = "h")]
 pub struct BinaryData {

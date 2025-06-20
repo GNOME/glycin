@@ -38,5 +38,10 @@ path = "editing.rs"
 name = "tests"
 path = "tests.rs"
 
+
+[[test]]
+name = "encoding"
+path = "encoding.rs"
+
 [dependencies]
 gufo-common.workspace = true

@@ -153,6 +153,10 @@ pub struct Editor<E: EditorImplementation> {
 /// D-Bus interface for image editors
 #[zbus::interface(name = "org.gnome.glycin.Editor")]
 impl<E: EditorImplementation> Editor<E> {
+    async fn create(&self, new_image: NewImage) -> Result<EncodedImage, RemoteError> {
+        E::create(new_image).map_err(|x| x.into_editor_error())
+    }
+
     async fn apply(
         &self,
         init_request: InitRequest,
@@ -216,6 +220,8 @@ pub trait EditorImplementation: Send + Sync + Sized + 'static {
         details: InitializationDetails,
         operations: Operations,
     ) -> Result<CompleteEditorOutput, ProcessError>;
+
+    fn create(new_image: NewImage) -> Result<EncodedImage, ProcessError>;
 }
 
 /// Give a `None` for a non-existent `EditorImplementation`
@@ -224,21 +230,16 @@ pub enum VoidEditorImplementation {}
 impl EditorImplementation for VoidEditorImplementation {
     const USEABLE: bool = false;
 
-    fn apply_sparse(
-        _stream: UnixStream,
-        _mime_type: String,
-        _details: InitializationDetails,
-        _operations: Operations,
-    ) -> Result<SparseEditorOutput, ProcessError> {
-        unreachable!()
-    }
-
     fn apply_complete(
         _stream: UnixStream,
         _mime_type: String,
         _details: InitializationDetails,
         _operations: Operations,
     ) -> Result<CompleteEditorOutput, ProcessError> {
+        unreachable!()
+    }
+
+    fn create(_new_image: NewImage) -> Result<EncodedImage, ProcessError> {
         unreachable!()
     }
 }

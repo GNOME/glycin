@@ -19,6 +19,10 @@ impl MimeType {
     pub fn as_str(&self) -> &str {
         self.0.as_str()
     }
+
+    pub fn jpeg() -> Self {
+        Self(String::from("image/jpeg"))
+    }
 }
 
 impl From<&str> for MimeType {

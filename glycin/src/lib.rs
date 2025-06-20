@@ -68,6 +68,7 @@ mod error_message {
 
 mod api_common;
 mod api_editor;
+mod api_encoder;
 mod api_loader;
 pub mod config;
 mod dbus;
@@ -86,6 +87,7 @@ pub mod gobject;
 
 pub use api_common::*;
 pub use api_editor::*;
+pub use api_encoder::*;
 pub use api_loader::*;
 pub use config::COMPAT_VERSION;
 pub use error::{Error, ErrorCtx};

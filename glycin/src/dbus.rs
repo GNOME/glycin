@@ -19,8 +19,8 @@ use glycin_utils::memory_format::MemoryFormatInfo;
 use glycin_utils::operations::Operations;
 use glycin_utils::safe_math::{SafeConversion, SafeMath};
 use glycin_utils::{
-    CompleteEditorOutput, EditRequest, Frame, FrameRequest, ImgBuf, InitRequest,
-    InitializationDetails, RemoteError, RemoteImage, SparseEditorOutput,
+    CompleteEditorOutput, EditRequest, EncodedImage, Frame, FrameRequest, ImgBuf, InitRequest,
+    InitializationDetails, NewImage, RemoteError, RemoteImage, SparseEditorOutput,
 };
 use gufo_common::cicp::Cicp;
 use gufo_common::math::ToI64;
@@ -40,7 +40,7 @@ pub(crate) const MAX_TEXTURE_SIZE: u64 = 8 * 10u64.pow(9);
 #[derive(Debug)]
 pub struct RemoteProcess<P: ZbusProxy<'static> + 'static> {
     dbus_connection: zbus::Connection,
-    decoding_instruction: P,
+    proxy: P,
     pub stderr_content: Arc<Mutex<String>>,
     pub stdout_content: Arc<Mutex<String>>,
     pub process_disconnected: Arc<AtomicBool>,
@@ -202,7 +202,7 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
 
         Ok(Self {
             dbus_connection,
-            decoding_instruction,
+            proxy: decoding_instruction,
             stderr_content,
             stdout_content,
             process_disconnected,
@@ -243,7 +243,7 @@ impl RemoteProcess<LoaderProxy<'static>> {
     ) -> Result<RemoteImage, Error> {
         let init_request = self.init_request(&gfile_worker, mime_type)?;
 
-        let image_info = self.decoding_instruction.init(init_request).shared();
+        let image_info = self.proxy.init(init_request).shared();
 
         let reader_error = gfile_worker.error();
         futures_util::pin_mut!(reader_error);
@@ -386,6 +386,10 @@ impl RemoteProcess<LoaderProxy<'static>> {
 }
 
 impl RemoteProcess<EditorProxy<'static>> {
+    pub async fn create(&self, new_image: NewImage) -> Result<EncodedImage, Error> {
+        self.proxy.create(new_image).await.map_err(Into::into)
+    }
+
     pub async fn editor_apply_sparse(
         &self,
         gfile_worker: &GFileWorker,
@@ -395,10 +399,7 @@ impl RemoteProcess<EditorProxy<'static>> {
         let init_request = self.init_request(gfile_worker, mime_type)?;
         let edit_request = EditRequest::for_operations(operations)?;
 
-        let editor_output = self
-            .decoding_instruction
-            .apply(init_request, edit_request)
-            .shared();
+        let editor_output = self.proxy.apply(init_request, edit_request).shared();
 
         let reader_error = gfile_worker.error();
         futures_util::pin_mut!(reader_error);
@@ -423,7 +424,7 @@ impl RemoteProcess<EditorProxy<'static>> {
         let edit_request = EditRequest::for_operations(operations)?;
 
         let editor_output = self
-            .decoding_instruction
+            .proxy
             .apply_complete(init_request, edit_request)
             .shared();
 
@@ -471,6 +472,8 @@ pub trait Editor {
         init_request: InitRequest,
         edit_request: EditRequest,
     ) -> Result<CompleteEditorOutput, RemoteError>;
+
+    async fn create(&self, new_image: NewImage) -> Result<EncodedImage, RemoteError>;
 }
 
 pub struct GFileWorker {

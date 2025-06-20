@@ -136,7 +136,10 @@ impl Loader {
 
         let process = process_basics.process.use_();
         let info = process
-            .init(process_basics.g_file_worker, &process_basics.mime_type)
+            .init(
+                process_basics.g_file_worker.unwrap(),
+                &process_basics.mime_type,
+            )
             .await
             .err_context(&process, &self.cancellable)?;
 

@@ -81,7 +81,7 @@ pub enum ColorState {
 
 pub(crate) struct RemoteProcessContext<P: ZbusProxy<'static> + 'static> {
     pub process: Arc<PooledProcess<P>>,
-    pub g_file_worker: GFileWorker,
+    pub g_file_worker: Option<GFileWorker>,
     pub mime_type: MimeType,
     pub sandbox_mechanism: SandboxMechanism,
 }
@@ -152,7 +152,7 @@ pub(crate) struct ProcessBasics<T> {
     pub mime_type: MimeType,
     pub sandbox_mechanism: SandboxMechanism,
     pub config_entry: T,
-    pub g_file_worker: GFileWorker,
+    pub g_file_worker: Option<GFileWorker>,
     pub base_dir: Option<PathBuf>,
 }
 
@@ -214,7 +214,7 @@ pub(crate) async fn spin_up<T: GetConfig + Clone>(
         base_dir,
         mime_type,
         sandbox_mechanism,
-        g_file_worker,
+        g_file_worker: Some(g_file_worker),
     })
 }
 
@@ -243,6 +243,34 @@ pub(crate) async fn spin_up_editor<'a>(
         g_file_worker: process_basics.g_file_worker,
         mime_type: process_basics.mime_type,
         sandbox_mechanism: process_basics.sandbox_mechanism,
+    })
+}
+
+pub(crate) async fn spin_up_encoder<'a>(
+    mime_type: MimeType,
+    pool: &Pool,
+    cancellable: &gio::Cancellable,
+    sandbox_selector: &SandboxSelector,
+    editor_alive: std::sync::Weak<()>,
+) -> Result<RemoteProcessContext<EditorProxy<'static>>, Error> {
+    let config_entry = Config::cached().await.editor(&mime_type)?;
+    let sandbox_mechanism = sandbox_selector.determine_sandbox_mechanism().await;
+
+    let process = pool
+        .get_editor(
+            config_entry.clone(),
+            sandbox_mechanism,
+            None,
+            cancellable,
+            editor_alive,
+        )
+        .await?;
+
+    Ok(RemoteProcessContext {
+        process,
+        g_file_worker: None,
+        mime_type,
+        sandbox_mechanism,
     })
 }
 
