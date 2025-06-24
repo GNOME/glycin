@@ -117,15 +117,24 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
                     Ok(mut child) => {
                         let id = child.id().clone();
                         let info = Ok((child.stderr.take(), child.stdout.take(), id));
-                        sender_child.send(info).unwrap();
+                        if let Err(err) = sender_child.send(info) {
+                            tracing::info!(
+                                "Failed to inform coordinating thread about process state: {err:?}"
+                            );
+                        }
                         child
                     }
                     Err(err) => {
-                        let err = Err(Error::SpawnError {
+                        let err = Error::SpawnError {
                             cmd: command_dbg.clone(),
                             err: Arc::new(err),
-                        });
-                        sender_child.send(err).unwrap();
+                        };
+                        tracing::debug!("Failed to spawn process: {err}");
+                        if let Err(err) = sender_child.send(Err(err)) {
+                            tracing::info!(
+                                "Failed to inform coordinating thread about process state: {err:?}"
+                            );
+                        }
                         return;
                     }
                 };
@@ -136,7 +145,11 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
                     "Process exited: {:?} {result:?}",
                     result.as_ref().ok().map(|x| x.code())
                 );
-                sender_child_return.send(result).unwrap();
+                if let Err(err) = sender_child_return.send(result) {
+                    tracing::debug!(
+                        "Failed to send process return value to coordinating thread: {err:?}"
+                    );
+                }
             }
         ));
 

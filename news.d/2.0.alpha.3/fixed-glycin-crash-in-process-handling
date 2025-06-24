@@ -1,0 +1,1 @@
+glycin: Fix the process handling thread expecting the receivers for process info being still alive.
