@@ -261,13 +261,19 @@ impl Sandbox {
         }
 
         // Set memory limit for sandbox
-        if matches!(self.sandbox_mechanism, SandboxMechanism::Bwrap) {
-            unsafe {
+        match self.sandbox_mechanism {
+            SandboxMechanism::Bwrap => unsafe {
                 command.pre_exec(|| {
                     Self::set_memory_limit();
                     Ok(())
                 });
-            }
+            },
+            SandboxMechanism::FlatpakSpawn => unsafe {
+                command.pre_exec(|| {
+                    nix::sys::prctl::set_pdeathsig(nix::sys::signal::SIGKILL).map_err(Into::into)
+                });
+            },
+            _ => {}
         }
 
         command.stderr(Stdio::piped());
