@@ -74,5 +74,7 @@ unsafe fn str_list_to_set(list: *mut fc::FcStrList) -> Option<BTreeSet<PathBuf>>
         }
     }
 
+    fc::FcStrListDone(list);
+
     Some(vec)
 }
