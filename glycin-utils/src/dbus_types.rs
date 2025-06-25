@@ -180,18 +180,13 @@ impl Frame {
 #[zvariant(signature = "dict")]
 #[non_exhaustive]
 pub struct NewImage {
-    pub mime_type: String,
     pub image_info: ImageInfo,
     pub frames: Vec<Frame>,
 }
 
 impl NewImage {
-    pub fn new(mime_type: String, image_info: ImageInfo, frames: Vec<Frame>) -> Self {
-        Self {
-            mime_type,
-            image_info,
-            frames,
-        }
+    pub fn new(image_info: ImageInfo, frames: Vec<Frame>) -> Self {
+        Self { image_info, frames }
     }
 }
 

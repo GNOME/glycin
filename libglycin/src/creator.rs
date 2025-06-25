@@ -7,7 +7,7 @@ use gio::prelude::*;
 use glib::ffi::{gpointer, GError, GType};
 use glib::subclass::prelude::*;
 use glib::translate::*;
-use glycin::{gobject, MimeType};
+use glycin::gobject;
 
 use crate::common::*;
 use crate::*;
@@ -15,8 +15,9 @@ use crate::*;
 pub type GlyCreator = <gobject::creator::imp::GlyCreator as ObjectSubclass>::Instance;
 
 #[no_mangle]
-pub unsafe extern "C" fn gly_creator_new() -> *mut GlyCreator {
-    gobject::GlyCreator::new().into_glib_ptr()
+pub unsafe extern "C" fn gly_creator_new(mime_type: *const c_char) -> *mut GlyCreator {
+    let mime_type = glib::GStr::from_ptr_checked(mime_type).unwrap().to_string();
+    gobject::GlyCreator::new(mime_type).into_glib_ptr()
 }
 
 /*
@@ -36,18 +37,16 @@ pub unsafe extern "C" fn gly_creator_set_sandbox_selector(
 pub unsafe extern "C" fn gly_creator_create(
     creator: *mut GlyCreator,
     new_image: *mut GlyNewImage,
-    mime_type: *const c_char,
     g_error: *mut *mut GError,
 ) -> *mut GlyEncodedImage {
     let obj = gobject::GlyCreator::from_glib_ptr_borrow(&creator);
 
     let new_image = gobject::GlyNewImage::from_glib_ptr_borrow(&new_image);
-    let mime_type = MimeType::new(glib::GStr::from_ptr_checked(mime_type).unwrap().to_string());
 
     let result = async_io::block_on(async move {
         // TODO unwrap
         let new_image = new_image.new_image().await.unwrap();
-        obj.create(new_image, mime_type).await
+        obj.create(new_image).await
     });
 
     match result {
@@ -63,7 +62,6 @@ pub unsafe extern "C" fn gly_creator_create(
 pub unsafe extern "C" fn gly_creator_create_async(
     creator: *mut GlyCreator,
     new_image: *mut GlyNewImage,
-    mime_type: *const c_char,
     cancellable: *mut gio::ffi::GCancellable,
     callback: GAsyncReadyCallback,
     user_data: gpointer,
@@ -73,7 +71,6 @@ pub unsafe extern "C" fn gly_creator_create_async(
     let callback = GAsyncReadyCallbackSend::new(callback, user_data);
 
     let new_image = gobject::GlyNewImage::from_glib_none(new_image);
-    let mime_type = MimeType::new(glib::GStr::from_ptr_checked(mime_type).unwrap().to_string());
 
     let cancel_signal = if let Some(cancellable) = &cancellable {
         cancellable.connect_cancelled(glib::clone!(
@@ -101,10 +98,7 @@ pub unsafe extern "C" fn gly_creator_create_async(
     async_io::block_on(async move {
         // TODO unwrap
         let new_image = new_image.new_image().await.unwrap();
-        let res = obj
-            .create(new_image, mime_type)
-            .await
-            .map_err(|x| glib_error(&x));
+        let res = obj.create(new_image).await.map_err(|x| glib_error(&x));
         task.return_result(res);
     });
 }

@@ -399,8 +399,15 @@ impl RemoteProcess<LoaderProxy<'static>> {
 }
 
 impl RemoteProcess<EditorProxy<'static>> {
-    pub async fn create(&self, new_image: NewImage) -> Result<EncodedImage, Error> {
-        self.proxy.create(new_image).await.map_err(Into::into)
+    pub async fn create(
+        &self,
+        mime_type: &MimeType,
+        new_image: NewImage,
+    ) -> Result<EncodedImage, Error> {
+        self.proxy
+            .create(mime_type.to_string(), new_image)
+            .await
+            .map_err(Into::into)
     }
 
     pub async fn editor_apply_sparse(
@@ -486,7 +493,11 @@ pub trait Editor {
         edit_request: EditRequest,
     ) -> Result<CompleteEditorOutput, RemoteError>;
 
-    async fn create(&self, new_image: NewImage) -> Result<EncodedImage, RemoteError>;
+    async fn create(
+        &self,
+        mime_type: String,
+        new_image: NewImage,
+    ) -> Result<EncodedImage, RemoteError>;
 }
 
 pub struct GFileWorker {

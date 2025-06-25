@@ -37,10 +37,10 @@ impl EditorImplementation for ImgEditor {
         }
     }
 
-    fn create(mut new_image: NewImage) -> Result<EncodedImage, ProcessError> {
+    fn create(mime_type: String, mut new_image: NewImage) -> Result<EncodedImage, ProcessError> {
         let frame = new_image.frames.remove(0);
 
-        let image_format = image_format(&new_image.mime_type)?;
+        let image_format = image_format(&mime_type)?;
 
         let memory_format = (MemoryFormatSelection::G8
             | MemoryFormatSelection::G8a8

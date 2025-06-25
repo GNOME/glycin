@@ -762,10 +762,10 @@ GBytes *gly_encoded_image_get_data(GlyEncodedImage *encoded_image);
  * GBytes *texture = g_bytes_new(data, length);
  * GlyNewImage *new_image = gly_new_image_new(1, 1, GLY_MEMORY_R8G8B8, texture);
  *
- * GlyCreator *creator = gly_creator_new();
+ * GlyCreator *creator = gly_creator_new("image/jpeg");
  *
  * // Create JPEG
- * GlyEncodedImage *encoded_image = gly_creator_create(creator, new_image, "image/jpeg");
+ * GlyEncodedImage *encoded_image = gly_creator_create(creator, new_image);
  *
  * if (encoded_image)
  * {
@@ -795,30 +795,30 @@ G_DECLARE_FINAL_TYPE(GlyCreator, gly_creator, GLY, CREATOR, GObject)
 
 /**
  * gly_creator_new:
+ * @mime_type: A null-terminated string.
  *
  * Returns: (transfer full): a new [class@Creator]
  *
  * Since: 2.0
  */
-GlyCreator *gly_creator_new(void);
+GlyCreator *gly_creator_new(const gchar *mime_type);
 
 /**
  * gly_creator_create:
  * @image:
  * @new_image:
- * @mime_type: A null-terminated string.
+ *
  *
  * Return value: (transfer full) (nullable): The encoded image.
  *
  * Since: 2.0
  **/
-GlyEncodedImage *gly_creator_create(GlyCreator *image, GlyNewImage *new_image, const gchar *mime_type);
+GlyEncodedImage *gly_creator_create(GlyCreator *image, GlyNewImage *new_image);
 
 /**
  * gly_creator_create_async:
  * @creator:
  * @new_image:
- * @mime_type:
  * @cancellable: (nullable): A [class@Gio.Cancellable] to cancel the operation
  * @callback: A callback to call when the operation is complete
  * @user_data: Data to pass to @callback
@@ -829,7 +829,6 @@ GlyEncodedImage *gly_creator_create(GlyCreator *image, GlyNewImage *new_image, c
  */
 void gly_creator_create_async(GlyCreator *creator,
                               GlyNewImage *new_image,
-                              const gchar *mime_type,
                               GCancellable *cancellable,
                               GAsyncReadyCallback callback,
                               gpointer user_data);

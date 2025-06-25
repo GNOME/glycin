@@ -10,6 +10,7 @@ use crate::{spin_up_encoder, Error, ErrorCtx, MimeType, SandboxSelector};
 
 #[derive(Debug)]
 pub struct Creator {
+    mime_type: MimeType,
     pool: Arc<Pool>,
     pub(crate) cancellable: gio::Cancellable,
     pub(crate) sandbox_selector: SandboxSelector,
@@ -17,16 +18,11 @@ pub struct Creator {
 
 static_assertions::assert_impl_all!(Creator: Send, Sync);
 
-impl Default for Creator {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl Creator {
     /// Create an encoder.
-    pub fn new() -> Self {
+    pub fn new(mime_type: MimeType) -> Self {
         Self {
+            mime_type,
             pool: Pool::global(),
             cancellable: gio::Cancellable::new(),
             sandbox_selector: SandboxSelector::default(),
@@ -48,13 +44,9 @@ impl Creator {
     }
 
     /// Encode an image
-    pub async fn create(
-        self,
-        new_image: NewImage,
-        mime_type: MimeType,
-    ) -> Result<EncodedImage, ErrorCtx> {
+    pub async fn create(self, new_image: NewImage) -> Result<EncodedImage, ErrorCtx> {
         let process_context = spin_up_encoder(
-            mime_type.clone(),
+            self.mime_type.clone(),
             &self.pool,
             &self.cancellable,
             &self.sandbox_selector,
@@ -67,7 +59,7 @@ impl Creator {
 
         Ok(EncodedImage::new(
             process
-                .create(new_image.into_inner(mime_type))
+                .create(&self.mime_type, new_image.into_inner())
                 .await
                 .err_context(&process, &self.cancellable)?,
         ))
@@ -86,8 +78,6 @@ impl NewImage {
         memory_format: MemoryFormat,
         texture: impl AsRef<[u8]>,
     ) -> Result<Self, Error> {
-        let mime_type = String::new();
-
         let mut image_info = ImageInfo::default();
         image_info.width = width;
         image_info.height = height;
@@ -98,12 +88,11 @@ impl NewImage {
         let frames = vec![frame];
 
         Ok(Self {
-            inner: glycin_utils::NewImage::new(mime_type, image_info, frames),
+            inner: glycin_utils::NewImage::new(image_info, frames),
         })
     }
 
-    fn into_inner(mut self, mime_type: MimeType) -> glycin_utils::NewImage {
-        self.inner.mime_type = mime_type.to_string();
+    fn into_inner(self) -> glycin_utils::NewImage {
         self.inner
     }
 }

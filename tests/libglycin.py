@@ -127,8 +127,8 @@ def main():
     data = GLib.Bytes.new([1,2,3])
     new_image = Gly.NewImage.new(1, 1, Gly.MemoryFormat.R8G8B8, data)
 
-    creator = Gly.Creator.new()
-    encoded_image = creator.create(new_image, "image/jpeg")
+    creator = Gly.Creator.new("image/jpeg")
+    encoded_image = creator.create(new_image)
 
     data = encoded_image.get_data().get_data()
     assert list(data[0:4]) == [0xFF, 0xD8, 0xFF, 0xE0]
@@ -154,12 +154,12 @@ def main():
 
     # Async Creator
 
-    creator = Gly.Creator()
+    creator = Gly.Creator(mime_type="image/jpeg")
 
     data = GLib.Bytes.new([1,2,3])
     new_image = Gly.NewImage(width=1, height=1, memory_format=Gly.MemoryFormat.R8G8B8, texture=data)
 
-    creator.create_async(new_image, "image/jpeg", None, creator_cb, None)
+    creator.create_async(new_image, None, creator_cb, None)
     async_tests_remaining += 1
 
     # Main loop
@@ -197,9 +197,10 @@ def specific_frame_cb(image, result, user_data):
     async_test_done()
 
 def creator_cb(creator, result, user_data):
-    print("a")
-    #encoded_image = creator.create_finish(result)
-    print("b")
+    encoded_image = creator.create_finish(result)
+
+    data = encoded_image.get_data().get_data()
+    assert list(data[0:4]) == [0xFF, 0xD8, 0xFF, 0xE0]
 
     async_test_done()
 
