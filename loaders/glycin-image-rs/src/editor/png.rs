@@ -34,7 +34,7 @@ pub fn apply(
     let mut new_png_data = Cursor::new(Vec::new());
     let encoder = image::codecs::png::PngEncoder::new_with_quality(
         &mut new_png_data,
-        image::codecs::png::CompressionType::Best,
+        image::codecs::png::CompressionType::Default,
         image::codecs::png::FilterType::Adaptive,
     );
 
