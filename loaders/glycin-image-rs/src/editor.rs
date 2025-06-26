@@ -71,7 +71,14 @@ impl EditorImplementation for ImgEditor {
         )
         .expected_error()?;
 
-        let data = BinaryData::from_data(cur.into_inner())?;
+        let buf = cur.into_inner();
+
+        let buf = match image_format {
+            ImageFormat::Png => png::add_metadata(buf, &new_image.image_info, &frame.details),
+            _ => buf,
+        };
+
+        let data = BinaryData::from_data(buf)?;
         Ok(EncodedImage::new(data))
     }
 }

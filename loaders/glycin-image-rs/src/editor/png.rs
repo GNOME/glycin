@@ -3,6 +3,8 @@ use std::sync::Arc;
 
 use glycin_utils::operations::Operations;
 use glycin_utils::*;
+use gufo::png::NewChunk;
+use gufo_common::error::ErrorWithData;
 use gufo_exif::internal::ExifRaw;
 use image::{ImageDecoder, ImageEncoder};
 use image_rs::Handler;
@@ -139,4 +141,32 @@ fn exif_orientation_value_position(data: Vec<u8>) -> Option<usize> {
     } else {
         None
     }
+}
+
+pub fn add_metadata(buf: Vec<u8>, image_info: &ImageInfo, frame_details: &FrameDetails) -> Vec<u8> {
+    match add_metadata_internal(buf, image_info, frame_details) {
+        Err(err) => {
+            log::error!("Failed to add metadata: {err}");
+            err.into_inner()
+        }
+        Ok(buf) => buf,
+    }
+}
+
+fn add_metadata_internal(
+    buf: Vec<u8>,
+    image_info: &ImageInfo,
+    _frame_details: &FrameDetails,
+) -> Result<Vec<u8>, ErrorWithData<gufo::png::Error>> {
+    let mut png = gufo::png::Png::new(buf)?;
+
+    if let Some(key_value) = &image_info.key_value {
+        for (key, value) in key_value {
+            if let Err(err) = png.insert_chunk(NewChunk::text(key, value)) {
+                return Err(ErrorWithData::new(err, png.into_inner()));
+            }
+        }
+    }
+
+    Ok(png.into_inner())
 }

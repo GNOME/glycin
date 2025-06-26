@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use glib::object::IsA;
@@ -94,6 +95,10 @@ impl NewImage {
 
     fn into_inner(self) -> glycin_utils::NewImage {
         self.inner
+    }
+
+    pub fn set_key_value(&mut self, key_value: BTreeMap<String, String>) {
+        self.inner.image_info.key_value = Some(key_value);
     }
 }
 

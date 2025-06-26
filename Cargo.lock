@@ -1168,9 +1168,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-png"
-version = "0.3.0-alpha"
+version = "0.3.0-alpha.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "03759e1097203f420e098433f9759e0ace4a3eefef86dad2da9b0bb7fe91e653"
+checksum = "5316d485cc3a9143996dd7078c87db6ad1cdccb95b59226798e2620506ae0591"
 dependencies = [
  "crc32fast",
  "encoding_rs",
