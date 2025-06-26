@@ -87,6 +87,15 @@ impl Creator {
         self.encoding_options.quality = Some(quality);
         Ok(())
     }
+
+    /// Set compression level
+    ///
+    /// This sets the lossless compression level. The range is from 0 (no
+    /// compression) to 100 (highest compression).
+    pub fn set_compression(&mut self, compression: u8) -> Result<(), FeatureNotSupported> {
+        self.encoding_options.compression = Some(compression);
+        Ok(())
+    }
 }
 
 #[derive(Debug)]

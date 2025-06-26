@@ -52,7 +52,7 @@ fn create_jpeg_quality() {
         let image = loader.load().await.unwrap();
         let frame = image.next_frame().await.unwrap();
 
-        assert!(frame.buf_slice()[4].abs_diff(data[0]) < 5);
+        assert!(frame.buf_slice()[3].abs_diff(data[3]) < 5);
 
         let new_image = NewImage::new(width, height, memory_format, data.clone()).unwrap();
         let mut creator = Creator::new(MimeType::jpeg());
@@ -63,7 +63,46 @@ fn create_jpeg_quality() {
         let image = loader.load().await.unwrap();
         let frame = image.next_frame().await.unwrap();
 
-        assert!(frame.buf_slice()[4].abs_diff(data[0]) > 5);
+        assert!(frame.buf_slice()[3].abs_diff(data[3]) > 5);
+    });
+}
+
+#[test]
+fn create_png_compression() {
+    block_on(async {
+        init();
+
+        let loader = glycin::Loader::new(gio::File::for_path("test-images/images/color.png"));
+        let image = loader.load().await.unwrap();
+        let frame = image.next_frame().await.unwrap();
+        let data = frame.buf_slice().to_vec();
+
+        let width = frame.width();
+        let height = frame.height();
+        let memory_format = glycin::MemoryFormat::R8g8b8;
+        let new_image = NewImage::new(width, height, memory_format, data.clone()).unwrap();
+        let mut creator = Creator::new(MimeType::png());
+        creator.set_compression(100).unwrap();
+        let encoded_image = creator.create(new_image).await.unwrap();
+
+        let size_100 = encoded_image.data_ref().unwrap().len();
+
+        let new_image = NewImage::new(width, height, memory_format, data.clone()).unwrap();
+        let mut creator = Creator::new(MimeType::png());
+        creator.set_compression(50).unwrap();
+        let encoded_image = creator.create(new_image).await.unwrap();
+
+        let size_50 = encoded_image.data_ref().unwrap().len();
+
+        let new_image = NewImage::new(width, height, memory_format, data.clone()).unwrap();
+        let mut creator = Creator::new(MimeType::png());
+        creator.set_compression(0).unwrap();
+        let encoded_image = creator.create(new_image).await.unwrap();
+
+        let size_0 = encoded_image.data_ref().unwrap().len();
+
+        assert!(size_100 < size_50);
+        assert!(size_50 < size_0);
     });
 }
 

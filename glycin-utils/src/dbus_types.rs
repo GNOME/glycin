@@ -195,6 +195,7 @@ impl NewImage {
 #[non_exhaustive]
 pub struct EncodingOptions {
     pub quality: Option<u8>,
+    pub compression: Option<u8>,
 }
 
 #[derive(DeserializeDict, SerializeDict, Type, Debug)]

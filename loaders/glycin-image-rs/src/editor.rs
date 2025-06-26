@@ -73,10 +73,22 @@ impl EditorImplementation for ImgEditor {
 
         let image_buf = match image_format {
             ImageFormat::Png => {
+                let compression = if let Some(compression) = encoding_options.compression {
+                    if compression < 30 {
+                        image::codecs::png::CompressionType::Fast
+                    } else if compression < 80 {
+                        image::codecs::png::CompressionType::Default
+                    } else {
+                        image::codecs::png::CompressionType::Best
+                    }
+                } else {
+                    image::codecs::png::CompressionType::Default
+                };
+
                 let mut out_buf = Vec::new();
                 let mut encoder = image::codecs::png::PngEncoder::new_with_quality(
                     &mut out_buf,
-                    image::codecs::png::CompressionType::Default,
+                    compression,
                     image::codecs::png::FilterType::default(),
                 );
 
