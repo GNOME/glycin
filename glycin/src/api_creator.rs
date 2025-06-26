@@ -60,7 +60,10 @@ impl Creator {
 
         Ok(EncodedImage::new(
             process
-                .create(&self.mime_type, new_image.into_inner())
+                .create(
+                    &self.mime_type,
+                    new_image.into_inner().err_no_context(&self.cancellable)?,
+                )
                 .await
                 .err_context(&process, &self.cancellable)?,
         ))
@@ -70,6 +73,7 @@ impl Creator {
 #[derive(Debug)]
 pub struct NewImage {
     pub(crate) inner: glycin_utils::NewImage,
+    icc_profile: Option<Vec<u8>>,
 }
 
 impl NewImage {
@@ -90,15 +94,37 @@ impl NewImage {
 
         Ok(Self {
             inner: glycin_utils::NewImage::new(image_info, frames),
+            icc_profile: None,
         })
     }
 
-    fn into_inner(self) -> glycin_utils::NewImage {
-        self.inner
+    fn into_inner(mut self) -> Result<glycin_utils::NewImage, Error> {
+        // TODO unwrap
+        if let Some(icc_profile) = self
+            .icc_profile
+            .as_ref()
+            .map(|x| BinaryData::from_data(x))
+            .transpose()
+            .unwrap()
+        {
+            for frame in &mut self.inner.frames {
+                frame.details.iccp = Some(icc_profile.clone());
+            }
+        }
+
+        Ok(self.inner)
     }
 
     pub fn set_key_value(&mut self, key_value: BTreeMap<String, String>) {
         self.inner.image_info.key_value = Some(key_value);
+    }
+
+    /// Sets the ICC profile for all frames
+    ///
+    /// If this is set to `None`, which is the default, the ICC profile of the
+    /// frames will be left untouched.
+    pub fn set_color_icc_profile(&mut self, icc_profile: Option<Vec<u8>>) {
+        self.icc_profile = icc_profile;
     }
 }
 

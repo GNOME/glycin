@@ -4,7 +4,7 @@ mod png;
 use std::io::Cursor;
 
 use glycin_utils::*;
-use image::{ExtendedColorType, ImageFormat};
+use image::{ExtendedColorType, ImageEncoder, ImageFormat};
 
 #[derive(Default)]
 pub struct ImgEditor {}
@@ -53,32 +53,73 @@ impl EditorImplementation for ImgEditor {
             .best_format_for(frame.memory_format)
             .internal_error()?;
 
-        let mut cur = Cursor::new(Vec::new());
-
         let v = frame.texture.get_full().expected_error()?;
         let img_buf = ImgBuf::Vec(v);
         let (frame, img_buf) =
             glycin_utils::editing::change_memory_format(img_buf, frame, memory_format)
                 .expected_error()?;
 
-        image::write_buffer_with_format(
-            &mut cur,
-            &img_buf,
-            frame.width,
-            frame.height,
-            image_memory_format(memory_format)?,
-            image_format,
-        )
-        .expected_error()?;
+        let memory_format = image_memory_format(memory_format)?;
 
-        let buf = cur.into_inner();
+        let icc_profile = frame.details.iccp.as_ref().and_then(|x| {
+            x.get_full()
+                .inspect_err(|err| log::error!("Can't read the ICC profile {err}"))
+                .ok()
+        });
 
-        let buf = match image_format {
-            ImageFormat::Png => png::add_metadata(buf, &new_image.image_info, &frame.details),
-            _ => buf,
+        let image_buf = match image_format {
+            ImageFormat::Png => {
+                let mut out_buf = Vec::new();
+                let mut encoder = image::codecs::png::PngEncoder::new_with_quality(
+                    &mut out_buf,
+                    image::codecs::png::CompressionType::Default,
+                    image::codecs::png::FilterType::default(),
+                );
+
+                if let Some(iccp) = icc_profile {
+                    let _ = encoder.set_icc_profile(iccp);
+                }
+
+                encoder
+                    .write_image(&img_buf, frame.width, frame.height, memory_format)
+                    .internal_error()?;
+
+                let out_buf = png::add_metadata(out_buf, &new_image.image_info, &frame.details);
+
+                out_buf
+            }
+            ImageFormat::Jpeg => {
+                let mut out_buf = Vec::new();
+                let mut encoder =
+                    image::codecs::jpeg::JpegEncoder::new_with_quality(&mut out_buf, 90);
+
+                if let Some(icc_profile) = icc_profile {
+                    let _ = encoder.set_icc_profile(icc_profile);
+                }
+
+                encoder
+                    .write_image(&img_buf, frame.width, frame.height, memory_format)
+                    .internal_error()?;
+
+                out_buf
+            }
+            _ => {
+                let mut cur = Cursor::new(Vec::new());
+                image::write_buffer_with_format(
+                    &mut cur,
+                    &img_buf,
+                    frame.width,
+                    frame.height,
+                    memory_format,
+                    image_format,
+                )
+                .expected_error()?;
+
+                cur.into_inner()
+            }
         };
 
-        let data = BinaryData::from_data(buf)?;
+        let data = BinaryData::from_data(image_buf)?;
         Ok(EncodedImage::new(data))
     }
 }

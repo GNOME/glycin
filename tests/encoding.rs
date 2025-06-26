@@ -7,19 +7,37 @@ use utils::*;
 
 #[test]
 fn write_jpeg() {
-    let encoder = Creator::new(MimeType::jpeg());
-    let width = 1;
-    let height = 1;
-    let memory_format = glycin::MemoryFormat::R8g8b8;
-    let data = vec![255, 0, 0];
+    block_on(async {
+        init();
 
-    let new_image = NewImage::new(width, height, memory_format, data).unwrap();
-    block_on(encoder.create(new_image)).unwrap();
+        let encoder = Creator::new(MimeType::jpeg());
+        let width = 1;
+        let height = 1;
+        let memory_format = glycin::MemoryFormat::R8g8b8;
+        let data = vec![255, 0, 0];
+
+        let mut new_image = NewImage::new(width, height, memory_format, data).unwrap();
+
+        new_image.set_color_icc_profile(Some(vec![1, 2, 3]));
+
+        let encoded_image = encoder.create(new_image).await.unwrap();
+
+        let loader = glycin::Loader::new_vec(encoded_image.data_full().unwrap());
+        let image = loader.load().await.unwrap();
+        let frame = image.next_frame().await.unwrap();
+
+        assert_eq!(
+            frame.details().iccp.as_ref().unwrap().get_full().unwrap(),
+            vec![1, 2, 3]
+        );
+    });
 }
 
 #[test]
 fn write_png() {
     block_on(async {
+        init();
+
         let encoder = Creator::new(MimeType::png());
         let width = 1;
         let height = 1;
@@ -31,6 +49,8 @@ fn write_png() {
             "keyword".to_string(),
             "value".to_string(),
         )]));
+        new_image.set_color_icc_profile(Some(vec![1, 2, 3]));
+
         let encoded_image = encoder.create(new_image).await.unwrap();
 
         let mut loader = glycin::Loader::new_vec(encoded_image.data_full().unwrap());
@@ -45,5 +65,9 @@ fn write_png() {
         let frame = image.next_frame().await.unwrap();
 
         assert_eq!(frame.buf_slice(), [255, 0, 0]);
+        assert_eq!(
+            frame.details().iccp.as_ref().unwrap().get_full().unwrap(),
+            vec![1, 2, 3]
+        );
     });
 }
