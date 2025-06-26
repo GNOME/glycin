@@ -730,6 +730,23 @@ G_DECLARE_FINAL_TYPE(GlyNewImage, gly_new_image, GLY, NEW_IMAGE, GObject)
 GlyNewImage *gly_new_image_new(uint32_t width, uint32_t height, GlyMemoryFormat memory_format, GBytes *texture);
 
 /**
+ * gly_new_image_add_metadata_key_value:
+ * @new_image:
+ * @key: A null-terminated string.
+ * @value: A null-terminated string.
+ *
+ * Add metadata that are stored as key-value pairs.
+ * A prominent example are PNG's `tEXt` chunks.
+ *
+ * If an entry with `key` already exists, it will be replaced.
+ *
+ * Since: 2.0
+ **/
+void gly_new_image_add_metadata_key_value(GlyNewImage *new_image,
+                                          const gchar *key,
+                                          const gchar *value);
+
+/**
  * GlyEncodedImage:
  *
  * Encoded image

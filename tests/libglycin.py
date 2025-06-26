@@ -124,14 +124,21 @@ def main():
 
     # Creator
 
+    creator = Gly.Creator.new("image/png")
+
     data = GLib.Bytes.new([1,2,3])
     new_image = Gly.NewImage.new(1, 1, Gly.MemoryFormat.R8G8B8, data)
+    new_image.add_metadata_key_value("key", "Value")
 
-    creator = Gly.Creator.new("image/jpeg")
     encoded_image = creator.create(new_image)
 
     data = encoded_image.get_data().get_data()
-    assert list(data[0:4]) == [0xFF, 0xD8, 0xFF, 0xE0]
+    assert list(data[0:4]) == [0x89, 0x50, 0x4E, 0x47]
+
+    loader = Gly.Loader.new_for_bytes(encoded_image.get_data())
+    image = loader.load()
+
+    assert list(image.get_metadata_key_value("key")) == list("Value")
 
     # Async
     global async_tests_remaining

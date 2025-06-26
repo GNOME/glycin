@@ -45,7 +45,7 @@ pub unsafe extern "C" fn gly_creator_create(
 
     let result = async_io::block_on(async move {
         // TODO unwrap
-        let new_image = new_image.new_image().await.unwrap();
+        let new_image = new_image.new_image().unwrap();
         obj.create(new_image).await
     });
 
@@ -97,7 +97,7 @@ pub unsafe extern "C" fn gly_creator_create_async(
 
     async_io::block_on(async move {
         // TODO unwrap
-        let new_image = new_image.new_image().await.unwrap();
+        let new_image = new_image.new_image().unwrap();
         let res = obj.create(new_image).await.map_err(|x| glib_error(&x));
         task.return_result(res);
     });
