@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use glib::object::IsA;
 use glib::prelude::*;
-use glycin_utils::{BinaryData, Frame, ImageInfo, MemoryFormat};
+use glycin_utils::{BinaryData, EncodingOptions, Frame, ImageInfo, MemoryFormat};
 
 use crate::error::ResultExt;
 use crate::pool::Pool;
@@ -15,9 +15,21 @@ pub struct Creator {
     pool: Arc<Pool>,
     pub(crate) cancellable: gio::Cancellable,
     pub(crate) sandbox_selector: SandboxSelector,
+    encoding_options: EncodingOptions,
 }
 
 static_assertions::assert_impl_all!(Creator: Send, Sync);
+
+#[derive(Debug)]
+pub struct FeatureNotSupported;
+
+impl std::fmt::Display for FeatureNotSupported {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Feature not supported by this image format.")
+    }
+}
+
+impl std::error::Error for FeatureNotSupported {}
 
 impl Creator {
     /// Create an encoder.
@@ -27,6 +39,7 @@ impl Creator {
             pool: Pool::global(),
             cancellable: gio::Cancellable::new(),
             sandbox_selector: SandboxSelector::default(),
+            encoding_options: EncodingOptions::default(),
         }
     }
 
@@ -63,10 +76,16 @@ impl Creator {
                 .create(
                     &self.mime_type,
                     new_image.into_inner().err_no_context(&self.cancellable)?,
+                    self.encoding_options,
                 )
                 .await
                 .err_context(&process, &self.cancellable)?,
         ))
+    }
+
+    pub fn set_quality(&mut self, quality: u8) -> Result<(), FeatureNotSupported> {
+        self.encoding_options.quality = Some(quality);
+        Ok(())
     }
 }
 

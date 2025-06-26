@@ -34,6 +34,40 @@ fn write_jpeg() {
 }
 
 #[test]
+fn create_jpeg_quality() {
+    block_on(async {
+        init();
+
+        let width = 3;
+        let height = 1;
+        let memory_format = glycin::MemoryFormat::R8g8b8;
+        let data = vec![255, 0, 0, 150, 0, 0, 50, 0, 0];
+
+        let new_image = NewImage::new(width, height, memory_format, data.clone()).unwrap();
+        let mut creator = Creator::new(MimeType::jpeg());
+        creator.set_quality(100).unwrap();
+        let encoded_image = creator.create(new_image).await.unwrap();
+
+        let loader = glycin::Loader::new_vec(encoded_image.data_full().unwrap());
+        let image = loader.load().await.unwrap();
+        let frame = image.next_frame().await.unwrap();
+
+        assert!(frame.buf_slice()[4].abs_diff(data[0]) < 5);
+
+        let new_image = NewImage::new(width, height, memory_format, data.clone()).unwrap();
+        let mut creator = Creator::new(MimeType::jpeg());
+        creator.set_quality(50).unwrap();
+        let encoded_image = creator.create(new_image).await.unwrap();
+
+        let loader = glycin::Loader::new_vec(encoded_image.data_full().unwrap());
+        let image = loader.load().await.unwrap();
+        let frame = image.next_frame().await.unwrap();
+
+        assert!(frame.buf_slice()[4].abs_diff(data[0]) > 5);
+    });
+}
+
+#[test]
 fn write_png() {
     block_on(async {
         init();

@@ -37,7 +37,11 @@ impl EditorImplementation for ImgEditor {
         }
     }
 
-    fn create(mime_type: String, mut new_image: NewImage) -> Result<EncodedImage, ProcessError> {
+    fn create(
+        mime_type: String,
+        mut new_image: NewImage,
+        encoding_options: EncodingOptions,
+    ) -> Result<EncodedImage, ProcessError> {
         let frame = new_image.frames.remove(0);
 
         let image_format = image_format(&mime_type)?;
@@ -90,8 +94,13 @@ impl EditorImplementation for ImgEditor {
             }
             ImageFormat::Jpeg => {
                 let mut out_buf = Vec::new();
-                let mut encoder =
-                    image::codecs::jpeg::JpegEncoder::new_with_quality(&mut out_buf, 90);
+                let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(
+                    &mut out_buf,
+                    encoding_options
+                        .quality
+                        .map(|x| u8::min(x, 100))
+                        .unwrap_or(90),
+                );
 
                 if let Some(icc_profile) = icc_profile {
                     let _ = encoder.set_icc_profile(icc_profile);

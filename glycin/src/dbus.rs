@@ -19,8 +19,8 @@ use glycin_utils::memory_format::MemoryFormatInfo;
 use glycin_utils::operations::Operations;
 use glycin_utils::safe_math::{SafeConversion, SafeMath};
 use glycin_utils::{
-    CompleteEditorOutput, EditRequest, EncodedImage, Frame, FrameRequest, ImgBuf, InitRequest,
-    InitializationDetails, NewImage, RemoteError, RemoteImage, SparseEditorOutput,
+    CompleteEditorOutput, EditRequest, EncodedImage, EncodingOptions, Frame, FrameRequest, ImgBuf,
+    InitRequest, InitializationDetails, NewImage, RemoteError, RemoteImage, SparseEditorOutput,
 };
 use gufo_common::cicp::Cicp;
 use gufo_common::math::ToI64;
@@ -403,9 +403,10 @@ impl RemoteProcess<EditorProxy<'static>> {
         &self,
         mime_type: &MimeType,
         new_image: NewImage,
+        encoding_options: EncodingOptions,
     ) -> Result<EncodedImage, Error> {
         self.proxy
-            .create(mime_type.to_string(), new_image)
+            .create(mime_type.to_string(), new_image, encoding_options)
             .await
             .map_err(Into::into)
     }
@@ -497,6 +498,7 @@ pub trait Editor {
         &self,
         mime_type: String,
         new_image: NewImage,
+        encoding_options: EncodingOptions,
     ) -> Result<EncodedImage, RemoteError>;
 }
 

@@ -157,8 +157,9 @@ impl<E: EditorImplementation> Editor<E> {
         &self,
         mime_type: String,
         new_image: NewImage,
+        encoding_options: EncodingOptions,
     ) -> Result<EncodedImage, RemoteError> {
-        E::create(mime_type, new_image).map_err(|x| x.into_editor_error())
+        E::create(mime_type, new_image, encoding_options).map_err(|x| x.into_editor_error())
     }
 
     async fn apply(
@@ -225,7 +226,11 @@ pub trait EditorImplementation: Send + Sync + Sized + 'static {
         operations: Operations,
     ) -> Result<CompleteEditorOutput, ProcessError>;
 
-    fn create(mime_type: String, new_image: NewImage) -> Result<EncodedImage, ProcessError>;
+    fn create(
+        mime_type: String,
+        new_image: NewImage,
+        encoding_options: EncodingOptions,
+    ) -> Result<EncodedImage, ProcessError>;
 }
 
 /// Give a `None` for a non-existent `EditorImplementation`
@@ -243,7 +248,11 @@ impl EditorImplementation for VoidEditorImplementation {
         unreachable!()
     }
 
-    fn create(_mime_type: String, _new_image: NewImage) -> Result<EncodedImage, ProcessError> {
+    fn create(
+        _mime_type: String,
+        _new_image: NewImage,
+        _encoding_options: EncodingOptions,
+    ) -> Result<EncodedImage, ProcessError> {
         unreachable!()
     }
 }

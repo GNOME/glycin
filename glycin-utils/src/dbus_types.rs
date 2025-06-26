@@ -190,6 +190,13 @@ impl NewImage {
     }
 }
 
+#[derive(DeserializeDict, SerializeDict, Type, Debug, Default)]
+#[zvariant(signature = "dict")]
+#[non_exhaustive]
+pub struct EncodingOptions {
+    pub quality: Option<u8>,
+}
+
 #[derive(DeserializeDict, SerializeDict, Type, Debug)]
 #[zvariant(signature = "dict")]
 #[non_exhaustive]
