@@ -754,7 +754,7 @@ GBytes *gly_encoded_image_get_data(GlyEncodedImage *encoded_image);
  *
  * int main(void)
  * {
- *   GlyCreator *creator = gly_creator_new("image/jpeg");
+ *   GlyCreator *creator = gly_creator_new("image/jpeg", NULL);
  *
  *   // Create frame with a single red pixel
  *   guint8 data[] = {255, 0, 0};
@@ -795,12 +795,14 @@ G_DECLARE_FINAL_TYPE(GlyCreator, gly_creator, GLY, CREATOR, GObject)
 /**
  * gly_creator_new:
  * @mime_type: A null-terminated string.
+ * @error:
  *
  * Returns: (transfer full): a new [class@Creator]
  *
  * Since: 2.0
  */
-GlyCreator *gly_creator_new(const gchar *mime_type);
+GlyCreator *gly_creator_new(const gchar *mime_type,
+                            GError **error);
 
 /**
  * gly_creator_add_frame:

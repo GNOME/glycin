@@ -21,7 +21,6 @@ pub unsafe extern "C" fn gly_creator_new(
 ) -> *mut GlyCreator {
     let mime_type = glib::GStr::from_ptr_checked(mime_type).unwrap().to_string();
 
-    // TODO unwrap
     let creator = async_io::block_on(gobject::GlyCreator::new(mime_type));
 
     match creator {

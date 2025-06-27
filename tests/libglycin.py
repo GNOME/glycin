@@ -142,6 +142,13 @@ def main():
 
     assert list(image.get_metadata_key_value("key")) == list("Value")
 
+    error_domain = None
+    try:
+        creator = Gly.Creator.new("unknown/mime")
+    except GLib.GError as e:
+        error_domain = e.domain
+    assert error_domain == "gly-loader-error"
+
     # Async
     global async_tests_remaining
     async_tests_remaining = 0
