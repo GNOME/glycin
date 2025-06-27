@@ -1,3 +1,28 @@
+## 2.0.alpha.3 (2025-06-27)
+
+This release contains the following new component versions:
+
+- glycin-tools 2.0.0-alpha.3
+- libglycin 2.0.0-alpha.3
+- libglycin-gtk4 2.0.0-alpha.3
+- glycin-heif 2.0.0-alpha.3
+- glycin-jxl 2.0.0-alpha.3
+- glycin-raw 2.0.0-alpha.3
+- glycin-svg 2.0.0-alpha.3
+- glycin-thumbnailer 2.0.0-alpha.3
+
+### Added
+
+- Saving/encoding new images for the BMP, DDS, Farbfeld, GIF, ICO, JPEG,
+  OpenEXR, PNG, PNM, QOI, TGA, TIFF, and WebP image formats.
+
+### Fixed
+
+- glycin: Exit pooled loaders in Flatpak when app exits.
+- glycin: Fix the process handling thread expecting the receivers for process
+  info being still alive.
+- glycin: Fixed a memory leak in retriving fontconfigs cache dirs.
+
 ## 2.0.alpha.2 (2025-06-13)
 
 This release contains the following new component versions:
@@ -43,6 +68,16 @@ This release contains the following new component versions:
 - Use a new loader/editor D-Bus API version 2+ and simultanously bump libglycin
   to 2.0 and glycin (Rust API) to 3.0. This was required for supporting pooled
   loaders.
+
+## 1.2.2 (2025-06-27)
+
+This release contains the following new component versions:
+
+- glycin-image-rs 1.2.2
+
+### Fixed
+
+- image-rs: Force at least zune-jpeg 0.4.18 to fix multiple JPEG loading issues.
 
 ## 1.2.1 (2025-04-11)
 
