@@ -125,12 +125,13 @@ def main():
     # Creator
 
     creator = Gly.Creator.new("image/png")
+    creator.add_metadata_key_value("key", "Value")
 
     data = GLib.Bytes.new([1,2,3])
-    new_image = Gly.NewImage.new(1, 1, Gly.MemoryFormat.R8G8B8, data)
-    new_image.add_metadata_key_value("key", "Value")
+    frame = creator.add_frame(1, 1, Gly.MemoryFormat.R8G8B8, data)
+    frame.set_color_icc_profile(data)
 
-    encoded_image = creator.create(new_image)
+    encoded_image = creator.create()
 
     data = encoded_image.get_data().get_data()
     assert list(data[0:4]) == [0x89, 0x50, 0x4E, 0x47]
@@ -164,9 +165,9 @@ def main():
     creator = Gly.Creator(mime_type="image/jpeg")
 
     data = GLib.Bytes.new([1,2,3])
-    new_image = Gly.NewImage(width=1, height=1, memory_format=Gly.MemoryFormat.R8G8B8, texture=data)
+    creator.add_frame(width=1, height=1, memory_format=Gly.MemoryFormat.R8G8B8, texture=data)
 
-    creator.create_async(new_image, None, creator_cb, None)
+    creator.create_async(None, creator_cb, None)
     async_tests_remaining += 1
 
     # Main loop

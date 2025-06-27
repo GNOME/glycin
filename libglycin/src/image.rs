@@ -68,7 +68,7 @@ pub unsafe extern "C" fn gly_image_get_specific_frame(
     match result {
         Ok(frame) => frame.into_glib_ptr(),
         Err(err) => {
-            set_error(g_error, &err);
+            set_context_error(g_error, &err);
             ptr::null_mut()
         }
     }
@@ -110,7 +110,7 @@ pub unsafe extern "C" fn gly_image_get_specific_frame_async(
         let res = obj
             .specific_frame(frame_request)
             .await
-            .map_err(|x| glib_error(&x));
+            .map_err(|x| glib_context_error(&x));
         task.return_result(res);
     });
 }

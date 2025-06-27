@@ -704,47 +704,26 @@ GQuark gly_loader_error_quark(void) G_GNUC_CONST;
 #define GLY_LOADER_ERROR (gly_loader_error_quark())
 GType gly_loader_error_get_type(void);
 
-/**************** GlyNewImage ****************/
+/**************** GlyNewFrame ****************/
 
 /**
- * GlyNewImage:
+ * GlyNewFrame:
  *
- * New image
+ * New frame
  *
  * Since: 2.0
  */
-#define GLY_TYPE_NEW_IMAGE (gly_new_image_get_type())
-G_DECLARE_FINAL_TYPE(GlyNewImage, gly_new_image, GLY, NEW_IMAGE, GObject)
+#define GLY_TYPE_NEW_FRAME (gly_new_frame_get_type())
+G_DECLARE_FINAL_TYPE(GlyNewFrame, gly_new_frame, GLY, NEW_FRAME, GObject)
 
 /**
- * gly_new_image_new:
- * @width:
- * @height:
- * @memory_format:
- * @texture: Texture data
- *
- * Returns: (transfer full): a new [class@NewImage]
+ * gly_new_frame_set_color_icc_profile:
+ * @new_frame:
+ * @icc_profile: ICC profile
  *
  * Since: 2.0
  */
-GlyNewImage *gly_new_image_new(uint32_t width, uint32_t height, GlyMemoryFormat memory_format, GBytes *texture);
-
-/**
- * gly_new_image_add_metadata_key_value:
- * @new_image:
- * @key: A null-terminated string.
- * @value: A null-terminated string.
- *
- * Add metadata that are stored as key-value pairs.
- * A prominent example are PNG's `tEXt` chunks.
- *
- * If an entry with `key` already exists, it will be replaced.
- *
- * Since: 2.0
- **/
-void gly_new_image_add_metadata_key_value(GlyNewImage *new_image,
-                                          const gchar *key,
-                                          const gchar *value);
+void gly_new_frame_set_color_icc_profile(GlyNewFrame *new_frame, GBytes *icc_profile);
 
 /**
  * GlyEncodedImage:
@@ -772,35 +751,38 @@ GBytes *gly_encoded_image_get_data(GlyEncodedImage *encoded_image);
  *
  * ```c
  * #include <glycin.h>
- *
- * // Create image with a single red pixel
- * guint8 data[] = {255, 0, 0};
- * gsize length = sizeof(data);
- * GBytes *texture = g_bytes_new(data, length);
- * GlyNewImage *new_image = gly_new_image_new(1, 1, GLY_MEMORY_R8G8B8, texture);
- *
- * GlyCreator *creator = gly_creator_new("image/jpeg");
- *
- * // Create JPEG
- * GlyEncodedImage *encoded_image = gly_creator_create(creator, new_image);
- *
- * if (encoded_image)
+ * 
+ * int main(void)
  * {
- *   GBytes *binary_data = gly_encoded_image_get_data(encoded_image);
- *   if (binary_data)
+ *   GlyCreator *creator = gly_creator_new("image/jpeg");
+ * 
+ *   // Create frame with a single red pixel
+ *   guint8 data[] = {255, 0, 0};
+ *   gsize length = sizeof(data);
+ *   GBytes *texture = g_bytes_new(data, length);
+ *   GlyNewFrame *new_frame = gly_creator_add_frame(creator, 1, 1, GLY_MEMORY_R8G8B8, texture);
+ * 
+ *   // Create JPEG
+ *   GlyEncodedImage *encoded_image = gly_creator_create(creator);
+ * 
+ *   if (encoded_image)
  *   {
- *     // Write image to file
- *     GFile *file = g_file_new_for_path("test.jpg");
- *     g_file_replace_contents(
- *         file,
- *         g_bytes_get_data(binary_data, NULL),
- *         g_bytes_get_size(binary_data),
- *         NULL,
- *         FALSE,
- *         G_FILE_CREATE_NONE,
- *         NULL,
- *         NULL,
- *         NULL);
+ *     GBytes *binary_data = gly_encoded_image_get_data(encoded_image);
+ *     if (binary_data)
+ *     {
+ *       // Write image to file
+ *       GFile *file = g_file_new_for_path("test.jpg");
+ *       g_file_replace_contents(
+ *           file,
+ *           g_bytes_get_data(binary_data, NULL),
+ *           g_bytes_get_size(binary_data),
+ *           NULL,
+ *           FALSE,
+ *           G_FILE_CREATE_NONE,
+ *           NULL,
+ *           NULL,
+ *           NULL);
+ *     }
  *   }
  * }
  * ```
@@ -821,21 +803,33 @@ G_DECLARE_FINAL_TYPE(GlyCreator, gly_creator, GLY, CREATOR, GObject)
 GlyCreator *gly_creator_new(const gchar *mime_type);
 
 /**
+ * gly_creator_add_frame:
+ * @creator:
+ * @width:
+ * @height:
+ * @memory_format:
+ * @texture: Texture data
+ *
+ * Returns: (transfer full): a new [class@NewFrame]
+ *
+ * Since: 2.0
+ */
+GlyNewFrame *gly_creator_add_frame(GlyCreator *creator, uint32_t width, uint32_t height, GlyMemoryFormat memory_format, GBytes *texture);
+
+/**
  * gly_creator_create:
  * @image:
- * @new_image:
  *
  *
  * Return value: (transfer full) (nullable): The encoded image.
  *
  * Since: 2.0
  **/
-GlyEncodedImage *gly_creator_create(GlyCreator *image, GlyNewImage *new_image);
+GlyEncodedImage *gly_creator_create(GlyCreator *image);
 
 /**
  * gly_creator_create_async:
  * @creator:
- * @new_image:
  * @cancellable: (nullable): A [class@Gio.Cancellable] to cancel the operation
  * @callback: A callback to call when the operation is complete
  * @user_data: Data to pass to @callback
@@ -845,7 +839,6 @@ GlyEncodedImage *gly_creator_create(GlyCreator *image, GlyNewImage *new_image);
  * Since: 2.0
  */
 void gly_creator_create_async(GlyCreator *creator,
-                              GlyNewImage *new_image,
                               GCancellable *cancellable,
                               GAsyncReadyCallback callback,
                               gpointer user_data);
@@ -865,5 +858,22 @@ void gly_creator_create_async(GlyCreator *creator,
 GlyEncodedImage *gly_creator_create_finish(GlyCreator *creator,
                                            GAsyncResult *result,
                                            GError **error);
+
+/**
+ * gly_creator_add_metadata_key_value:
+ * @creator:
+ * @key: A null-terminated string.
+ * @value: A null-terminated string.
+ *
+ * Add metadata that are stored as key-value pairs.
+ * A prominent example are PNG's `tEXt` chunks.
+ *
+ * If an entry with `key` already exists, it will be replaced.
+ *
+ * Since: 2.0
+ **/
+void gly_creator_add_metadata_key_value(GlyCreator *creator,
+                                        const gchar *key,
+                                        const gchar *value);
 
 G_END_DECLS

@@ -3,7 +3,7 @@ use std::ptr;
 use gio::ffi::{GAsyncReadyCallback, GAsyncResult, GTask};
 use gio::glib;
 use gio::prelude::*;
-use glib::ffi::{gpointer, GError, GStrv, GType};
+use glib::ffi::{gpointer, GBytes, GError, GStrv, GType};
 use glib::subclass::prelude::*;
 use glib::translate::*;
 use glycin::{
@@ -31,7 +31,7 @@ pub unsafe extern "C" fn gly_loader_new_for_stream(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn gly_loader_new_for_bytes(bytes: *mut glib::ffi::GBytes) -> *mut GlyLoader {
+pub unsafe extern "C" fn gly_loader_new_for_bytes(bytes: *mut GBytes) -> *mut GlyLoader {
     let bytes = glib::Bytes::from_glib_ptr_borrow(&bytes);
     gobject::GlyLoader::for_bytes(&bytes).into_glib_ptr()
 }
@@ -71,7 +71,7 @@ pub unsafe extern "C" fn gly_loader_load(
     match result {
         Ok(image) => image.into_glib_ptr(),
         Err(err) => {
-            set_error(g_error, &err);
+            set_context_error(g_error, &err);
             ptr::null_mut()
         }
     }
@@ -111,7 +111,7 @@ pub unsafe extern "C" fn gly_loader_load_async(
     let task = gio::Task::new(Some(&obj), cancellable_.as_ref(), closure);
 
     async_io::block_on(async move {
-        let res = obj.load().await.map_err(|x| glib_error(&x));
+        let res = obj.load().await.map_err(|x| glib_context_error(&x));
         task.return_result(res);
     });
 }

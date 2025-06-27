@@ -4,10 +4,10 @@ use std::ptr;
 use gio::ffi::{GAsyncReadyCallback, GAsyncResult, GTask};
 use gio::glib;
 use gio::prelude::*;
-use glib::ffi::{gpointer, GError, GType};
+use glib::ffi::{gpointer, GBytes, GError, GType};
 use glib::subclass::prelude::*;
 use glib::translate::*;
-use glycin::gobject;
+use glycin::gobject::{self};
 
 use crate::common::*;
 use crate::*;
@@ -15,9 +15,22 @@ use crate::*;
 pub type GlyCreator = <gobject::creator::imp::GlyCreator as ObjectSubclass>::Instance;
 
 #[no_mangle]
-pub unsafe extern "C" fn gly_creator_new(mime_type: *const c_char) -> *mut GlyCreator {
+pub unsafe extern "C" fn gly_creator_new(
+    mime_type: *const c_char,
+    g_error: *mut *mut GError,
+) -> *mut GlyCreator {
     let mime_type = glib::GStr::from_ptr_checked(mime_type).unwrap().to_string();
-    gobject::GlyCreator::new(mime_type).into_glib_ptr()
+
+    // TODO unwrap
+    let creator = async_io::block_on(gobject::GlyCreator::new(mime_type));
+
+    match creator {
+        Ok(creator) => creator.into_glib_ptr(),
+        Err(err) => {
+            set_error(g_error, &err);
+            ptr::null_mut()
+        }
+    }
 }
 
 /*
@@ -36,32 +49,41 @@ pub unsafe extern "C" fn gly_creator_set_sandbox_selector(
 #[no_mangle]
 pub unsafe extern "C" fn gly_creator_create(
     creator: *mut GlyCreator,
-    new_image: *mut GlyNewImage,
     g_error: *mut *mut GError,
 ) -> *mut GlyEncodedImage {
     let obj = gobject::GlyCreator::from_glib_ptr_borrow(&creator);
 
-    let new_image = gobject::GlyNewImage::from_glib_ptr_borrow(&new_image);
-
-    let result = async_io::block_on(async move {
-        // TODO unwrap
-        let new_image = new_image.new_image().unwrap();
-        obj.create(new_image).await
-    });
+    let result = async_io::block_on(async move { obj.create().await });
 
     match result {
         Ok(image) => image.into_glib_ptr(),
         Err(err) => {
-            set_error(g_error, &err);
+            set_context_error(g_error, &err);
             ptr::null_mut()
         }
     }
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn gly_creator_add_frame(
+    creator: *mut GlyCreator,
+    width: u32,
+    height: u32,
+    memory_format: i32,
+    data: *mut GBytes,
+) -> *mut GlyNewFrame {
+    let obj = gobject::GlyCreator::from_glib_ptr_borrow(&creator);
+    let memory_format = glycin::MemoryFormat::try_from(memory_format).unwrap();
+    let data = glib::Bytes::from_glib_ptr_borrow(&data).clone();
+
+    let new_frame = obj.add_frame(width, height, memory_format, data);
+
+    new_frame.into_glib_ptr()
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn gly_creator_create_async(
     creator: *mut GlyCreator,
-    new_image: *mut GlyNewImage,
     cancellable: *mut gio::ffi::GCancellable,
     callback: GAsyncReadyCallback,
     user_data: gpointer,
@@ -69,8 +91,6 @@ pub unsafe extern "C" fn gly_creator_create_async(
     let obj = gobject::GlyCreator::from_glib_none(creator);
     let cancellable: Option<gio::Cancellable> = from_glib_none(cancellable);
     let callback = GAsyncReadyCallbackSend::new(callback, user_data);
-
-    let new_image = gobject::GlyNewImage::from_glib_none(new_image);
 
     let cancel_signal = if let Some(cancellable) = &cancellable {
         cancellable.connect_cancelled(glib::clone!(
@@ -96,9 +116,7 @@ pub unsafe extern "C" fn gly_creator_create_async(
     let task = gio::Task::new(Some(&obj), cancellable_.as_ref(), closure);
 
     async_io::block_on(async move {
-        // TODO unwrap
-        let new_image = new_image.new_image().unwrap();
-        let res = obj.create(new_image).await.map_err(|x| glib_error(&x));
+        let res = obj.create().await.map_err(|x| glib_context_error(&x));
         task.return_result(res);
     });
 }
@@ -120,6 +138,22 @@ pub unsafe extern "C" fn gly_creator_create_finish(
             ptr::null_mut()
         }
     }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gly_creator_add_metadata_key_value(
+    creator: *mut GlyCreator,
+    key: *const c_char,
+    value: *const c_char,
+) {
+    let key = glib::GStr::from_ptr_checked(key).unwrap().as_str();
+    let value = glib::GStr::from_ptr_checked(value).unwrap().as_str();
+    let creator = gobject::GlyCreator::from_glib_ptr_borrow(&creator);
+
+    // TODO unwrap
+    creator
+        .metadata_add_key_value(key.to_string(), value.to_string())
+        .unwrap();
 }
 
 #[no_mangle]

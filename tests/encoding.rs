@@ -2,7 +2,7 @@ mod utils;
 
 use std::collections::BTreeMap;
 
-use glycin::{Creator, MimeType, NewImage};
+use glycin::{Creator, MimeType};
 use utils::*;
 
 #[test]
@@ -10,17 +10,16 @@ fn write_jpeg() {
     block_on(async {
         init();
 
-        let encoder = Creator::new(MimeType::jpeg());
+        let mut encoder = Creator::new(MimeType::jpeg()).await.unwrap();
         let width = 1;
         let height = 1;
         let memory_format = glycin::MemoryFormat::R8g8b8;
-        let data = vec![255, 0, 0];
+        let texture = vec![255, 0, 0];
 
-        let mut new_image = NewImage::new(width, height, memory_format, data).unwrap();
+        let frame = encoder.add_frame(width, height, memory_format, texture);
+        frame.set_color_icc_profile(Some(vec![1, 2, 3]));
 
-        new_image.set_color_icc_profile(Some(vec![1, 2, 3]));
-
-        let encoded_image = encoder.create(new_image).await.unwrap();
+        let encoded_image = encoder.create().await.unwrap();
 
         let loader = glycin::Loader::new_vec(encoded_image.data_full().unwrap());
         let image = loader.load().await.unwrap();
@@ -41,29 +40,29 @@ fn create_jpeg_quality() {
         let width = 3;
         let height = 1;
         let memory_format = glycin::MemoryFormat::R8g8b8;
-        let data = vec![255, 0, 0, 150, 0, 0, 50, 0, 0];
+        let texture = vec![255, 0, 0, 150, 0, 0, 50, 0, 0];
 
-        let new_image = NewImage::new(width, height, memory_format, data.clone()).unwrap();
-        let mut creator = Creator::new(MimeType::jpeg());
-        creator.set_quality(100).unwrap();
-        let encoded_image = creator.create(new_image).await.unwrap();
-
-        let loader = glycin::Loader::new_vec(encoded_image.data_full().unwrap());
-        let image = loader.load().await.unwrap();
-        let frame = image.next_frame().await.unwrap();
-
-        assert!(frame.buf_slice()[3].abs_diff(data[3]) < 5);
-
-        let new_image = NewImage::new(width, height, memory_format, data.clone()).unwrap();
-        let mut creator = Creator::new(MimeType::jpeg());
-        creator.set_quality(50).unwrap();
-        let encoded_image = creator.create(new_image).await.unwrap();
+        let mut creator = Creator::new(MimeType::jpeg()).await.unwrap();
+        creator.set_encoding_quality(100).unwrap();
+        creator.add_frame(width, height, memory_format, texture.clone());
+        let encoded_image = creator.create().await.unwrap();
 
         let loader = glycin::Loader::new_vec(encoded_image.data_full().unwrap());
         let image = loader.load().await.unwrap();
         let frame = image.next_frame().await.unwrap();
 
-        assert!(frame.buf_slice()[3].abs_diff(data[3]) > 5);
+        assert!(frame.buf_slice()[3].abs_diff(texture[3]) < 5);
+
+        let mut creator = Creator::new(MimeType::jpeg()).await.unwrap();
+        creator.set_encoding_quality(50).unwrap();
+        creator.add_frame(width, height, memory_format, texture.clone());
+        let encoded_image = creator.create().await.unwrap();
+
+        let loader = glycin::Loader::new_vec(encoded_image.data_full().unwrap());
+        let image = loader.load().await.unwrap();
+        let frame = image.next_frame().await.unwrap();
+
+        assert!(frame.buf_slice()[3].abs_diff(texture[3]) > 5);
     });
 }
 
@@ -75,29 +74,29 @@ fn create_png_compression() {
         let loader = glycin::Loader::new(gio::File::for_path("test-images/images/color.png"));
         let image = loader.load().await.unwrap();
         let frame = image.next_frame().await.unwrap();
-        let data = frame.buf_slice().to_vec();
+        let texture = frame.buf_slice().to_vec();
 
         let width = frame.width();
         let height = frame.height();
         let memory_format = glycin::MemoryFormat::R8g8b8;
-        let new_image = NewImage::new(width, height, memory_format, data.clone()).unwrap();
-        let mut creator = Creator::new(MimeType::png());
-        creator.set_compression(100).unwrap();
-        let encoded_image = creator.create(new_image).await.unwrap();
+        let mut creator = Creator::new(MimeType::png()).await.unwrap();
+        creator.set_encoding_compression(100).unwrap();
+        creator.add_frame(width, height, memory_format, texture.clone());
+        let encoded_image = creator.create().await.unwrap();
 
         let size_100 = encoded_image.data_ref().unwrap().len();
 
-        let new_image = NewImage::new(width, height, memory_format, data.clone()).unwrap();
-        let mut creator = Creator::new(MimeType::png());
-        creator.set_compression(50).unwrap();
-        let encoded_image = creator.create(new_image).await.unwrap();
+        let mut creator = Creator::new(MimeType::png()).await.unwrap();
+        creator.set_encoding_compression(50).unwrap();
+        creator.add_frame(width, height, memory_format, texture.clone());
+        let encoded_image = creator.create().await.unwrap();
 
         let size_50 = encoded_image.data_ref().unwrap().len();
 
-        let new_image = NewImage::new(width, height, memory_format, data.clone()).unwrap();
-        let mut creator = Creator::new(MimeType::png());
-        creator.set_compression(0).unwrap();
-        let encoded_image = creator.create(new_image).await.unwrap();
+        let mut creator = Creator::new(MimeType::png()).await.unwrap();
+        creator.set_encoding_compression(0).unwrap();
+        creator.add_frame(width, height, memory_format, texture.clone());
+        let encoded_image = creator.create().await.unwrap();
 
         let size_0 = encoded_image.data_ref().unwrap().len();
 
@@ -111,20 +110,23 @@ fn write_png() {
     block_on(async {
         init();
 
-        let encoder = Creator::new(MimeType::png());
+        let mut encoder = Creator::new(MimeType::png()).await.unwrap();
+
         let width = 1;
         let height = 1;
         let memory_format = glycin::MemoryFormat::B8g8r8;
-        let data = vec![0, 0, 255];
+        let texture = vec![0, 0, 255];
 
-        let mut new_image = NewImage::new(width, height, memory_format, data).unwrap();
-        new_image.set_key_value(BTreeMap::from_iter(vec![(
-            "keyword".to_string(),
-            "value".to_string(),
-        )]));
-        new_image.set_color_icc_profile(Some(vec![1, 2, 3]));
+        encoder
+            .set_metadata_key_value(BTreeMap::from_iter(vec![(
+                "keyword".to_string(),
+                "value".to_string(),
+            )]))
+            .unwrap();
+        let new_frame = encoder.add_frame(width, height, memory_format, texture);
+        new_frame.set_color_icc_profile(Some(vec![1, 2, 3]));
 
-        let encoded_image = encoder.create(new_image).await.unwrap();
+        let encoded_image = encoder.create().await.unwrap();
 
         let mut loader = glycin::Loader::new_vec(encoded_image.data_full().unwrap());
         loader.accepted_memory_formats(glycin::MemoryFormatSelection::R8g8b8);
