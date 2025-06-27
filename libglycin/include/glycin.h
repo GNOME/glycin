@@ -752,37 +752,37 @@ GBytes *gly_encoded_image_get_data(GlyEncodedImage *encoded_image);
  * ```c
  * #include <glycin.h>
  *
- * int main(void)
+ * GlyCreator *creator = gly_creator_new("image/jpeg", NULL);
+ *
+ * if (!creator)
+ *   return;
+ *
+ * // Create frame with a single red pixel
+ * guint8 data[] = {255, 0, 0};
+ * gsize length = sizeof(data);
+ * GBytes *texture = g_bytes_new(data, length);
+ * GlyNewFrame *new_frame = gly_creator_add_frame(creator, 1, 1, GLY_MEMORY_R8G8B8, texture);
+ *
+ * // Create JPEG
+ * GlyEncodedImage *encoded_image = gly_creator_create(creator, NULL);
+ *
+ * if (encoded_image)
  * {
- *   GlyCreator *creator = gly_creator_new("image/jpeg", NULL);
- *
- *   // Create frame with a single red pixel
- *   guint8 data[] = {255, 0, 0};
- *   gsize length = sizeof(data);
- *   GBytes *texture = g_bytes_new(data, length);
- *   GlyNewFrame *new_frame = gly_creator_add_frame(creator, 1, 1, GLY_MEMORY_R8G8B8, texture);
- *
- *   // Create JPEG
- *   GlyEncodedImage *encoded_image = gly_creator_create(creator);
- *
- *   if (encoded_image)
+ *   GBytes *binary_data = gly_encoded_image_get_data(encoded_image);
+ *   if (binary_data)
  *   {
- *     GBytes *binary_data = gly_encoded_image_get_data(encoded_image);
- *     if (binary_data)
- *     {
- *       // Write image to file
- *       GFile *file = g_file_new_for_path("test.jpg");
- *       g_file_replace_contents(
- *           file,
- *           g_bytes_get_data(binary_data, NULL),
- *           g_bytes_get_size(binary_data),
- *           NULL,
- *           FALSE,
- *           G_FILE_CREATE_NONE,
- *           NULL,
- *           NULL,
- *           NULL);
- *     }
+ *     // Write image to file
+ *     GFile *file = g_file_new_for_path("test.jpg");
+ *     g_file_replace_contents(
+ *         file,
+ *         g_bytes_get_data(binary_data, NULL),
+ *         g_bytes_get_size(binary_data),
+ *         NULL,
+ *         FALSE,
+ *         G_FILE_CREATE_NONE,
+ *         NULL,
+ *         NULL,
+ *         NULL);
  *   }
  * }
  * ```
@@ -821,13 +821,15 @@ GlyNewFrame *gly_creator_add_frame(GlyCreator *creator, uint32_t width, uint32_t
 /**
  * gly_creator_create:
  * @image:
+ * @error:
  *
  *
  * Return value: (transfer full) (nullable): The encoded image.
  *
  * Since: 2.0
  **/
-GlyEncodedImage *gly_creator_create(GlyCreator *image);
+GlyEncodedImage *gly_creator_create(GlyCreator *image,
+                                    GError **error);
 
 /**
  * gly_creator_create_async:
