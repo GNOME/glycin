@@ -1,9 +1,10 @@
-## 2.0.alpha.4 (2025-06-27)
+## 2.0.alpha.5 (2025-06-27)
 
 This release contains the following new component versions:
 
 - glycin-tools 2.0.0-alpha.4
 - glycin-utils 4.0.0-alpha.4
+- glycin 3.0.0-alpha.5
 - libglycin 2.0.0-alpha.4
 - libglycin-gtk4 2.0.0-alpha.4
 - glycin-heif 2.0.0-alpha.4

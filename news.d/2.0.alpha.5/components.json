@@ -8,8 +8,8 @@
         "state": "changed"
     },
     "glycin": {
-        "version": "3.0.0-alpha",
-        "state": "unchanged"
+        "version": "3.0.0-alpha.5",
+        "state": "changed"
     },
     "libglycin": {
         "version": "2.0.0-alpha.4",
