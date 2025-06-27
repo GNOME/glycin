@@ -1,0 +1,38 @@
+{
+    "glycin-utils": {
+        "version": "3.0.1",
+        "state": "unchanged"
+    },
+    "glycin": {
+        "version": "2.1.1",
+        "state": "unchanged"
+    },
+    "libglycin": {
+        "version": "1.0.2",
+        "state": "unchanged"
+    },
+    "libglycin-gtk4": {
+        "version": "1.0.2",
+        "state": "unchanged"
+    },
+    "glycin-heif": {
+        "version": "1.2.0",
+        "state": "unchanged"
+    },
+    "glycin-image-rs": {
+        "version": "1.2.2",
+        "state": "changed"
+    },
+    "glycin-jxl": {
+        "version": "1.2.0",
+        "state": "unchanged"
+    },
+    "glycin-raw": {
+        "version": "1.2.0",
+        "state": "unchanged"
+    },
+    "glycin-svg": {
+        "version": "1.2.0",
+        "state": "unchanged"
+    }
+}
