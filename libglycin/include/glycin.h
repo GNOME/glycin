@@ -751,20 +751,20 @@ GBytes *gly_encoded_image_get_data(GlyEncodedImage *encoded_image);
  *
  * ```c
  * #include <glycin.h>
- * 
+ *
  * int main(void)
  * {
  *   GlyCreator *creator = gly_creator_new("image/jpeg");
- * 
+ *
  *   // Create frame with a single red pixel
  *   guint8 data[] = {255, 0, 0};
  *   gsize length = sizeof(data);
  *   GBytes *texture = g_bytes_new(data, length);
  *   GlyNewFrame *new_frame = gly_creator_add_frame(creator, 1, 1, GLY_MEMORY_R8G8B8, texture);
- * 
+ *
  *   // Create JPEG
  *   GlyEncodedImage *encoded_image = gly_creator_create(creator);
- * 
+ *
  *   if (encoded_image)
  *   {
  *     GBytes *binary_data = gly_encoded_image_get_data(encoded_image);
@@ -875,5 +875,25 @@ GlyEncodedImage *gly_creator_create_finish(GlyCreator *creator,
 void gly_creator_add_metadata_key_value(GlyCreator *creator,
                                         const gchar *key,
                                         const gchar *value);
+
+/**
+ * gly_creator_set_encoding_quality:
+ * @creator:
+ * @quality: Value between 0 and 100
+ *
+ * Since: 2.0
+ **/
+void gly_creator_set_encoding_quality(GlyCreator *creator,
+                                      uint8_t quality);
+
+/**
+ * gly_creator_set_encoding_compression:
+ * @creator:
+ * @compression: Value between 0 and 100
+ *
+ * Since: 2.0
+ **/
+void gly_creator_set_encoding_compression(GlyCreator *creator,
+                                          uint8_t compression);
 
 G_END_DECLS

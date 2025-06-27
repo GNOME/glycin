@@ -95,6 +95,23 @@ impl GlyCreator {
             .add_metadata_key_value(key, value)
     }
 
+    pub fn set_encoding_quality(&self, quality: u8) -> Result<(), crate::FeatureNotSupported> {
+        self.creator()
+            .as_mut()
+            .unwrap()
+            .set_encoding_quality(quality)
+    }
+
+    pub fn set_encoding_compression(
+        &self,
+        compression: u8,
+    ) -> Result<(), crate::FeatureNotSupported> {
+        self.creator()
+            .as_mut()
+            .unwrap()
+            .set_encoding_compression(compression)
+    }
+
     pub fn add_frame(
         &self,
         width: u32,

@@ -157,6 +157,25 @@ pub unsafe extern "C" fn gly_creator_add_metadata_key_value(
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn gly_creator_set_encoding_quality(creator: *mut GlyCreator, quality: u8) {
+    let creator = gobject::GlyCreator::from_glib_ptr_borrow(&creator);
+
+    // TODO unwrap
+    creator.set_encoding_quality(quality).unwrap();
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gly_creator_set_encoding_compression(
+    creator: *mut GlyCreator,
+    compression: u8,
+) {
+    let creator = gobject::GlyCreator::from_glib_ptr_borrow(&creator);
+
+    // TODO unwrap
+    creator.set_encoding_compression(compression).unwrap();
+}
+
+#[no_mangle]
 pub extern "C" fn gly_creator_get_type() -> GType {
     <gobject::GlyCreator as StaticType>::static_type().into_glib()
 }

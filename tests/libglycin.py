@@ -126,6 +126,7 @@ def main():
 
     creator = Gly.Creator.new("image/png")
     creator.add_metadata_key_value("key", "Value")
+    creator.set_encoding_compression(50)
 
     data = GLib.Bytes.new([1,2,3])
     frame = creator.add_frame(1, 1, Gly.MemoryFormat.R8G8B8, data)
@@ -163,6 +164,7 @@ def main():
     # Async Creator
 
     creator = Gly.Creator(mime_type="image/jpeg")
+    creator.set_encoding_quality(50)
 
     data = GLib.Bytes.new([1,2,3])
     creator.add_frame(width=1, height=1, memory_format=Gly.MemoryFormat.R8G8B8, texture=data)
