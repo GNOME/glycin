@@ -630,7 +630,7 @@ async fn seal_fd(fd: impl AsRawFd) -> Result<(), memfd::Error> {
 
 fn validate_frame(frame: &Frame, img_buf: &ImgBuf) -> Result<(), Error> {
     if img_buf.len() < frame.n_bytes()? {
-        return Err(Error::TextureTooSmall {
+        return Err(Error::TextureWrongSize {
             texture_size: img_buf.len(),
             frame: format!("{:?}", frame),
         });

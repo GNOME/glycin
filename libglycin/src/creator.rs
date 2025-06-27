@@ -70,14 +70,48 @@ pub unsafe extern "C" fn gly_creator_add_frame(
     height: u32,
     memory_format: i32,
     data: *mut GBytes,
+    g_error: *mut *mut GError,
 ) -> *mut GlyNewFrame {
     let obj = gobject::GlyCreator::from_glib_ptr_borrow(&creator);
     let memory_format = glycin::MemoryFormat::try_from(memory_format).unwrap();
     let data = glib::Bytes::from_glib_ptr_borrow(&data).clone();
 
-    let new_frame = obj.add_frame(width, height, memory_format, data);
+    let new_frame: Result<gobject::GlyNewFrame, glycin::Error> =
+        obj.add_frame(width, height, memory_format, data.to_vec());
 
-    new_frame.into_glib_ptr()
+    match new_frame {
+        Ok(new_frame) => new_frame.into_glib_ptr(),
+        Err(err) => {
+            set_error(g_error, &err);
+            ptr::null_mut()
+        }
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gly_creator_add_frame_with_stride(
+    creator: *mut GlyCreator,
+    width: u32,
+    height: u32,
+    stride: u32,
+    memory_format: i32,
+    data: *mut GBytes,
+    g_error: *mut *mut GError,
+) -> *mut GlyNewFrame {
+    let obj = gobject::GlyCreator::from_glib_ptr_borrow(&creator);
+    let memory_format = glycin::MemoryFormat::try_from(memory_format).unwrap();
+    let data = glib::Bytes::from_glib_ptr_borrow(&data).clone();
+
+    let new_frame: Result<gobject::GlyNewFrame, glycin::Error> =
+        obj.add_frame_with_stride(width, height, stride, memory_format, data.to_vec());
+
+    match new_frame {
+        Ok(new_frame) => new_frame.into_glib_ptr(),
+        Err(err) => {
+            set_error(g_error, &err);
+            ptr::null_mut()
+        }
+    }
 }
 
 #[no_mangle]

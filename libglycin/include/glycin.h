@@ -811,12 +811,40 @@ GlyCreator *gly_creator_new(const gchar *mime_type,
  * @height:
  * @memory_format:
  * @texture: Texture data
+ * @error:
  *
  * Returns: (transfer full): a new [class@NewFrame]
  *
  * Since: 2.0
  */
-GlyNewFrame *gly_creator_add_frame(GlyCreator *creator, uint32_t width, uint32_t height, GlyMemoryFormat memory_format, GBytes *texture);
+GlyNewFrame *gly_creator_add_frame(GlyCreator *creator,
+                                   uint32_t width,
+                                   uint32_t height,
+                                   GlyMemoryFormat memory_format,
+                                   GBytes *texture,
+                                   GError **error);
+
+/**
+ * gly_creator_add_frame_with_stride:
+ * @creator:
+ * @width:
+ * @height:
+ * @stride
+ * @memory_format:
+ * @texture: Texture data
+ * @error:
+ *
+ * Returns: (transfer full): a new [class@NewFrame]
+ *
+ * Since: 2.0
+ */
+GlyNewFrame *gly_creator_add_frame_with_stride(GlyCreator *creator,
+                                               uint32_t width,
+                                               uint32_t height,
+                                               uint32_t stride,
+                                               GlyMemoryFormat memory_format,
+                                               GBytes *texture,
+                                               GError **error);
 
 /**
  * gly_creator_create:

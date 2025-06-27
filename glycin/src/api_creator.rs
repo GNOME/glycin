@@ -3,7 +3,8 @@ use std::sync::{Arc, Mutex};
 
 use glib::object::IsA;
 use glib::prelude::*;
-use glycin_utils::{BinaryData, MemoryFormat};
+use glycin_utils::memory_format::MemoryFormatInfo;
+use glycin_utils::{BinaryData, DimensionTooLargerError, MemoryFormat};
 
 use crate::config::{Config, ImageEditorConfig};
 use crate::error::ResultExt;
@@ -58,19 +59,74 @@ impl Creator {
         width: u32,
         height: u32,
         memory_format: MemoryFormat,
-        texture: impl AsRef<[u8]>,
-    ) -> Arc<NewFrame> {
+        texture: Vec<u8>,
+    ) -> Result<Arc<NewFrame>, Error> {
+        let stride = memory_format
+            .n_bytes()
+            .u32()
+            .checked_mul(width)
+            .ok_or(DimensionTooLargerError)?;
+
+        let new_frame =
+            self.add_frame_with_stride(width, height, stride, memory_format, texture)?;
+
+        Ok(new_frame)
+    }
+
+    pub fn add_frame_with_stride(
+        &mut self,
+        width: u32,
+        height: u32,
+        stride: u32,
+        memory_format: MemoryFormat,
+        mut texture: Vec<u8>,
+    ) -> Result<Arc<NewFrame>, Error> {
+        let pixel_size = memory_format.n_bytes().u32();
+
+        let smallest_stride = pixel_size
+            .checked_mul(width)
+            .ok_or(DimensionTooLargerError)?;
+
+        if smallest_stride > stride {
+            return Err(Error::StrideTooSmall(format!(
+                "Stride is {stride} but must be at least {smallest_stride}"
+            )));
+        }
+
+        if stride as usize * height as usize != texture.len() {
+            return Err(Error::TextureWrongSize {
+                texture_size: texture.len(),
+                frame: format!("Stride size: {stride} Image size: {width} x {height}"),
+            });
+        }
+
+        if smallest_stride != stride {
+            let old_stride = stride as usize;
+            let new_stride = smallest_stride as usize;
+
+            let height_ = height as usize;
+            let width_ = width as usize;
+            let mut source = vec![0; width_];
+
+            for row in 1..height_ {
+                source.copy_from_slice(&texture[row * old_stride..row * old_stride + new_stride]);
+                texture[row * new_stride..(row + 1) * new_stride].copy_from_slice(&source);
+            }
+
+            texture.resize(new_stride * height_, 0);
+        };
+
         let new_frame = Arc::new(NewFrame::new(
             self.config.clone(),
             width,
             height,
             memory_format,
-            texture.as_ref().to_vec(),
+            texture,
         ));
 
         self.new_frames.push(new_frame.clone());
 
-        new_frame
+        Ok(new_frame)
     }
 
     /// Encode an image

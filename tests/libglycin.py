@@ -128,8 +128,8 @@ def main():
     creator.add_metadata_key_value("key", "Value")
     creator.set_encoding_compression(50)
 
-    data = GLib.Bytes.new([1,2,3])
-    frame = creator.add_frame(1, 1, Gly.MemoryFormat.R8G8B8, data)
+    data = GLib.Bytes.new([1, 2, 3, 4])
+    frame = creator.add_frame_with_stride(1, 1, 4, Gly.MemoryFormat.R8G8B8, data)
     frame.set_color_icc_profile(data)
 
     encoded_image = creator.create()

@@ -117,18 +117,34 @@ impl GlyCreator {
         width: u32,
         height: u32,
         memory_format: MemoryFormat,
-        texture: impl AsRef<[u8]>,
-    ) -> GlyNewFrame {
-        let new_frame = self
-            .imp()
-            .creator
-            .lock()
-            .unwrap()
-            .as_mut()
-            .unwrap()
-            .add_frame(width, height, memory_format, texture);
+        texture: Vec<u8>,
+    ) -> Result<GlyNewFrame, Error> {
+        let new_frame =
+            self.creator()
+                .as_mut()
+                .unwrap()
+                .add_frame(width, height, memory_format, texture)?;
 
-        GlyNewFrame::new(new_frame)
+        Ok(GlyNewFrame::new(new_frame))
+    }
+
+    pub fn add_frame_with_stride(
+        &self,
+        width: u32,
+        height: u32,
+        stride: u32,
+        memory_format: MemoryFormat,
+        texture: Vec<u8>,
+    ) -> Result<GlyNewFrame, Error> {
+        let new_frame = self.creator().as_mut().unwrap().add_frame_with_stride(
+            width,
+            height,
+            stride,
+            memory_format,
+            texture,
+        )?;
+
+        Ok(GlyNewFrame::new(new_frame))
     }
 
     pub async fn create(&self) -> Result<gobject::GlyEncodedImage, crate::ErrorCtx> {

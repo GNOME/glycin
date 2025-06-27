@@ -16,7 +16,9 @@ fn write_jpeg() {
         let memory_format = glycin::MemoryFormat::R8g8b8;
         let texture = vec![255, 0, 0];
 
-        let frame = encoder.add_frame(width, height, memory_format, texture);
+        let frame = encoder
+            .add_frame(width, height, memory_format, texture)
+            .unwrap();
         frame.set_color_icc_profile(Some(vec![1, 2, 3]));
 
         let encoded_image = encoder.create().await.unwrap();
@@ -123,7 +125,9 @@ fn write_png() {
                 "value".to_string(),
             )]))
             .unwrap();
-        let new_frame = encoder.add_frame(width, height, memory_format, texture);
+        let new_frame = encoder
+            .add_frame(width, height, memory_format, texture)
+            .unwrap();
         new_frame.set_color_icc_profile(Some(vec![1, 2, 3]));
 
         let encoded_image = encoder.create().await.unwrap();

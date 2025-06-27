@@ -151,7 +151,7 @@ pub enum Error {
         err: Arc<std::io::Error>,
     },
     #[error("Texture is only {texture_size} but was announced differently: {frame}")]
-    TextureTooSmall { texture_size: usize, frame: String },
+    TextureWrongSize { texture_size: usize, frame: String },
     #[error("Texture size exceeds hardcoded limit of {MAX_TEXTURE_SIZE} bytes")]
     TextureTooLarge,
     #[error("Stride is smaller than possible: {0}")]
