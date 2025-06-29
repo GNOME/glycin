@@ -53,7 +53,7 @@ pub mod imp {
                 + obj.bytes().is_some() as u8
                 != 1
             {
-                glib::g_critical!("glycin", "A loader needs to be initiatilized with exatly one of 'file', 'stream', or 'bytes'.");
+                glib::g_critical!("glycin", "A loader needs to be initialized with exactly one of 'file', 'stream', or 'bytes'.");
             }
         }
     }

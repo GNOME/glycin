@@ -39,7 +39,7 @@ pub mod imp {
                 .map_err(|err| {
                     glib::g_warning!(
                         "glycin",
-                        "Internal error when retriving encoded image data: {err}"
+                        "Internal error when retrieving encoded image data: {err}"
                     );
                     err
                 })
