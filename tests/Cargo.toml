@@ -43,5 +43,9 @@ path = "tests.rs"
 name = "encoding"
 path = "encoding.rs"
 
+[[test]]
+name = "dbus_api_stability"
+path = "dbus_api_stability.rs"
+
 [dependencies]
 gufo-common.workspace = true
