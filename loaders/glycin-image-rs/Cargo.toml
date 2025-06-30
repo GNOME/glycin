@@ -1,6 +1,6 @@
 [package]
 name = "glycin-image-rs"
-version = "1.2.1"
+version.workspace = true
 authors.workspace = true
 description.workspace = true
 license.workspace = true
