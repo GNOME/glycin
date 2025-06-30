@@ -46,7 +46,9 @@ fn create_jpeg_quality() {
 
         let mut creator = Creator::new(MimeType::jpeg()).await.unwrap();
         creator.set_encoding_quality(100).unwrap();
-        creator.add_frame(width, height, memory_format, texture.clone());
+        creator
+            .add_frame(width, height, memory_format, texture.clone())
+            .unwrap();
         let encoded_image = creator.create().await.unwrap();
 
         let loader = glycin::Loader::new_vec(encoded_image.data_full().unwrap());
@@ -57,7 +59,9 @@ fn create_jpeg_quality() {
 
         let mut creator = Creator::new(MimeType::jpeg()).await.unwrap();
         creator.set_encoding_quality(50).unwrap();
-        creator.add_frame(width, height, memory_format, texture.clone());
+        creator
+            .add_frame(width, height, memory_format, texture.clone())
+            .unwrap();
         let encoded_image = creator.create().await.unwrap();
 
         let loader = glycin::Loader::new_vec(encoded_image.data_full().unwrap());
@@ -83,21 +87,27 @@ fn create_png_compression() {
         let memory_format = glycin::MemoryFormat::R8g8b8;
         let mut creator = Creator::new(MimeType::png()).await.unwrap();
         creator.set_encoding_compression(100).unwrap();
-        creator.add_frame(width, height, memory_format, texture.clone());
+        creator
+            .add_frame(width, height, memory_format, texture.clone())
+            .unwrap();
         let encoded_image = creator.create().await.unwrap();
 
         let size_100 = encoded_image.data_ref().unwrap().len();
 
         let mut creator = Creator::new(MimeType::png()).await.unwrap();
         creator.set_encoding_compression(50).unwrap();
-        creator.add_frame(width, height, memory_format, texture.clone());
+        creator
+            .add_frame(width, height, memory_format, texture.clone())
+            .unwrap();
         let encoded_image = creator.create().await.unwrap();
 
         let size_50 = encoded_image.data_ref().unwrap().len();
 
         let mut creator = Creator::new(MimeType::png()).await.unwrap();
         creator.set_encoding_compression(0).unwrap();
-        creator.add_frame(width, height, memory_format, texture.clone());
+        creator
+            .add_frame(width, height, memory_format, texture.clone())
+            .unwrap();
         let encoded_image = creator.create().await.unwrap();
 
         let size_0 = encoded_image.data_ref().unwrap().len();
