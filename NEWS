@@ -14,6 +14,16 @@ This release contains the following new component versions:
 - glycin-svg 2.0.0-alpha.6
 - glycin-thumbnailer 2.0.0-alpha.6
 
+### Fixed
+
+- image-rs: Add missing editor definitions for GIF, WebP, TIFF, TGA, BMP, ICO,
+  EXR, QOI. Without these, the creator API is not working.
+
+### Changed
+
+- glycin: The sandbox selector now also disables the sandbox for app IDs that
+  end in `Devel`, not just `.Devel`.
+
 ## 2.0.alpha.5 (2025-06-27)
 
 This release contains the following new component versions:
