@@ -81,7 +81,7 @@ impl MimeType {
         Self::Stack(mime_type)
     }
 
-    pub const fn as_str(&self) -> &str {
+    pub fn as_str(&self) -> &str {
         match self {
             Self::Alloc(s) => s.as_str(),
             Self::Stack(str) => str,
