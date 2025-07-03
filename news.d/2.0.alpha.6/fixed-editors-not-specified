@@ -1,0 +1,1 @@
+image-rs: Add missing editor definitions for GIF, WebP, TIFF, TGA, BMP, ICO, EXR, QOI. Without these, the creator API is not working.

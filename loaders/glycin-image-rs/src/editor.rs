@@ -148,19 +148,14 @@ impl EditorImplementation for ImgEditor {
 fn image_format(mime_type: &str) -> Result<ImageFormat, ProcessError> {
     Ok(match mime_type {
         "image/bmp" => ImageFormat::Bmp,
-        "image/x-dds" => ImageFormat::Dds,
         "image/x-ff" => ImageFormat::Farbfeld,
         "image/gif" => ImageFormat::Gif,
         "image/vnd.microsoft.icon" => ImageFormat::Ico,
         "image/jpeg" => ImageFormat::Jpeg,
         "image/x-exr" => ImageFormat::OpenExr,
         "image/png" => ImageFormat::Png,
-        "image/x-portable-bitmap"
-        | "image/x-portable-graymap"
-        | "image/x-portable-pixmap"
-        | "image/x-portable-anymap" => ImageFormat::Pnm,
-        "image/x-qoi" | "image/qoi" => ImageFormat::Qoi,
-        "image/x-targa" | "image/x-tga" => ImageFormat::Tga,
+        "image/qoi" => ImageFormat::Qoi,
+        "image/x-tga" => ImageFormat::Tga,
         "image/tiff" => ImageFormat::Tiff,
         "image/webp" => ImageFormat::WebP,
         _ => return Err(ProcessError::UnsupportedImageFormat(mime_type.to_string())),
