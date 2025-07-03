@@ -160,3 +160,34 @@ fn write_png() {
         );
     });
 }
+
+#[test]
+fn write_avif() {
+    block_on(async {
+        init();
+
+        let mut encoder = Creator::new(MimeType::avif()).await.unwrap();
+        encoder.set_encoding_quality(100).unwrap();
+
+        let width = 1;
+        let height = 1;
+        let memory_format = glycin::MemoryFormat::R8g8b8;
+        let texture = vec![255, 0, 0];
+
+        encoder
+            .add_frame(width, height, memory_format, texture)
+            .unwrap();
+        let encoded_image = encoder.create().await.unwrap();
+
+        let loader = glycin::Loader::new_vec(encoded_image.data_full().unwrap());
+        let image = loader.load().await.unwrap();
+        let frame = image.next_frame().await.unwrap();
+
+        dbg!(image.info().width, image.info().height);
+        dbg!(frame.width(), frame.height(), frame.stride());
+
+        assert!(frame.buf_slice()[0] >= 253);
+        assert!(frame.buf_slice()[1] <= 2);
+        assert!(frame.buf_slice()[2] <= 2);
+    });
+}

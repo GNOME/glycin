@@ -31,6 +31,10 @@ impl MimeType {
     pub fn png() -> Self {
         Self(String::from("image/png"))
     }
+
+    pub fn avif() -> Self {
+        Self(String::from("image/avif"))
+    }
 }
 
 impl From<&str> for MimeType {

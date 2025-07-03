@@ -1005,6 +1005,7 @@ dependencies = [
 name = "glycin-heif"
 version = "2.0.0-alpha.4"
 dependencies = [
+ "four-cc",
  "glycin-utils",
  "libheif-rs",
  "safe-transmute",

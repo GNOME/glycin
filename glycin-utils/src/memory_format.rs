@@ -505,6 +505,10 @@ pub enum MemoryFormatBytes {
 
 // TODO: Convert to From trait impls
 impl MemoryFormatBytes {
+    pub fn u8(self) -> u8 {
+        self as u8
+    }
+
     pub fn u32(self) -> u32 {
         self as u32
     }

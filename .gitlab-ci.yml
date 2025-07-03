@@ -29,7 +29,7 @@ variables:
 
     - echo "deb https://deb.debian.org/debian/ testing main" >> /etc/apt/sources.list
     - apt-get update
-    - apt-get install -y libheif-dev libgtk-4-dev libcairo2-dev meson
+    - apt-get install -y libheif-dev libaom3 libgtk-4-dev libcairo2-dev meson
     - apt-get install -y librsvg2-2
     - apt-get install -y libjxl-dev
     # Fix valac issue in bookworm

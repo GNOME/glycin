@@ -1,10 +1,14 @@
+mod editing;
+
 use std::io::{Cursor, Read};
 
 use glycin_utils::safe_math::*;
 use glycin_utils::*;
 use libheif_rs::{ColorProfile, ColorSpace, HeifContext, LibHeif, RgbChroma, StreamReader};
 
-init_main_loader!(ImgDecoder);
+use crate::editing::ImgEditor;
+
+init_main_loader_editor!(ImgDecoder, ImgEditor);
 
 pub struct ImgDecoder {
     pub decoder: Option<HeifContext<'static>>,

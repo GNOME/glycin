@@ -10,6 +10,7 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+four-cc = "0.4.0"
 glycin-utils = { workspace = true, features = ["async-io", "loader-utils"] }
 libheif-rs = { version = "2.2.0", default-features = false, features = [
     "v1_17",
