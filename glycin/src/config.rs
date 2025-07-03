@@ -11,41 +11,63 @@ use glycin_utils::operations::OperationId;
 use crate::util::{read, read_dir};
 use crate::Error;
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug)]
 /// Mime type
-pub struct MimeType(pub(crate) String);
+pub enum MimeType {
+    Alloc(String),
+    Stack(&'static str),
+}
+
+impl PartialEq for MimeType {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_str() == other.as_str()
+    }
+}
+
+impl Eq for MimeType {}
+
+impl PartialOrd for MimeType {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.as_str().partial_cmp(other.as_str())
+    }
+}
+
+impl Ord for MimeType {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.as_str().cmp(other.as_str())
+    }
+}
 
 impl MimeType {
+    pub const JPEG: Self = Self::new_static("image/jpeg");
+    pub const PNG: Self = Self::new_static("image/png");
+    pub const AVIF: Self = Self::new_static("image/avif");
+
     pub fn new(mime_type: String) -> Self {
-        Self(mime_type)
+        Self::Alloc(mime_type)
+    }
+
+    pub const fn new_static(mime_type: &'static str) -> Self {
+        Self::Stack(mime_type)
     }
 
     pub fn as_str(&self) -> &str {
-        self.0.as_str()
-    }
-
-    pub fn jpeg() -> Self {
-        Self(String::from("image/jpeg"))
-    }
-
-    pub fn png() -> Self {
-        Self(String::from("image/png"))
-    }
-
-    pub fn avif() -> Self {
-        Self(String::from("image/avif"))
+        match self {
+            Self::Alloc(s) => s.as_str(),
+            Self::Stack(str) => str,
+        }
     }
 }
 
 impl From<&str> for MimeType {
     fn from(value: &str) -> Self {
-        Self(value.to_string())
+        Self::new(value.to_string())
     }
 }
 
 impl std::fmt::Display for MimeType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.0)
+        f.write_str(&self.as_str())
     }
 }
 
@@ -207,7 +229,7 @@ impl Config {
 
                             config
                                 .image_loader
-                                .insert(MimeType(mime_type.to_string()), cfg);
+                                .insert(MimeType::new(mime_type.to_string()), cfg);
                         }
                     }
                     Some("editor") => {
@@ -233,7 +255,7 @@ impl Config {
 
                             config
                                 .image_editor
-                                .insert(MimeType(mime_type.to_string()), cfg);
+                                .insert(MimeType::new(mime_type.to_string()), cfg);
                         }
                     }
                     _ => {}

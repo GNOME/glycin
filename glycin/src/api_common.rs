@@ -324,9 +324,9 @@ pub(crate) async fn guess_mime_type(gfile_worker: &GFileWorker) -> Result<MimeTy
             let content_type_fn = gio::content_type_guess(Some(filename), head.as_slice()).0;
             return gio::content_type_get_mime_type(&content_type_fn)
                 .ok_or_else(|| Error::UnknownContentType(content_type_fn.to_string()))
-                .map(|x| MimeType(x.to_string()));
+                .map(|x| MimeType::new(x.to_string()));
         }
     }
 
-    mime_type.map(|x| MimeType(x.to_string()))
+    mime_type.map(|x| MimeType::new(x.to_string()))
 }

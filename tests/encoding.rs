@@ -10,7 +10,7 @@ fn write_jpeg() {
     block_on(async {
         init();
 
-        let mut encoder = Creator::new(MimeType::jpeg()).await.unwrap();
+        let mut encoder = Creator::new(MimeType::JPEG).await.unwrap();
         let width = 1;
         let height = 1;
         let memory_format = glycin::MemoryFormat::R8g8b8;
@@ -44,7 +44,7 @@ fn create_jpeg_quality() {
         let memory_format = glycin::MemoryFormat::R8g8b8;
         let texture = vec![255, 0, 0, 150, 0, 0, 50, 0, 0];
 
-        let mut creator = Creator::new(MimeType::jpeg()).await.unwrap();
+        let mut creator = Creator::new(MimeType::JPEG).await.unwrap();
         creator.set_encoding_quality(100).unwrap();
         creator
             .add_frame(width, height, memory_format, texture.clone())
@@ -57,7 +57,7 @@ fn create_jpeg_quality() {
 
         assert!(frame.buf_slice()[3].abs_diff(texture[3]) < 5);
 
-        let mut creator = Creator::new(MimeType::jpeg()).await.unwrap();
+        let mut creator = Creator::new(MimeType::JPEG).await.unwrap();
         creator.set_encoding_quality(50).unwrap();
         creator
             .add_frame(width, height, memory_format, texture.clone())
@@ -85,7 +85,7 @@ fn create_png_compression() {
         let width = frame.width();
         let height = frame.height();
         let memory_format = glycin::MemoryFormat::R8g8b8;
-        let mut creator = Creator::new(MimeType::png()).await.unwrap();
+        let mut creator = Creator::new(MimeType::PNG).await.unwrap();
         creator.set_encoding_compression(100).unwrap();
         creator
             .add_frame(width, height, memory_format, texture.clone())
@@ -94,7 +94,7 @@ fn create_png_compression() {
 
         let size_100 = encoded_image.data_ref().unwrap().len();
 
-        let mut creator = Creator::new(MimeType::png()).await.unwrap();
+        let mut creator = Creator::new(MimeType::PNG).await.unwrap();
         creator.set_encoding_compression(50).unwrap();
         creator
             .add_frame(width, height, memory_format, texture.clone())
@@ -103,7 +103,7 @@ fn create_png_compression() {
 
         let size_50 = encoded_image.data_ref().unwrap().len();
 
-        let mut creator = Creator::new(MimeType::png()).await.unwrap();
+        let mut creator = Creator::new(MimeType::PNG).await.unwrap();
         creator.set_encoding_compression(0).unwrap();
         creator
             .add_frame(width, height, memory_format, texture.clone())
@@ -122,7 +122,7 @@ fn write_png() {
     block_on(async {
         init();
 
-        let mut encoder = Creator::new(MimeType::png()).await.unwrap();
+        let mut encoder = Creator::new(MimeType::PNG).await.unwrap();
 
         let width = 1;
         let height = 1;
@@ -166,7 +166,7 @@ fn write_avif() {
     block_on(async {
         init();
 
-        let mut encoder = Creator::new(MimeType::avif()).await.unwrap();
+        let mut encoder = Creator::new(MimeType::AVIF).await.unwrap();
         encoder.set_encoding_quality(100).unwrap();
 
         let width = 1;
