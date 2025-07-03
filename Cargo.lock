@@ -969,7 +969,7 @@ dependencies = [
 
 [[package]]
 name = "glycin"
-version = "3.0.0-alpha.5"
+version = "3.0.0-alpha.6"
 dependencies = [
  "async-fs",
  "async-io",
@@ -1003,7 +1003,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-heif"
-version = "2.0.0-alpha.4"
+version = "2.0.0-alpha.6"
 dependencies = [
  "four-cc",
  "glycin-utils",
@@ -1013,7 +1013,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-image-rs"
-version = "2.0.0-alpha.4"
+version = "2.0.0-alpha.6"
 dependencies = [
  "glycin-utils",
  "gufo",
@@ -1029,7 +1029,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-jxl"
-version = "2.0.0-alpha.4"
+version = "2.0.0-alpha.6"
 dependencies = [
  "glycin-utils",
  "jpegxl-rs",
@@ -1039,7 +1039,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-raw"
-version = "2.0.0-alpha.4"
+version = "2.0.0-alpha.6"
 dependencies = [
  "glycin-utils",
  "libopenraw",
@@ -1047,7 +1047,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-svg"
-version = "2.0.0-alpha.4"
+version = "2.0.0-alpha.6"
 dependencies = [
  "cairo-rs",
  "gio",
@@ -1057,7 +1057,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-thumbnailer"
-version = "2.0.0-alpha.4"
+version = "2.0.0-alpha.6"
 dependencies = [
  "gio",
  "glycin",
@@ -1067,7 +1067,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-tools"
-version = "2.0.0-alpha.4"
+version = "2.0.0-alpha.6"
 dependencies = [
  "async-io",
  "gdk4",
@@ -1080,7 +1080,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-utils"
-version = "4.0.0-alpha.4"
+version = "4.0.0-alpha.6"
 dependencies = [
  "async-lock",
  "bitflags 2.9.1",
@@ -1459,7 +1459,7 @@ checksum = "1171693293099992e19cddea4e8b849964e9846f4acee11b3948bcc337be8776"
 
 [[package]]
 name = "libglycin"
-version = "2.0.0-alpha.4"
+version = "2.0.0-alpha.6"
 dependencies = [
  "async-io",
  "futures-task",
@@ -1472,7 +1472,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4"
-version = "2.0.0-alpha.4"
+version = "2.0.0-alpha.6"
 dependencies = [
  "gdk4",
  "glycin",
@@ -2406,7 +2406,7 @@ dependencies = [
 
 [[package]]
 name = "tests"
-version = "2.0.0-alpha.4"
+version = "2.0.0-alpha.6"
 dependencies = [
  "async-io",
  "blocking",
@@ -2556,7 +2556,7 @@ dependencies = [
 
 [[package]]
 name = "tools"
-version = "2.0.0-alpha.4"
+version = "2.0.0-alpha.6"
 dependencies = [
  "gdk4",
  "gio",
