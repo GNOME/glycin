@@ -23,6 +23,7 @@ fn roundtrip_all() {
             MimeType::AVIF,
             MimeType::BMP,
             MimeType::GIF,
+            MimeType::HEIC,
             MimeType::JPEG,
             MimeType::PNG,
             MimeType::QOI,
