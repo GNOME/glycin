@@ -113,7 +113,7 @@ async fn flatpak_devel() -> Option<bool> {
         return Some(false);
     };
 
-    Some(flatpak_builder && name.ends_with(".Devel"))
+    Some(flatpak_builder && name.ends_with("Devel"))
 }
 
 #[cfg(not(feature = "tokio"))]

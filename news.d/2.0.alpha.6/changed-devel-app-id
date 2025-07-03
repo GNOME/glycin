@@ -1,0 +1,1 @@
+glycin: The sandbox selector now also disables the sandbox for app IDs that end in `Devel`, not just `.Devel`.

@@ -54,7 +54,7 @@ pub enum SandboxSelector {
     /// development, Flatpak are usually not installed and the sandbox can
     /// therefore not be used. If the sandbox has been started via
     /// `flatpak-builder --run` (i.e. without installed Flatpak) and the app id
-    /// ends with `.Devel`, the sandbox is disabled.
+    /// ends with `Devel`, the sandbox is disabled.
     Auto,
     Bwrap,
     FlatpakSpawn,

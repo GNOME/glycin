@@ -85,7 +85,7 @@ G_DECLARE_FINAL_TYPE(GlyFrame, gly_frame, GLY, FRAME, GObject)
  *  development, Flatpak are usually not installed and the sandbox can
  *  therefore not be used. If the sandbox has been started via
  *  `flatpak-builder --run` (i.e. without installed Flatpak) and the app id
- *  ends with `.Devel`, the sandbox is disabled.
+ *  ends with `Devel`, the sandbox is disabled.
  * @GLY_SANDBOX_SELECTOR_BWRAP: bwrap
  * @GLY_SANDBOX_SELECTOR_FLATPAK_SPAWN: flatpak-spawn
  * @GLY_SANDBOX_SELECTOR_NOT_SANDBOXED: Disable sandbox. Unsafe, only use for testing and development.
