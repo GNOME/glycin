@@ -55,12 +55,11 @@ impl EditorImplementation for ImgEditor {
         }
 
         let plane = image.planes_mut().interleaved.internal_error()?;
+        let new_stride = width as usize * memory_format.n_bytes().usize();
 
-        for y in 0..height {
-            let mut pixel_index = plane.stride * y as usize;
-            for x in 0..width as usize * memory_format.n_bytes().usize() {
-                plane.data[pixel_index] = img_buf[x];
-                pixel_index += 1;
+        for y in 0..height as usize {
+            for x in 0..new_stride {
+                plane.data[plane.stride * y + x] = img_buf[y * new_stride + x];
             }
         }
 
