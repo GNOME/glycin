@@ -1,9 +1,67 @@
 mod utils;
 
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 
-use glycin::{Creator, MimeType};
+use glycin::{Creator, Loader, MimeType};
 use utils::*;
+
+#[test]
+fn roundtrip_all() {
+    block_on(async {
+        let reference_path = "test-images/images/color/color.png";
+
+        let loader = Loader::new(gio::File::for_path(reference_path));
+        let image = loader.load().await.unwrap();
+        let frame = image.next_frame().await.unwrap();
+        let width = frame.width();
+        let height = frame.height();
+        let texture = frame.buf_slice();
+        let memory_format = frame.memory_format();
+
+        for mime_type in [
+            MimeType::AVIF,
+            MimeType::BMP,
+            MimeType::GIF,
+            MimeType::JPEG,
+            MimeType::PNG,
+            MimeType::QOI,
+            MimeType::TGA,
+            MimeType::TIFF,
+            MimeType::WEBP,
+        ] {
+            if skip_file(&PathBuf::from(format!(
+                "placeholder.{}",
+                mime_type.extension().unwrap()
+            ))) {
+                continue;
+            }
+
+            eprintln!("- {}", mime_type.as_str());
+
+            let mut encoder = Creator::new(mime_type.clone()).await.unwrap();
+            encoder
+                .add_frame(width, height, memory_format, texture.to_vec())
+                .unwrap();
+
+            let encoded_image = encoder.create().await.unwrap();
+
+            let path = format!(
+                "{}/{}.{}",
+                env!("CARGO_TARGET_TMPDIR"),
+                mime_type.as_str().replace("/", "-"),
+                mime_type.extension().unwrap()
+            );
+            std::fs::write(&path, encoded_image.data_ref().unwrap()).unwrap();
+
+            let result = compare_images_path(reference_path, path, false).await;
+            if result.is_failed() {
+                eprintln!("{result:#?}");
+                assert!(false);
+            }
+        }
+    });
+}
 
 #[test]
 fn write_jpeg() {
@@ -182,9 +240,6 @@ fn write_avif() {
         let loader = glycin::Loader::new_vec(encoded_image.data_full().unwrap());
         let image = loader.load().await.unwrap();
         let frame = image.next_frame().await.unwrap();
-
-        dbg!(image.info().width, image.info().height);
-        dbg!(frame.width(), frame.height(), frame.stride());
 
         assert!(frame.buf_slice()[0] >= 253);
         assert!(frame.buf_slice()[1] <= 2);

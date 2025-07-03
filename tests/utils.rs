@@ -125,13 +125,13 @@ pub async fn compare_images(
         .await
         .exif
         .map(|x| x.get().unwrap());
-    let exif = get_info(&path).await.exif.map(|x| x.get().unwrap());
 
     let exif_eq = if !test_exif
         || (reference_exif.is_none() && path.as_ref().extension().unwrap() == "tiff")
     {
         true
     } else {
+        let exif = get_info(&path).await.exif.map(|x| x.get().unwrap());
         reference_exif.as_ref().map(|x| &x[..2]) == exif.as_ref().map(|x| &x[..2])
     };
 

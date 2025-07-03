@@ -39,9 +39,39 @@ impl Ord for MimeType {
 }
 
 impl MimeType {
+    pub const BMP: Self = Self::new_static("image/bmp");
+    /// No encoding
+    pub const DDS: Self = Self::new_static("image/x-dds");
+    pub const GIF: Self = Self::new_static("image/gif");
+    pub const ICO: Self = Self::new_static("image/vnd.microsoft.icon");
     pub const JPEG: Self = Self::new_static("image/jpeg");
+    pub const OPEN_EXR: Self = Self::new_static("image/x-exr");
     pub const PNG: Self = Self::new_static("image/png");
+    pub const QOI: Self = Self::new_static("image/qoi");
+    pub const TGA: Self = Self::new_static("image/x-tga");
+    pub const TIFF: Self = Self::new_static("image/tiff");
+    pub const WEBP: Self = Self::new_static("image/webp");
+
     pub const AVIF: Self = Self::new_static("image/avif");
+    pub const HEIC: Self = Self::new_static("image/heif");
+
+    pub const JXL: Self = Self::new_static("image/jxl");
+
+    const EXTENSIONS: &[(Self, &'static str)] = &[
+        (Self::BMP, "bmp"),
+        (Self::DDS, "dds"),
+        (Self::GIF, "gif"),
+        (Self::HEIC, "heic"),
+        (Self::ICO, "ico"),
+        (Self::JPEG, "jpg"),
+        (Self::OPEN_EXR, "exr"),
+        (Self::PNG, "png"),
+        (Self::QOI, "qoi"),
+        (Self::TGA, "tga"),
+        (Self::TIFF, "tiff"),
+        (Self::WEBP, "webp"),
+        (Self::AVIF, "avif"),
+    ];
 
     pub fn new(mime_type: String) -> Self {
         Self::Alloc(mime_type)
@@ -51,11 +81,19 @@ impl MimeType {
         Self::Stack(mime_type)
     }
 
-    pub fn as_str(&self) -> &str {
+    pub const fn as_str(&self) -> &str {
         match self {
             Self::Alloc(s) => s.as_str(),
             Self::Stack(str) => str,
         }
+    }
+
+    /// File extension
+    pub fn extension(&self) -> Option<&'static str> {
+        Self::EXTENSIONS
+            .iter()
+            .find(|x| x.0.as_str() == self.as_str())
+            .map(|x| x.1)
     }
 }
 
@@ -113,6 +151,7 @@ pub struct ImageEditorConfig {
     pub expose_base_dir: bool,
     pub fontconfig: bool,
     pub operations: Vec<OperationId>,
+    pub creator: bool,
 }
 
 impl ConfigEntry {
@@ -246,11 +285,14 @@ impl Config {
                                 .flat_map(|x| OperationId::from_str(&x))
                                 .collect();
 
+                            let creator = keyfile.boolean(group, "Creator").unwrap_or_default();
+
                             let cfg = ImageEditorConfig {
                                 exec: exec.into(),
                                 expose_base_dir,
                                 fontconfig,
                                 operations,
+                                creator,
                             };
 
                             config
