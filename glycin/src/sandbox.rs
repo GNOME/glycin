@@ -3,7 +3,7 @@
 use std::ffi::OsString;
 use std::fs::{canonicalize, DirEntry, File};
 use std::io::{self, BufRead, BufReader, Seek};
-use std::os::fd::{AsRawFd, OwnedFd};
+use std::os::fd::AsRawFd;
 use std::os::unix::net::UnixStream;
 use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
@@ -154,7 +154,7 @@ const ALLOWED_SYSCALLS_FONTCONFIG: &[&str] = &[
 pub struct Sandbox {
     sandbox_mechanism: SandboxMechanism,
     config_entry: ConfigEntry,
-    stdin: UnixStream,
+    dbus_socket: UnixStream,
     ro_bind_extra: Vec<PathBuf>,
 }
 
@@ -164,6 +164,7 @@ pub struct SpawnedSandbox {
     pub command: Command,
     // Keep seccomp fd alive until process exits
     pub _seccomp_fd: Option<Memfd>,
+    pub _dbus_socket: UnixStream,
 }
 
 static_assertions::assert_impl_all!(SpawnedSandbox: Send, Sync);
@@ -172,12 +173,12 @@ impl Sandbox {
     pub fn new(
         sandbox_mechanism: SandboxMechanism,
         config_entry: ConfigEntry,
-        stdin: UnixStream,
+        dbus_socket: UnixStream,
     ) -> Self {
         Self {
             sandbox_mechanism,
             config_entry,
-            stdin,
+            dbus_socket,
             ro_bind_extra: Vec::new(),
         }
     }
@@ -191,6 +192,8 @@ impl Sandbox {
     }
 
     pub async fn spawn(self) -> Result<SpawnedSandbox, Error> {
+        let dbus_fd = self.dbus_socket.as_raw_fd();
+
         // Determine command line args
         let (bin, args, seccomp_fd) = match self.sandbox_mechanism {
             SandboxMechanism::Bwrap => {
@@ -215,6 +218,8 @@ impl Sandbox {
                     "--watch-bus".into(),
                     // change working directory to something that exists
                     "--directory=/".into(),
+                    // forward dbus connection
+                    format!("--forward-fd={dbus_fd}").into(),
                     // Start loader with memory limit
                     "prlimit".into(),
                     format!("--as={memory_limit}").into(),
@@ -231,8 +236,17 @@ impl Sandbox {
         };
 
         let mut command = Command::new(bin);
-        command.stdin(OwnedFd::from(self.stdin));
         command.args(args);
+        command.arg("--dbus-fd");
+        command.arg(dbus_fd.to_string());
+
+        // Allow FD to be passed to child process
+        let mut flags = nix::fcntl::FdFlag::from_bits_truncate(nix::fcntl::fcntl(
+            dbus_fd,
+            nix::fcntl::FcntlArg::F_GETFD,
+        )?);
+        flags.remove(nix::fcntl::FdFlag::FD_CLOEXEC);
+        nix::fcntl::fcntl(dbus_fd, nix::fcntl::FcntlArg::F_SETFD(flags))?;
 
         // Clear ENV
         if matches!(self.sandbox_mechanism, SandboxMechanism::FlatpakSpawn) {
@@ -268,12 +282,11 @@ impl Sandbox {
                     Ok(())
                 });
             },
-            SandboxMechanism::FlatpakSpawn => unsafe {
+            SandboxMechanism::FlatpakSpawn | SandboxMechanism::NotSandboxed => unsafe {
                 command.pre_exec(|| {
                     nix::sys::prctl::set_pdeathsig(nix::sys::signal::SIGKILL).map_err(Into::into)
                 });
             },
-            _ => {}
         }
 
         command.stderr(Stdio::piped());
@@ -282,6 +295,7 @@ impl Sandbox {
         Ok(SpawnedSandbox {
             command,
             _seccomp_fd: seccomp_fd,
+            _dbus_socket: self.dbus_socket,
         })
     }
 
@@ -439,8 +453,6 @@ impl Sandbox {
             if let Some(total_avail_kb) = total_avail_kb {
                 let mem_available = total_avail_kb.saturating_mul(1024);
 
-                tracing::debug!("Memory available: {mem_available} bytes");
-
                 return Some(Self::calculate_memory_limit(mem_available));
             }
         }
@@ -468,10 +480,16 @@ impl Sandbox {
     fn set_memory_limit() {
         let limit = Self::memory_limit();
 
-        tracing::debug!("Setting process memory limit of {limit} bytes");
+        let msg = b"Setting process memory limit\n";
+        unsafe {
+            let _ = libc::write(libc::STDERR_FILENO, msg.as_ptr() as *const _, msg.len());
+        }
 
-        if let Err(err) = resource::setrlimit(resource::Resource::RLIMIT_AS, limit, limit) {
-            eprintln!("Error setrlimit(RLIMIT_AS, {limit}): {err}");
+        if let Err(_) = resource::setrlimit(resource::Resource::RLIMIT_AS, limit, limit) {
+            let msg = b"Error setrlimit(RLIMIT_AS)\n";
+            unsafe {
+                let _ = libc::write(libc::STDERR_FILENO, msg.as_ptr() as *const _, msg.len());
+            }
         }
     }
 
