@@ -89,7 +89,7 @@ fn write_jpeg() {
         assert_eq!(
             frame
                 .details()
-                .color_iccp
+                .color_iccp()
                 .as_ref()
                 .unwrap()
                 .get_full()
@@ -213,7 +213,7 @@ fn write_png() {
 
         assert_eq!(
             image
-                .info()
+                .details()
                 .metadata_key_value()
                 .as_ref()
                 .unwrap()
@@ -227,7 +227,7 @@ fn write_png() {
         assert_eq!(
             frame
                 .details()
-                .color_iccp
+                .color_iccp()
                 .as_ref()
                 .unwrap()
                 .get_full()

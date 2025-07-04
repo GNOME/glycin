@@ -320,7 +320,7 @@ impl RemoteProcess<LoaderProxy<'static>> {
         validate_frame(&frame, &img_buf)?;
 
         let img_buf = if image.loader.apply_transformations {
-            orientation::apply_exif_orientation(img_buf, &mut frame, &image.info())
+            orientation::apply_exif_orientation(img_buf, &mut frame, &image.details())
         } else {
             img_buf
         };
@@ -390,7 +390,7 @@ impl RemoteProcess<LoaderProxy<'static>> {
             stride: frame.stride,
             memory_format: frame.memory_format,
             delay: frame.delay.into(),
-            details: frame.details,
+            details: Arc::new(frame.details),
             color_state,
         })
     }

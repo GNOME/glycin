@@ -39,7 +39,7 @@ impl GlyImage {
     }
 
     pub fn image_info(&self) -> ImageDetails {
-        self.image().info()
+        self.image().details()
     }
 
     pub async fn next_frame(&self) -> Result<GlyFrame, ErrorCtx> {

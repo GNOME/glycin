@@ -93,7 +93,7 @@ async fn get_info(path: impl AsRef<Path>) -> glycin::ImageDetails {
     let file = gio::File::for_path(&path);
     let loader = glycin::Loader::new(file);
     let image = loader.load().await.unwrap();
-    image.info().clone()
+    image.details().clone()
 }
 
 pub async fn compare_images(

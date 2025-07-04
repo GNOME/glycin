@@ -3,10 +3,10 @@ use std::sync::{Arc, Mutex};
 use gio::glib;
 use gio::glib::clone::Downgrade;
 use gio::prelude::*;
+pub use glycin_common::MemoryFormat;
 use glycin_common::{BinaryData, MemoryFormatSelection};
 #[cfg(feature = "gdk4")]
 use glycin_utils::safe_math::*;
-pub use glycin_utils::{FrameDetails, MemoryFormat};
 use zbus::zvariant::OwnedObjectPath;
 
 use crate::api_common::*;
@@ -259,7 +259,7 @@ impl Image {
     }
 
     /// Returns already obtained info
-    pub fn info(&self) -> ImageDetails {
+    pub fn details(&self) -> ImageDetails {
         ImageDetails::new(self.details.clone())
     }
 
@@ -359,7 +359,7 @@ pub struct Frame {
     pub(crate) stride: u32,
     pub(crate) memory_format: MemoryFormat,
     pub(crate) delay: Option<std::time::Duration>,
-    pub(crate) details: FrameDetails,
+    pub(crate) details: Arc<glycin_utils::FrameDetails>,
     pub(crate) color_state: ColorState,
 }
 
@@ -402,8 +402,8 @@ impl Frame {
         self.delay
     }
 
-    pub fn details(&self) -> &FrameDetails {
-        &self.details
+    pub fn details(&self) -> FrameDetails {
+        FrameDetails::new(self.details.clone())
     }
 
     #[cfg(feature = "gdk4")]
@@ -452,6 +452,41 @@ impl FrameRequest {
     pub fn clip(mut self, x: u32, y: u32, width: u32, height: u32) -> Self {
         self.request.clip = Some((x, y, width, height));
         self
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct FrameDetails {
+    inner: Arc<glycin_utils::FrameDetails>,
+}
+
+impl FrameDetails {
+    fn new(inner: Arc<glycin_utils::FrameDetails>) -> Self {
+        Self { inner }
+    }
+
+    pub fn color_cicp(&self) -> Option<&[u8]> {
+        self.inner.color_cicp.as_ref().map(|x| x.as_slice())
+    }
+
+    pub fn color_iccp(&self) -> Option<BinaryData> {
+        self.inner.color_iccp.clone()
+    }
+
+    pub fn info_alpha_channel(&self) -> Option<bool> {
+        self.inner.info_alpha_channel
+    }
+
+    pub fn info_bit_depth(&self) -> Option<u8> {
+        self.inner.info_bit_depth
+    }
+
+    pub fn info_grayscale(&self) -> Option<bool> {
+        self.inner.info_grayscale
+    }
+
+    pub fn n_frame(&self) -> Option<u64> {
+        self.inner.n_frame
     }
 }
 
