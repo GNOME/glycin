@@ -23,7 +23,7 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
     let file = gio::File::for_path(path);
     let image = glycin::Loader::new(file).load().await?;
 
-    let info = image.info();
+    let info = image.details();
 
     println!("[info]");
     println!("dimensions = {} x {}", info.width(), info.height());
@@ -90,7 +90,7 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
             "iccp = {}",
             frame
                 .details()
-                .color_iccp
+                .color_iccp()
                 .as_ref()
                 .map_or(String::from("empty"), |x| glib::format_size(
                     x.get_full().unwrap().len() as u64
@@ -101,7 +101,7 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
             "bit_depth = {}",
             frame
                 .details()
-                .info_bit_depth
+                .info_bit_depth()
                 .map(|x| format!("{} bit", x))
                 .unwrap_or("-".into())
         );
@@ -109,7 +109,7 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
             "alpha_channel = {}",
             frame
                 .details()
-                .info_alpha_channel
+                .info_alpha_channel()
                 .map(|x| x.to_string())
                 .unwrap_or("-".into())
         );
@@ -117,7 +117,7 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
             "grayscale = {}",
             frame
                 .details()
-                .info_grayscale
+                .info_grayscale()
                 .map(|x| x.to_string())
                 .unwrap_or("-".into())
         );
