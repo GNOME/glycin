@@ -5,7 +5,6 @@ use glycin_utils::operations::Operations;
 use glycin_utils::*;
 use gufo_common::orientation::Orientation;
 use gufo_jpeg::Jpeg;
-use memory_format::ExtendedMemoryFormat;
 use zune_jpeg::zune_core::options::DecoderOptions;
 
 pub fn apply_sparse(

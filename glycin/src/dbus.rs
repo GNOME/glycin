@@ -15,7 +15,7 @@ use futures_channel::oneshot;
 use futures_util::{future, FutureExt};
 use gio::glib;
 use gio::prelude::*;
-use glycin_utils::memory_format::MemoryFormatInfo;
+use glycin_common::MemoryFormatInfo;
 use glycin_utils::operations::Operations;
 use glycin_utils::safe_math::{SafeConversion, SafeMath};
 use glycin_utils::{

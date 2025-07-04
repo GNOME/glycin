@@ -1006,10 +1006,16 @@ dependencies = [
 name = "glycin-common"
 version = "1.0.0"
 dependencies = [
+ "bitflags 2.9.1",
+ "glib",
+ "gufo-common",
+ "half",
  "memmap2",
  "nix",
+ "paste",
  "serde",
  "thiserror 2.0.12",
+ "zerocopy",
  "zvariant",
 ]
 

@@ -1,9 +1,9 @@
 use std::io::{Cursor, Read, Seek};
 
+use glycin_common::MemoryFormatInfo;
 use gufo_common::math::{checked, Checked};
 
 use super::{EditingFrame, Error};
-use crate::memory_format::MemoryFormatInfo;
 
 pub fn clip(
     buf: Vec<u8>,

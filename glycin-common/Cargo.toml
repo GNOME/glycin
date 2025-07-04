@@ -18,3 +18,13 @@ zvariant.workspace = true
 memmap.workspace = true
 nix.workspace = true
 thiserror.workspace = true
+bitflags.workspace = true
+gufo-common.workspace = true
+zerocopy.workspace = true
+paste.workspace = true
+glib = { workspace = true, optional = true }
+half.workspace = true
+
+[features]
+default = []
+gobject = ["dep:glib"]

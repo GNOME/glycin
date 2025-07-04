@@ -1,5 +1,4 @@
-use glycin_utils::memory_format::MemoryFormatInfo;
-use glycin_utils::{BinaryData, EditorImplementation, GenericContexts};
+use glycin_utils::{BinaryData, EditorImplementation, GenericContexts, MemoryFormatInfo};
 use libheif_rs::{
     Channel, ColorProfileRaw, ColorSpace, CompressionFormat, EncoderQuality, HeifContext, Image,
     LibHeif, RgbChroma,

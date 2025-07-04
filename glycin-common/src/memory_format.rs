@@ -1,8 +1,8 @@
 use std::io::Read;
 
 use serde::{Deserialize, Serialize};
-use zbus::zvariant::Type;
 use zerocopy::{FromBytes, IntoBytes};
+use zvariant::Type;
 
 pub trait MemoryFormatInfo: Sized {
     fn n_bytes(self) -> MemoryFormatBytes;
@@ -260,13 +260,13 @@ impl MemoryFormat {
     }
 
     #[inline]
-    pub(crate) fn transform(src_format: Self, src: &[u8], target_format: Self, target: &mut [u8]) {
+    pub fn transform(src_format: Self, src: &[u8], target_format: Self, target: &mut [u8]) {
         let channels_f32 = Self::to_f32(src_format, src);
         Self::from_f32(channels_f32, target_format, target);
     }
 
     #[inline]
-    pub(crate) fn to_f32(src_format: Self, mut src: &[u8]) -> [f32; 4] {
+    pub fn to_f32(src_format: Self, mut src: &[u8]) -> [f32; 4] {
         match src_format.channel_type() {
             ChannelType::U8 => {
                 Self::to_f32_internal::<u8>(FromBytes::ref_from_bytes(src).unwrap(), src_format)
@@ -389,7 +389,6 @@ trait ChannelValue: Default + Copy {
 
 impl ChannelValue for u8 {
     fn from_f32_normed(value: f32) -> Self {
-        #![allow(clippy::cast_possible_truncation)]
         (value * Self::MAX as f32).round() as Self
     }
 
@@ -404,7 +403,6 @@ impl ChannelValue for u8 {
 
 impl ChannelValue for u16 {
     fn from_f32_normed(value: f32) -> Self {
-        #![allow(clippy::cast_possible_truncation)]
         (value * Self::MAX as f32).round() as Self
     }
 

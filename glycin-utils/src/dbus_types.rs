@@ -2,13 +2,12 @@ use std::collections::BTreeMap;
 use std::os::fd::AsRawFd;
 use std::time::Duration;
 
-use glycin_common::BinaryData;
+use glycin_common::{BinaryData, MemoryFormat, MemoryFormatInfo};
 use memmap::MmapMut;
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::{self, DeserializeDict, Optional, SerializeDict, Type};
 
 use crate::error::DimensionTooLargerError;
-use crate::memory_format::{MemoryFormat, MemoryFormatInfo};
 use crate::safe_math::{SafeConversion, SafeMath};
 use crate::ImgBuf;
 

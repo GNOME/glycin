@@ -3,10 +3,9 @@ use std::sync::{Arc, Mutex};
 use gio::glib;
 use gio::glib::clone::Downgrade;
 use gio::prelude::*;
-use glycin_common::BinaryData;
+use glycin_common::{BinaryData, MemoryFormatSelection};
 #[cfg(feature = "gdk4")]
 use glycin_utils::safe_math::*;
-use glycin_utils::MemoryFormatSelection;
 pub use glycin_utils::{FrameDetails, MemoryFormat};
 use zbus::zvariant::OwnedObjectPath;
 

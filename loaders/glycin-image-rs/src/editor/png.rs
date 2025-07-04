@@ -2,7 +2,7 @@ use std::io::{Cursor, Read};
 use std::sync::Arc;
 
 use glycin_utils::operations::Operations;
-use glycin_utils::*;
+use glycin_utils::{image_rs, *};
 use gufo::png::NewChunk;
 use gufo_common::error::ErrorWithData;
 use gufo_exif::internal::ExifRaw;
@@ -41,9 +41,7 @@ pub fn apply(
     let width = simple_frame.width;
     let height = simple_frame.height;
     let color_type = image::ExtendedColorType::from(
-        simple_frame
-            .memory_format
-            .to_color_type()
+        image_rs::extended_memory_format_to_color_type(&simple_frame.memory_format)
             .internal_error()?,
     );
 

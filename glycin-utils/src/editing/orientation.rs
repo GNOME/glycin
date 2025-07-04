@@ -1,7 +1,7 @@
+use glycin_common::{ExtendedMemoryFormat, MemoryFormatInfo};
 use gufo_common::orientation::{Orientation, Rotation};
 
 use super::EditingFrame;
-use crate::memory_format::{ExtendedMemoryFormat, MemoryFormatInfo};
 use crate::{Frame, ImgBuf};
 
 pub trait FrameDimensions {

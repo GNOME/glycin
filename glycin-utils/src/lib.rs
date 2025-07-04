@@ -23,10 +23,7 @@ pub mod image_rs;
 mod img_buf;
 #[cfg(feature = "loader-utils")]
 pub mod instruction_handler;
-pub mod memory_format;
-mod memory_format_selection;
 pub mod safe_math;
-mod shared_memory;
 
 #[cfg(feature = "loader-utils")]
 #[doc(no_inline)]
@@ -39,9 +36,9 @@ pub use dbus_loader_api::*;
 pub use dbus_types::*;
 pub use error::*;
 pub use glycin_common::shared_memory::SharedMemory;
-pub use glycin_common::BinaryData;
+pub use glycin_common::{
+    BinaryData, ExtendedMemoryFormat, MemoryFormat, MemoryFormatInfo, MemoryFormatSelection,
+};
 pub use img_buf::ImgBuf;
 #[cfg(feature = "loader-utils")]
 pub use instruction_handler::*;
-pub use memory_format::MemoryFormat;
-pub use memory_format_selection::MemoryFormatSelection;
