@@ -95,8 +95,7 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
 
         let spawned_sandbox = sandbox.spawn().await?;
 
-        let command = spawned_sandbox.command;
-        let command_dbg = format!("{:?}", command);
+        let command_dbg = format!("{:?}", spawned_sandbox.command);
 
         let (sender_child, child_process) = oneshot::channel();
         let (sender_child_return, child_return) = oneshot::channel();
@@ -109,7 +108,7 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
             #[strong]
             process_disconnected,
             move || {
-                let mut command = command;
+                let mut command = spawned_sandbox.command;
                 let command_dbg = format!("{:?}", command);
 
                 tracing::debug!("Spawning loader/editor:\n    {command_dbg}");

@@ -1,6 +1,6 @@
 // Copyright (c) 2024 GNOME Foundation Inc.
 
-use std::os::fd::{AsRawFd, FromRawFd};
+use std::os::fd::FromRawFd;
 use std::os::raw::{c_int, c_void};
 use std::os::unix::net::UnixStream;
 use std::sync::Mutex;
@@ -36,12 +36,26 @@ impl DbusServer {
     ) -> Self {
         env_logger::builder().format_timestamp_millis().init();
 
-        log::info!("Loader {description} startup",);
+        log::info!("Loader {description} startup");
+
+        let args = std::env::args().collect::<Vec<_>>();
+
+        if args.get(1).map(|x| x.as_str()) != Some("--dbus-fd") {
+            log::error!("FD that facilitates the D-Bus connection not specified via --dbus-fd");
+            std::process::exit(2);
+        }
+
+        let Some(fd) = args.get(2).and_then(|x| x.parse().ok()) else {
+            eprintln!(
+                "FD specified via --dbus-fd is not a valid number: {:?}",
+                args.get(2)
+            );
+            std::process::exit(2);
+        };
 
         log::debug!("Creating zbus connection to glycin");
 
-        let unix_stream: UnixStream =
-            unsafe { UnixStream::from_raw_fd(std::io::stdin().as_raw_fd()) };
+        let unix_stream: UnixStream = unsafe { UnixStream::from_raw_fd(fd) };
 
         #[cfg(feature = "tokio")]
         let unix_stream =
