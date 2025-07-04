@@ -1013,6 +1013,7 @@ dependencies = [
  "memmap2",
  "nix",
  "paste",
+ "rmp-serde",
  "serde",
  "thiserror 2.0.12",
  "zerocopy",
@@ -1091,7 +1092,6 @@ dependencies = [
  "gdk4",
  "gio",
  "glycin",
- "glycin-utils",
  "gufo-common",
  "tracing-subscriber",
 ]
@@ -1118,7 +1118,6 @@ dependencies = [
  "nix",
  "paste",
  "rayon",
- "rmp-serde",
  "serde",
  "thiserror 2.0.12",
  "tokio",

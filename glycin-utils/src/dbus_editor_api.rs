@@ -5,13 +5,12 @@ use std::marker::PhantomData;
 use std::os::fd::OwnedFd;
 use std::os::unix::net::UnixStream;
 
-use glycin_common::BinaryData;
+use glycin_common::{BinaryData, Operations};
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::{DeserializeDict, SerializeDict, Type};
 
 use crate::dbus_types::*;
 use crate::error::*;
-use crate::operations::Operations;
 
 #[derive(DeserializeDict, SerializeDict, Type, Debug)]
 #[zvariant(signature = "dict")]

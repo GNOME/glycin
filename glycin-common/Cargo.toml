@@ -24,6 +24,8 @@ zerocopy.workspace = true
 paste.workspace = true
 glib = { workspace = true, optional = true }
 half.workspace = true
+rmp-serde.workspace = true
+
 
 [features]
 default = []

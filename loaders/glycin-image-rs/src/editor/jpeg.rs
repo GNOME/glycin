@@ -1,7 +1,6 @@
 use std::io::Read;
 
 use editing::EditingFrame;
-use glycin_utils::operations::Operations;
 use glycin_utils::*;
 use gufo_common::orientation::Orientation;
 use gufo_jpeg::Jpeg;
@@ -9,7 +8,7 @@ use zune_jpeg::zune_core::options::DecoderOptions;
 
 pub fn apply_sparse(
     mut stream: glycin_utils::UnixStream,
-    mut operations: glycin_utils::operations::Operations,
+    mut operations: Operations,
 ) -> Result<SparseEditorOutput, glycin_utils::ProcessError> {
     let mut buf: Vec<u8> = Vec::new();
     stream.read_to_end(&mut buf).internal_error()?;
@@ -33,7 +32,7 @@ pub fn apply_sparse(
 
 pub fn apply_complete(
     mut stream: glycin_utils::UnixStream,
-    mut operations: glycin_utils::operations::Operations,
+    mut operations: Operations,
 ) -> Result<CompleteEditorOutput, glycin_utils::ProcessError> {
     let mut buf = Vec::new();
     stream.read_to_end(&mut buf).internal_error()?;
@@ -57,7 +56,7 @@ pub fn apply_complete(
 
 fn apply_non_sparse(
     jpeg: Jpeg,
-    operations: glycin_utils::operations::Operations,
+    operations: Operations,
 ) -> Result<CompleteEditorOutput, glycin_utils::ProcessError> {
     let mut out_buf = Vec::new();
     let encoder = jpeg.encoder(&mut out_buf).expected_error()?;
@@ -77,9 +76,7 @@ fn apply_non_sparse(
         memory_format: ExtendedMemoryFormat::Y8Cb8Cr8,
     };
 
-    pixels = operations
-        .apply(pixels, &mut simple_frame)
-        .expected_error()?;
+    pixels = editing::apply_operations(pixels, &mut simple_frame, &operations).expected_error()?;
 
     encoder
         .encode(

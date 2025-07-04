@@ -1,7 +1,6 @@
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
-use glycin_utils::operations::Operations;
 use glycin_utils::{image_rs, *};
 use gufo::png::NewChunk;
 use gufo_common::error::ErrorWithData;
@@ -11,7 +10,7 @@ use image_rs::Handler;
 
 pub fn apply(
     mut stream: glycin_utils::UnixStream,
-    mut operations: glycin_utils::operations::Operations,
+    mut operations: Operations,
 ) -> Result<CompleteEditorOutput, glycin_utils::ProcessError> {
     let mut old_png_data: Vec<u8> = Vec::new();
     stream.read_to_end(&mut old_png_data).internal_error()?;
@@ -29,7 +28,7 @@ pub fn apply(
         operations.prepend(Operations::new_orientation(orientation));
     }
 
-    buf = operations.apply(buf, &mut simple_frame).expected_error()?;
+    buf = editing::apply_operations(buf, &mut simple_frame, &operations).expected_error()?;
 
     let mut new_png_data = Cursor::new(Vec::new());
     let encoder = image::codecs::png::PngEncoder::new_with_quality(

@@ -141,10 +141,8 @@ pub fn change_memory_format(
 #[cfg(test)]
 mod test {
     use std::os::fd::{FromRawFd, IntoRawFd, OwnedFd};
-    use std::sync::Arc;
 
     use glycin_common::BinaryData;
-    use zbus::zvariant;
 
     use super::*;
 

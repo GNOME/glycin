@@ -11,7 +11,7 @@ impl EditorImplementation for ImgEditor {
         _stream: std::os::unix::net::UnixStream,
         mime_type: String,
         _details: glycin_utils::InitializationDetails,
-        _operations: glycin_utils::operations::Operations,
+        _operations: glycin_utils::Operations,
     ) -> Result<glycin_utils::CompleteEditorOutput, glycin_utils::ProcessError> {
         Err(glycin_utils::RemoteError::UnsupportedImageFormat(mime_type)).expected_error()
     }
