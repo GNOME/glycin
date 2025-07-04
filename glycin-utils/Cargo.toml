@@ -33,6 +33,7 @@ log.workspace = true
 env_logger.workspace = true
 zerocopy.workspace = true
 rayon.workspace = true
+glycin-common.workspace = true
 
 [features]
 default = ["async-io"]

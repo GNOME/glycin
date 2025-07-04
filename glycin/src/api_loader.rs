@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex};
 use gio::glib;
 use gio::glib::clone::Downgrade;
 use gio::prelude::*;
+use glycin_common::BinaryData;
 #[cfg(feature = "gdk4")]
 use glycin_utils::safe_math::*;
 use glycin_utils::MemoryFormatSelection;
@@ -332,11 +333,11 @@ impl ImageDetails {
         self.inner.info_dimensions_text.as_ref().map(|x| x.as_str())
     }
 
-    pub fn metadata_exif(&self) -> Option<glycin_utils::BinaryData> {
+    pub fn metadata_exif(&self) -> Option<BinaryData> {
         self.inner.metadata_exif.clone()
     }
 
-    pub fn metadata_xmp(&self) -> Option<glycin_utils::BinaryData> {
+    pub fn metadata_xmp(&self) -> Option<BinaryData> {
         self.inner.metadata_xmp.clone()
     }
 

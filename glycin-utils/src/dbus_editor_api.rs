@@ -5,6 +5,7 @@ use std::marker::PhantomData;
 use std::os::fd::OwnedFd;
 use std::os::unix::net::UnixStream;
 
+use glycin_common::BinaryData;
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::{DeserializeDict, SerializeDict, Type};
 
@@ -25,7 +26,9 @@ impl EditRequest {
             .to_message_pack()
             .expected_error()
             .map_err(|x| x.into_editor_error())?;
-        let operations = BinaryData::from_data(operations).map_err(|x| x.into_editor_error())?;
+        let operations = BinaryData::from_data(operations)
+            .expected_error()
+            .map_err(|x| x.into_editor_error())?;
         Ok(Self { operations })
     }
 
@@ -129,7 +132,7 @@ impl CompleteEditorOutput {
     }
 
     pub fn new_lossless(data: Vec<u8>) -> Result<Self, ProcessError> {
-        let data = BinaryData::from_data(data)?;
+        let data = BinaryData::from_data(data).expected_error()?;
         let info = EditorOutputInfo { lossless: true };
         Ok(Self { data, info })
     }

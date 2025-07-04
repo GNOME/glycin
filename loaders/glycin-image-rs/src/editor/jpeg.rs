@@ -106,7 +106,7 @@ fn apply_non_sparse(
         remove_metadata_rotate.apply(&mut out_buf);
     }
 
-    let binary_data = BinaryData::from_data(out_buf)?;
+    let binary_data = BinaryData::from_data(out_buf).expected_error()?;
     return Ok(CompleteEditorOutput::new(binary_data));
 }
 

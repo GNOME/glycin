@@ -38,9 +38,10 @@ pub use dbus_editor_api::*;
 pub use dbus_loader_api::*;
 pub use dbus_types::*;
 pub use error::*;
+pub use glycin_common::shared_memory::SharedMemory;
+pub use glycin_common::BinaryData;
 pub use img_buf::ImgBuf;
 #[cfg(feature = "loader-utils")]
 pub use instruction_handler::*;
 pub use memory_format::MemoryFormat;
 pub use memory_format_selection::MemoryFormatSelection;
-pub use shared_memory::*;

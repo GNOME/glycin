@@ -981,6 +981,7 @@ dependencies = [
  "gdk4",
  "gio",
  "glib",
+ "glycin-common",
  "glycin-utils",
  "gufo-common",
  "gufo-exif",
@@ -999,6 +1000,17 @@ dependencies = [
  "tracing-subscriber",
  "yeslogic-fontconfig-sys",
  "zbus",
+]
+
+[[package]]
+name = "glycin-common"
+version = "1.0.0"
+dependencies = [
+ "memmap2",
+ "nix",
+ "serde",
+ "thiserror 2.0.12",
+ "zvariant",
 ]
 
 [[package]]
@@ -1089,6 +1101,7 @@ dependencies = [
  "futures-lite",
  "futures-util",
  "glib",
+ "glycin-common",
  "gufo-common",
  "half",
  "image",

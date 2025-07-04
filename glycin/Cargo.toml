@@ -38,6 +38,7 @@ futures-util.workspace = true
 gdk = { workspace = true, optional = true }
 gio.workspace = true
 glib.workspace = true
+glycin-common.workspace = true
 glycin-utils = { workspace = true }
 gufo-common.workspace = true
 gufo-exif.workspace = true

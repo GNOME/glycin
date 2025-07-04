@@ -140,7 +140,7 @@ impl EditorImplementation for ImgEditor {
             }
         };
 
-        let data = BinaryData::from_data(image_buf)?;
+        let data = BinaryData::from_data(image_buf).expected_error()?;
         Ok(EncodedImage::new(data))
     }
 }

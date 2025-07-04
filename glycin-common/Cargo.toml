@@ -1,0 +1,20 @@
+[package]
+name = "glycin-common"
+version = "1.0.0"
+authors.workspace = true
+description.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+serde.workspace = true
+zvariant.workspace = true
+memmap.workspace = true
+nix.workspace = true
+thiserror.workspace = true
