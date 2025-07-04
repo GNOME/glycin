@@ -6,7 +6,7 @@ use std::sync::OnceLock;
 
 use futures_util::StreamExt;
 use gio::glib;
-use glycin_utils::operations::OperationId;
+use glycin_common::OperationId;
 
 use crate::util::{read, read_dir};
 use crate::Error;

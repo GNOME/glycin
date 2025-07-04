@@ -14,7 +14,7 @@ impl EditorImplementation for ImgEditor {
         stream: glycin_utils::UnixStream,
         mime_type: String,
         details: glycin_utils::InitializationDetails,
-        operations: glycin_utils::operations::Operations,
+        operations: Operations,
     ) -> Result<SparseEditorOutput, glycin_utils::ProcessError> {
         match mime_type.as_str() {
             "image/jpeg" => Ok(jpeg::apply_sparse(stream, operations)?),
@@ -28,7 +28,7 @@ impl EditorImplementation for ImgEditor {
         stream: UnixStream,
         mime_type: String,
         _details: InitializationDetails,
-        operations: operations::Operations,
+        operations: Operations,
     ) -> Result<CompleteEditorOutput, ProcessError> {
         match mime_type.as_str() {
             "image/png" => png::apply(stream, operations),

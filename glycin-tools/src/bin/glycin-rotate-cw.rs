@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0 OR LGPL-2.1-or-later
 
-use glycin::{EditOutcome, Editor};
-use glycin_utils::operations::{Operation, Operations};
+use glycin::{EditOutcome, Editor, Operation, Operations};
 
 fn main() {
     let Some(path) = std::env::args().nth(1) else {

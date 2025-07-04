@@ -29,8 +29,6 @@ pub mod safe_math;
 #[doc(no_inline)]
 pub use std::os::unix::net::UnixStream;
 
-pub mod operations;
-
 pub use dbus_editor_api::*;
 pub use dbus_loader_api::*;
 pub use dbus_types::*;
@@ -38,6 +36,7 @@ pub use error::*;
 pub use glycin_common::shared_memory::SharedMemory;
 pub use glycin_common::{
     BinaryData, ExtendedMemoryFormat, MemoryFormat, MemoryFormatInfo, MemoryFormatSelection,
+    Operation, Operations,
 };
 pub use img_buf::ImgBuf;
 #[cfg(feature = "loader-utils")]

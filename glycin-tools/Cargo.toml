@@ -15,7 +15,6 @@ gdk.workspace = true
 gio.workspace = true
 async-io.workspace = true
 gufo-common.workspace = true
-glycin-utils.workspace = true
 tracing-subscriber.workspace = true
 
 [lints]

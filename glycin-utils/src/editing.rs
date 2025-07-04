@@ -10,9 +10,10 @@ mod orientation;
 
 pub use change_memory_format::change_memory_format;
 pub use clip::clip;
-use glycin_common::ExtendedMemoryFormat;
+use glycin_common::{ExtendedMemoryFormat, OperationId};
 use gufo_common::math::MathError;
 use gufo_common::read::ReadError;
+pub use operations::apply_operations;
 pub use orientation::change_orientation;
 
 pub struct EditingFrame {
@@ -36,6 +37,8 @@ pub enum Error {
     DimensionTooLargerError(#[from] DimensionTooLargerError),
     #[error("Zerocopy: {0}")]
     ZerocopyConvertError(String),
+    #[error("Unknown operation: {0:?}")]
+    UnknownOperation(OperationId),
 }
 
 impl<A: Display, S: Display, V: Display> From<zerocopy::ConvertError<A, S, V>> for Error {
