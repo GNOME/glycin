@@ -1,11 +1,10 @@
 use std::collections::BTreeMap;
-use std::ops::Deref;
 use std::os::fd::AsRawFd;
-use std::sync::Arc;
 use std::time::Duration;
 
+use glycin_common::BinaryData;
 use memmap::MmapMut;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use zbus::zvariant::{self, DeserializeDict, Optional, SerializeDict, Type};
 
 use crate::error::DimensionTooLargerError;
@@ -207,76 +206,5 @@ pub struct EncodedImage {
 impl EncodedImage {
     pub fn new(data: BinaryData) -> Self {
         Self { data }
-    }
-}
-
-#[derive(zvariant::Type, Debug, Clone)]
-#[zvariant(signature = "h")]
-pub struct BinaryData {
-    pub(crate) memfd: Arc<zvariant::OwnedFd>,
-}
-
-impl Serialize for BinaryData {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        self.memfd.serialize(serializer)
-    }
-}
-
-impl<'de> Deserialize<'de> for BinaryData {
-    fn deserialize<D>(deserializer: D) -> Result<BinaryData, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        Ok(Self {
-            memfd: Arc::new(zvariant::OwnedFd::deserialize(deserializer)?),
-        })
-    }
-}
-
-impl AsRawFd for BinaryData {
-    fn as_raw_fd(&self) -> std::os::unix::prelude::RawFd {
-        self.memfd.as_raw_fd()
-    }
-}
-
-impl AsRawFd for &BinaryData {
-    fn as_raw_fd(&self) -> std::os::unix::prelude::RawFd {
-        self.memfd.as_raw_fd()
-    }
-}
-
-impl BinaryData {
-    /// Get a copy of the binary data
-    pub fn get_full(&self) -> std::io::Result<Vec<u8>> {
-        Ok(self.get()?.to_vec())
-    }
-
-    /// Get a reference to the binary data
-    pub fn get(&self) -> std::io::Result<BinaryDataRef> {
-        Ok(BinaryDataRef {
-            mmap: { unsafe { memmap::MmapOptions::new().map_copy_read_only(&self.memfd)? } },
-        })
-    }
-}
-
-#[derive(Debug)]
-pub struct BinaryDataRef {
-    mmap: memmap::Mmap,
-}
-
-impl Deref for BinaryDataRef {
-    type Target = [u8];
-
-    fn deref(&self) -> &[u8] {
-        self.mmap.deref()
-    }
-}
-
-impl AsRef<[u8]> for BinaryDataRef {
-    fn as_ref(&self) -> &[u8] {
-        self.mmap.deref()
     }
 }

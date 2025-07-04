@@ -4,9 +4,10 @@ use std::sync::Arc;
 use gio::glib;
 use gio::glib::clone::Downgrade;
 use gio::prelude::{IsA, *};
+use glycin_common::BinaryData;
 pub use glycin_utils::operations::{Operation, Operations};
 use glycin_utils::safe_math::SafeConversion;
-use glycin_utils::{BinaryData, ByteChanges, SparseEditorOutput};
+use glycin_utils::{ByteChanges, SparseEditorOutput};
 
 use crate::api_common::*;
 use crate::error::ResultExt;

@@ -143,6 +143,7 @@ mod test {
     use std::os::fd::{FromRawFd, IntoRawFd, OwnedFd};
     use std::sync::Arc;
 
+    use glycin_common::BinaryData;
     use zbus::zvariant;
 
     use super::*;
@@ -150,11 +151,7 @@ mod test {
     #[test]
     fn u16_to_u8() {
         let (a, _) = std::os::unix::net::UnixStream::pair().unwrap();
-        let texture = crate::BinaryData {
-            memfd: Arc::new(unsafe {
-                zvariant::OwnedFd::from(OwnedFd::from_raw_fd(a.into_raw_fd()))
-            }),
-        };
+        let texture = BinaryData::from(unsafe { OwnedFd::from_raw_fd(a.into_raw_fd()) });
         let img_buf = ImgBuf::Vec(vec![
             127, 0, 128, 0, 127, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 127, 253, 128, 253, 255,
             255,
@@ -169,11 +166,7 @@ mod test {
     #[test]
     fn u8alpha_to_u8reversed() {
         let (a, _) = std::os::unix::net::UnixStream::pair().unwrap();
-        let texture = crate::BinaryData {
-            memfd: Arc::new(unsafe {
-                zvariant::OwnedFd::from(OwnedFd::from_raw_fd(a.into_raw_fd()))
-            }),
-        };
+        let texture = BinaryData::from(unsafe { OwnedFd::from_raw_fd(a.into_raw_fd()) });
         let img_buf = ImgBuf::Vec(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
         let frame = Frame::new(2, 2, crate::MemoryFormat::R8g8b8a8, texture).unwrap();
         let x = change_memory_format(img_buf, frame, MemoryFormat::B8g8r8)
@@ -185,11 +178,7 @@ mod test {
     #[test]
     fn u8premultiplied_to_u8() {
         let (a, _) = std::os::unix::net::UnixStream::pair().unwrap();
-        let texture = crate::BinaryData {
-            memfd: Arc::new(unsafe {
-                zvariant::OwnedFd::from(OwnedFd::from_raw_fd(a.into_raw_fd()))
-            }),
-        };
+        let texture = BinaryData::from(unsafe { OwnedFd::from_raw_fd(a.into_raw_fd()) });
         let img_buf = ImgBuf::Vec(vec![127, 63, 0, 127, 127, 63, 0, 255]);
         let frame = Frame::new(1, 2, crate::MemoryFormat::R8g8b8a8Premultiplied, texture).unwrap();
         let x = change_memory_format(img_buf, frame, MemoryFormat::R8g8b8a8)

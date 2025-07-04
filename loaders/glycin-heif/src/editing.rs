@@ -89,7 +89,7 @@ impl EditorImplementation for ImgEditor {
             .expected_error()?;
 
         let bytes = context.write_to_bytes().expected_error()?;
-        let data = BinaryData::from_data(bytes)?;
+        let data = BinaryData::from_data(bytes).expected_error()?;
 
         Ok(glycin_utils::EncodedImage::new(data))
     }

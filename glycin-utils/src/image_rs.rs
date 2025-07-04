@@ -1,9 +1,10 @@
-use super::{Frame, SharedMemory};
+use glycin_common::shared_memory::SharedMemory;
+use glycin_common::BinaryData;
+
+use super::Frame;
 use crate::editing::EditingFrame;
 use crate::memory_format::{ExtendedMemoryFormat, MemoryFormat, MemoryFormatInfo};
-use crate::{
-    BinaryData, DimensionTooLargerError, FrameDetails, GenericContexts, ImageDetails, ProcessError,
-};
+use crate::{DimensionTooLargerError, FrameDetails, GenericContexts, ImageDetails, ProcessError};
 
 #[derive(Default, Clone, Debug)]
 pub struct Handler {
