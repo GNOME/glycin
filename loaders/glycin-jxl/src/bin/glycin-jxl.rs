@@ -23,20 +23,20 @@ impl LoaderImplementation for ImgDecoder {
         mut stream: UnixStream,
         _mime_type: String,
         _details: InitializationDetails,
-    ) -> Result<(Self, ImageInfo), ProcessError> {
+    ) -> Result<(Self, ImageDetails), ProcessError> {
         let mut data = Vec::new();
         stream.read_to_end(&mut data).expected_error()?;
         let (info, iccp, exif) = basic_info(&data);
 
         let info = info.expected_error()?;
 
-        let mut image_info = ImageInfo::new(info.xsize, info.ysize);
-        image_info.format_name = Some(String::from("JPEG XL"));
-        image_info.exif = exif
+        let mut image_info = ImageDetails::new(info.xsize, info.ysize);
+        image_info.info_format_name = Some(String::from("JPEG XL"));
+        image_info.metadata_exif = exif
             .map(BinaryData::from_data)
             .transpose()
             .expected_error()?;
-        image_info.transformations_applied = true;
+        image_info.transformation_ignore_exif = true;
 
         let loader_implementation = ImgDecoder {
             decoder: (data, iccp),
@@ -73,22 +73,22 @@ impl LoaderImplementation for ImgDecoder {
 
         let mut frame = Frame::new(width, height, memory_format, texture).expected_error()?;
 
-        frame.details.iccp = iccp
+        frame.details.color_iccp = iccp
             .clone()
             .map(BinaryData::from_data)
             .transpose()
             .expected_error()?;
 
         if bits != 8 {
-            frame.details.bit_depth = Some(bits);
+            frame.details.info_bit_depth = Some(bits);
         }
 
         if alpha_channel {
-            frame.details.alpha_channel = Some(true);
+            frame.details.info_alpha_channel = Some(true);
         }
 
         if grayscale {
-            frame.details.grayscale = Some(true);
+            frame.details.info_grayscale = Some(true);
         }
 
         Ok(frame)

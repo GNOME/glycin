@@ -89,7 +89,7 @@ async fn get_texture(path: impl AsRef<Path>) -> gdk::Texture {
     frame.texture()
 }
 
-async fn get_info(path: impl AsRef<Path>) -> glycin::ImageInfo {
+async fn get_info(path: impl AsRef<Path>) -> glycin::ImageDetails {
     let file = gio::File::for_path(&path);
     let loader = glycin::Loader::new(file);
     let image = loader.load().await.unwrap();
@@ -123,7 +123,7 @@ pub async fn compare_images(
 
     let reference_exif = get_info(&reference_path)
         .await
-        .exif
+        .metadata_exif
         .map(|x| x.get().unwrap());
 
     let exif_eq = if !test_exif
@@ -131,7 +131,10 @@ pub async fn compare_images(
     {
         true
     } else {
-        let exif = get_info(&path).await.exif.map(|x| x.get().unwrap());
+        let exif = get_info(&path)
+            .await
+            .metadata_exif
+            .map(|x| x.get().unwrap());
         reference_exif.as_ref().map(|x| &x[..2]) == exif.as_ref().map(|x| &x[..2])
     };
 

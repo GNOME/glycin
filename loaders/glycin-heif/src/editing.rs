@@ -45,7 +45,7 @@ impl EditorImplementation for ImgEditor {
             .create_plane(Channel::Interleaved, width, height, 8)
             .expected_error()?;
 
-        if let Some(icc_profile) = &frame.details.iccp {
+        if let Some(icc_profile) = &frame.details.color_iccp {
             image
                 .set_color_profile_raw(&ColorProfileRaw::new(
                     four_cc::FourCC(*b"prof"),

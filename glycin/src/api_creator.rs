@@ -49,7 +49,7 @@ impl Creator {
             cancellable: gio::Cancellable::new(),
             sandbox_selector: SandboxSelector::default(),
             encoding_options: glycin_utils::EncodingOptions::default(),
-            new_image: glycin_utils::NewImage::new(glycin_utils::ImageInfo::new(1, 1), vec![]),
+            new_image: glycin_utils::NewImage::new(glycin_utils::ImageDetails::new(1, 1), vec![]),
             new_frames: vec![],
         })
     }
@@ -177,7 +177,7 @@ impl Creator {
         &mut self,
         key_value: BTreeMap<String, String>,
     ) -> Result<(), FeatureNotSupported> {
-        self.new_image.image_info.key_value = Some(key_value);
+        self.new_image.image_info.metadata_key_value = Some(key_value);
         Ok(())
     }
 
@@ -189,11 +189,11 @@ impl Creator {
         let mut key_value = self
             .new_image
             .image_info
-            .key_value
+            .metadata_key_value
             .clone()
             .unwrap_or_default();
         key_value.insert(key, value);
-        self.new_image.image_info.key_value = Some(key_value);
+        self.new_image.image_info.metadata_key_value = Some(key_value);
         Ok(())
     }
 
@@ -261,7 +261,7 @@ impl NewFrame {
         if let Some(icc_profile) = self.icc_profile.lock().unwrap().as_ref() {
             // TODO unwrap
             let icc_profile = BinaryData::from_data(icc_profile).unwrap();
-            frame.details.iccp = Some(icc_profile);
+            frame.details.color_iccp = Some(icc_profile);
         }
 
         Ok(frame)

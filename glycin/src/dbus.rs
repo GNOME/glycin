@@ -268,10 +268,10 @@ impl RemoteProcess<LoaderProxy<'static>> {
         let image_info = image_info.await?;
 
         // Seal all memfds
-        if let Some(exif) = &image_info.details.exif {
+        if let Some(exif) = &image_info.details.metadata_exif {
             seal_fd(exif).await?;
         }
-        if let Some(xmp) = &image_info.details.xmp {
+        if let Some(xmp) = &image_info.details.metadata_xmp {
             seal_fd(xmp).await?;
         }
 
@@ -311,7 +311,7 @@ impl RemoteProcess<LoaderProxy<'static>> {
         let mut frame = loader_proxy.frame(frame_request).await?;
 
         // Seal all constant data
-        if let Some(iccp) = &frame.details.iccp {
+        if let Some(iccp) = &frame.details.color_iccp {
             seal_fd(iccp).await?;
         }
 
@@ -330,14 +330,14 @@ impl RemoteProcess<LoaderProxy<'static>> {
 
         let img_buf = if let Some(cicp) = frame
             .details
-            .cicp
+            .color_cicp
             .clone()
             .and_then(|x| x.try_into().ok())
             .and_then(|x| Cicp::from_bytes(&x).ok())
         {
             color_state = ColorState::Cicp(cicp);
             img_buf
-        } else if let Some(Ok(icc_profile)) = frame.details.iccp.as_ref().map(|x| x.get()) {
+        } else if let Some(Ok(icc_profile)) = frame.details.color_iccp.as_ref().map(|x| x.get()) {
             // Align stride with pixel size if necessary
             let mut img_buf = remove_stride_if_needed(img_buf, &mut frame)?;
 

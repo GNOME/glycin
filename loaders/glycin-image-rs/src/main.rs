@@ -158,7 +158,7 @@ impl LoaderImplementation for ImgDecoder {
         mut stream: UnixStream,
         mime_type: String,
         _details: InitializationDetails,
-    ) -> Result<(Self, ImageInfo), ProcessError> {
+    ) -> Result<(Self, ImageDetails), ProcessError> {
         let mut buf = Vec::new();
         stream.read_to_end(&mut buf).internal_error()?;
         let data = Cursor::new(buf);
@@ -174,21 +174,21 @@ impl LoaderImplementation for ImgDecoder {
 
         let data = match metadata {
             Ok((metadata, data)) => {
-                image_info.exif = metadata
+                image_info.metadata_exif = metadata
                     .exif
                     .first()
                     .map(BinaryData::from_data)
                     .transpose()
                     .expected_error()?;
 
-                image_info.xmp = metadata
+                image_info.metadata_xmp = metadata
                     .xmp
                     .first()
                     .map(BinaryData::from_data)
                     .transpose()
                     .expected_error()?;
 
-                image_info.key_value = Some(metadata.key_value);
+                image_info.metadata_key_value = Some(metadata.key_value);
 
                 data
             }
@@ -228,7 +228,7 @@ impl LoaderImplementation for ImgDecoder {
             return Err(ProcessError::NoMoreFrames);
         };
 
-        frame.details.cicp = self.cicp.lock().unwrap().map(|x| x.into());
+        frame.details.color_cicp = self.cicp.lock().unwrap().map(|x| x.into());
 
         Ok(frame)
     }
@@ -385,7 +385,7 @@ impl<'a, T: std::io::BufRead + std::io::Seek + 'a> ImageRsFormat<T> {
         }
     }
 
-    fn info(&mut self) -> ImageInfo {
+    fn info(&mut self) -> ImageDetails {
         match self.decoder {
             ImageRsDecoder::Bmp(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Dds(ref mut d) => self.handler.info(d),

@@ -43,53 +43,52 @@ pub struct FrameRequest {
 /// This is returned from the initial `InitRequest` call
 #[derive(Deserialize, Serialize, Type, Debug, Clone)]
 pub struct RemoteImage {
+    pub frame_request: zvariant::OwnedObjectPath,
+    pub details: ImageDetails,
+}
+
+impl RemoteImage {
+    pub fn new(details: ImageDetails, frame_request: zvariant::OwnedObjectPath) -> Self {
+        Self {
+            frame_request,
+            details,
+        }
+    }
+}
+#[derive(DeserializeDict, SerializeDict, Type, Debug, Clone, Default)]
+#[zvariant(signature = "dict")]
+#[non_exhaustive]
+pub struct ImageDetails {
     /// Early dimension information.
     ///
     /// This information is often correct. However, it should only be used for
     /// an early rendering estimates. For everything else, the specific frame
     /// information should be used.
-    pub frame_request: zvariant::OwnedObjectPath,
-    pub details: ImageInfo,
-}
-
-impl RemoteImage {
-    pub fn new(image_info: ImageInfo, frame_request: zvariant::OwnedObjectPath) -> Self {
-        Self {
-            frame_request,
-            details: image_info,
-        }
-    }
-}
-
-#[derive(DeserializeDict, SerializeDict, Type, Debug, Clone, Default)]
-#[zvariant(signature = "dict")]
-#[non_exhaustive]
-pub struct ImageInfo {
     pub width: u32,
     pub height: u32,
-    pub format_name: Option<String>,
-    pub exif: Option<BinaryData>,
-    pub xmp: Option<BinaryData>,
-    pub key_value: Option<BTreeMap<String, String>>,
-    pub transformations_applied: bool,
-    /// Textual description of the image dimensions
-    pub dimensions_text: Option<String>,
     /// Image dimensions in inch
     pub dimensions_inch: Option<(f64, f64)>,
+    pub info_format_name: Option<String>,
+    /// Textual description of the image dimensions
+    pub info_dimensions_text: Option<String>,
+    pub metadata_exif: Option<BinaryData>,
+    pub metadata_xmp: Option<BinaryData>,
+    pub metadata_key_value: Option<BTreeMap<String, String>>,
+    pub transformation_ignore_exif: bool,
 }
 
-impl ImageInfo {
+impl ImageDetails {
     pub fn new(width: u32, height: u32) -> Self {
         Self {
             width,
             height,
-            format_name: None,
-            exif: None,
-            xmp: None,
-            key_value: None,
-            transformations_applied: false,
-            dimensions_text: None,
             dimensions_inch: None,
+            info_dimensions_text: None,
+            info_format_name: None,
+            metadata_exif: None,
+            metadata_xmp: None,
+            metadata_key_value: None,
+            transformation_ignore_exif: false,
         }
     }
 }
@@ -121,21 +120,21 @@ impl Frame {
 /// More information about a frame
 pub struct FrameDetails {
     /// ICC color profile
-    pub iccp: Option<BinaryData>,
+    pub color_iccp: Option<BinaryData>,
     /// Coding-independent code points (HDR information)
-    pub cicp: Option<Vec<u8>>,
+    pub color_cicp: Option<Vec<u8>>,
     /// Bit depth per channel
     ///
     /// Only set if it can differ for the format
-    pub bit_depth: Option<u8>,
+    pub info_bit_depth: Option<u8>,
     /// Image has alpha channel
     ///
     /// Only set if it can differ for the format
-    pub alpha_channel: Option<bool>,
+    pub info_alpha_channel: Option<bool>,
     /// Image uses grayscale mode
     ///
     /// Only set if it can differ for the format
-    pub grayscale: Option<bool>,
+    pub info_grayscale: Option<bool>,
     pub n_frame: Option<u64>,
 }
 
@@ -180,12 +179,12 @@ impl Frame {
 #[zvariant(signature = "dict")]
 #[non_exhaustive]
 pub struct NewImage {
-    pub image_info: ImageInfo,
+    pub image_info: ImageDetails,
     pub frames: Vec<Frame>,
 }
 
 impl NewImage {
-    pub fn new(image_info: ImageInfo, frames: Vec<Frame>) -> Self {
+    pub fn new(image_info: ImageDetails, frames: Vec<Frame>) -> Self {
         Self { image_info, frames }
     }
 }

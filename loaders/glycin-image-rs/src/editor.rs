@@ -65,7 +65,7 @@ impl EditorImplementation for ImgEditor {
 
         let memory_format = image_memory_format(memory_format)?;
 
-        let icc_profile = frame.details.iccp.as_ref().and_then(|x| {
+        let icc_profile = frame.details.color_iccp.as_ref().and_then(|x| {
             x.get_full()
                 .inspect_err(|err| log::error!("Can't read the ICC profile {err}"))
                 .ok()
