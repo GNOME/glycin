@@ -1,4 +1,4 @@
-use glycin_utils::memory_format::{MemoryFormat, MemoryFormatInfo};
+use glycin_common::{MemoryFormat, MemoryFormatInfo};
 
 use crate::{ColorState, Error};
 

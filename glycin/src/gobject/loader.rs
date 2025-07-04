@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use gio::glib;
 use glib::prelude::*;
 use glib::subclass::prelude::*;
-use glycin_utils::MemoryFormatSelection;
+use glycin_common::MemoryFormatSelection;
 
 use super::GlyImage;
 use crate::error::ResultExt;

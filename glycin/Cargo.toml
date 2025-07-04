@@ -23,7 +23,11 @@ async-io = [
     "zbus/async-io",
 ]
 tokio = ["dep:tokio", "dep:tokio-stream", "glycin-utils/tokio", "zbus/tokio"]
-gobject = ["glycin-utils/gobject", "dep:tracing-subscriber"]
+gobject = [
+    "glycin-common/gobject",
+    "glycin-utils/gobject",
+    "dep:tracing-subscriber",
+]
 gdk4 = ["dep:gdk"]
 
 [dependencies]

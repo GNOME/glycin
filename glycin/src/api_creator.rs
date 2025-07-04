@@ -3,8 +3,7 @@ use std::sync::{Arc, Mutex};
 
 use glib::object::IsA;
 use glib::prelude::*;
-use glycin_common::BinaryData;
-use glycin_utils::memory_format::MemoryFormatInfo;
+use glycin_common::{BinaryData, MemoryFormatInfo};
 use glycin_utils::{DimensionTooLargerError, MemoryFormat};
 
 use crate::config::{Config, ImageEditorConfig};

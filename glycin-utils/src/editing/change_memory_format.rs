@@ -1,8 +1,8 @@
+use glycin_common::{ChannelType, MemoryFormatInfo, Source, Target};
 use gufo_common::math::Checked;
 use rayon::iter::IntoParallelIterator;
 use rayon::prelude::*;
 
-use crate::memory_format::{ChannelType, MemoryFormatInfo, Source, Target};
 use crate::{editing, Frame, ImgBuf, MemoryFormat};
 pub fn change_memory_format(
     mut img_buf: ImgBuf,

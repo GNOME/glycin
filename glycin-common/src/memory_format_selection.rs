@@ -1,5 +1,4 @@
-use crate::memory_format::MemoryFormatInfo;
-use crate::MemoryFormat;
+use crate::{MemoryFormat, MemoryFormatInfo};
 
 /// Selection of memory formats the API user accepts
 #[cfg(feature = "gobject")]

@@ -1,7 +1,6 @@
 use std::fmt::{Debug, Display};
 use std::sync::Arc;
 
-use crate::memory_format::ExtendedMemoryFormat;
 use crate::DimensionTooLargerError;
 
 mod change_memory_format;
@@ -11,6 +10,7 @@ mod orientation;
 
 pub use change_memory_format::change_memory_format;
 pub use clip::clip;
+use glycin_common::ExtendedMemoryFormat;
 use gufo_common::math::MathError;
 use gufo_common::read::ReadError;
 pub use orientation::change_orientation;

@@ -1,9 +1,8 @@
 use glycin_common::shared_memory::SharedMemory;
-use glycin_common::BinaryData;
+use glycin_common::{BinaryData, ExtendedMemoryFormat, MemoryFormat, MemoryFormatInfo};
 
 use super::Frame;
 use crate::editing::EditingFrame;
-use crate::memory_format::{ExtendedMemoryFormat, MemoryFormat, MemoryFormatInfo};
 use crate::{DimensionTooLargerError, FrameDetails, GenericContexts, ImageDetails, ProcessError};
 
 #[derive(Default, Clone, Debug)]
@@ -53,7 +52,7 @@ impl Handler {
         let width = simple_frame.width;
         let height = simple_frame.height;
         let color_type = decoder.color_type();
-        let memory_format = MemoryFormat::from(color_type);
+        let memory_format = memory_format_from_color_type(color_type);
 
         let details = self.frame_details(&mut decoder);
 
@@ -72,7 +71,7 @@ impl Handler {
         decoder: &impl image::ImageDecoder,
     ) -> Result<EditingFrame, ProcessError> {
         let color_type = decoder.color_type();
-        let memory_format = ExtendedMemoryFormat::from(MemoryFormat::from(color_type));
+        let memory_format = ExtendedMemoryFormat::from(memory_format_from_color_type(color_type));
         let (width, height) = decoder.dimensions();
         let stride = memory_format
             .n_bytes()
@@ -134,48 +133,44 @@ impl ImageInfo {
 }
      */
 
-impl MemoryFormat {
-    pub fn to_color_type(&self) -> Option<image::ColorType> {
-        match self {
-            Self::G8 => Some(image::ColorType::L8),
-            Self::G8a8 => Some(image::ColorType::La8),
-            Self::R8g8b8 => Some(image::ColorType::Rgb8),
-            Self::R8g8b8a8 => Some(image::ColorType::Rgba8),
-            Self::G16 => Some(image::ColorType::L16),
-            Self::G16a16 => Some(image::ColorType::La16),
-            Self::R16g16b16 => Some(image::ColorType::Rgb16),
-            Self::R16g16b16a16 => Some(image::ColorType::Rgba16),
-            Self::R32g32b32Float => Some(image::ColorType::Rgb32F),
-            Self::R32g32b32a32Float => Some(image::ColorType::Rgba32F),
-            _ => None,
-        }
+pub fn memory_format_to_color_type(memory_format: &MemoryFormat) -> Option<image::ColorType> {
+    match memory_format {
+        MemoryFormat::G8 => Some(image::ColorType::L8),
+        MemoryFormat::G8a8 => Some(image::ColorType::La8),
+        MemoryFormat::R8g8b8 => Some(image::ColorType::Rgb8),
+        MemoryFormat::R8g8b8a8 => Some(image::ColorType::Rgba8),
+        MemoryFormat::G16 => Some(image::ColorType::L16),
+        MemoryFormat::G16a16 => Some(image::ColorType::La16),
+        MemoryFormat::R16g16b16 => Some(image::ColorType::Rgb16),
+        MemoryFormat::R16g16b16a16 => Some(image::ColorType::Rgba16),
+        MemoryFormat::R32g32b32Float => Some(image::ColorType::Rgb32F),
+        MemoryFormat::R32g32b32a32Float => Some(image::ColorType::Rgba32F),
+        _ => None,
     }
 }
 
-impl ExtendedMemoryFormat {
-    pub fn to_color_type(&self) -> Option<image::ColorType> {
-        match self {
-            Self::Basic(basic) => basic.to_color_type(),
-            _ => None,
-        }
+pub fn extended_memory_format_to_color_type(
+    extended_memory_format: &ExtendedMemoryFormat,
+) -> Option<image::ColorType> {
+    match extended_memory_format {
+        ExtendedMemoryFormat::Basic(basic) => memory_format_to_color_type(basic),
+        _ => None,
     }
 }
 
-impl From<image::ColorType> for MemoryFormat {
-    fn from(color_type: image::ColorType) -> Self {
-        match color_type {
-            image::ColorType::L8 => Self::G8,
-            image::ColorType::La8 => Self::G8a8,
-            image::ColorType::Rgb8 => Self::R8g8b8,
-            image::ColorType::Rgba8 => Self::R8g8b8a8,
-            image::ColorType::L16 => Self::G16,
-            image::ColorType::La16 => Self::G16a16,
-            image::ColorType::Rgb16 => Self::R16g16b16,
-            image::ColorType::Rgba16 => Self::R16g16b16a16,
-            image::ColorType::Rgb32F => Self::R32g32b32Float,
-            image::ColorType::Rgba32F => Self::R32g32b32a32Float,
-            _ => unimplemented!(),
-        }
+pub fn memory_format_from_color_type(color_type: image::ColorType) -> MemoryFormat {
+    match color_type {
+        image::ColorType::L8 => MemoryFormat::G8,
+        image::ColorType::La8 => MemoryFormat::G8a8,
+        image::ColorType::Rgb8 => MemoryFormat::R8g8b8,
+        image::ColorType::Rgba8 => MemoryFormat::R8g8b8a8,
+        image::ColorType::L16 => MemoryFormat::G16,
+        image::ColorType::La16 => MemoryFormat::G16a16,
+        image::ColorType::Rgb16 => MemoryFormat::R16g16b16,
+        image::ColorType::Rgba16 => MemoryFormat::R16g16b16a16,
+        image::ColorType::Rgb32F => MemoryFormat::R32g32b32Float,
+        image::ColorType::Rgba32F => MemoryFormat::R32g32b32a32Float,
+        _ => unimplemented!(),
     }
 }
 

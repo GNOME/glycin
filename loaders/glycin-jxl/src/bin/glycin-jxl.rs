@@ -3,6 +3,7 @@
 use std::io::{Cursor, Read, Write};
 use std::mem::MaybeUninit;
 
+use glycin_utils::image_rs::memory_format_from_color_type;
 use glycin_utils::*;
 use jpegxl_rs::image::ToDynamic;
 use jpegxl_sys::codestream_header::*;
@@ -57,7 +58,7 @@ impl LoaderImplementation for ImgDecoder {
             .expected_error()?
             .expected_error()?;
 
-        let memory_format = MemoryFormat::from(image.color());
+        let memory_format = memory_format_from_color_type(image.color());
         let (alpha_channel, grayscale, bits) =
             image_rs::channel_details(image.color().into()).internal_error()?;
         let width = image.width();
