@@ -2,10 +2,9 @@ use std::sync::OnceLock;
 
 use gio::{glib, Cancellable};
 use glib::subclass::prelude::*;
-use glycin_utils::ImageDetails;
 
 use super::GlyFrame;
-use crate::{ErrorCtx, FrameRequest, Image};
+use crate::{ErrorCtx, FrameRequest, Image, ImageDetails};
 
 static_assertions::assert_impl_all!(GlyImage: Send, Sync);
 
@@ -39,7 +38,7 @@ impl GlyImage {
         obj
     }
 
-    pub fn image_info(&self) -> &ImageDetails {
+    pub fn image_info(&self) -> ImageDetails {
         self.image().info()
     }
 

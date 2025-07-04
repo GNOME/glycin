@@ -143,7 +143,11 @@ fn exif_orientation_value_position(data: Vec<u8>) -> Option<usize> {
     }
 }
 
-pub fn add_metadata(buf: Vec<u8>, image_info: &ImageDetails, frame_details: &FrameDetails) -> Vec<u8> {
+pub fn add_metadata(
+    buf: Vec<u8>,
+    image_info: &ImageDetails,
+    frame_details: &FrameDetails,
+) -> Vec<u8> {
     match add_metadata_internal(buf, image_info, frame_details) {
         Err(err) => {
             log::error!("Failed to add metadata: {err}");

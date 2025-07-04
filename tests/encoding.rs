@@ -214,7 +214,7 @@ fn write_png() {
         assert_eq!(
             image
                 .info()
-                .metadata_key_value
+                .metadata_key_value()
                 .as_ref()
                 .unwrap()
                 .get("keyword"),
