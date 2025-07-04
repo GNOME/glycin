@@ -2,7 +2,7 @@ use super::{Frame, SharedMemory};
 use crate::editing::EditingFrame;
 use crate::memory_format::{ExtendedMemoryFormat, MemoryFormat, MemoryFormatInfo};
 use crate::{
-    BinaryData, DimensionTooLargerError, FrameDetails, GenericContexts, ImageInfo, ProcessError,
+    BinaryData, DimensionTooLargerError, FrameDetails, GenericContexts, ImageDetails, ProcessError,
 };
 
 #[derive(Default, Clone, Debug)]
@@ -38,10 +38,10 @@ impl Handler {
         self
     }
 
-    pub fn info(&self, decoder: &mut impl image::ImageDecoder) -> ImageInfo {
+    pub fn info(&self, decoder: &mut impl image::ImageDecoder) -> ImageDetails {
         let (width, height) = decoder.dimensions();
-        let mut info = ImageInfo::new(width, height);
-        info.format_name.clone_from(&self.format_name);
+        let mut info = ImageDetails::new(width, height);
+        info.info_format_name.clone_from(&self.format_name);
 
         info
     }
@@ -92,7 +92,7 @@ impl Handler {
         decoder: &mut impl image::ImageDecoder,
     ) -> Result<FrameDetails, ProcessError> {
         let mut details = FrameDetails {
-            iccp: decoder
+            color_iccp: decoder
                 .icc_profile()
                 .ok()
                 .flatten()
@@ -106,13 +106,13 @@ impl Handler {
             channel_details(decoder.original_color_type())
         {
             if self.default_bit_depth != Some(bits) {
-                details.bit_depth = Some(bits);
+                details.info_bit_depth = Some(bits);
             }
             if self.supports_two_alpha_modes {
-                details.alpha_channel = Some(alpha_channel);
+                details.info_alpha_channel = Some(alpha_channel);
             }
             if self.supports_two_grayscale_modes {
-                details.grayscale = Some(grayscale);
+                details.info_grayscale = Some(grayscale);
             }
         }
 

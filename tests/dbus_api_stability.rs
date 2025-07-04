@@ -91,7 +91,7 @@ impl glycin_utils::LoaderImplementation for MockLoader {
         _stream: UnixStream,
         _mime_type: String,
         _details: glycin_utils::InitializationDetails,
-    ) -> Result<(Self, glycin::ImageInfo), glycin_utils::ProcessError> {
+    ) -> Result<(Self, glycin::ImageDetails), glycin_utils::ProcessError> {
         unimplemented!()
     }
 }

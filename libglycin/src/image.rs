@@ -162,7 +162,7 @@ pub unsafe extern "C" fn gly_image_get_metadata_key_value(
 
     let value = image
         .image_info()
-        .key_value
+        .metadata_key_value
         .as_ref()
         .and_then(|x| x.get(key));
 
@@ -175,7 +175,7 @@ pub unsafe extern "C" fn gly_image_get_metadata_keys(image: *mut GlyImage) -> GS
 
     image
         .image_info()
-        .key_value
+        .metadata_key_value
         .as_ref()
         .map(|x| glib::StrV::from_iter(x.keys().map(|x| glib::GString::from(x))))
         .unwrap_or_default()

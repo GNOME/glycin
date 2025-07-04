@@ -6,7 +6,7 @@ use gio::prelude::*;
 #[cfg(feature = "gdk4")]
 use glycin_utils::safe_math::*;
 pub use glycin_utils::{FrameDetails, MemoryFormat};
-use glycin_utils::{ImageInfo, MemoryFormatSelection, RemoteImage};
+use glycin_utils::{ImageDetails, MemoryFormatSelection, RemoteImage};
 use zbus::zvariant::OwnedObjectPath;
 
 use crate::api_common::*;
@@ -257,7 +257,7 @@ impl Image {
     }
 
     /// Returns already obtained info
-    pub fn info(&self) -> &ImageInfo {
+    pub fn info(&self) -> &ImageDetails {
         &self.info.details
     }
 
@@ -273,7 +273,7 @@ impl Image {
 
     /// A textual representation of the image format
     pub fn format_name(&self) -> Option<String> {
-        self.info().format_name.as_ref().cloned()
+        self.info().info_format_name.as_ref().cloned()
     }
 
     /// File the image was loaded from

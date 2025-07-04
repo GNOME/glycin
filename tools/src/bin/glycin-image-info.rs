@@ -29,11 +29,14 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
     println!("dimensions = {} x {}", info.width, info.height);
     println!(
         "format_name = {}",
-        info.format_name.as_ref().cloned().unwrap_or("-".into())
+        info.info_format_name
+            .as_ref()
+            .cloned()
+            .unwrap_or("-".into())
     );
     println!(
         "exif = {}",
-        info.exif
+        info.metadata_exif
             .as_ref()
             .map_or(String::from("empty"), |x| glib::format_size(
                 x.get_full().unwrap().len() as u64
@@ -42,14 +45,14 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
     );
     println!(
         "xmp = {}",
-        info.xmp
+        info.metadata_xmp
             .as_ref()
             .map_or(String::from("empty"), |x| glib::format_size(
                 x.get_full().unwrap().len() as u64
             )
             .to_string())
     );
-    if let Some(key_value) = &info.key_value {
+    if let Some(key_value) = &info.metadata_key_value {
         println!("key_value = ");
         for (key, value) in key_value {
             println!(" - {key}: {value}");
@@ -59,7 +62,7 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
     }
     println!(
         "dimensions_text = {}",
-        info.dimensions_text
+        info.info_dimensions_text
             .as_ref()
             .cloned()
             .unwrap_or(String::from("-"))
@@ -90,7 +93,7 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
             "iccp = {}",
             frame
                 .details()
-                .iccp
+                .color_iccp
                 .as_ref()
                 .map_or(String::from("empty"), |x| glib::format_size(
                     x.get_full().unwrap().len() as u64
@@ -101,7 +104,7 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
             "bit_depth = {}",
             frame
                 .details()
-                .bit_depth
+                .info_bit_depth
                 .map(|x| format!("{} bit", x))
                 .unwrap_or("-".into())
         );
@@ -109,7 +112,7 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
             "alpha_channel = {}",
             frame
                 .details()
-                .alpha_channel
+                .info_alpha_channel
                 .map(|x| x.to_string())
                 .unwrap_or("-".into())
         );
@@ -117,7 +120,7 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
             "grayscale = {}",
             frame
                 .details()
-                .grayscale
+                .info_grayscale
                 .map(|x| x.to_string())
                 .unwrap_or("-".into())
         );

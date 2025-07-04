@@ -143,7 +143,7 @@ fn exif_orientation_value_position(data: Vec<u8>) -> Option<usize> {
     }
 }
 
-pub fn add_metadata(buf: Vec<u8>, image_info: &ImageInfo, frame_details: &FrameDetails) -> Vec<u8> {
+pub fn add_metadata(buf: Vec<u8>, image_info: &ImageDetails, frame_details: &FrameDetails) -> Vec<u8> {
     match add_metadata_internal(buf, image_info, frame_details) {
         Err(err) => {
             log::error!("Failed to add metadata: {err}");
@@ -155,12 +155,12 @@ pub fn add_metadata(buf: Vec<u8>, image_info: &ImageInfo, frame_details: &FrameD
 
 fn add_metadata_internal(
     buf: Vec<u8>,
-    image_info: &ImageInfo,
+    image_info: &ImageDetails,
     _frame_details: &FrameDetails,
 ) -> Result<Vec<u8>, ErrorWithData<gufo::png::Error>> {
     let mut png = gufo::png::Png::new(buf)?;
 
-    if let Some(key_value) = &image_info.key_value {
+    if let Some(key_value) = &image_info.metadata_key_value {
         for (key, value) in key_value {
             if let Err(err) = png.insert_chunk(NewChunk::text(key, value)) {
                 return Err(ErrorWithData::new(err, png.into_inner()));

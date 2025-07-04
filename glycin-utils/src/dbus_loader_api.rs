@@ -16,7 +16,7 @@ pub trait LoaderImplementation: Send + Sync + Sized + 'static {
         stream: UnixStream,
         mime_type: String,
         details: InitializationDetails,
-    ) -> Result<(Self, ImageInfo), ProcessError>;
+    ) -> Result<(Self, ImageDetails), ProcessError>;
 
     fn frame(&mut self, frame_request: FrameRequest) -> Result<Frame, ProcessError>;
 }

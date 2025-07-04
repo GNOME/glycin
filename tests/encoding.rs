@@ -87,7 +87,13 @@ fn write_jpeg() {
         let frame = image.next_frame().await.unwrap();
 
         assert_eq!(
-            frame.details().iccp.as_ref().unwrap().get_full().unwrap(),
+            frame
+                .details()
+                .color_iccp
+                .as_ref()
+                .unwrap()
+                .get_full()
+                .unwrap(),
             vec![1, 2, 3]
         );
     });
@@ -206,7 +212,12 @@ fn write_png() {
         let image = loader.load().await.unwrap();
 
         assert_eq!(
-            image.info().key_value.as_ref().unwrap().get("keyword"),
+            image
+                .info()
+                .metadata_key_value
+                .as_ref()
+                .unwrap()
+                .get("keyword"),
             Some(&"value".to_string())
         );
 
@@ -214,7 +225,13 @@ fn write_png() {
 
         assert_eq!(frame.buf_slice(), [255, 0, 0]);
         assert_eq!(
-            frame.details().iccp.as_ref().unwrap().get_full().unwrap(),
+            frame
+                .details()
+                .color_iccp
+                .as_ref()
+                .unwrap()
+                .get_full()
+                .unwrap(),
             vec![1, 2, 3]
         );
     });

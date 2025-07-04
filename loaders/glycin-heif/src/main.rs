@@ -22,7 +22,7 @@ impl LoaderImplementation for ImgDecoder {
         mut stream: UnixStream,
         mime_type: String,
         _details: InitializationDetails,
-    ) -> Result<(Self, ImageInfo), ProcessError> {
+    ) -> Result<(Self, ImageDetails), ProcessError> {
         let mut data = Vec::new();
         let total_size = stream.read_to_end(&mut data).internal_error()?;
 
@@ -37,15 +37,15 @@ impl LoaderImplementation for ImgDecoder {
             _ => "HEIF (Unknown)",
         };
 
-        let mut image_info = ImageInfo::new(handle.width(), handle.height());
-        image_info.exif = exif(&handle)
+        let mut image_info = ImageDetails::new(handle.width(), handle.height());
+        image_info.metadata_exif = exif(&handle)
             .map(BinaryData::from_data)
             .transpose()
             .expected_error()?;
-        image_info.format_name = Some(format_name.to_string());
+        image_info.info_format_name = Some(format_name.to_string());
 
         // TODO: Later use libheif 1.16 to get info if there is a transformation
-        image_info.transformations_applied = true;
+        image_info.transformation_ignore_exif = true;
 
         let decoder = ImgDecoder {
             decoder: Some(context),
@@ -158,14 +158,14 @@ fn decode(context: HeifContext, mime_type: &str) -> Result<Frame, ProcessError> 
 
     let mut frame = Frame::new(plane.width, plane.height, memory_format, texture)?;
     frame.stride = plane.stride.try_u32()?;
-    frame.details.iccp = icc_profile
+    frame.details.color_iccp = icc_profile
         .map(BinaryData::from_data)
         .transpose()
         .expected_error()?;
     if plane.bits_per_pixel > 8 {
-        frame.details.bit_depth = Some(plane.bits_per_pixel);
+        frame.details.info_bit_depth = Some(plane.bits_per_pixel);
     }
-    frame.details.alpha_channel = Some(handle.has_alpha_channel());
+    frame.details.info_alpha_channel = Some(handle.has_alpha_channel());
 
     Ok(frame)
 }
