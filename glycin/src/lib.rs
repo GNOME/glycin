@@ -92,7 +92,7 @@ pub use api_loader::*;
 pub use config::COMPAT_VERSION;
 pub use error::{Error, ErrorCtx};
 pub use glycin_utils::operations::OperationId;
-pub use glycin_utils::{BinaryData, ImageDetails, MemoryFormatSelection, RemoteError, RemoteImage};
+pub use glycin_utils::{BinaryData, MemoryFormatSelection, RemoteError};
 pub use gufo_common::cicp::{Cicp, VideoRangeFlag};
 #[cfg(feature = "gdk4")]
 pub use util::gdk_memory_format;

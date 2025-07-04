@@ -123,7 +123,7 @@ pub async fn compare_images(
 
     let reference_exif = get_info(&reference_path)
         .await
-        .metadata_exif
+        .metadata_exif()
         .map(|x| x.get().unwrap());
 
     let exif_eq = if !test_exif
@@ -133,7 +133,7 @@ pub async fn compare_images(
     } else {
         let exif = get_info(&path)
             .await
-            .metadata_exif
+            .metadata_exif()
             .map(|x| x.get().unwrap());
         reference_exif.as_ref().map(|x| &x[..2]) == exif.as_ref().map(|x| &x[..2])
     };

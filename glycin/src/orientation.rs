@@ -1,14 +1,16 @@
-use glycin_utils::{Frame, ImageDetails, ImgBuf};
+use glycin_utils::{Frame, ImgBuf};
+
+use crate::ImageDetails;
 
 pub fn apply_exif_orientation(
     img_buf: ImgBuf,
     frame: &mut Frame,
     image_info: &ImageDetails,
 ) -> ImgBuf {
-    if image_info.transformation_ignore_exif {
+    if image_info.transformation_ignore_exif() {
         img_buf
     } else if let Some(exif_data) = image_info
-        .metadata_exif
+        .metadata_exif()
         .as_ref()
         .and_then(|x| x.get_full().ok())
     {

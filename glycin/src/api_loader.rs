@@ -5,8 +5,8 @@ use gio::glib::clone::Downgrade;
 use gio::prelude::*;
 #[cfg(feature = "gdk4")]
 use glycin_utils::safe_math::*;
+use glycin_utils::MemoryFormatSelection;
 pub use glycin_utils::{FrameDetails, MemoryFormat};
-use glycin_utils::{ImageDetails, MemoryFormatSelection, RemoteImage};
 use zbus::zvariant::OwnedObjectPath;
 
 use crate::api_common::*;
@@ -155,7 +155,8 @@ impl Loader {
 
         Ok(Image {
             process: process_basics.process,
-            info,
+            frame_request: info.frame_request,
+            details: Arc::new(info.details),
             loader: self,
             mime_type: process_basics.mime_type,
             active_sandbox_mechanism: process_basics.sandbox_mechanism,
@@ -210,7 +211,8 @@ impl Loader {
 pub struct Image {
     pub(crate) loader: Loader,
     pub(crate) process: Arc<PooledProcess<LoaderProxy<'static>>>,
-    info: RemoteImage,
+    frame_request: OwnedObjectPath,
+    details: Arc<glycin_utils::ImageDetails>,
     mime_type: MimeType,
     active_sandbox_mechanism: SandboxMechanism,
     loader_alive: Mutex<Arc<()>>,
@@ -257,23 +259,18 @@ impl Image {
     }
 
     /// Returns already obtained info
-    pub fn info(&self) -> &ImageDetails {
-        &self.info.details
+    pub fn info(&self) -> ImageDetails {
+        ImageDetails::new(self.details.clone())
     }
 
     /// Returns already obtained info
     pub(crate) fn frame_request_path(&self) -> OwnedObjectPath {
-        self.info.frame_request.clone()
+        self.frame_request.clone()
     }
 
     /// Returns detected MIME type of the file
     pub fn mime_type(&self) -> MimeType {
         self.mime_type.clone()
-    }
-
-    /// A textual representation of the image format
-    pub fn format_name(&self) -> Option<String> {
-        self.info().info_format_name.as_ref().cloned()
     }
 
     /// File the image was loaded from
@@ -304,10 +301,51 @@ impl Image {
     }
 }
 
-impl Drop for Loader {
-    fn drop(&mut self) {
-        //TODO
-        //self.cancellable.cancel();
+#[derive(Debug, Clone)]
+pub struct ImageDetails {
+    inner: Arc<glycin_utils::ImageDetails>,
+}
+
+impl ImageDetails {
+    fn new(inner: Arc<glycin_utils::ImageDetails>) -> Self {
+        Self { inner }
+    }
+
+    pub fn width(&self) -> u32 {
+        self.inner.width
+    }
+
+    pub fn height(&self) -> u32 {
+        self.inner.height
+    }
+
+    pub fn dimensions_inch(&self) -> Option<(f64, f64)> {
+        self.inner.dimensions_inch
+    }
+
+    /// A textual representation of the image format
+    pub fn info_format_name(&self) -> Option<&str> {
+        self.inner.info_format_name.as_ref().map(|x| x.as_str())
+    }
+
+    pub fn info_dimensions_text(&self) -> Option<&str> {
+        self.inner.info_dimensions_text.as_ref().map(|x| x.as_str())
+    }
+
+    pub fn metadata_exif(&self) -> Option<glycin_utils::BinaryData> {
+        self.inner.metadata_exif.clone()
+    }
+
+    pub fn metadata_xmp(&self) -> Option<glycin_utils::BinaryData> {
+        self.inner.metadata_xmp.clone()
+    }
+
+    pub fn metadata_key_value(&self) -> Option<&std::collections::BTreeMap<String, String>> {
+        self.inner.metadata_key_value.as_ref()
+    }
+
+    pub fn transformation_ignore_exif(&self) -> bool {
+        self.inner.transformation_ignore_exif
     }
 }
 
