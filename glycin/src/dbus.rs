@@ -19,7 +19,8 @@ use glycin_common::{MemoryFormatInfo, Operations};
 use glycin_utils::safe_math::{SafeConversion, SafeMath};
 use glycin_utils::{
     CompleteEditorOutput, EditRequest, EncodedImage, EncodingOptions, Frame, FrameRequest, ImgBuf,
-    InitRequest, InitializationDetails, NewImage, RemoteError, RemoteImage, SparseEditorOutput,
+    InitRequest, InitializationDetails, NewImage, RemoteEditableImage, RemoteError, RemoteImage,
+    SparseEditorOutput,
 };
 use gufo_common::cicp::Cicp;
 use gufo_common::math::ToI64;
@@ -29,8 +30,8 @@ use zbus::zvariant::{self, OwnedObjectPath};
 use crate::sandbox::Sandbox;
 use crate::util::{self, block_on, spawn_blocking, spawn_blocking_detached};
 use crate::{
-    api_loader, config, icc, orientation, ColorState, Error, Image, MimeType, SandboxMechanism,
-    Source,
+    api_loader, config, icc, orientation, ColorState, EditableImage, Error, Image, MimeType,
+    SandboxMechanism, Source,
 };
 
 /// Max texture size 8 GB in bytes
@@ -409,55 +410,69 @@ impl RemoteProcess<EditorProxy<'static>> {
             .map_err(Into::into)
     }
 
-    pub async fn editor_apply_sparse(
+    pub async fn edit(
         &self,
         gfile_worker: &GFileWorker,
-        operations: &Operations,
         mime_type: &MimeType,
+    ) -> Result<RemoteEditableImage, Error> {
+        let init_request = self.init_request(&gfile_worker, mime_type)?;
+
+        self.proxy.edit(init_request).await.map_err(Into::into)
+    }
+
+    pub async fn editor_apply_sparse(
+        &self,
+        operations: &Operations,
+        editable_image: &EditableImage,
     ) -> Result<SparseEditorOutput, Error> {
-        let init_request = self.init_request(gfile_worker, mime_type)?;
+        let editor_proxy = EditableImageProxy::builder(&self.dbus_connection)
+            .destination("org.gnome.glycin")?
+            .path(editable_image.edit_request_path())?
+            .build()
+            .await?;
+
         let edit_request = EditRequest::for_operations(operations)?;
 
-        let editor_output = self.proxy.apply(init_request, edit_request).shared();
-
-        let reader_error = gfile_worker.error();
-        futures_util::pin_mut!(reader_error);
-
-        futures_util::select! {
-            _result = editor_output.clone().fuse() => Ok(()),
-            result = reader_error.fuse() => result,
-        }?;
-
-        let editor_output = editor_output.await?;
-
-        Ok(editor_output)
+        editor_proxy
+            .apply_sparse(edit_request)
+            .await
+            .map_err(Into::into)
     }
 
     pub async fn editor_apply_complete(
         &self,
-        gfile_worker: &GFileWorker,
         operations: &Operations,
-        mime_type: &MimeType,
+        editable_image: &EditableImage,
     ) -> Result<CompleteEditorOutput, Error> {
-        let init_request = self.init_request(gfile_worker, mime_type)?;
+        let editor_proxy = EditableImageProxy::builder(&self.dbus_connection)
+            .destination("org.gnome.glycin")?
+            .path(editable_image.edit_request_path())?
+            .build()
+            .await?;
+
         let edit_request = EditRequest::for_operations(operations)?;
 
-        let editor_output = self
-            .proxy
-            .apply_complete(init_request, edit_request)
-            .shared();
+        editor_proxy
+            .apply_complete(edit_request)
+            .await
+            .map_err(Into::into)
+    }
 
-        let reader_error = gfile_worker.error();
-        futures_util::pin_mut!(reader_error);
+    pub fn done_background(self: Arc<Self>, image: &EditableImage) {
+        let edit_request_path = image.edit_request_path();
+        let arc = self.clone();
 
-        futures_util::select! {
-            _result = editor_output.clone().fuse() => Ok(()),
-            result = reader_error.fuse() => result,
-        }?;
+        crate::util::spawn_detached(arc.done(edit_request_path));
+    }
 
-        let editor_output = editor_output.await?;
+    pub async fn done(self: Arc<Self>, edit_request_path: OwnedObjectPath) -> Result<(), Error> {
+        let loader_proxy = EditableImageProxy::builder(&self.dbus_connection)
+            .destination("org.gnome.glycin")?
+            .path(edit_request_path)?
+            .build()
+            .await?;
 
-        Ok(editor_output)
+        loader_proxy.done().await.map_err(Into::into)
     }
 }
 
@@ -480,24 +495,29 @@ pub trait LoaderState {
     default_path = "/org/gnome/glycin"
 )]
 pub trait Editor {
-    async fn apply(
-        &self,
-        init_request: InitRequest,
-        edit_request: EditRequest,
-    ) -> Result<SparseEditorOutput, RemoteError>;
-
-    async fn apply_complete(
-        &self,
-        init_request: InitRequest,
-        edit_request: EditRequest,
-    ) -> Result<CompleteEditorOutput, RemoteError>;
-
     async fn create(
         &self,
         mime_type: String,
         new_image: NewImage,
         encoding_options: EncodingOptions,
     ) -> Result<EncodedImage, RemoteError>;
+
+    async fn edit(&self, init_request: InitRequest) -> Result<RemoteEditableImage, RemoteError>;
+}
+
+#[zbus::proxy(interface = "org.gnome.glycin.EditableImage")]
+pub trait EditableImage {
+    async fn apply_sparse(
+        &self,
+        edit_request: EditRequest,
+    ) -> Result<SparseEditorOutput, RemoteError>;
+
+    async fn apply_complete(
+        &self,
+        edit_request: EditRequest,
+    ) -> Result<CompleteEditorOutput, RemoteError>;
+
+    async fn done(&self) -> Result<(), RemoteError>;
 }
 
 pub struct GFileWorker {

@@ -106,21 +106,11 @@ fn mock_loader() -> glycin_utils::Loader<MockLoader> {
 struct MockEditor {}
 
 impl glycin_utils::EditorImplementation for MockEditor {
-    fn apply_complete(
+    fn edit(
         _stream: UnixStream,
         _mime_type: String,
         _details: glycin_utils::InitializationDetails,
-        _operations: glycin::Operations,
-    ) -> Result<glycin_utils::CompleteEditorOutput, glycin_utils::ProcessError> {
-        unimplemented!()
-    }
-
-    fn apply_sparse(
-        _stream: UnixStream,
-        _mime_type: String,
-        _details: glycin_utils::InitializationDetails,
-        _operations: glycin::Operations,
-    ) -> Result<glycin_utils::SparseEditorOutput, glycin_utils::ProcessError> {
+    ) -> Result<Self, glycin_utils::ProcessError> {
         unimplemented!()
     }
 
@@ -131,10 +121,18 @@ impl glycin_utils::EditorImplementation for MockEditor {
     ) -> Result<glycin_utils::EncodedImage, glycin_utils::ProcessError> {
         unimplemented!()
     }
+
+    fn apply_complete(
+        &self,
+        _operations: glycin::Operations,
+    ) -> Result<glycin_utils::CompleteEditorOutput, glycin_utils::ProcessError> {
+        unimplemented!()
+    }
 }
 
 fn mock_editor() -> glycin_utils::Editor<MockEditor> {
     glycin_utils::Editor {
         editor: Default::default(),
+        image_id: Default::default(),
     }
 }

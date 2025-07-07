@@ -1,0 +1,1 @@
+The editing API is now split into two steps: First the image is loaded. Then, onto the loaded image, differente editing operations can be applied. This can speed-up the preview of editing operations, since the image doesn't need to be loaded each time.

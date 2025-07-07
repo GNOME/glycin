@@ -47,7 +47,7 @@ impl Handler {
     }
 
     pub fn frame(&self, mut decoder: impl image::ImageDecoder) -> Result<Frame, ProcessError> {
-        let simple_frame = self.simple_frame(&decoder)?;
+        let simple_frame = self.editing_frame(&decoder)?;
 
         let width = simple_frame.width;
         let height = simple_frame.height;
@@ -66,7 +66,7 @@ impl Handler {
         Ok(frame)
     }
 
-    pub fn simple_frame(
+    pub fn editing_frame(
         &self,
         decoder: &impl image::ImageDecoder,
     ) -> Result<EditingFrame, ProcessError> {

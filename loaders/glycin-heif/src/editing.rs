@@ -4,16 +4,30 @@ use libheif_rs::{
     LibHeif, RgbChroma,
 };
 
-pub struct ImgEditor {}
+pub struct ImgEditor {
+    mime_type: String,
+}
 
 impl EditorImplementation for ImgEditor {
-    fn apply_complete(
+    fn edit(
         _stream: std::os::unix::net::UnixStream,
         mime_type: String,
         _details: glycin_utils::InitializationDetails,
+    ) -> Result<Self, glycin_utils::ProcessError> {
+        Err(glycin_utils::RemoteError::UnsupportedImageFormat(
+            mime_type.clone(),
+        ))
+        .expected_error()
+    }
+
+    fn apply_complete(
+        &self,
         _operations: glycin_utils::Operations,
     ) -> Result<glycin_utils::CompleteEditorOutput, glycin_utils::ProcessError> {
-        Err(glycin_utils::RemoteError::UnsupportedImageFormat(mime_type)).expected_error()
+        Err(glycin_utils::RemoteError::UnsupportedImageFormat(
+            self.mime_type.clone(),
+        ))
+        .expected_error()
     }
 
     fn create(

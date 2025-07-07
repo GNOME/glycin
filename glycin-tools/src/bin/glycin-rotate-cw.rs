@@ -1,8 +1,14 @@
 // SPDX-License-Identifier: MPL-2.0 OR LGPL-2.1-or-later
 
 use glycin::{EditOutcome, Editor, Operation, Operations};
+use tracing_subscriber::prelude::*;
 
 fn main() {
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::EnvFilter::builder().from_env_lossy())
+        .with(tracing_subscriber::fmt::Layer::default().compact())
+        .init();
+
     let Some(path) = std::env::args().nth(1) else {
         std::process::exit(2)
     };
@@ -20,7 +26,9 @@ where
     let operations = Operations::new(vec![rotate]);
 
     let result = Editor::new(file.clone())
-        .apply_sparse(operations)
+        .edit()
+        .await?
+        .apply_sparse(&operations)
         .await
         .expect("request failed");
 

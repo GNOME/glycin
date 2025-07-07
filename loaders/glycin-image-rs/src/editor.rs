@@ -6,34 +6,40 @@ use std::io::Cursor;
 use glycin_utils::*;
 use image::{ExtendedColorType, ImageEncoder, ImageFormat};
 
-#[derive(Default)]
-pub struct ImgEditor {}
+pub enum ImgEditor {
+    Png(png::EditorPng),
+    Jpeg(jpeg::EditJpeg),
+}
 
 impl EditorImplementation for ImgEditor {
-    fn apply_sparse(
-        stream: glycin_utils::UnixStream,
+    fn edit(
+        stream: UnixStream,
         mime_type: String,
-        details: glycin_utils::InitializationDetails,
+        _details: InitializationDetails,
+    ) -> Result<Self, ProcessError> {
+        Ok(match mime_type.as_str() {
+            "image/png" => Self::Png(png::load(stream)?),
+            "image/jpeg" => Self::Jpeg(jpeg::load(stream)?),
+            mime_type => return Err(ProcessError::UnsupportedImageFormat(mime_type.to_string())),
+        })
+    }
+
+    fn apply_sparse(
+        &self,
         operations: Operations,
     ) -> Result<SparseEditorOutput, glycin_utils::ProcessError> {
-        match mime_type.as_str() {
-            "image/jpeg" => Ok(jpeg::apply_sparse(stream, operations)?),
+        match self {
+            Self::Jpeg(jpeg) => Ok(jpeg::apply_sparse(jpeg, operations)?),
             _ => Ok(SparseEditorOutput::from(Self::apply_complete(
-                stream, mime_type, details, operations,
+                self, operations,
             )?)),
         }
     }
 
-    fn apply_complete(
-        stream: UnixStream,
-        mime_type: String,
-        _details: InitializationDetails,
-        operations: Operations,
-    ) -> Result<CompleteEditorOutput, ProcessError> {
-        match mime_type.as_str() {
-            "image/png" => png::apply(stream, operations),
-            "image/jpeg" => Ok(jpeg::apply_complete(stream, operations)?),
-            mime_type => Err(ProcessError::UnsupportedImageFormat(mime_type.to_string())),
+    fn apply_complete(&self, operations: Operations) -> Result<CompleteEditorOutput, ProcessError> {
+        match self {
+            Self::Png(png) => png::apply(png, operations),
+            Self::Jpeg(jpeg) => jpeg::apply_complete(jpeg, operations),
         }
     }
 

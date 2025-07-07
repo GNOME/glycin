@@ -76,6 +76,7 @@ impl DbusServer {
 
         if E::USEABLE {
             let editor_instruction_handler = Editor::<E> {
+                image_id: Mutex::new(1),
                 editor: Default::default(),
             };
             dbus_connection_builder = dbus_connection_builder

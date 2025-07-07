@@ -118,9 +118,13 @@ impl<T: LoaderImplementation> Image<T> {
         &self,
         #[zbus(object_server)] object_server: &zbus::ObjectServer,
     ) -> Result<(), RemoteError> {
-        log::error!("Disconnecting {}", self.path);
-        object_server.remove::<Image<T>, _>(&self.path).await?;
-        log::error!("Returning from running frame() calls");
+        log::debug!("Disconnecting {}", self.path);
+        let removed = object_server.remove::<Image<T>, _>(&self.path).await?;
+        if removed {
+            log::debug!("Removed {}", self.path);
+        } else {
+            log::error!("Failed to remove {}", self.path);
+        }
         let _ = self.dropped.set(()).await;
         Ok(())
     }

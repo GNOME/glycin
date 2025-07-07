@@ -6,29 +6,51 @@ use gufo::png::NewChunk;
 use gufo_common::error::ErrorWithData;
 use gufo_exif::internal::ExifRaw;
 use image::{ImageDecoder, ImageEncoder};
-use image_rs::Handler;
 
-pub fn apply(
-    mut stream: glycin_utils::UnixStream,
-    mut operations: Operations,
-) -> Result<CompleteEditorOutput, glycin_utils::ProcessError> {
+pub struct EditorPng {
+    png: gufo::png::Png,
+    metadata: gufo::Metadata,
+    frame_buf: Vec<u8>,
+    editing_frame: glycin_utils::editing::EditingFrame,
+}
+
+pub fn load(mut stream: glycin_utils::UnixStream) -> Result<EditorPng, glycin_utils::ProcessError> {
     let mut old_png_data: Vec<u8> = Vec::new();
     stream.read_to_end(&mut old_png_data).internal_error()?;
     let cursor = Cursor::new(&old_png_data);
 
     let decoder = image::codecs::png::PngDecoder::new(cursor).expected_error()?;
 
-    let mut simple_frame = Handler::default().simple_frame(&decoder).expected_error()?;
-    let mut buf = vec![0; decoder.total_bytes() as usize];
-    decoder.read_image(&mut buf).expected_error()?;
+    let editing_frame = image_rs::Handler::default()
+        .editing_frame(&decoder)
+        .expected_error()?;
+    let mut frame_buf = vec![0; decoder.total_bytes() as usize];
+    decoder.read_image(&mut frame_buf).expected_error()?;
 
-    let mut old_png = gufo::png::Png::new(old_png_data).expected_error()?;
-    let metadata = gufo::Metadata::for_png(&old_png);
-    if let Some(orientation) = metadata.orientation() {
+    let png: gufo::png::Png = gufo::png::Png::new(old_png_data).expected_error()?;
+    let metadata = gufo::Metadata::for_png(&png);
+
+    Ok(EditorPng {
+        png,
+        metadata,
+        frame_buf,
+        editing_frame,
+    })
+}
+
+pub fn apply(
+    img_editor: &EditorPng,
+    mut operations: Operations,
+) -> Result<CompleteEditorOutput, glycin_utils::ProcessError> {
+    if let Some(orientation) = img_editor.metadata.orientation() {
         operations.prepend(Operations::new_orientation(orientation));
     }
 
-    buf = editing::apply_operations(buf, &mut simple_frame, &operations).expected_error()?;
+    let mut editing_frame = img_editor.editing_frame.clone();
+    let mut buf = img_editor.frame_buf.clone();
+    let mut old_png = img_editor.png.clone();
+
+    buf = editing::apply_operations(buf, &mut editing_frame, &operations).expected_error()?;
 
     let mut new_png_data = Cursor::new(Vec::new());
     let encoder = image::codecs::png::PngEncoder::new_with_quality(
@@ -37,10 +59,10 @@ pub fn apply(
         image::codecs::png::FilterType::Adaptive,
     );
 
-    let width = simple_frame.width;
-    let height = simple_frame.height;
+    let width = editing_frame.width;
+    let height = editing_frame.height;
     let color_type = image::ExtendedColorType::from(
-        image_rs::extended_memory_format_to_color_type(&simple_frame.memory_format)
+        image_rs::extended_memory_format_to_color_type(&editing_frame.memory_format)
             .internal_error()?,
     );
 

@@ -91,7 +91,9 @@ pub use api_editor::*;
 pub use api_loader::*;
 pub use config::COMPAT_VERSION;
 pub use error::{Error, ErrorCtx};
-pub use glycin_common::{BinaryData, MemoryFormat, MemoryFormatSelection, Operation, Operations};
+pub use glycin_common::{
+    BinaryData, MemoryFormat, MemoryFormatSelection, Operation, OperationId, Operations,
+};
 pub use gufo_common::cicp::{Cicp, VideoRangeFlag};
 #[cfg(feature = "gdk4")]
 pub use util::gdk_memory_format;

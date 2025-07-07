@@ -53,6 +53,7 @@ impl RemoteImage {
         }
     }
 }
+
 #[derive(DeserializeDict, SerializeDict, Type, Debug, Clone, Default)]
 #[zvariant(signature = "dict")]
 #[non_exhaustive]
@@ -170,6 +171,20 @@ impl Frame {
             mmap: original_mmap,
             raw_fd,
         })
+    }
+}
+
+/// Editable image
+#[derive(Deserialize, Serialize, Type, Debug, Clone)]
+pub struct RemoteEditableImage {
+    pub edit_request: zvariant::OwnedObjectPath,
+}
+
+impl RemoteEditableImage {
+    pub fn new(frame_request: zvariant::OwnedObjectPath) -> Self {
+        Self {
+            edit_request: frame_request,
+        }
     }
 }
 

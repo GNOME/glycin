@@ -1,16 +1,19 @@
 use std::collections::BTreeMap;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use gio::glib;
 use gio::glib::clone::Downgrade;
 use gio::prelude::{IsA, *};
 use glycin_common::BinaryData;
 use glycin_utils::safe_math::SafeConversion;
-use glycin_utils::{ByteChanges, Operations, SparseEditorOutput};
+use glycin_utils::{ByteChanges, CompleteEditorOutput, Operations, SparseEditorOutput};
+use zbus::zvariant::OwnedObjectPath;
 
 use crate::api_common::*;
+use crate::dbus::EditorProxy;
 use crate::error::ResultExt;
-use crate::pool::Pool;
+use crate::pool::{Pool, PooledProcess};
+use crate::util::spawn_detached;
 use crate::{config, util, Error, ErrorCtx, MimeType};
 
 /// Image edit builder
@@ -35,6 +38,50 @@ impl Editor {
         }
     }
 
+    pub async fn edit(mut self) -> Result<EditableImage, ErrorCtx> {
+        let source: Source = self.source.send();
+
+        let process_context = spin_up_editor(
+            source,
+            &self.pool,
+            &self.cancellable,
+            &self.sandbox_selector,
+            Arc::new(()).downgrade(),
+        )
+        .await
+        .err_no_context(&self.cancellable)?;
+
+        let process = process_context.process.use_();
+
+        let editable_image = process
+            .edit(
+                &process_context.g_file_worker.unwrap(),
+                &process_context.mime_type,
+            )
+            .await
+            .err_context(&process, &self.cancellable)?;
+
+        self.cancellable.connect_cancelled(glib::clone!(
+            #[strong(rename_to=process)]
+            process_context.process,
+            #[strong(rename_to=path)]
+            editable_image.edit_request,
+            move |_| {
+                tracing::debug!("Terminating loader");
+                crate::util::spawn_detached(process.use_().done(path))
+            }
+        ));
+
+        Ok(EditableImage {
+            active_sandbox_mechanism: process_context.sandbox_mechanism,
+            editor: self,
+            editor_alive: Default::default(),
+            edit_request: editable_image.edit_request,
+            mime_type: process_context.mime_type,
+            process: process_context.process,
+        })
+    }
+
     /// Sets the method by which the sandbox mechanism is selected.
     ///
     /// The default without calling this function is [`SandboxSelector::Auto`].
@@ -48,73 +95,54 @@ impl Editor {
         self.cancellable = cancellable.upcast();
         self
     }
+}
 
+#[derive(Debug)]
+pub struct EditableImage {
+    pub(crate) editor: Editor,
+    pub(crate) process: Arc<PooledProcess<EditorProxy<'static>>>,
+    edit_request: OwnedObjectPath,
+    mime_type: MimeType,
+    active_sandbox_mechanism: SandboxMechanism,
+    editor_alive: Mutex<Arc<()>>,
+}
+
+impl Drop for EditableImage {
+    fn drop(&mut self) {
+        self.process.use_().done_background(&self);
+        *self.editor_alive.lock().unwrap() = Arc::new(());
+        spawn_detached(self.editor.pool.clone().clean_loaders());
+    }
+}
+
+impl EditableImage {
     /// Apply operations to the image with a potentially sparse result.
     ///
     /// Some operations like rotation can be in some cases be conducted by only
     /// changing one or a few bytes in a file. We call these cases *sparse* and
     /// a [`SparseEdit::Sparse`] is returned.
-    pub async fn apply_sparse(mut self, operations: Operations) -> Result<SparseEdit, ErrorCtx> {
-        let source = self.source.send();
-
-        let process_context = spin_up_editor(
-            source,
-            &self.pool,
-            &self.cancellable,
-            &self.sandbox_selector,
-            Arc::new(()).downgrade(),
-        )
-        .await
-        .err_no_context(&self.cancellable)?;
-
-        let process = process_context.process.use_();
+    pub async fn apply_sparse(self, operations: &Operations) -> Result<SparseEdit, ErrorCtx> {
+        let process = self.process.use_();
 
         let editor_output = process
-            .editor_apply_sparse(
-                &process_context.g_file_worker.unwrap(),
-                &operations,
-                &process_context.mime_type,
-            )
+            .editor_apply_sparse(operations, &self)
             .await
-            .err_context(&process, &self.cancellable)?;
+            .err_context(&process, &self.editor.cancellable)?;
 
-        SparseEdit::try_from(editor_output).err_no_context(&self.cancellable)
+        SparseEdit::try_from(editor_output).err_no_context(&self.editor.cancellable)
     }
 
     /// Apply operations to the image
-    pub async fn apply_complete(self, operations: &Operations) -> Result<BinaryData, ErrorCtx> {
-        let editor_output = self.apply_complete_full(operations).await?;
-        Ok(editor_output.data)
-    }
-
-    /// Apply operations to the image
-    pub async fn apply_complete_full(mut self, operations: &Operations) -> Result<Edit, ErrorCtx> {
-        let source = self.source.send();
-
-        let process_context = spin_up_editor(
-            source,
-            &self.pool,
-            &self.cancellable,
-            &self.sandbox_selector,
-            Arc::new(()).downgrade(),
-        )
-        .await
-        .err_no_context(&self.cancellable)?;
-
-        let process = process_context.process.use_();
+    pub async fn apply_complete(self, operations: &Operations) -> Result<Edit, ErrorCtx> {
+        let process = self.process.use_();
 
         let editor_output = process
-            .editor_apply_complete(
-                &process_context.g_file_worker.unwrap(),
-                operations,
-                &process_context.mime_type,
-            )
+            .editor_apply_complete(operations, &self)
             .await
-            .err_context(&process, &self.cancellable)?;
+            .err_context(&process, &self.editor.cancellable)?;
 
         Ok(Edit {
-            data: editor_output.data,
-            info: editor_output.info,
+            inner: editor_output,
         })
     }
 
@@ -122,6 +150,10 @@ impl Editor {
     pub async fn supported_formats() -> BTreeMap<MimeType, config::ImageEditorConfig> {
         let config = config::Config::cached().await;
         config.image_editor.clone()
+    }
+
+    pub(crate) fn edit_request_path(&self) -> OwnedObjectPath {
+        self.edit_request.clone()
     }
 }
 
@@ -140,17 +172,16 @@ pub enum SparseEdit {
 
 #[derive(Debug)]
 pub struct Edit {
-    data: BinaryData,
-    info: glycin_utils::EditorOutputInfo,
+    inner: CompleteEditorOutput,
 }
 
 impl Edit {
     pub fn data(&self) -> BinaryData {
-        self.data.clone()
+        self.inner.data.clone()
     }
 
     pub fn is_lossless(&self) -> bool {
-        self.info.lossless
+        self.inner.info.lossless
     }
 }
 

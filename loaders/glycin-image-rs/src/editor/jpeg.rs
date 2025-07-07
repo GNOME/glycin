@@ -6,12 +6,21 @@ use gufo_common::orientation::Orientation;
 use gufo_jpeg::Jpeg;
 use zune_jpeg::zune_core::options::DecoderOptions;
 
-pub fn apply_sparse(
-    mut stream: glycin_utils::UnixStream,
-    mut operations: Operations,
-) -> Result<SparseEditorOutput, glycin_utils::ProcessError> {
+pub struct EditJpeg {
+    buf: Vec<u8>,
+}
+
+pub fn load(mut stream: glycin_utils::UnixStream) -> Result<EditJpeg, glycin_utils::ProcessError> {
     let mut buf: Vec<u8> = Vec::new();
     stream.read_to_end(&mut buf).internal_error()?;
+    Ok(EditJpeg { buf })
+}
+
+pub fn apply_sparse(
+    edit_jpeg: &EditJpeg,
+    mut operations: Operations,
+) -> Result<SparseEditorOutput, glycin_utils::ProcessError> {
+    let buf = edit_jpeg.buf.clone();
     let jpeg = gufo::jpeg::Jpeg::new(buf).expected_error()?;
 
     let metadata = gufo::Metadata::for_jpeg(&jpeg);
@@ -31,11 +40,11 @@ pub fn apply_sparse(
 }
 
 pub fn apply_complete(
-    mut stream: glycin_utils::UnixStream,
+    edit_jpeg: &EditJpeg,
     mut operations: Operations,
 ) -> Result<CompleteEditorOutput, glycin_utils::ProcessError> {
-    let mut buf = Vec::new();
-    stream.read_to_end(&mut buf).internal_error()?;
+    let buf = edit_jpeg.buf.clone();
+
     let jpeg = gufo::jpeg::Jpeg::new(buf).expected_error()?;
 
     let metadata = gufo::Metadata::for_jpeg(&jpeg);

@@ -78,9 +78,9 @@ async fn apply_operations_sparse(image: &Path, operations: &Path) -> glycin::Bin
     let operations: glycin::Operations = serde_yaml::from_reader(reader).unwrap();
 
     let file = gio::File::for_path(image);
-    let editor = glycin::Editor::new(file);
+    let editor = glycin::Editor::new(file).edit().await.unwrap();
 
-    let sparse_edit = editor.apply_sparse(operations).await.unwrap();
+    let sparse_edit = editor.apply_sparse(&operations).await.unwrap();
 
     if let SparseEdit::Complete(data) = sparse_edit {
         data
@@ -106,7 +106,7 @@ async fn apply_operations_complete(image: &Path, operations: &Path) -> glycin::B
     let operations: glycin::Operations = serde_yaml::from_reader(reader).unwrap();
 
     let file = gio::File::for_path(image);
-    let editor = glycin::Editor::new(file);
+    let editor = glycin::Editor::new(file).edit().await.unwrap();
 
-    editor.apply_complete(&operations).await.unwrap()
+    editor.apply_complete(&operations).await.unwrap().data()
 }

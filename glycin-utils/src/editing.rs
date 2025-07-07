@@ -16,6 +16,7 @@ use gufo_common::read::ReadError;
 pub use operations::apply_operations;
 pub use orientation::change_orientation;
 
+#[derive(Debug, Clone)]
 pub struct EditingFrame {
     pub width: u32,
     pub height: u32,

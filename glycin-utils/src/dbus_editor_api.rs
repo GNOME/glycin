@@ -4,12 +4,14 @@ use std::io::{Cursor, Seek, SeekFrom, Write};
 use std::marker::PhantomData;
 use std::os::fd::OwnedFd;
 use std::os::unix::net::UnixStream;
+use std::sync::{Arc, Mutex};
 
+use futures_util::FutureExt;
 use glycin_common::{BinaryData, Operations};
 use serde::{Deserialize, Serialize};
-use zbus::zvariant::{DeserializeDict, SerializeDict, Type};
+use zbus::zvariant::{DeserializeDict, OwnedObjectPath, SerializeDict, Type};
 
-use crate::dbus_types::*;
+use crate::dbus_types::{self, *};
 use crate::error::*;
 
 #[derive(DeserializeDict, SerializeDict, Type, Debug)]
@@ -150,6 +152,7 @@ pub struct EditorOutputInfo {
 
 pub struct Editor<E: EditorImplementation> {
     pub editor: PhantomData<E>,
+    pub image_id: Mutex<u64>,
 }
 
 /// D-Bus interface for image editors
@@ -164,45 +167,117 @@ impl<E: EditorImplementation> Editor<E> {
         E::create(mime_type, new_image, encoding_options).map_err(|x| x.into_editor_error())
     }
 
-    async fn apply(
+    async fn edit(
         &self,
         init_request: InitRequest,
+        #[zbus(connection)] dbus_connection: &zbus::Connection,
+    ) -> Result<dbus_types::RemoteEditableImage, RemoteError> {
+        let fd = OwnedFd::from(init_request.fd);
+        let stream = UnixStream::from(fd);
+
+        let editor_state = E::edit(stream, init_request.mime_type, init_request.details)
+            .map_err(|x| x.into_loader_error())?;
+
+        let image_id = {
+            let lock = self.image_id.lock();
+            let mut image_id = match lock {
+                Ok(id) => id,
+                Err(err) => return Err(RemoteError::InternalLoaderError(err.to_string())),
+            };
+            let id = *image_id;
+            *image_id = id + 1;
+            id
+        };
+
+        let path =
+            OwnedObjectPath::try_from(format!("/org/gnome/glycin/editable_image/{image_id}"))
+                .internal_error()
+                .map_err(|x| x.into_loader_error())?;
+
+        let dbus_image = dbus_types::RemoteEditableImage::new(path.clone());
+
+        dbus_connection
+            .object_server()
+            .at(
+                &path,
+                EditableImage {
+                    editor_implementation: Arc::new(Box::new(editor_state)),
+                    path: path.clone(),
+                    dropped: Default::default(),
+                },
+            )
+            .await
+            .internal_error()
+            .map_err(|x| x.into_loader_error())?;
+
+        Ok(dbus_image)
+    }
+}
+
+pub struct EditableImage<E: EditorImplementation> {
+    pub editor_implementation: Arc<Box<E>>,
+    pub path: OwnedObjectPath,
+    dropped: async_lock::OnceCell<()>,
+}
+
+#[zbus::interface(name = "org.gnome.glycin.EditableImage")]
+impl<E: EditorImplementation> EditableImage<E> {
+    async fn apply_sparse(
+        &self,
         edit_request: EditRequest,
     ) -> Result<SparseEditorOutput, RemoteError> {
-        let fd: OwnedFd = OwnedFd::from(init_request.fd);
-        let stream = UnixStream::from(fd);
         let operations = edit_request.operations()?;
 
-        let image_info = E::apply_sparse(
-            stream,
-            init_request.mime_type,
-            init_request.details,
-            operations,
-        )
-        .map_err(|x| x.into_editor_error())?;
+        let editor_implementation = self.editor_implementation.clone();
+        let mut editor_output = blocking::unblock(move || {
+            editor_implementation
+                .apply_sparse(operations)
+                .map_err(|x| x.into_loader_error())
+        })
+        .fuse();
 
-        Ok(image_info)
+        futures_util::select! {
+            result = editor_output => result,
+            _ = self.dropped.wait().fuse() => Err(RemoteError::Aborted),
+        }
     }
 
     /// Same as [`Self::apply()`] but without potential to return sparse changes
     async fn apply_complete(
         &self,
-        init_request: InitRequest,
         edit_request: EditRequest,
     ) -> Result<CompleteEditorOutput, RemoteError> {
-        let fd: OwnedFd = OwnedFd::from(init_request.fd);
-        let stream = UnixStream::from(fd);
         let operations = edit_request.operations()?;
 
-        let image_info = E::apply_complete(
-            stream,
-            init_request.mime_type,
-            init_request.details,
-            operations,
-        )
-        .map_err(|x| x.into_editor_error())?;
+        let editor_implementation = self.editor_implementation.clone();
+        let mut editor_output = blocking::unblock(move || {
+            editor_implementation
+                .apply_complete(operations)
+                .map_err(|x| x.into_loader_error())
+        })
+        .fuse();
 
-        Ok(image_info)
+        futures_util::select! {
+            result = editor_output => result,
+            _ = self.dropped.wait().fuse() => Err(RemoteError::Aborted),
+        }
+    }
+
+    async fn done(
+        &self,
+        #[zbus(object_server)] object_server: &zbus::ObjectServer,
+    ) -> Result<(), RemoteError> {
+        log::debug!("Disconnecting {}", self.path);
+        let removed = object_server
+            .remove::<EditableImage<E>, _>(&self.path)
+            .await?;
+        if removed {
+            log::debug!("Removed {}", self.path);
+        } else {
+            log::error!("Failed to remove {}", self.path);
+        }
+        let _ = self.dropped.set(()).await;
+        Ok(())
     }
 }
 
@@ -210,29 +285,25 @@ impl<E: EditorImplementation> Editor<E> {
 pub trait EditorImplementation: Send + Sync + Sized + 'static {
     const USEABLE: bool = true;
 
-    fn apply_sparse(
+    fn edit(
         stream: UnixStream,
         mime_type: String,
         details: InitializationDetails,
-        operations: Operations,
-    ) -> Result<SparseEditorOutput, ProcessError> {
-        let complete = Self::apply_complete(stream, mime_type, details, operations)?;
-
-        Ok(SparseEditorOutput::from(complete))
-    }
-
-    fn apply_complete(
-        stream: UnixStream,
-        mime_type: String,
-        details: InitializationDetails,
-        operations: Operations,
-    ) -> Result<CompleteEditorOutput, ProcessError>;
+    ) -> Result<Self, ProcessError>;
 
     fn create(
         mime_type: String,
         new_image: NewImage,
         encoding_options: EncodingOptions,
     ) -> Result<EncodedImage, ProcessError>;
+
+    fn apply_sparse(&self, operations: Operations) -> Result<SparseEditorOutput, ProcessError> {
+        let complete = Self::apply_complete(self, operations)?;
+
+        Ok(SparseEditorOutput::from(complete))
+    }
+
+    fn apply_complete(&self, operations: Operations) -> Result<CompleteEditorOutput, ProcessError>;
 }
 
 /// Give a `None` for a non-existent `EditorImplementation`
@@ -241,12 +312,11 @@ pub enum VoidEditorImplementation {}
 impl EditorImplementation for VoidEditorImplementation {
     const USEABLE: bool = false;
 
-    fn apply_complete(
+    fn edit(
         _stream: UnixStream,
         _mime_type: String,
         _details: InitializationDetails,
-        _operations: Operations,
-    ) -> Result<CompleteEditorOutput, ProcessError> {
+    ) -> Result<Self, ProcessError> {
         unreachable!()
     }
 
@@ -255,6 +325,13 @@ impl EditorImplementation for VoidEditorImplementation {
         _new_image: NewImage,
         _encoding_options: EncodingOptions,
     ) -> Result<EncodedImage, ProcessError> {
+        unreachable!()
+    }
+
+    fn apply_complete(
+        &self,
+        _operations: Operations,
+    ) -> Result<CompleteEditorOutput, ProcessError> {
         unreachable!()
     }
 }
