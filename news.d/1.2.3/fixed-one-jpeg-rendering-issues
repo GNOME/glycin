@@ -1,0 +1,1 @@
+image-rs: Force at least zune-jpeg 0.4.19 to fix a JPEG loading issues for images with extra data at the end.
