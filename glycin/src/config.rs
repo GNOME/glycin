@@ -251,9 +251,14 @@ impl Config {
             let mime_type = elements.next();
 
             if let Some(mime_type) = mime_type {
+                let mime_type = MimeType::new(mime_type.to_string());
                 let group = group.trim();
                 match kind {
                     Some("loader") => {
+                        if config.image_loader.contains_key(&mime_type) {
+                            continue;
+                        }
+
                         if let Ok(exec) = keyfile.string(group, "Exec") {
                             let expose_base_dir =
                                 keyfile.boolean(group, "ExposeBaseDir").unwrap_or_default();
@@ -266,12 +271,14 @@ impl Config {
                                 fontconfig,
                             };
 
-                            config
-                                .image_loader
-                                .insert(MimeType::new(mime_type.to_string()), cfg);
+                            config.image_loader.insert(mime_type, cfg);
                         }
                     }
                     Some("editor") => {
+                        if config.image_editor.contains_key(&mime_type) {
+                            continue;
+                        }
+
                         if let Ok(exec) = keyfile.string(group, "Exec") {
                             let expose_base_dir =
                                 keyfile.boolean(group, "ExposeBaseDir").unwrap_or_default();
@@ -295,9 +302,7 @@ impl Config {
                                 creator,
                             };
 
-                            config
-                                .image_editor
-                                .insert(MimeType::new(mime_type.to_string()), cfg);
+                            config.image_editor.insert(mime_type, cfg);
                         }
                     }
                     _ => {}

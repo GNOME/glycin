@@ -1,0 +1,1 @@
+glycin: Don't prioritize entries from configs that are in lower priority directories.
