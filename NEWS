@@ -1,3 +1,41 @@
+## 2.0.alpha.7 (2025-07-07)
+
+This release contains the following new component versions:
+
+- glycin-common 1.0.0-alpha.7
+- glycin-tools 2.0.0-alpha.7
+- glycin-utils 4.0.0-alpha.7
+- glycin 3.0.0-alpha.7
+- libglycin 2.0.0-alpha.7
+- libglycin-gtk4 2.0.0-alpha.7
+- glycin-heif 2.0.0-alpha.7
+- glycin-image-rs 2.0.0-alpha.7
+- glycin-jxl 2.0.0-alpha.7
+- glycin-raw 2.0.0-alpha.7
+- glycin-svg 2.0.0-alpha.7
+- glycin-thumbnailer 2.0.0-alpha.7
+
+### Fixed
+
+- glycin: Don't prioritize entries from configs that are in lower priority
+  directories.
+
+### Changed
+
+- Don't vendor cargo crates for tarball anymore.
+- Instead of using the STDIN of the loader/editor for the D-Bus connection, use
+  a new FD, specified via the command line.
+- Moved some type definition to a new glycin-commons crate for better API
+  stability.
+- Rename various fields in the internal API for clarity.
+- The editing API is now split into two steps: First the image is loaded. Then,
+  onto the loaded image, differente editing operations can be applied. This can
+  speed-up the preview of editing operations, since the image doesn't need to be
+  loaded each time.
+- glycin: Wrap the internal APIs into glycin specific types to guarantee API
+  stability.
+- jxl: Require libjxl 0.11
+
 ## 2.0.alpha.6 (2025-07-03)
 
 This release contains the following new component versions:
