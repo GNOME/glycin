@@ -4,7 +4,7 @@ project(
   'c',
   # This is a global version that's neither related to the glycin-loaders version
   # nor the libglycin version
-  version: '2.0.alpha.6',
+  version: '2.0.alpha.7',
   meson_version: '>=1.2',
 )
 
