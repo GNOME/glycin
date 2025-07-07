@@ -30,7 +30,3 @@ sed -i "s/, path = \"glycin-utils\/\"//g" Cargo.toml
 sed -i "s/path = \"glycin\/\"/version = \"$VERSION\"/g" Cargo.toml
 
 cargo check -p tests
-
-# Vendor crates.io dependencies
-mkdir .cargo
-cargo vendor | sed 's/^directory = ".*"/directory = "vendor"/g' > .cargo/config.toml
