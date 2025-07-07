@@ -14,6 +14,10 @@ sed -i 's/"glycin-utils",\?//' Cargo.toml
 rm -r glycin-utils
 awk -i inplace -v RS= -v ORS='\n\n' '!/name = "glycin-utils"/' Cargo.lock
 
+sed -i 's/"glycin-common",\?//' Cargo.toml
+rm -r glycin-common
+awk -i inplace -v RS= -v ORS='\n\n' '!/name = "glycin-common"/' Cargo.lock
+
 sed -i 's/"tools",\?//' Cargo.toml
 rm -r tools
 awk -i inplace -v RS= -v ORS='\n\n' '!/name = "tools"/' Cargo.lock
@@ -21,6 +25,7 @@ awk -i inplace -v RS= -v ORS='\n\n' '!/name = "tools"/' Cargo.lock
 echo "Showing changed Cargo.toml:"
 cat Cargo.toml
 
+sed -i "s/, path = \"glycin-common\/\"//g" Cargo.toml
 sed -i "s/, path = \"glycin-utils\/\"//g" Cargo.toml
 sed -i "s/path = \"glycin\/\"/version = \"$VERSION\"/g" Cargo.toml
 

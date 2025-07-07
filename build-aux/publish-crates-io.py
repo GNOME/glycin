@@ -20,6 +20,6 @@ def release_crate(package_name):
     else:
         print(f"Crate {package_name} with version {package_version} already published (http code {http_code}). Skipping.")
 
-
+release_crate('glycin-common')
 release_crate('glycin-utils')
 release_crate('glycin')
