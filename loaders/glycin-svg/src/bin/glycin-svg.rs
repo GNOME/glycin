@@ -206,12 +206,12 @@ pub fn svg_dimensions(renderer: &rsvg::Handle) -> (u32, u32) {
 const fn memory_format() -> MemoryFormat {
     #[cfg(target_endian = "little")]
     {
-        MemoryFormat::B8g8r8a8
+        MemoryFormat::B8g8r8a8Premultiplied
     }
 
     #[cfg(target_endian = "big")]
     {
-        MemoryFormat::A8r8g8b8
+        MemoryFormat::A8r8g8b8Premultiplied
     }
 }
 
