@@ -17,6 +17,16 @@ pub enum GlyColorMode {
     Cicp,
 }
 
+#[derive(Clone, Debug, glib::Boxed)]
+#[boxed_type(name = "GlyCicp", nullable)]
+#[repr(C)]
+pub struct GlyCicp {
+    pub color_primaries: u8,
+    pub transfer_function: u8,
+    pub matrix_coefficients: u8,
+    pub range: u8,
+}
+
 pub mod imp {
     use super::*;
 
@@ -51,13 +61,17 @@ impl GlyFrame {
     }
 
     pub fn color_mode(&self) -> GlyColorMode {
-        match self.frame().color_state {
+        match self.frame().color_state() {
             crate::ColorState::Srgb => GlyColorMode::Srgb,
             crate::ColorState::Cicp(_) => GlyColorMode::Cicp,
         }
     }
 
-    pub fn color_cicp(&self) -> Option<[u8; 4]> {
-        self.frame().details.color_cicp
+    pub fn color_cicp(&self) -> Option<gufo_common::cicp::Cicp> {
+        if let crate::ColorState::Cicp(cicp) = self.frame().color_state() {
+            Some(*cicp)
+        } else {
+            None
+        }
     }
 }

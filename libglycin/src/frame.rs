@@ -2,7 +2,7 @@ use gio::prelude::*;
 use glib::ffi::GType;
 use glib::subclass::prelude::*;
 use glib::translate::*;
-use glycin::gobject;
+use glycin::gobject::{self, GlyCicp};
 
 pub type GlyFrame = <gobject::frame::imp::GlyFrame as ObjectSubclass>::Instance;
 
@@ -45,4 +45,24 @@ pub unsafe extern "C" fn gly_frame_get_buf_bytes(frame: *mut GlyFrame) -> *mut g
 pub unsafe extern "C" fn gly_frame_get_memory_format(frame: *mut GlyFrame) -> i32 {
     let frame = gobject::GlyFrame::from_glib_ptr_borrow(&frame);
     frame.frame().memory_format().into_glib()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gly_frame_get_color_cicp(frame: *mut GlyFrame) -> *const GlyCicp {
+    let frame = gobject::GlyFrame::from_glib_ptr_borrow(&frame);
+    match frame.color_cicp() {
+        Some(cicp) => gobject::GlyCicp {
+            color_primaries: cicp.color_primaries.into(),
+            transfer_function: cicp.transfer_characteristics.into(),
+            matrix_coefficients: cicp.matrix_coefficients.into(),
+            range: cicp.video_full_range_flag.into(),
+        }
+        .into_glib_ptr(),
+        None => std::ptr::null(),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn gly_cicp_get_type() -> GType {
+    <GlyCicp as StaticType>::static_type().into_glib()
 }

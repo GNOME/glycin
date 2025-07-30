@@ -40,6 +40,7 @@ def test_frame(frame):
     assert stride == 600 * 3, f"Wrong stride: {stride} px"
     assert first_byte > 50 and first_byte < 70, f"Wrong first byte: {first_byte}"
     assert memory_format == Gly.MemoryFormat.R8G8B8, f"Wrong memory format: {memory_format}"
+    assert frame.get_color_cicp() is None
 
     assert not Gly.MemoryFormat.has_alpha(memory_format)
     assert not Gly.MemoryFormat.is_premultiplied(memory_format)
@@ -53,10 +54,11 @@ def main():
 
     test_image = os.path.join(dir, "test-images/images/color/color.jpg")
     test_image_png = os.path.join(dir, "test-images/images/exif.png")
+    test_image_cicp = os.path.join(dir, "test-images/images/cicp-p3/cicp-p3.png")
 
     file = Gio.File.new_for_path(test_image)
     file_png = Gio.File.new_for_path(test_image_png)
-
+    file_cicp = Gio.File.new_for_path(test_image_cicp)
 
     # Types
 
@@ -117,6 +119,19 @@ def main():
     assert key_value_exif_model == "Canon EOS 400D DIGITAL"
     assert key_value_empty is None
     assert "exif:DateTime" in key_list
+
+    # CICP
+
+    loader = Gly.Loader.new(file_cicp)
+    image = loader.load()
+
+    frame = image.next_frame()
+    cicp = frame.get_color_cicp()
+
+    assert cicp.color_primaries == 12
+    assert cicp.transfer_function == 13
+    assert cicp.matrix_coefficients == 0
+    assert cicp.range == 1
 
     # Functions
 

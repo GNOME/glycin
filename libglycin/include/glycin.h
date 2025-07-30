@@ -675,6 +675,35 @@ GBytes *gly_frame_get_buf_bytes(GlyFrame *frame);
  */
 GlyMemoryFormat gly_frame_get_memory_format(GlyFrame *frame);
 
+/**
+ * GlyCicp:
+ *
+ * Since: 2.0
+ */
+typedef struct
+{
+    uint8_t color_primaries;
+    uint8_t transfer_function;
+    uint8_t matrix_coefficients;
+    uint8_t range;
+} GlyCicp;
+
+GType gly_cicp_get_type(void);
+#define GLY_TYPE_CICP (gly_cicp_get_type())
+
+/**
+ * gly_frame_get_color_cicp:
+ * @frame:
+ *
+ * Returns the CICP (coding-independent code point) for the frames texture.
+ * This value is `NULL` if no CICP is used.
+ *
+ * Returns: (nullable) (transfer full): CICP
+ *
+ * Since: 2.0
+ */
+GlyCicp *gly_frame_get_color_cicp(GlyFrame *frame);
+
 /**************** GlyLoaderError ****************/
 
 /**
