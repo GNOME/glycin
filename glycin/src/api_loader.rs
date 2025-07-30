@@ -463,8 +463,8 @@ impl FrameDetails {
         self.inner.color_cicp.as_ref().map(|x| x.as_slice())
     }
 
-    pub fn color_iccp(&self) -> Option<BinaryData> {
-        self.inner.color_iccp.clone()
+    pub fn color_icc_profile(&self) -> Option<BinaryData> {
+        self.inner.color_icc_profile.clone()
     }
 
     pub fn info_alpha_channel(&self) -> Option<bool> {

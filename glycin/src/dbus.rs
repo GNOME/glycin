@@ -311,8 +311,8 @@ impl RemoteProcess<LoaderProxy<'static>> {
         let mut frame = loader_proxy.frame(frame_request).await?;
 
         // Seal all constant data
-        if let Some(iccp) = &frame.details.color_iccp {
-            seal_fd(iccp).await?;
+        if let Some(icc_profile) = &frame.details.color_icc_profile {
+            seal_fd(icc_profile).await?;
         }
 
         let raw_fd = frame.texture.as_raw_fd();
@@ -337,7 +337,9 @@ impl RemoteProcess<LoaderProxy<'static>> {
         {
             color_state = ColorState::Cicp(cicp);
             img_buf
-        } else if let Some(Ok(icc_profile)) = frame.details.color_iccp.as_ref().map(|x| x.get()) {
+        } else if let Some(Ok(icc_profile)) =
+            frame.details.color_icc_profile.as_ref().map(|x| x.get())
+        {
             // Align stride with pixel size if necessary
             let mut img_buf = remove_stride_if_needed(img_buf, &mut frame)?;
 

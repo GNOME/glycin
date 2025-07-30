@@ -71,7 +71,7 @@ impl EditorImplementation for ImgEditor {
 
         let memory_format = image_memory_format(memory_format)?;
 
-        let icc_profile = frame.details.color_iccp.as_ref().and_then(|x| {
+        let icc_profile = frame.details.color_icc_profile.as_ref().and_then(|x| {
             x.get_full()
                 .inspect_err(|err| log::error!("Can't read the ICC profile {err}"))
                 .ok()
@@ -98,8 +98,8 @@ impl EditorImplementation for ImgEditor {
                     image::codecs::png::FilterType::default(),
                 );
 
-                if let Some(iccp) = icc_profile {
-                    let _ = encoder.set_icc_profile(iccp);
+                if let Some(icc_profile) = icc_profile {
+                    let _ = encoder.set_icc_profile(icc_profile);
                 }
 
                 encoder

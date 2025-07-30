@@ -122,9 +122,9 @@ impl Frame {
 /// More information about a frame
 pub struct FrameDetails {
     /// ICC color profile
-    pub color_iccp: Option<BinaryData>,
+    pub color_icc_profile: Option<BinaryData>,
     /// Coding-independent code points (HDR information)
-    pub color_cicp: Option<Vec<u8>>,
+    pub color_cicp: Option<[u8; 4]>,
     /// Bit depth per channel
     ///
     /// Only set if it can differ for the format

@@ -261,7 +261,7 @@ impl NewFrame {
         if let Some(icc_profile) = self.icc_profile.lock().unwrap().as_ref() {
             // TODO unwrap
             let icc_profile = BinaryData::from_data(icc_profile).unwrap();
-            frame.details.color_iccp = Some(icc_profile);
+            frame.details.color_icc_profile = Some(icc_profile);
         }
 
         Ok(frame)

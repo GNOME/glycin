@@ -74,7 +74,7 @@ impl LoaderImplementation for ImgDecoder {
 
         let mut frame = Frame::new(width, height, memory_format, texture).expected_error()?;
 
-        frame.details.color_iccp = iccp
+        frame.details.color_icc_profile = iccp
             .clone()
             .map(BinaryData::from_data)
             .transpose()

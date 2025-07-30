@@ -90,7 +90,7 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
             "iccp = {}",
             frame
                 .details()
-                .color_iccp()
+                .color_icc_profile()
                 .as_ref()
                 .map_or(String::from("empty"), |x| glib::format_size(
                     x.get_full().unwrap().len() as u64

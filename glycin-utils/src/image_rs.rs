@@ -92,7 +92,7 @@ impl Handler {
         decoder: &mut impl image::ImageDecoder,
     ) -> Result<FrameDetails, ProcessError> {
         let mut details = FrameDetails {
-            color_iccp: decoder
+            color_icc_profile: decoder
                 .icc_profile()
                 .ok()
                 .flatten()

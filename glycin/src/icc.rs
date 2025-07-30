@@ -3,11 +3,11 @@ use glycin_common::{MemoryFormat, MemoryFormatInfo};
 use crate::{ColorState, Error};
 
 pub fn apply_transformation(
-    iccp: &[u8],
+    icc_profile: &[u8],
     memory_format: MemoryFormat,
     mmap: &mut [u8],
 ) -> Result<ColorState, Error> {
-    transform(iccp, memory_format, mmap).map_err(Into::into)
+    transform(icc_profile, memory_format, mmap).map_err(Into::into)
 }
 
 fn transform(

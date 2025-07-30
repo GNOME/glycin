@@ -227,7 +227,14 @@ impl LoaderImplementation for ImgDecoder {
             return Err(ProcessError::NoMoreFrames);
         };
 
-        frame.details.color_cicp = self.cicp.lock().unwrap().map(|x| x.into());
+        frame.details.color_cicp = self.cicp.lock().unwrap().map(|x| {
+            [
+                x.color_primaries.into(),
+                x.transfer_characteristics.into(),
+                x.matrix_coefficients.into(),
+                x.video_full_range_flag.into(),
+            ]
+        });
 
         Ok(frame)
     }

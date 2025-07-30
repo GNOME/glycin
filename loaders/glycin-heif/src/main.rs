@@ -158,7 +158,7 @@ fn decode(context: HeifContext, mime_type: &str) -> Result<Frame, ProcessError> 
 
     let mut frame = Frame::new(plane.width, plane.height, memory_format, texture)?;
     frame.stride = plane.stride.try_u32()?;
-    frame.details.color_iccp = icc_profile
+    frame.details.color_icc_profile = icc_profile
         .map(BinaryData::from_data)
         .transpose()
         .expected_error()?;
