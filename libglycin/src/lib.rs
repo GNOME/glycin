@@ -6,6 +6,7 @@ mod frame;
 mod frame_request;
 mod image;
 mod loader;
+mod memory_format;
 mod new_frame;
 
 pub use creator::*;
@@ -15,4 +16,5 @@ pub use frame::*;
 pub use frame_request::*;
 pub use image::*;
 pub use loader::*;
+pub use memory_format::*;
 pub use new_frame::*;
