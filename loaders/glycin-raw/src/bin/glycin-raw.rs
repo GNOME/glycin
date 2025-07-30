@@ -59,7 +59,7 @@ pub fn thread(
 
 pub fn render(rawdata: &libopenraw::RawImage) -> Result<Frame, ProcessError> {
     let rawimage = rawdata
-        .rendered_image(libopenraw::RenderingOptions::default())
+        .rendered_image(&libopenraw::RenderingOptions::default())
         .expected_error()?;
     let width = rawimage.width();
     let height = rawimage.height();
