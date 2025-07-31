@@ -126,7 +126,7 @@ impl Pool {
             }
         }
 
-        tracing::debug!("Now existing loader/editor in pool. Spawning new one.");
+        tracing::debug!("No existing loader/editor in pool. Spawning new one.");
 
         let process_cancellable = gio::Cancellable::new();
         let Some(process_cancellable_tie) = cancellable.connect_cancelled(glib::clone!(
