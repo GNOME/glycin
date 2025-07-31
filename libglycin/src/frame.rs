@@ -53,9 +53,9 @@ pub unsafe extern "C" fn gly_frame_get_color_cicp(frame: *mut GlyFrame) -> *cons
     match frame.color_cicp() {
         Some(cicp) => gobject::GlyCicp {
             color_primaries: cicp.color_primaries.into(),
-            transfer_function: cicp.transfer_characteristics.into(),
+            transfer_characteristics: cicp.transfer_characteristics.into(),
             matrix_coefficients: cicp.matrix_coefficients.into(),
-            range: cicp.video_full_range_flag.into(),
+            video_full_range_flag: cicp.video_full_range_flag.into(),
         }
         .into_glib_ptr(),
         None => std::ptr::null(),

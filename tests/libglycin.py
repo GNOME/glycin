@@ -129,9 +129,9 @@ def main():
     cicp = frame.get_color_cicp()
 
     assert cicp.color_primaries == 12
-    assert cicp.transfer_function == 13
+    assert cicp.transfer_characteristics == 13
     assert cicp.matrix_coefficients == 0
-    assert cicp.range == 1
+    assert cicp.video_full_range_flag == 1
 
     # Functions
 

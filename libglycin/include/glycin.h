@@ -678,14 +678,16 @@ GlyMemoryFormat gly_frame_get_memory_format(GlyFrame *frame);
 /**
  * GlyCicp:
  *
+ * See ITU-T H.273
+ *
  * Since: 2.0
  */
 typedef struct
 {
     uint8_t color_primaries;
-    uint8_t transfer_function;
+    uint8_t transfer_characteristics;
     uint8_t matrix_coefficients;
-    uint8_t range;
+    uint8_t video_full_range_flag;
 } GlyCicp;
 
 GType gly_cicp_get_type(void);
