@@ -693,6 +693,8 @@ typedef struct
 GType gly_cicp_get_type(void);
 #define GLY_TYPE_CICP (gly_cicp_get_type())
 
+void gly_cicp_free(GlyCicp *cicp);
+
 /**
  * gly_frame_get_color_cicp:
  * @frame:
