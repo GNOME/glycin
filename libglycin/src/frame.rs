@@ -1,7 +1,7 @@
 use gio::prelude::*;
-use glib::ffi::GType;
 use glib::subclass::prelude::*;
 use glib::translate::*;
+use glib::{boxed::BoxedMemoryManager, ffi::GType};
 use glycin::gobject::{self, GlyCicp};
 
 pub type GlyFrame = <gobject::frame::imp::GlyFrame as ObjectSubclass>::Instance;
@@ -65,4 +65,9 @@ pub unsafe extern "C" fn gly_frame_get_color_cicp(frame: *mut GlyFrame) -> *cons
 #[no_mangle]
 pub extern "C" fn gly_cicp_get_type() -> GType {
     <GlyCicp as StaticType>::static_type().into_glib()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gly_cicp_free(cicp: *mut GlyCicp) {
+    drop(GlyCicp::from_glib_full(cicp));
 }

@@ -1,0 +1,1 @@
+libglycin-gtk4: gly_gtk_frame_get_texture now sets the GdkColorState if a CICP value is present.
