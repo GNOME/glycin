@@ -269,6 +269,10 @@ impl Sandbox {
             "--ro-bind-try",
             "/etc/ld.so.cache",
             "/etc/ld.so.cache",
+            // Add /nix/store on systems with Nix
+            "--ro-bind-try",
+            "/nix/store",
+            "/nix/store",
             // Create a fake HOME for glib to not throw warnings
             "--tmpfs",
             "/tmp-home",
