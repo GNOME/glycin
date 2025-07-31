@@ -9,7 +9,7 @@ use gio::glib;
 use glycin_common::OperationId;
 
 use crate::util::{read, read_dir};
-use crate::Error;
+use crate::{Error, SandboxMechanism};
 
 #[derive(Clone, Debug)]
 /// Mime type
@@ -137,6 +137,7 @@ pub struct ConfigEntryHash {
     exec: PathBuf,
     expose_base_dir: bool,
     base_dir: Option<PathBuf>,
+    sandbox_mechanism: SandboxMechanism,
 }
 
 impl ConfigEntryHash {
@@ -155,12 +156,17 @@ pub struct ImageEditorConfig {
 }
 
 impl ConfigEntry {
-    pub fn hash_value(&self, base_dir: Option<PathBuf>) -> ConfigEntryHash {
+    pub fn hash_value(
+        &self,
+        base_dir: Option<PathBuf>,
+        sandbox_mechanism: SandboxMechanism,
+    ) -> ConfigEntryHash {
         ConfigEntryHash {
             fontconfig: self.fontconfig(),
             exec: self.exec(),
             expose_base_dir: self.expose_base_dir(),
             base_dir,
+            sandbox_mechanism,
         }
     }
 

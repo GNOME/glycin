@@ -522,6 +522,7 @@ pub trait EditableImage {
     async fn done(&self) -> Result<(), RemoteError>;
 }
 
+#[derive(Debug)]
 pub struct GFileWorker {
     file: Option<gio::File>,
     writer_send: Mutex<Option<oneshot::Sender<UnixStream>>>,

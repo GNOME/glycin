@@ -73,6 +73,11 @@ def main():
 
     test_loader(loader)
 
+    loader = Gly.Loader(file=file)
+    loader.set_sandbox_selector(Gly.SandboxSelector.NOT_SANDBOXED)
+
+    test_loader(loader)
+
     # Loader constructors/sources
 
     loader = Gly.Loader.new(file)

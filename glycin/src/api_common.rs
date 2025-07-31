@@ -11,7 +11,7 @@ use crate::pool::{Pool, PooledProcess};
 use crate::util::RunEnvironment;
 use crate::{config, Error, MimeType};
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 /// Sandboxing mechanism for image loading and editing
 pub enum SandboxMechanism {
     Bwrap,
@@ -148,6 +148,7 @@ impl Source {
     }
 }
 
+#[derive(Debug)]
 pub(crate) struct ProcessBasics<T> {
     pub mime_type: MimeType,
     pub sandbox_mechanism: SandboxMechanism,

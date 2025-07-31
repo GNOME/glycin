@@ -111,7 +111,7 @@ impl Pool {
     ) -> Result<Arc<PooledProcess<P>>, Error> {
         let mut pooled_processes = pooled_processes.lock().await;
 
-        let config_hash = config.hash_value(base_dir.clone());
+        let config_hash = config.hash_value(base_dir.clone(), sandbox_mechanism);
 
         let pooled_process = pooled_processes.get(&config_hash).cloned();
 
@@ -126,7 +126,7 @@ impl Pool {
             }
         }
 
-        tracing::debug!("Creating new loader.");
+        tracing::debug!("Now existing loader/editor in pool. Spawning new one.");
 
         let process_cancellable = gio::Cancellable::new();
         let Some(process_cancellable_tie) = cancellable.connect_cancelled(glib::clone!(
