@@ -24,6 +24,7 @@ fn roundtrip_all() {
             MimeType::BMP,
             MimeType::GIF,
             MimeType::HEIC,
+            MimeType::JXL,
             MimeType::JPEG,
             MimeType::PNG,
             MimeType::QOI,

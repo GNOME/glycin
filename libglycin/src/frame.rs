@@ -1,7 +1,7 @@
 use gio::prelude::*;
+use glib::ffi::GType;
 use glib::subclass::prelude::*;
 use glib::translate::*;
-use glib::{boxed::BoxedMemoryManager, ffi::GType};
 use glycin::gobject::{self, GlyCicp};
 
 pub type GlyFrame = <gobject::frame::imp::GlyFrame as ObjectSubclass>::Instance;

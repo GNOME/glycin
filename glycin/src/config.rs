@@ -58,19 +58,20 @@ impl MimeType {
     pub const JXL: Self = Self::new_static("image/jxl");
 
     const EXTENSIONS: &[(Self, &'static str)] = &[
+        (Self::AVIF, "avif"),
         (Self::BMP, "bmp"),
         (Self::DDS, "dds"),
         (Self::GIF, "gif"),
         (Self::HEIC, "heic"),
         (Self::ICO, "ico"),
         (Self::JPEG, "jpg"),
+        (Self::JXL, "jxl"),
         (Self::OPEN_EXR, "exr"),
         (Self::PNG, "png"),
         (Self::QOI, "qoi"),
         (Self::TGA, "tga"),
         (Self::TIFF, "tiff"),
         (Self::WEBP, "webp"),
-        (Self::AVIF, "avif"),
     ];
 
     pub fn new(mime_type: String) -> Self {

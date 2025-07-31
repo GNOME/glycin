@@ -1,5 +1,7 @@
 #![allow(clippy::large_enum_variant)]
 
+mod editing;
+
 use std::io::{Cursor, Read, Write};
 use std::mem::MaybeUninit;
 
@@ -10,7 +12,9 @@ use jpegxl_sys::common::types::{JxlBool, JxlBoxType};
 use jpegxl_sys::decode::*;
 use jpegxl_sys::metadata::codestream_header::*;
 
-init_main_loader!(ImgDecoder);
+use crate::editing::ImgEditor;
+
+init_main_loader_editor!(ImgDecoder, ImgEditor);
 
 type InitData = (Vec<u8>, Option<Vec<u8>>);
 
