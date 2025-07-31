@@ -4,7 +4,11 @@ use std::io::{Cursor, Read};
 
 use glycin_utils::safe_math::*;
 use glycin_utils::*;
-use libheif_rs::{ColorProfile, ColorSpace, HeifContext, LibHeif, RgbChroma, StreamReader};
+use gufo_common::cicp::Cicp;
+use libheif_rs::{
+    ColorProfile, ColorProfileNCLX, ColorProfileRaw, ColorSpace, HeifContext, LibHeif, RgbChroma,
+    StreamReader,
+};
 
 use crate::editing::ImgEditor;
 
@@ -99,17 +103,11 @@ fn decode(context: HeifContext, mime_type: &str) -> Result<Frame, ProcessError> 
         image => image.expected_error()?,
     };
 
-    let icc_profile = if let Some(profile) = handle.color_profile_raw() {
-        if [
-            libheif_rs::color_profile_types::R_ICC,
-            libheif_rs::color_profile_types::PROF,
-        ]
-        .contains(&profile.profile_type())
-        {
-            Some(profile.data)
-        } else {
-            None
-        }
+    let icc_profile = get_icc_profile(image.color_profile_raw())
+        .or_else(|| get_icc_profile(handle.color_profile_raw()));
+
+    let cicp = if icc_profile.is_none() {
+        get_cicp(image.color_profile_nclx()).or_else(|| get_cicp(handle.color_profile_nclx()))
     } else {
         None
     };
@@ -162,6 +160,7 @@ fn decode(context: HeifContext, mime_type: &str) -> Result<Frame, ProcessError> 
         .map(BinaryData::from_data)
         .transpose()
         .expected_error()?;
+    frame.details.color_cicp = cicp.map(|x| x.to_bytes());
     if plane.bits_per_pixel > 8 {
         frame.details.info_bit_depth = Some(plane.bits_per_pixel);
     }
@@ -196,4 +195,39 @@ fn exif(handle: &libheif_rs::ImageHandle) -> Option<Vec<u8>> {
     }
 
     None
+}
+
+fn get_cicp(profile: Option<ColorProfileNCLX>) -> Option<Cicp> {
+    if let Some(nclx) = profile {
+        if nclx.profile_type() == libheif_rs::color_profile_types::NCLX {
+            Cicp::from_bytes(&[
+                nclx.color_primaries() as u8,
+                nclx.transfer_characteristics() as u8,
+                nclx.matrix_coefficients() as u8,
+                nclx.full_range_flag(),
+            ])
+            .ok()
+        } else {
+            None
+        }
+    } else {
+        None
+    }
+}
+
+fn get_icc_profile(profile: Option<ColorProfileRaw>) -> Option<Vec<u8>> {
+    if let Some(profile) = profile {
+        if [
+            libheif_rs::color_profile_types::R_ICC,
+            libheif_rs::color_profile_types::PROF,
+        ]
+        .contains(&profile.profile_type())
+        {
+            Some(profile.data)
+        } else {
+            None
+        }
+    } else {
+        None
+    }
 }

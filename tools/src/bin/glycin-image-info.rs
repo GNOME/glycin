@@ -98,6 +98,14 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
                 .to_string())
         );
         println!(
+            "cicp = {}",
+            frame
+                .details()
+                .color_cicp()
+                .as_ref()
+                .map_or(String::from("empty"), |x| format!("{x:?}"))
+        );
+        println!(
             "bit_depth = {}",
             frame
                 .details()

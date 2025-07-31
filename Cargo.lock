@@ -1026,6 +1026,7 @@ version = "2.0.0-alpha.7"
 dependencies = [
  "four-cc",
  "glycin-utils",
+ "gufo-common",
  "libheif-rs",
  "safe-transmute",
 ]

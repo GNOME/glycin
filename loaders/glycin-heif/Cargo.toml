@@ -16,3 +16,4 @@ libheif-rs = { version = "2.2.0", default-features = false, features = [
     "v1_17",
 ] }
 safe-transmute.workspace = true
+gufo-common.workspace = true
