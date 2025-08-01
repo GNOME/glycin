@@ -22,11 +22,11 @@ members = [
     "glycin",
     "glycin-common",
     "glycin-dev-tools",
+    "glycin-loaders/*",
     "glycin-thumbnailer",
     "glycin-utils",
     "libglycin",
     "libglycin/libglycin-gtk4",
-    "loaders/*",
     "tests",
 ]
 default-members = [

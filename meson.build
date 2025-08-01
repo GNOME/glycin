@@ -59,6 +59,6 @@ if get_option('introspection') != introspection
   summary('introspection', introspection, section: 'Overwritten options')
 endif
 
-subdir('loaders')
+subdir('glycin-loaders')
+subdir('glycin-thumbnailer')
 subdir('libglycin')
-subdir('thumbnailer')
