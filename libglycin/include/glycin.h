@@ -713,6 +713,8 @@ GType gly_cicp_get_type(void);
 
 void gly_cicp_free(GlyCicp *cicp);
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (GlyCicp, gly_cicp_free)
+
 /**
  * gly_frame_get_color_cicp:
  * @frame:
