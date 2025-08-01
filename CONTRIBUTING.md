@@ -28,11 +28,11 @@ $ ./tests/libglycin.py
 
 ## Useful Commands
 
-Glycin comes with a few tools in `tools/` that can be especially helpful for development.
+Glycin comes with a few tools in `glycin-dev-tools/` that can be helpful for development.
 
 ```sh
 $ meson devenv -C builddir -w .
-$ cargo r -p tools --bin glycin-image-info image.png
+$ cargo r --bin glycin-image-info image.png
 ```
 
 Use ImageMagic to get Exif information.

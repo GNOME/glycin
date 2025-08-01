@@ -12,7 +12,7 @@ release_names = []
 BASE_DIR = 'news.d'
 OUT_FILE = 'NEWS'
 HEADING = ''
-IGNORED_PACKAGES = ['tests', 'tools']
+IGNORED_PACKAGES = ['tests', 'glycin-dev-tools']
 
 def main():
     changelog = Changelog(BASE_DIR, HEADING)

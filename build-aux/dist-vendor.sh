@@ -18,10 +18,6 @@ sed -i 's/"glycin-common",\?//' Cargo.toml
 rm -r glycin-common
 awk -i inplace -v RS= -v ORS='\n\n' '!/name = "glycin-common"/' Cargo.lock
 
-sed -i 's/"tools",\?//' Cargo.toml
-rm -r tools
-awk -i inplace -v RS= -v ORS='\n\n' '!/name = "tools"/' Cargo.lock
-
 echo "Showing changed Cargo.toml:"
 cat Cargo.toml
 
