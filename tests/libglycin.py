@@ -193,7 +193,7 @@ def main():
     image = loader.load_async(None, loader_cb, "loader_data")
     async_tests_remaining += 1
 
-    Gly.Loader.get_mime_types_async(mime_types_cb, None)
+    Gly.Loader.get_mime_types_async(None, mime_types_cb, None)
     async_tests_remaining += 1
 
     # Async Creator
@@ -226,7 +226,10 @@ def image_cb(image, result, user_data):
 
     async_test_done()
 
-def mime_types_cb(mime_types, user_data):
+def mime_types_cb(obj, result, user_data):
+    mime_types = Gly.Loader.get_mime_types_finish(result)
+
+    assert obj is None
     assert len(mime_types) > 0
 
     async_test_done()

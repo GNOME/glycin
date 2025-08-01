@@ -226,15 +226,33 @@ typedef void (*GlyLoaderGetMimeTypesDoneFunc)(GStrv mime_types,
 
 /**
  * gly_loader_get_mime_types_async:
- * @done_cb: (scope async): Called when mime types are available
- * @data: user data to pass to @done_cb
+ * @cancellable: (nullable):
+ * @callback:
+ * @user_data: user data to pass to @callback
  *
  * Async variant of [func@Loader.get_mime_types]
  *
  * Since: 2.0
  */
-void gly_loader_get_mime_types_async(GlyLoaderGetMimeTypesDoneFunc done_cb,
-                                     gpointer data);
+void gly_loader_get_mime_types_async(
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data);
+
+/**
+ * gly_loader_get_mime_types_finish:
+ * @result: A `GAsyncResult`
+ * @error:
+ *
+ * Finishes the [func@Loader.get_mime_types_async] call.
+ *
+ * Returns: (transfer full): Mime types.
+ *
+ * Since: 2.0
+ */
+GStrv *gly_loader_get_mime_types_finish(
+    GAsyncResult *result,
+    GError **error);
 
 /**
  * gly_loader_set_sandbox_selector:

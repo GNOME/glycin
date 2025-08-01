@@ -136,8 +136,6 @@ pub unsafe extern "C" fn gly_loader_load_finish(
     }
 }
 
-type GlyLoaderGetMimeTypesDoneFunc = unsafe extern "C" fn(GStrv, gpointer);
-
 #[no_mangle]
 pub extern "C" fn gly_loader_get_mime_types() -> GStrv {
     let mime_types = glib::StrV::from_iter(
@@ -152,18 +150,48 @@ pub extern "C" fn gly_loader_get_mime_types() -> GStrv {
 
 #[no_mangle]
 pub unsafe extern "C" fn gly_loader_get_mime_types_async(
-    callback: GlyLoaderGetMimeTypesDoneFunc,
-    data: gpointer,
+    cancellable: *mut gio::ffi::GCancellable,
+    callback: GAsyncReadyCallback,
+    user_data: gpointer,
 ) {
-    async_global_executor::block_on(async move {
+    let cancellable: Option<gio::Cancellable> = from_glib_none(cancellable);
+    let callback = GAsyncReadyCallbackSend::new(callback, user_data);
+
+    let closure = move |task: gio::Task<glib::StrV>, _obj: Option<&gobject::GlyLoader>| {
+        let result = task.upcast_ref::<gio::AsyncResult>().as_ptr();
+        callback.call_no_obj(result);
+    };
+
+    let task = gio::Task::new(None, cancellable.as_ref(), closure);
+
+    async_global_executor::spawn(async move {
         let mime_types = glycin::Loader::supported_mime_types().await;
         let strv = glib::StrV::from_iter(
             mime_types
                 .into_iter()
                 .map(|x| glib::GString::from(x.as_str())),
         );
-        callback(strv.into_raw(), data);
-    });
+        task.return_result(Ok(strv));
+    })
+    .detach();
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gly_loader_get_mime_types_finish(
+    res: *mut GAsyncResult,
+    error: *mut *mut GError,
+) -> GStrv {
+    let task = gio::Task::<glib::StrV>::from_glib_none(res as *mut GTask);
+
+    match task.propagate() {
+        Ok(mime_types) => mime_types.into_raw(),
+        Err(e) => {
+            if !error.is_null() {
+                *error = e.into_glib_ptr();
+            }
+            ptr::null_mut()
+        }
+    }
 }
 
 #[no_mangle]
