@@ -7,7 +7,6 @@ pub use glycin_common::MemoryFormat;
 use glycin_common::{BinaryData, MemoryFormatSelection};
 #[cfg(feature = "gdk4")]
 use glycin_utils::safe_math::*;
-use gufo_common::cicp::Cicp;
 use zbus::zvariant::OwnedObjectPath;
 
 use crate::api_common::*;

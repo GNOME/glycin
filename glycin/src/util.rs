@@ -46,6 +46,8 @@ pub fn gdk_color_state(format: &ColorState) -> Result<gdk::ColorState, crate::Er
     match format {
         ColorState::Srgb => Ok(gdk::ColorState::srgb()),
         ColorState::Cicp(cicp) => {
+            use gufo_common::cicp::VideoRangeFlag;
+
             let cicp_params = gdk::CicpParams::new();
 
             cicp_params.set_color_primaries(u8::from(cicp.color_primaries).into());
@@ -53,8 +55,8 @@ pub fn gdk_color_state(format: &ColorState) -> Result<gdk::ColorState, crate::Er
             cicp_params.set_matrix_coefficients(u8::from(cicp.matrix_coefficients).into());
 
             let range = match cicp.video_full_range_flag {
-                crate::VideoRangeFlag::Full => gdk::CicpRange::Full,
-                crate::VideoRangeFlag::Narrow => gdk::CicpRange::Narrow,
+                VideoRangeFlag::Full => gdk::CicpRange::Full,
+                VideoRangeFlag::Narrow => gdk::CicpRange::Narrow,
             };
             cicp_params.set_range(range);
 
