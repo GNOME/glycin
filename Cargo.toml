@@ -22,18 +22,19 @@ members = [
     "glycin",
     "glycin-common",
     "glycin-dev-tools",
+    "glycin-thumbnailer",
     "glycin-utils",
     "libglycin",
     "libglycin/libglycin-gtk4",
     "loaders/*",
     "tests",
-    "thumbnailer",
 ]
 default-members = [
     "glycin",
     "glycin-common",
-    "glycin-utils",
     "glycin-dev-tools",
+    "glycin-thumbnailer",
+    "glycin-utils",
 ]
 
 [workspace.lints.clippy]
