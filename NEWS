@@ -1,8 +1,19 @@
-## 2.0.beta (2025-08-01)
+## 2.0.beta.1 (2025-08-01)
 
 This release contains the following new component versions:
 
-- glycin-dev-tools 2.0.0-alpha.7
+- glycin-common 1.0.0-beta.1
+- glycin-dev-tools 2.0.0-beta.1
+- glycin-heif 2.0.0-beta.1
+- glycin-image-rs 2.0.0-beta.1
+- glycin-jxl 2.0.0-beta.1
+- glycin-raw 2.0.0-beta.1
+- glycin-svg 2.0.0-beta.1
+- glycin-thumbnailer 2.0.0-beta.1
+- glycin-utils 4.0.0-beta.1
+- glycin 3.0.0-beta.1
+- libglycin 2.0.0-beta.1
+- libglycin-gtk4 2.0.0-beta.1
 
 ### Added
 
