@@ -1,5 +1,6 @@
-use std::sync::{Mutex, MutexGuard, OnceLock};
+use std::sync::OnceLock;
 
+use async_lock::MutexGuard;
 use gio::glib;
 use glib::prelude::*;
 use glib::subclass::prelude::*;
@@ -7,6 +8,7 @@ use glycin_utils::MemoryFormat;
 
 use crate::error::ResultExt;
 use crate::gobject::GlyNewFrame;
+use crate::util::AsyncMutex;
 use crate::{gobject, Creator, Error, MimeType, SandboxSelector};
 
 static_assertions::assert_impl_all!(GlyCreator: Send, Sync);
@@ -18,12 +20,11 @@ pub mod imp {
     #[derive(Default, Debug, glib::Properties)]
     #[properties(wrapper_type = super::GlyCreator)]
     pub struct GlyCreator {
-        #[property(get, set, builder(SandboxSelector::default()))]
-        sandbox_selector: Mutex<SandboxSelector>,
+        sandbox_selector: AsyncMutex<SandboxSelector>,
         #[property(get, construct_only)]
         mime_type: OnceLock<String>,
 
-        pub(super) creator: Mutex<Option<Creator>>,
+        pub(super) creator: AsyncMutex<Option<Creator>>,
     }
 
     #[glib::object_subclass]
@@ -38,7 +39,7 @@ pub mod imp {
             self.parent_constructed();
             let obj = self.obj();
 
-            let mut creator = self.creator.lock().unwrap();
+            let mut creator = self.creator.lock_blocking();
 
             if creator.is_none() {
                 *creator = async_io::block_on(Creator::new(MimeType::new(obj.mime_type()))).ok();
@@ -64,7 +65,7 @@ impl GlyCreator {
             .property("mime-type", mime_type)
             .build();
 
-        *obj.imp().creator.lock().unwrap() = Some(creator);
+        *obj.imp().creator.lock_blocking() = Some(creator);
 
         Ok(obj)
     }
@@ -72,8 +73,7 @@ impl GlyCreator {
     pub fn cancellable(&self) -> gio::Cancellable {
         self.imp()
             .creator
-            .lock()
-            .unwrap()
+            .lock_blocking()
             .as_ref()
             .unwrap()
             .cancellable
@@ -81,7 +81,7 @@ impl GlyCreator {
     }
 
     pub fn creator(&self) -> MutexGuard<Option<Creator>> {
-        self.imp().creator.lock().unwrap()
+        self.imp().creator.lock_blocking()
     }
 
     pub fn metadata_add_key_value(
@@ -148,7 +148,7 @@ impl GlyCreator {
     }
 
     pub async fn create(&self) -> Result<gobject::GlyEncodedImage, crate::ErrorCtx> {
-        if let Some(creator) = std::mem::take(&mut *self.imp().creator.lock().unwrap()) {
+        if let Some(creator) = std::mem::take(&mut *self.imp().creator.lock_blocking()) {
             let encoded_image: crate::EncodedImage = creator.create().await?;
             Ok(gobject::GlyEncodedImage::new(encoded_image))
         } else {

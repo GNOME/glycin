@@ -66,7 +66,7 @@ pub unsafe extern "C" fn gly_loader_load(
 ) -> *mut GlyImage {
     let obj = gobject::GlyLoader::from_glib_ptr_borrow(&loader);
 
-    let result = async_io::block_on(obj.load());
+    let result = async_global_executor::block_on(obj.load());
 
     match result {
         Ok(image) => image.into_glib_ptr(),
@@ -110,10 +110,11 @@ pub unsafe extern "C" fn gly_loader_load_async(
 
     let task = gio::Task::new(Some(&obj), cancellable_.as_ref(), closure);
 
-    async_io::block_on(async move {
+    async_global_executor::spawn(async move {
         let res = obj.load().await.map_err(|x| glib_context_error(&x));
         task.return_result(res);
-    });
+    })
+    .detach();
 }
 
 #[no_mangle]
@@ -154,7 +155,7 @@ pub unsafe extern "C" fn gly_loader_get_mime_types_async(
     callback: GlyLoaderGetMimeTypesDoneFunc,
     data: gpointer,
 ) {
-    async_io::block_on(async move {
+    async_global_executor::block_on(async move {
         let mime_types = glycin::Loader::supported_mime_types().await;
         let strv = glib::StrV::from_iter(
             mime_types

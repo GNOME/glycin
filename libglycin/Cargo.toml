@@ -10,7 +10,7 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-async-io.workspace = true
+async-global-executor.workspace = true
 futures-task.workspace = true
 gio.workspace = true
 glib.workspace = true

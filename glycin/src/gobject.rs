@@ -10,8 +10,7 @@ use std::sync::OnceLock;
 
 pub use creator::GlyCreator;
 pub use encoded_image::GlyEncodedImage;
-pub use frame::GlyCicp;
-pub use frame::GlyFrame;
+pub use frame::{GlyCicp, GlyFrame};
 pub use frame_request::GlyFrameRequest;
 pub use image::GlyImage;
 pub use loader::GlyLoader;

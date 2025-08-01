@@ -63,7 +63,7 @@ pub unsafe extern "C" fn gly_image_get_specific_frame(
     let frame_request: glycin::FrameRequest =
         gobject::GlyFrameRequest::from_glib_ptr_borrow(&frame_request).frame_request();
 
-    let result = async_io::block_on(obj.specific_frame(frame_request));
+    let result = async_global_executor::block_on(obj.specific_frame(frame_request));
 
     match result {
         Ok(frame) => frame.into_glib_ptr(),
@@ -106,13 +106,14 @@ pub unsafe extern "C" fn gly_image_get_specific_frame_async(
         callback.call(obj.unwrap(), result);
     };
     let task = gio::Task::new(Some(&obj), cancellable_.as_ref(), closure);
-    async_io::block_on(async move {
+    async_global_executor::spawn(async move {
         let res = obj
             .specific_frame(frame_request)
             .await
             .map_err(|x| glib_context_error(&x));
         task.return_result(res);
-    });
+    })
+    .detach();
 }
 
 #[no_mangle]

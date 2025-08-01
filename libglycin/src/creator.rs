@@ -21,7 +21,7 @@ pub unsafe extern "C" fn gly_creator_new(
 ) -> *mut GlyCreator {
     let mime_type = glib::GStr::from_ptr_checked(mime_type).unwrap().to_string();
 
-    let creator = async_io::block_on(gobject::GlyCreator::new(mime_type));
+    let creator = async_global_executor::block_on(gobject::GlyCreator::new(mime_type));
 
     match creator {
         Ok(creator) => creator.into_glib_ptr(),
@@ -52,7 +52,7 @@ pub unsafe extern "C" fn gly_creator_create(
 ) -> *mut GlyEncodedImage {
     let obj = gobject::GlyCreator::from_glib_ptr_borrow(&creator);
 
-    let result = async_io::block_on(async move { obj.create().await });
+    let result = async_global_executor::block_on(async move { obj.create().await });
 
     match result {
         Ok(image) => image.into_glib_ptr(),
@@ -148,10 +148,11 @@ pub unsafe extern "C" fn gly_creator_create_async(
 
     let task = gio::Task::new(Some(&obj), cancellable_.as_ref(), closure);
 
-    async_io::block_on(async move {
+    async_global_executor::spawn(async move {
         let res = obj.create().await.map_err(|x| glib_context_error(&x));
         task.return_result(res);
-    });
+    })
+    .detach();
 }
 
 #[no_mangle]
