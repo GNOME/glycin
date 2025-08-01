@@ -1,3 +1,21 @@
+## 2.0.beta (2025-08-01)
+
+This release contains the following new component versions:
+
+- glycin-dev-tools 2.0.0-alpha.7
+
+### Added
+
+- CICP support for HEIC and AVIF.
+- jxl: Support saving images.
+- libglycin-gtk4: gly_gtk_frame_get_texture now sets the GdkColorState if a CICP
+  value is present.
+
+### Fixed
+
+- glycin: Pool according to sandbox mechanism. Previously, a wrong mechanism
+  could be used, if different mechanisms inside the same process were requested.
+
 ## 2.0.alpha.7 (2025-07-07)
 
 This release contains the following new component versions:
@@ -134,6 +152,17 @@ This release contains the following new component versions:
 - Use a new loader/editor D-Bus API version 2+ and simultanously bump libglycin
   to 2.0 and glycin (Rust API) to 3.0. This was required for supporting pooled
   loaders.
+
+## 1.2.3 (2025-08-01)
+
+This release contains the following new component versions:
+
+- glycin-image-rs 1.2.3
+
+### Fixed
+
+- image-rs: Force at least zune-jpeg 0.4.19 to fix a JPEG loading issues for
+  images with extra data at the end.
 
 ## 1.2.2 (2025-06-27)
 
