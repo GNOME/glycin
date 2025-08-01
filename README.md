@@ -1,17 +1,21 @@
 # Glycin
 
-Glycin allows to decode images into [`gdk::Texture`](https://gtk-rs.org/gtk4-rs/stable/latest/docs/gdk4/struct.Texture.html)s and to extract image metadata.
-The decoding happens in sandboxed modular *image loaders*.
+Glycin allows to decode, edit, and create images and read metadata. The decoding happens in sandboxed modular *image loaders and editors*.
 
 - [glycin](https://docs.rs/glycin/) – The Rust image library
     - [libglycin](https://gnome.pages.gitlab.gnome.org/glycin/libglycin/) – C-Bindings for the library
     - [libglycin-gtk4](https://gnome.pages.gitlab.gnome.org/glycin/libglycin-gtk4/) – C-Bindings to convert glycin frames to GDK Textures
+- [glycin-loaders](glycin-loaders) – Glycin loaders for several formats
+- [glycin-thumbnailers](glycin-thumbnailers) – Glycin thumbnailer using the installed loaders
+
+Other rust crates:
+
 - [glycin-utils](https://docs.rs/glycin-utils/) – Utilities to write loaders for glycin
-- [loaders](loaders) – Glycin loaders for several formats
+- [glycin-common](https://docs.rs/glycin-common/) – Components shared between the glycin-utils and glycin crates.
 
 ## Usage and Packaging
 
-The Rust client library is available as [glycin on crates.io](https://docs.rs/glycin/). For other programming languages, the libglycin C client library can be used. For the client libraries to work, **loader binaries must also be installed**. The loader binaries provided by the glycin project cover a lot of common image formats (see below). Both, the loader binaries and libglycin can be built from the released [glycin tarballs](https://download.gnome.org/sources/glycin/). By using `-Dlibglycin=false` or `-Dglycin-loaders=false` it is possible to build only one of these components. In distributions, the loaders are usually packaged as *glycin-loaders*, and libglycin as *libglycin-1*. However, each loader binary could be also packaged as its own package.
+The Rust client library is available as [glycin on crates.io](https://docs.rs/glycin/). For other programming languages, the libglycin C client library can be used. For the client libraries to work, **loader binaries must also be installed**. The loader binaries provided by the glycin project cover a lot of common image formats (see below). Both, the loader binaries and libglycin can be built from the released [glycin tarballs](https://download.gnome.org/sources/glycin/). By using `-Dglycin-thumbnailer=false`, `-Dglycin-loaders=false`, `-Dlibglycin=false`, or `-Dlibglycin-gtk4=false` it is possible to build only specific components. In distributions, the loaders are usually packaged as *glycin-loaders*, and libglycin as *libglycin-2*. However, each loader binary could be also packaged as its own package.
 
 ### Example
 
@@ -126,6 +130,10 @@ For information on how to implement a loader, please consult the [`glycin-utils`
 - [Identity](https://flathub.org/apps/org.gnome.gitlab.YaLTeR.Identity)
 - [Image Viewer (Loupe)](https://flathub.org/apps/org.gnome.Loupe)
 - [Shortwave](https://flathub.org/apps/de.haeckerfelix.Shortwave)
+
+## The Name
+
+[Glycin](https://en.wikipedia.org/wiki/Glycin) (ˈɡlaɪsiːn) is a photographic developing agent. There is no deeper meaning behind the name choice but using a somewhat unique name that is related to images. Glycin is often confused with the amino acid [glycine](https://en.wikipedia.org/wiki/Glycine), which is called glycin in other languages, like German.
 
 ## License
 
