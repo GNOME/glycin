@@ -110,7 +110,7 @@ option(
 # thumbnailer
 
 option(
-  'thumbnailer',
+  'glycin-thumbnailer',
   type: 'boolean',
   description: 'Build thumbnailer',
 )

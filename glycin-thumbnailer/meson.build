@@ -1,4 +1,4 @@
-if not get_option('thumbnailer')
+if not get_option('glycin-thumbnailer')
     subdir_done()
 endif
 
