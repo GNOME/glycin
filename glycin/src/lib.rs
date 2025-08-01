@@ -94,6 +94,6 @@ pub use error::{Error, ErrorCtx};
 pub use glycin_common::{
     BinaryData, MemoryFormat, MemoryFormatSelection, Operation, OperationId, Operations,
 };
-pub use gufo_common::cicp::{Cicp, VideoRangeFlag};
+pub use gufo_common::cicp::Cicp;
 #[cfg(feature = "gdk4")]
 pub use util::gdk_memory_format;

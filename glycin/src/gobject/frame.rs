@@ -67,7 +67,7 @@ impl GlyFrame {
         }
     }
 
-    pub fn color_cicp(&self) -> Option<gufo_common::cicp::Cicp> {
+    pub fn color_cicp(&self) -> Option<crate::Cicp> {
         if let crate::ColorState::Cicp(cicp) = self.frame().color_state() {
             Some(*cicp)
         } else {
