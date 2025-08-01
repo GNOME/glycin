@@ -1,5 +1,5 @@
 [package]
-name = "glycin-tools"
+name = "glycin-dev-tools"
 version.workspace = true
 authors.workspace = true
 description.workspace = true

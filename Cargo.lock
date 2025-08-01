@@ -1021,6 +1021,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "glycin-dev-tools"
+version = "2.0.0-alpha.7"
+dependencies = [
+ "async-io",
+ "gdk4",
+ "gio",
+ "glycin",
+ "gufo-common",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "glycin-heif"
 version = "2.0.0-alpha.7"
 dependencies = [
@@ -1084,18 +1096,6 @@ dependencies = [
  "glycin",
  "image",
  "png",
-]
-
-[[package]]
-name = "glycin-tools"
-version = "2.0.0-alpha.7"
-dependencies = [
- "async-io",
- "gdk4",
- "gio",
- "glycin",
- "gufo-common",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -2524,16 +2524,6 @@ dependencies = [
  "serde_spanned",
  "toml_datetime",
  "winnow",
-]
-
-[[package]]
-name = "tools"
-version = "2.0.0-alpha.7"
-dependencies = [
- "gdk4",
- "gio",
- "glycin",
- "tracing-subscriber",
 ]
 
 [[package]]
