@@ -43,19 +43,19 @@ option(
 )
 
 option(
-  'test_skip_ext',
-  type: 'array',
-  description: 'Image filename extensions, exlcuding dots, to skip during tests.',
-)
-
-option(
   'tests',
   type: 'boolean',
   description: 'Support running tests.',
 )
 
 option(
-  'tokio_tests',
+  'test_skip_ext',
+  type: 'array',
+  description: 'Image filename extensions, exlcuding dots, to skip during tests.',
+)
+
+option(
+  'test_tokio',
   type: 'boolean',
   description: 'Also run tests with tokio if tests are enabled.',
 )
@@ -65,6 +65,14 @@ option(
   type: 'boolean',
   value: false,
   description: 'Do not run meson install before running tests.',
+)
+
+option(
+  'test_log_level',
+  type: 'combo',
+  choices: ['error', 'warn', 'info', 'debug', 'trace'],
+  value: 'warn',
+  description: 'Output log messages of the specified level during tests.',
 )
 
 # libglycin

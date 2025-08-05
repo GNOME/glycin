@@ -168,7 +168,10 @@ if get_option('tests')
     endforeach
   endif
 
-  env = {'GLYCIN_TEST_SKIP_EXT': test_skip_ext}
+  env = {
+    'GLYCIN_TEST_SKIP_EXT': test_skip_ext,
+    'RUST_LOG': get_option('test_log_level'),
+  }
 
   if not get_option('test_skip_install')
     # Use string concatenation to combine two absolute paths
@@ -194,7 +197,7 @@ if get_option('tests')
     timeout: 1800,
   )
 
-  if get_option('tokio_tests')
+  if get_option('test_tokio')
     test(
       'cargo-test-tokio',
       cargo_bin,
