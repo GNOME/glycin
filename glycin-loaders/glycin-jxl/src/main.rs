@@ -53,7 +53,9 @@ impl LoaderImplementation for ImgDecoder {
     fn frame(&mut self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
         let (data, iccp) = &self.decoder;
 
-        let decoder = jpegxl_rs::decode::decoder_builder()
+        let runner = jpegxl_rs::parallel::resizable_runner::ResizableRunner::new(None).unwrap();
+        let decoder = jpegxl_rs::decoder_builder()
+            .parallel_runner(&runner)
             .build()
             .expected_error()?;
 
