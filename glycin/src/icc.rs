@@ -10,37 +10,53 @@ pub fn apply_transformation(
     transform(icc_profile, memory_format, mmap).map_err(Into::into)
 }
 
-fn transform(
+fn transformation<P: lcms2::Pod>(
     icc_profile: &[u8],
     memory_format: MemoryFormat,
-    buf: &mut [u8],
-) -> std::result::Result<ColorState, lcms2::Error> {
+) -> std::result::Result<lcms2::Transform<P, P>, lcms2::Error> {
     let icc_pixel_format = lcms_pixel_format(memory_format);
     let src_profile = lcms2::Profile::new_icc(icc_profile)?;
 
     let target_profile;
-    let target_color_state;
 
     if memory_format.n_channels() > 2 {
         target_profile = lcms2::Profile::new_srgb();
-        target_color_state = ColorState::Srgb;
     } else {
         target_profile =
             lcms2::Profile::new_gray(lcms2_sys::ffi::CIExyY::d50(), &lcms2::ToneCurve::new(2.2))?;
-        target_color_state = ColorState::Srgb;
     };
 
-    let transform = lcms2::Transform::new(
+    lcms2::Transform::new(
         &src_profile,
         icc_pixel_format,
         &target_profile,
         icc_pixel_format,
         lcms2::Intent::Perceptual,
-    )?;
+    )
+}
 
-    transform.transform_in_place(buf);
+fn transform(
+    icc_profile: &[u8],
+    memory_format: MemoryFormat,
+    buf: &mut [u8],
+) -> std::result::Result<ColorState, lcms2::Error> {
+    let multiple = std::thread::available_parallelism().map_or(2, |x| x.get());
+    tracing::trace!("Applying ICC profiles while using {multiple} threads");
 
-    Ok(target_color_state)
+    let chunk_size = ((buf.len() / memory_format.n_bytes().usize() + multiple - 1) / multiple)
+        * memory_format.n_bytes().usize();
+
+    std::thread::scope(|s| {
+        for chunk in buf.chunks_mut(chunk_size) {
+            s.spawn(move || {
+                let transform = transformation(icc_profile, memory_format)?;
+                transform.transform_in_place(chunk);
+                Ok::<(), lcms2::Error>(())
+            });
+        }
+    });
+
+    Ok(ColorState::Srgb)
 }
 
 const fn lcms_pixel_format(format: MemoryFormat) -> lcms2::PixelFormat {
