@@ -482,21 +482,21 @@ impl Sandbox {
     fn set_memory_limit() {
         let limit = Self::memory_limit();
 
-        let msg = b"Setting process memory limit\n";
-        unsafe {
-            let _ = libc::write(libc::STDERR_FILENO, msg.as_ptr() as *const _, msg.len());
-        }
+        libc_eprint("Setting process memory limit\n");
 
         if let Err(_) = resource::setrlimit(resource::Resource::RLIMIT_AS, limit, limit) {
-            let msg = b"Error setrlimit(RLIMIT_AS)\n";
-            unsafe {
-                let _ = libc::write(libc::STDERR_FILENO, msg.as_ptr() as *const _, msg.len());
-            }
+            libc_eprint("Error setrlimit(RLIMIT_AS)\n");
         }
     }
 
     fn seccomp_filter(&self) -> Result<ScmpFilterContext, SeccompError> {
-        let mut filter = ScmpFilterContext::new_filter(ScmpAction::Trap)?;
+        // In the past we used `Trap` as default action for being able to print the
+        // failed syscall to STDERR in a signal handler. However, in most cases the
+        // filtered syscall was already used before the signal handler was connected in
+        // ctors. Hence this approach wasn't very successful.
+        //
+        // Using `KillProcess` at least allows this event to be logged by auditd.
+        let mut filter = ScmpFilterContext::new_filter(ScmpAction::KillProcess)?;
 
         let mut syscalls = vec![ALLOWED_SYSCALLS];
         if self.config_entry.fontconfig() {
@@ -598,5 +598,15 @@ impl SystemSetup {
         };
 
         Ok(())
+    }
+}
+
+fn libc_eprint(s: &str) {
+    unsafe {
+        libc::write(
+            libc::STDERR_FILENO,
+            s.as_ptr() as *const libc::c_void,
+            s.len(),
+        );
     }
 }

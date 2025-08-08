@@ -1,11 +1,8 @@
 // Copyright (c) 2024 GNOME Foundation Inc.
 
 use std::os::fd::FromRawFd;
-use std::os::raw::{c_int, c_void};
 use std::os::unix::net::UnixStream;
 use std::sync::Mutex;
-
-use nix::libc::{c_uint, siginfo_t};
 
 use crate::dbus_editor_api::{Editor, EditorImplementation, VoidEditorImplementation};
 use crate::dbus_loader_api::{Loader, LoaderImplementation};
@@ -96,70 +93,9 @@ impl DbusServer {
     }
 }
 
-#[allow(non_camel_case_types)]
-extern "C" fn sigsys_handler(_: c_int, info: *mut siginfo_t, _: *mut c_void) {
-    // Reimplement siginfo_t since the libc crate doesn't support _sigsys
-    // information
-    #[repr(C)]
-    struct siginfo_t {
-        si_signo: c_int,
-        si_errno: c_int,
-        si_code: c_int,
-        _sifields: _sigsys,
-    }
-
-    #[repr(C)]
-    struct _sigsys {
-        _call_addr: *const c_void,
-        _syscall: c_int,
-        _arch: c_uint,
-    }
-
-    let info: *mut siginfo_t = info.cast();
-    let syscall = unsafe { info.as_ref().unwrap()._sifields._syscall };
-
-    let name = libseccomp::ScmpSyscall::from(syscall).get_name().ok();
-
-    libc_eprint("glycin sandbox: Blocked syscall used: ");
-    libc_eprint(&name.unwrap_or_else(|| String::from("Unknown Syscall")));
-    libc_eprint(" (");
-    libc_eprint(&syscall.to_string());
-    libc_eprint(")\n");
-
-    unsafe {
-        libc::exit(128 + libc::SIGSYS);
-    }
-}
-
-fn setup_sigsys_handler() {
-    let mut mask = nix::sys::signal::SigSet::empty();
-    mask.add(nix::sys::signal::Signal::SIGSYS);
-
-    let sigaction = nix::sys::signal::SigAction::new(
-        nix::sys::signal::SigHandler::SigAction(sigsys_handler),
-        nix::sys::signal::SaFlags::SA_SIGINFO,
-        mask,
-    );
-
-    unsafe {
-        if nix::sys::signal::sigaction(nix::sys::signal::Signal::SIGSYS, &sigaction).is_err() {
-            libc_eprint("glycin sandbox: Failed to init syscall failure signal handler");
-        }
-    };
-}
-
-#[allow(dead_code)]
-pub extern "C" fn pre_main() {
-    setup_sigsys_handler();
-}
-
 #[macro_export]
 macro_rules! init_main_loader {
     ($loader:path) => {
-        /// Init handler for SIGSYS before main() to catch
-        #[cfg_attr(target_os = "linux", link_section = ".ctors")]
-        static __CTOR: extern "C" fn() = pre_main;
-
         fn main() {
             $crate::DbusServer::spawn_loader::<$loader>(format!(
                 "{} v{}",
@@ -173,10 +109,6 @@ macro_rules! init_main_loader {
 #[macro_export]
 macro_rules! init_main_loader_editor {
     ($loader:path, $editor:path) => {
-        /// Init handler for SIGSYS before main() to catch
-        #[cfg_attr(target_os = "linux", link_section = ".ctors")]
-        static __CTOR: extern "C" fn() = pre_main;
-
         fn main() {
             $crate::DbusServer::spawn_loader_editor::<$loader, $editor>(format!(
                 "{} v{}",
@@ -185,14 +117,4 @@ macro_rules! init_main_loader_editor {
             ));
         }
     };
-}
-
-fn libc_eprint(s: &str) {
-    unsafe {
-        libc::write(
-            libc::STDERR_FILENO,
-            s.as_ptr() as *const libc::c_void,
-            s.len(),
-        );
-    }
 }
