@@ -1,0 +1,1 @@
+glycin/sandbox: Allow `{get,set}priority` syscalls, since they are used by libheif on Gentoo.
