@@ -24,12 +24,6 @@ cargo_env_module = cargo_env
 packages = []
 
 if get_option('libglycin')
-    # Let the libglycin-gtk4 build find the previously built libglycin
-    cargo_env_module.prepend(
-        'PKG_CONFIG_PATH',
-        meson.project_build_root() / 'meson-uninstalled',
-    )
-
     packages = [
         {
             'suffix': '',

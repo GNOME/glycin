@@ -2,9 +2,6 @@ if not get_option('glycin-thumbnailer')
     subdir_done()
 endif
 
-cargo_env = environment()
-cargo_env.set('CARGO_HOME', cargo_home)
-
 cargo_build = custom_target(
     'glycin-thumbnailer',
     build_by_default: true,
