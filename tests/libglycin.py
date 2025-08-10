@@ -138,6 +138,14 @@ def main():
     assert cicp.matrix_coefficients == 0
     assert cicp.video_full_range_flag == 1
 
+    cicp_copy = cicp.copy()
+
+    assert cicp_copy is not cicp
+    assert cicp_copy.color_primaries == cicp.color_primaries
+    assert cicp_copy.transfer_characteristics == cicp.transfer_characteristics
+    assert cicp_copy.matrix_coefficients == cicp.matrix_coefficients
+    assert cicp_copy.video_full_range_flag == cicp.video_full_range_flag
+
     texture = GlyGtk4.frame_get_texture(frame)
     cicp = texture.get_color_state().create_cicp_params()
 

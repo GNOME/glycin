@@ -694,7 +694,7 @@ GBytes *gly_frame_get_buf_bytes(GlyFrame *frame);
 GlyMemoryFormat gly_frame_get_memory_format(GlyFrame *frame);
 
 /**
- * GlyCicp:
+ * GlyCicp: (copy-func gly_cicp_copy) (free-func gly_cicp_free)
  *
  * See ITU-T H.273
  *
@@ -711,6 +711,7 @@ typedef struct
 GType gly_cicp_get_type(void);
 #define GLY_TYPE_CICP (gly_cicp_get_type())
 
+GlyCicp *gly_cicp_copy(GlyCicp *cicp);
 void gly_cicp_free(GlyCicp *cicp);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (GlyCicp, gly_cicp_free)

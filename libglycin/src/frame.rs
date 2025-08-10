@@ -68,6 +68,11 @@ pub extern "C" fn gly_cicp_get_type() -> GType {
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn gly_cicp_copy(cicp: *mut GlyCicp) -> *mut GlyCicp {
+    GlyCicp::from_glib_none(cicp).clone().into_glib_ptr()
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn gly_cicp_free(cicp: *mut GlyCicp) {
     drop(GlyCicp::from_glib_full(cicp));
 }
