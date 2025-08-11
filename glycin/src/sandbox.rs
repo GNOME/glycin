@@ -24,6 +24,10 @@ type SystemSetupStore = Arc<Result<SystemSetup, Arc<io::Error>>>;
 
 static SYSTEM_SETUP: AsyncMutex<Option<SystemSetupStore>> = new_async_mutex(None);
 
+/// List of allowed syscalls
+///
+/// All syscalls are blocked by default via seccomp. Only the following syscalls
+/// are allowed. The feature is only available for sandboxes using bubblewrap.
 const ALLOWED_SYSCALLS: &[&str] = &[
     "access",
     "arch_prctl",
@@ -115,13 +119,13 @@ const ALLOWED_SYSCALLS: &[&str] = &[
     "sched_yield",
     "sendmsg",
     "sendto",
-    "setpriority",
     "set_mempolicy",
     "set_mempolicy",
     "set_robust_list",
     "set_thread_area",
     "set_tid_address",
     "set_tls",
+    "setpriority",
     "sigaltstack",
     "signalfd4",
     "socket",
@@ -131,10 +135,10 @@ const ALLOWED_SYSCALLS: &[&str] = &[
     "statfs64",
     "statx",
     "sysinfo",
+    "tgkill",
     "timerfd_create",
     "timerfd_settime",
     "timerfd_settime64",
-    "tgkill",
     "ugetrlimit",
     "unshare",
     "wait4",
@@ -142,15 +146,20 @@ const ALLOWED_SYSCALLS: &[&str] = &[
     "writev",
 ];
 
+/// Extra syscalls only allowed with fontconfig
+///
+/// We are only allowing them for fontconfig since generally we don't want to
+/// allow such filesystem operations. But seccomp needs them for cache
+/// operations.
 const ALLOWED_SYSCALLS_FONTCONFIG: &[&str] = &[
     "chmod",
     "link",
     "linkat",
-    "unlink",
-    "unlinkat",
     "rename",
     "renameat",
     "renameat2",
+    "unlink",
+    "unlinkat",
 ];
 
 pub struct Sandbox {
@@ -512,6 +521,9 @@ impl Sandbox {
         Ok(filter)
     }
 
+    /// Make seccomp filters available under FD
+    ///
+    /// Bubblewrap supports taking an fd to seccomp filters in the BPF format.
     fn seccomp_export_bpf(filter: &ScmpFilterContext) -> Result<Memfd, Error> {
         let mut memfd = MemfdOptions::default()
             .close_on_exec(false)
