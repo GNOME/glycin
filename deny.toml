@@ -13,13 +13,23 @@ allow = [
     "Apache-2.0",
     "BSD-2-Clause",
     "BSD-3-Clause",
-    "GPL-3.0",
     "IJG",
     "ISC",
-    "LGPL-2.1",
-    "LGPL-3.0",
     "MIT",
     "MPL-2.0",
     "Unicode-3.0",
     "Unicode-DFS-2016",
+]
+
+exceptions = [
+    { allow = [
+        "GPL-3.0",
+    ], crate = "jpegxl-rs" },
+    { allow = [
+        "GPL-3.0",
+    ], crate = "jpegxl-sys" },
+    { allow = [
+        "LGPL-3.0",
+    ], crate = "libopenraw" },
+
 ]

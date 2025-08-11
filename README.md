@@ -139,4 +139,4 @@ For information on how to implement a loader, please consult the [`glycin-utils`
 
 SPDX-License-Identifier: MPL-2.0 OR LGPL-2.1-or-later
 
-The camera raw loader uses the crate `libopenraw` which is LGPL-3.0-or-later. Given that it's only in a separate executable, only the `glycin-raw` binary falls under said license, and doesn't precludes using `glycin` under MPL-2.0 OR LGPL-2.1-or-later. This is not legal advice.
+The camera raw loader uses the crate `libopenraw` which is licensed as LGPL-3.0-or-later. The JPEG XL loader uses the `jpegxl-rs` and `jpegxl-sys` crates which are licensed as GPL-3.0-or-later. Given these are only separate executables, only the `glycin-raw` and the `glycin-jxl` binary falls under said licenses, and doesn't precludes using `glycin` under MPL-2.0 OR LGPL-2.1-or-later. This is not legal advice.
