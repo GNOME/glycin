@@ -54,6 +54,7 @@ const ALLOWED_SYSCALLS: &[&str] = &[
     "eventfd2",
     "execve",
     "exit",
+    "exit_group",
     "faccessat",
     "fadvise64",
     "fadvise64_64",
