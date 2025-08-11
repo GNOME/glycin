@@ -37,6 +37,9 @@ url = "https://raw.githubusercontent.com/zcash/rust-ecosystem/main/supply-chain/
 [policy.glycin]
 audit-as-crates-io = true
 
+[policy.glycin-common]
+audit-as-crates-io = true
+
 [policy.glycin-utils]
 audit-as-crates-io = true
 
