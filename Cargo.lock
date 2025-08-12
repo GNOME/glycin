@@ -1191,11 +1191,12 @@ dependencies = [
 
 [[package]]
 name = "gufo-jpeg"
-version = "0.3.0-beta"
+version = "0.3.0-beta.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f913e2b8d915f20316da0f6f6eafa534d6c048cb781d534872c235416692228"
+checksum = "751223b7e5965dde03fbd7f3402b0bc9970b83b7accc70f5e9d04eddb12f0843"
 dependencies = [
  "gufo-common",
+ "indexmap",
  "jpeg-encoder",
  "thiserror",
  "tracing",
