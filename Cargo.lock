@@ -1116,11 +1116,12 @@ dependencies = [
 
 [[package]]
 name = "gufo-jpeg"
-version = "0.2.0"
+version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "047379e4825d1a8581f0bf0daa841d71eff1503229bcdef004ad1d18e17b39f0"
+checksum = "16c6e58402c266360c8afd453f6d1c85502299416757598cc352f90718d629ba"
 dependencies = [
  "gufo-common",
+ "indexmap",
  "jpeg-encoder",
  "thiserror 2.0.11",
  "tracing",
@@ -1281,9 +1282,9 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "2.7.1"
+version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c9c992b02b5b4c94ea26e32fe5bccb7aa7d9f390ab5c1221ff895bc7ea8b652"
+checksum = "fe4cd85333e22411419a0bcae1297d25e58c9443848b11dc6a86fefe8c78a661"
 dependencies = [
  "equivalent",
  "hashbrown 0.15.2",
