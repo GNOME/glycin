@@ -31,6 +31,8 @@ pub mod imp {
         sandbox_selector: Mutex<SandboxSelector>,
         #[property(get, set)]
         memory_format_selection: Mutex<MemoryFormatSelection>,
+        #[property(get, set)]
+        apply_transformation: Mutex<bool>,
     }
 
     #[glib::object_subclass]
@@ -47,6 +49,8 @@ pub mod imp {
             init();
 
             let obj = self.obj();
+
+            *self.apply_transformation.lock().unwrap() = true;
 
             if obj.file().is_some() as u8
                 + obj.stream().is_some() as u8
@@ -101,6 +105,7 @@ impl GlyLoader {
 
         loader.sandbox_selector = self.sandbox_selector();
         loader.memory_format_selection = self.memory_format_selection();
+        loader.apply_transformations = self.apply_transformation();
         loader.cancellable(self.cancellable());
 
         let image = loader.load().await?;

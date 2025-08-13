@@ -282,6 +282,23 @@ void gly_loader_set_accepted_memory_formats(GlyLoader *loader,
                                             GlyMemoryFormatSelection memory_format_selection);
 
 /**
+ * gly_loader_set_apply_transformations:
+ * @loader:
+ * @apply_transformations:
+ *
+ * Set whether to apply transformations to texture
+ *
+ * When enabled, transformations like image orientation are applied to the
+ * texture data.
+ *
+ * This option is enabled by default.
+ *
+ * Since: 2.0
+ */
+void gly_loader_set_apply_transformations(GlyLoader *loader,
+                                          gboolean apply_transformations);
+
+/**
  * gly_loader_load:
  * @loader:
  * @error:
@@ -714,7 +731,7 @@ GType gly_cicp_get_type(void);
 GlyCicp *gly_cicp_copy(GlyCicp *cicp);
 void gly_cicp_free(GlyCicp *cicp);
 
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (GlyCicp, gly_cicp_free)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(GlyCicp, gly_cicp_free)
 
 /**
  * gly_frame_get_color_cicp:

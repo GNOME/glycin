@@ -53,12 +53,16 @@ def main():
     dir = os.path.dirname(os.path.abspath(__file__))
 
     test_image = os.path.join(dir, "test-images/images/color/color.jpg")
-    test_image_png = os.path.join(dir, "test-images/images/exif.png")
-    test_image_cicp = os.path.join(dir, "test-images/images/cicp-p3/cicp-p3.png")
-
     file = Gio.File.new_for_path(test_image)
+
+    test_image_png = os.path.join(dir, "test-images/images/exif.png")
     file_png = Gio.File.new_for_path(test_image_png)
+
+    test_image_cicp = os.path.join(dir, "test-images/images/cicp-p3/cicp-p3.png")
     file_cicp = Gio.File.new_for_path(test_image_cicp)
+
+    test_image_orientation = os.path.join(dir, "test-images/images/color-exif-orientation/color-rotated-90.jpg")
+    file_orientation = Gio.File.new_for_path(test_image_orientation)
 
     # Types
 
@@ -111,6 +115,24 @@ def main():
     memory_format = frame.get_memory_format()
 
     assert memory_format == Gly.MemoryFormat.G8, f"Memory format was not accepted: {memory_format}"
+
+    # Don't apply transformations
+
+    loader = Gly.Loader(file=file_orientation)
+    image = loader.load()
+
+    frame = image.next_frame()
+    width = frame.get_width()
+    height = frame.get_height()
+
+    loader = Gly.Loader(file=file_orientation)
+    loader.set_apply_transformations(False)
+    image = loader.load()
+
+    frame = image.next_frame()
+
+    assert width == frame.get_height()
+    assert height == frame.get_width()
 
     # Metadata: Key-Value
 

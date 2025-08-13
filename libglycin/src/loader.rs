@@ -1,3 +1,4 @@
+use std::ffi::c_int;
 use std::ptr;
 
 use gio::ffi::{GAsyncReadyCallback, GAsyncResult, GTask};
@@ -57,6 +58,16 @@ pub unsafe extern "C" fn gly_loader_set_accepted_memory_formats(
     let obj = gobject::GlyLoader::from_glib_ptr_borrow(&loader);
 
     obj.set_memory_format_selection(memory_format_selection);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gly_loader_set_apply_transformations(
+    loader: *mut GlyLoader,
+    apply_tansformations: c_int,
+) {
+    let obj = gobject::GlyLoader::from_glib_ptr_borrow(&loader);
+
+    obj.set_apply_transformation(apply_tansformations != 0);
 }
 
 #[no_mangle]
