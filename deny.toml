@@ -23,13 +23,13 @@ allow = [
 
 exceptions = [
     { allow = [
-        "GPL-3.0",
+        "GPL-3.0-or-later",
     ], crate = "jpegxl-rs" },
     { allow = [
-        "GPL-3.0",
+        "GPL-3.0-or-later",
     ], crate = "jpegxl-sys" },
     { allow = [
-        "LGPL-3.0",
+        "LGPL-3.0-or-later",
     ], crate = "libopenraw" },
 
 ]
