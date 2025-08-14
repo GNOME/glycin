@@ -110,6 +110,7 @@ const ALLOWED_SYSCALLS: &[&str] = &[
     "read",
     "readlink",
     "readlinkat",
+    "recv",
     "recvfrom",
     "recvmsg",
     "rseq",
