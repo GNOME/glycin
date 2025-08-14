@@ -321,7 +321,7 @@ impl RemoteProcess<LoaderProxy<'static>> {
         validate_frame(&frame, &img_buf)?;
 
         let img_buf = if image.loader.apply_transformations {
-            orientation::apply_exif_orientation(img_buf, &mut frame, &image.details())
+            orientation::apply_exif_orientation(img_buf, &mut frame, &image)
         } else {
             img_buf
         };

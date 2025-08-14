@@ -290,6 +290,32 @@ impl Image {
     pub fn active_sandbox_mechanism(&self) -> SandboxMechanism {
         self.active_sandbox_mechanism
     }
+
+    /// Tramsformations to be applied to orient image correctly
+    ///
+    /// If the [`Loader::apply_transformations`] has ben set to `false`, these
+    /// transformations have to be applied to display the image correctly.
+    /// Otherwise, they are applied automatically to the image after loading it.
+    pub fn transformation_orientation(&self) -> Orientation {
+        if let Some(orientation) = self.details().transformation_orientation() {
+            orientation
+        } else if !self.details().transformation_ignore_exif() {
+            self.details()
+                .metadata_exif()
+                .as_ref()
+                .and_then(|x| x.get_full().ok())
+                .and_then(|x| match gufo_exif::Exif::new(x) {
+                    Err(err) => {
+                        tracing::warn!("exif: Failed to parse data: {err:?}");
+                        None
+                    }
+                    Ok(x) => x.orientation(),
+                })
+                .unwrap_or(Orientation::Id)
+        } else {
+            Orientation::Id
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
