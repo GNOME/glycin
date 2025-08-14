@@ -38,24 +38,34 @@ impl DbusServer {
 
         log::info!("Loader {description} startup");
 
-        let args = std::env::args().collect::<Vec<_>>();
+        let mut dbus_fd_str = None;
+        let mut args = std::env::args().skip(1);
+        while let Some(arg) = args.next() {
+            match arg.as_str() {
+                "--dbus-fd" => {
+                    dbus_fd_str = args.next();
+                }
 
-        if args.get(1).map(|x| x.as_str()) != Some("--dbus-fd") {
-            log::error!("FD that facilitates the D-Bus connection not specified via --dbus-fd");
-            std::process::exit(2);
+                _ => {
+                    log::warn!("Stopping command line parsing at unknown argument: {arg:?}");
+                    break;
+                }
+            }
         }
 
-        let Some(fd) = args.get(2).and_then(|x| x.parse().ok()) else {
-            eprintln!(
-                "FD specified via --dbus-fd is not a valid number: {:?}",
-                args.get(2)
-            );
+        let Some(dbus_fd_str) = dbus_fd_str else {
+            log::error!("FD that facilitates the D-Bus connection not specified via --dbus-fd");
+            std::process::exit(2);
+        };
+
+        let Ok(dbus_fd) = dbus_fd_str.parse::<i32>() else {
+            log::error!("FD specified via --dbus-fd is not a valid number: {dbus_fd_str:?}",);
             std::process::exit(2);
         };
 
         log::debug!("Creating zbus connection to glycin");
 
-        let unix_stream: UnixStream = unsafe { UnixStream::from_raw_fd(fd) };
+        let unix_stream: UnixStream = unsafe { UnixStream::from_raw_fd(dbus_fd) };
 
         #[cfg(feature = "tokio")]
         let unix_stream =
