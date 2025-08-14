@@ -1,0 +1,1 @@
+glycin/sandbox: Allow `recv` syscall. Needed on powerpc.
