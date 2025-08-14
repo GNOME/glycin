@@ -50,7 +50,7 @@ async-io = "2.3.2"
 async-lock = "3.3.0"
 bitflags = "2.9.0"
 blocking = "1.6.1"
-cairo-rs = "0.20"
+cairo-rs = "0.21"
 env_logger = { version = "0.11.0", default-features = false, features = [
     "humantime",
 ] }
@@ -59,9 +59,9 @@ futures-lite = { version = "2.1.0" }
 futures-task = "0.3.30"
 futures-timer = "3.0.3"
 futures-util = "0.3.30"
-gdk = { package = "gdk4", version = "0.9.5", features = ["v4_16"] }
-gio = { version = "0.20.0", features = ["v2_62"] }
-glib = { version = "0.20.0", features = ["v2_68"] }
+gdk = { package = "gdk4", version = "0.10.0", features = ["v4_16"] }
+gio = { version = "0.21.0", features = ["v2_62"] }
+glib = { version = "0.21.0", features = ["v2_68"] }
 glycin = { path = "glycin/", default-features = false }
 glycin-common = { version = "1.0.0-beta.1", path = "glycin-common/" }
 glycin-utils = { version = "4.0.0-beta.1", path = "glycin-utils/", default-features = false }

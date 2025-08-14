@@ -43,24 +43,24 @@ fn main() {
 
         let Some(input_uri) = args_dict.lookup::<String>("input").unwrap() else {
             eprintln!("Error: Input URI not supplied.");
-            return 2;
+            return glib::ExitCode::from(2);
         };
 
         let Some(output_path) = args_dict.lookup::<OsString>("output").unwrap() else {
             eprintln!("Error: Output path not supplied.");
-            return 2;
+            return glib::ExitCode::from(2);
         };
 
         let Some(thumbnail_size) = args_dict.lookup::<i32>("size").unwrap() else {
             eprintln!("Error: Size not supplied.");
-            return 2;
+            return glib::ExitCode::from(2);
         };
 
         if let Err(err) = x(&input_uri, &output_path, thumbnail_size.try_into().unwrap()) {
             eprintln!("Glycin Thumbnailer: {err}");
-            1
+            glib::ExitCode::from(1)
         } else {
-            0
+            glib::ExitCode::from(0)
         }
     });
 

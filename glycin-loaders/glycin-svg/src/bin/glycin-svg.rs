@@ -36,7 +36,7 @@ pub fn thread(
     frame_send: Sender<Result<Frame, ProcessError>>,
     instr_recv: Receiver<Instruction>,
 ) {
-    let input_stream = unsafe { gio::UnixInputStream::take_fd(stream) };
+    let input_stream = gio::UnixInputStream::take_fd(stream.into());
 
     let handle = rsvg::Handle::from_stream_sync(
         &input_stream,
