@@ -134,6 +134,18 @@ def main():
     assert width == frame.get_height()
     assert height == frame.get_width()
 
+    # Orientation
+
+    loader = Gly.Loader(file=file_orientation)
+    image = loader.load()
+
+    assert image.get_transformation_orientation() == 8
+
+    loader = Gly.Loader(file=file)
+    image = loader.load()
+
+    assert image.get_transformation_orientation() == 1
+
     # Metadata: Key-Value
 
     loader = Gly.Loader.new(file_png)

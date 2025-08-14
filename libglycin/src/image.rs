@@ -182,3 +182,9 @@ pub unsafe extern "C" fn gly_image_get_metadata_keys(image: *mut GlyImage) -> GS
         .unwrap_or_default()
         .into_raw()
 }
+
+#[no_mangle]
+pub unsafe extern "C" fn gly_image_get_transformation_orientation(image: *mut GlyImage) -> u16 {
+    let image = gobject::GlyImage::from_glib_ptr_borrow(&image);
+    image.image().transformation_orientation().into()
+}

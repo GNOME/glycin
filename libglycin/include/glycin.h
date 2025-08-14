@@ -550,6 +550,23 @@ gly_image_get_metadata_key_value(GlyImage *image,
  **/
 GStrv gly_image_get_metadata_keys(GlyImage *image);
 
+/**
+ * gly_image_get_transformation_orientation:
+ * @image:
+ *
+ * Get the image orientation
+ *
+ * The image orientation is given in Exif format. The function is
+ * guaranteed to only return values from 1 to 8.
+ *
+ * If [method@Loader.set_apply_transformations] is set to `FALSE`,
+ * the orientation has to be corrected manually to dispaly the image
+ * correctly.
+ *
+ * Since: 2.0
+ **/
+uint16_t gly_image_get_transformation_orientation(GlyImage *image);
+
 /**************** GlyFrame ****************/
 
 /**
