@@ -11,28 +11,28 @@ rust-version.workspace = true
 
 [dependencies]
 async-lock.workspace = true
-blocking.workspace = true
 bitflags.workspace = true
+blocking.workspace = true
+env_logger.workspace = true
 futures-lite = { workspace = true, optional = true }
 futures-util.workspace = true
+glib = { workspace = true, optional = true }
+glycin-common.workspace = true
+gufo-common = { workspace = true, features = ["serde", "zvariant"] }
 half.workspace = true
 image = { workspace = true, optional = true }
+libc.workspace = true
 libseccomp.workspace = true
+log.workspace = true
 memmap.workspace = true
 nix = { workspace = true, features = ["fs", "signal"] }
-serde.workspace = true
-zbus.workspace = true
-thiserror.workspace = true
-libc.workspace = true
-gufo-common = { workspace = true, features = ["serde", "zvariant"] }
 paste.workspace = true
-glib = { workspace = true, optional = true }
-tokio = { workspace = true, optional = true }
-log.workspace = true
-env_logger.workspace = true
-zerocopy.workspace = true
 rayon.workspace = true
-glycin-common.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, optional = true }
+zbus.workspace = true
+zerocopy.workspace = true
 
 [features]
 default = ["async-io"]

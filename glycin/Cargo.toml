@@ -35,7 +35,6 @@ async-fs = { workspace = true, optional = true }
 async-io = { workspace = true, optional = true }
 async-lock = { workspace = true, optional = true }
 blocking = { workspace = true, optional = true }
-yeslogic-fontconfig-sys.workspace = true
 futures-channel.workspace = true
 futures-timer = { workspace = true, optional = true }
 futures-util.workspace = true
@@ -46,8 +45,8 @@ glycin-common.workspace = true
 glycin-utils = { workspace = true }
 gufo-common.workspace = true
 gufo-exif.workspace = true
-lcms2.workspace = true
 lcms2-sys.workspace = true
+lcms2.workspace = true
 libc.workspace = true
 libseccomp.workspace = true
 memfd.workspace = true
@@ -57,8 +56,9 @@ static_assertions = { workspace = true }
 thiserror.workspace = true
 tokio = { workspace = true, optional = true }
 tokio-stream = { workspace = true, optional = true }
-tracing.workspace = true
 tracing-subscriber = { workspace = true, optional = true }
+tracing.workspace = true
+yeslogic-fontconfig-sys.workspace = true
 zbus = { workspace = true, features = ["p2p"] }
 
 [package.metadata.docs.rs]
