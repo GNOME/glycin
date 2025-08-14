@@ -6,7 +6,7 @@ use std::io::{self, BufRead, BufReader, Seek};
 use std::os::fd::AsRawFd;
 use std::os::unix::net::UnixStream;
 use std::os::unix::process::CommandExt;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::Arc;
 
@@ -164,6 +164,8 @@ const ALLOWED_SYSCALLS_FONTCONFIG: &[&str] = &[
     "unlinkat",
 ];
 
+const INHERITED_ENVIRONMENT_VARIABLES: &[&str] = &["RUST_BACKTRACE", "RUST_LOG"];
+
 pub struct Sandbox {
     sandbox_mechanism: SandboxMechanism,
     config_entry: ConfigEntry,
@@ -196,7 +198,7 @@ impl Sandbox {
         }
     }
 
-    fn exec(&self) -> PathBuf {
+    fn exec(&self) -> &Path {
         self.config_entry.exec()
     }
 
@@ -207,49 +209,25 @@ impl Sandbox {
     pub async fn spawn(self) -> Result<SpawnedSandbox, Error> {
         let dbus_fd = self.dbus_socket.as_raw_fd();
 
-        // Determine command line args
-        let (bin, args, seccomp_fd) = match self.sandbox_mechanism {
+        let (mut command, seccomp_fd) = match self.sandbox_mechanism {
             SandboxMechanism::Bwrap => {
-                let mut args = self.bwrap_args().await?;
-
                 let seccomp_memfd = Self::seccomp_export_bpf(&self.seccomp_filter()?)?;
-                args.push("--seccomp".into());
-                args.push(seccomp_memfd.as_raw_fd().to_string().into());
+                let command = self.bwrap_command(&seccomp_memfd).await?;
 
-                args.push(self.exec());
-
-                ("bwrap".into(), args, Some(seccomp_memfd))
+                (command, Some(seccomp_memfd))
             }
             SandboxMechanism::FlatpakSpawn => {
-                let memory_limit = Self::memory_limit();
+                let command = self.flatpak_spawn_command();
 
-                tracing::debug!("Setting prlimit to {memory_limit} bytes");
-
-                let args = vec![
-                    "--sandbox".into(),
-                    // die with parent
-                    "--watch-bus".into(),
-                    // change working directory to something that exists
-                    "--directory=/".into(),
-                    // forward dbus connection
-                    format!("--forward-fd={dbus_fd}").into(),
-                    // Start loader with memory limit
-                    "prlimit".into(),
-                    format!("--as={memory_limit}").into(),
-                    // Loader binary
-                    self.exec(),
-                ];
-
-                ("flatpak-spawn".into(), args, None)
+                (command, None)
             }
             SandboxMechanism::NotSandboxed => {
-                tracing::warn!("WARNING: Glycin running without sandbox.");
-                (self.exec(), vec![], None)
+                let command = self.no_sandbox_command();
+
+                (command, None)
             }
         };
 
-        let mut command = Command::new(bin);
-        command.args(args);
         command.arg("--dbus-fd");
         command.arg(dbus_fd.to_string());
 
@@ -261,47 +239,6 @@ impl Sandbox {
         flags.remove(nix::fcntl::FdFlag::FD_CLOEXEC);
         nix::fcntl::fcntl(&self.dbus_socket, nix::fcntl::FcntlArg::F_SETFD(flags))?;
 
-        // Clear ENV
-        if matches!(self.sandbox_mechanism, SandboxMechanism::FlatpakSpawn) {
-            // Do not clear environment before `flatpak-spawn` is called. Otherwise,
-            // `flatpak-spawn` will fail to find the D-Bus connection to call the portal.
-            command.arg("--clear-env");
-        } else {
-            command.env_clear();
-        }
-
-        // Inherit some environment variables
-        for env_key in ["RUST_BACKTRACE", "RUST_LOG"] {
-            if let Some(val) = std::env::var_os(env_key) {
-                if matches!(self.sandbox_mechanism, SandboxMechanism::FlatpakSpawn) {
-                    let mut arg = OsString::new();
-                    arg.push("--env=");
-                    arg.push(env_key);
-                    arg.push("=");
-                    arg.push(val);
-
-                    command.arg(arg);
-                } else {
-                    command.env(env_key, val);
-                }
-            }
-        }
-
-        // Set memory limit for sandbox
-        match self.sandbox_mechanism {
-            SandboxMechanism::Bwrap => unsafe {
-                command.pre_exec(|| {
-                    Self::set_memory_limit();
-                    Ok(())
-                });
-            },
-            SandboxMechanism::FlatpakSpawn | SandboxMechanism::NotSandboxed => unsafe {
-                command.pre_exec(|| {
-                    nix::sys::prctl::set_pdeathsig(nix::sys::signal::SIGKILL).map_err(Into::into)
-                });
-            },
-        }
-
         command.stderr(Stdio::piped());
         command.stdout(Stdio::piped());
 
@@ -312,44 +249,50 @@ impl Sandbox {
         })
     }
 
-    async fn bwrap_args(&self) -> Result<Vec<PathBuf>, Error> {
-        let mut args: Vec<PathBuf> = Vec::new();
+    async fn bwrap_command(&self, seccomp_memfd: &Memfd) -> Result<Command, Error> {
+        let mut command = Command::new("bwrap");
 
-        args.extend(
-            [
-                "--unshare-all",
-                "--die-with-parent",
-                // change working directory to something that exists
-                "--chdir",
-                "/",
-                // Make /usr available as read only
-                "--ro-bind",
-                "/usr",
-                "/usr",
-                // Make tmpfs dev available
-                "--dev",
-                "/dev",
-                // Additional linker configuration via /etc/ld.so.conf if available
-                "--ro-bind-try",
-                "/etc/ld.so.cache",
-                "/etc/ld.so.cache",
-                // Create a fake HOME for glib to not throw warnings
-                "--tmpfs",
-                "/tmp-home",
-                "--setenv",
-                "HOME",
-                "/tmp-home",
-                // Create a fake runtime dir for glib to not throw warnings
-                "--tmpfs",
-                "/tmp-run",
-                "--setenv",
-                "XDG_RUNTIME_DIR",
-                "/tmp-run",
-            ]
-            .iter()
-            .map(|x| (*x).into())
-            .collect::<Vec<_>>(),
-        );
+        command.args([
+            "--unshare-all",
+            "--die-with-parent",
+            // change working directory to something that exists
+            "--chdir",
+            "/",
+            // Make /usr available as read only
+            "--ro-bind",
+            "/usr",
+            "/usr",
+            // Make tmpfs dev available
+            "--dev",
+            "/dev",
+            // Additional linker configuration via /etc/ld.so.conf if available
+            "--ro-bind-try",
+            "/etc/ld.so.cache",
+            "/etc/ld.so.cache",
+            // Create a fake HOME for glib to not throw warnings
+            "--tmpfs",
+            "/tmp-home",
+            // Create a fake runtime dir for glib to not throw warnings
+            "--tmpfs",
+            "/tmp-run",
+            // setup clean environment
+            "--clearenv",
+            "--setenv",
+            "HOME",
+            "/tmp-home",
+            "--setenv",
+            "XDG_RUNTIME_DIR",
+            "/tmp-run",
+        ]);
+
+        // Inherit some environment variables
+        for key in INHERITED_ENVIRONMENT_VARIABLES {
+            if let Some(val) = std::env::var_os(key) {
+                command.arg("--setenv");
+                command.arg(key);
+                command.arg(val);
+            }
+        }
 
         let system_setup_arc = SystemSetup::cached().await;
 
@@ -362,31 +305,31 @@ impl Sandbox {
 
         // Symlink paths like /usr/lib64 to /lib64
         for (dest, src) in &system.lib_symlinks {
-            args.push("--symlink".into());
-            args.push(src.clone());
-            args.push(dest.clone());
+            command.arg("--symlink");
+            command.arg(&src);
+            command.arg(&dest);
         }
 
         // Mount paths like /lib64 if they exist
         for dir in &system.lib_dirs {
-            args.push("--ro-bind".into());
-            args.push(dir.clone());
-            args.push(dir.clone());
+            command.arg("--ro-bind");
+            command.arg(&dir);
+            command.arg(&dir);
         }
 
         // Make extra dirs available
         for dir in &self.ro_bind_extra {
-            args.push("--ro-bind".into());
-            args.push(dir.clone());
-            args.push(dir.clone());
+            command.arg("--ro-bind");
+            command.arg(&dir);
+            command.arg(&dir);
         }
 
         // Make loader binary available if not in /usr. This is useful for testing and
         // adding loaders in user (/home) configurations.
         if !self.exec().starts_with("/usr") {
-            args.push("--ro-bind".into());
-            args.push(self.exec());
-            args.push(self.exec());
+            command.arg("--ro-bind");
+            command.arg(self.exec());
+            command.arg(self.exec());
         }
 
         // Fontconfig
@@ -395,9 +338,9 @@ impl Sandbox {
         } else if let Some(fc_paths) = crate::fontconfig::cached_paths() {
             // Expose paths to fonts, configs, and caches
             for path in fc_paths {
-                args.push("--ro-bind-try".into());
-                args.push(path.clone());
-                args.push(path.clone());
+                command.arg("--ro-bind-try");
+                command.arg(&path);
+                command.arg(&path);
             }
 
             // Fontconfig needs a writeable cache if the cache is outdated
@@ -413,20 +356,108 @@ impl Sandbox {
             match util::spawn_blocking(move || std::fs::create_dir_all(fc_cache_dir)).await {
                 Err(err) => tracing::warn!("Failed to create fontconfig cache dir: {err:?}"),
                 Ok(()) => {
-                    args.push("--bind-try".into());
-                    args.push(cache_dir.clone());
-                    args.push(cache_dir.clone());
+                    command.arg("--bind-try");
+                    command.arg(&cache_dir);
+                    command.arg(&cache_dir);
 
-                    args.push("--setenv".into());
-                    args.push("XDG_CACHE_HOME".into());
-                    args.push(cache_dir);
+                    command.arg("--setenv");
+                    command.arg("XDG_CACHE_HOME");
+                    command.arg(&cache_dir);
                 }
             }
         } else {
             tracing::warn!("Failed to load fonftconfig environment");
         }
 
-        Ok(args)
+        // Configure seccomp
+        command.arg("--seccomp");
+        command.arg(seccomp_memfd.as_raw_fd().to_string());
+
+        // Loader binary
+        command.arg(self.exec());
+
+        // Set sandbox memory limit
+        unsafe {
+            command.pre_exec(|| {
+                Self::set_memory_limit();
+                Ok(())
+            });
+        }
+
+        Ok(command)
+    }
+
+    fn flatpak_spawn_command(&self) -> Command {
+        let mut command = Command::new("flatpak-spawn");
+
+        let memory_limit = Self::memory_limit();
+        let dbus_fd = self.dbus_socket.as_raw_fd();
+
+        tracing::debug!("Setting prlimit to {memory_limit} bytes");
+
+        command.args([
+            "--sandbox",
+            // die with parent
+            "--watch-bus",
+            // change working directory to something that exists
+            "--directory=/",
+            // start from a clean environment
+            "--clear-env",
+        ]);
+
+        // Inherit some environment variables
+        for key in INHERITED_ENVIRONMENT_VARIABLES {
+            if let Some(val) = std::env::var_os(key) {
+                let mut arg = OsString::new();
+                arg.push("--env=");
+                arg.push(key);
+                arg.push("=");
+                arg.push(val);
+
+                command.arg(arg);
+            }
+        }
+
+        // forward dbus connection
+        command.arg(format!("--forward-fd={dbus_fd}"));
+
+        // Start loader with memory limit
+        command.arg("prlimit");
+        command.arg(format!("--as={memory_limit}"));
+
+        // Loader binary
+        command.arg(self.exec());
+
+        // Set sandbox memory limit
+        unsafe {
+            command.pre_exec(|| {
+                nix::sys::prctl::set_pdeathsig(nix::sys::signal::SIGKILL).map_err(Into::into)
+            });
+        }
+
+        command
+    }
+
+    fn no_sandbox_command(&self) -> Command {
+        let mut command = Command::new(self.exec());
+
+        command.env_clear();
+
+        // Inherit some environment variables
+        for key in INHERITED_ENVIRONMENT_VARIABLES {
+            if let Some(val) = std::env::var_os(key) {
+                command.env(key, val);
+            }
+        }
+
+        // Set sandbox memory limit
+        unsafe {
+            command.pre_exec(|| {
+                nix::sys::prctl::set_pdeathsig(nix::sys::signal::SIGKILL).map_err(Into::into)
+            });
+        }
+
+        command
     }
 
     /// Memory limit in bytes that should be applied to sandboxes
@@ -438,7 +469,7 @@ impl Sandbox {
             tracing::warn!("glycin: Unable to determine available memory via /proc/meminfo");
 
             // Default to 1 GB memory limit
-            1024 * 1024 * 1024
+            const { (1024 as resource::rlim_t).pow(3) }
         }
     }
 
@@ -466,7 +497,7 @@ impl Sandbox {
             if let Some(total_avail_kb) = total_avail_kb {
                 let mem_available = total_avail_kb.saturating_mul(1024);
 
-                return Some(Self::calculate_memory_limit(mem_available));
+                return Some(mem_available);
             }
         }
 
@@ -478,9 +509,7 @@ impl Sandbox {
         // Consider max of 20 GB free RAM for use
         let mem_considered = resource::rlim_t::min(
             mem_available,
-            (1024 as resource::rlim_t)
-                .saturating_pow(3)
-                .saturating_mul(20),
+            const { 20 * (1024 as resource::rlim_t).pow(3) },
         )
         // Keep at least 200 MB free
         .saturating_sub(1024 * 1024 * 200);

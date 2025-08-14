@@ -164,7 +164,7 @@ impl ConfigEntry {
     ) -> ConfigEntryHash {
         ConfigEntryHash {
             fontconfig: self.fontconfig(),
-            exec: self.exec(),
+            exec: self.exec().to_owned(),
             expose_base_dir: self.expose_base_dir(),
             base_dir,
             sandbox_mechanism,
@@ -178,10 +178,10 @@ impl ConfigEntry {
         }
     }
 
-    pub fn exec(&self) -> PathBuf {
+    pub fn exec(&self) -> &Path {
         match self {
-            Self::Editor(e) => e.exec.clone(),
-            Self::Loader(l) => l.exec.clone(),
+            Self::Editor(e) => &e.exec,
+            Self::Loader(l) => &l.exec,
         }
     }
 
