@@ -7,6 +7,7 @@ pub use glycin_common::MemoryFormat;
 use glycin_common::{BinaryData, MemoryFormatSelection};
 #[cfg(feature = "gdk4")]
 use glycin_utils::safe_math::*;
+use gufo_common::orientation::Orientation;
 use zbus::zvariant::OwnedObjectPath;
 
 use crate::api_common::*;
@@ -326,8 +327,8 @@ impl ImageDetails {
         self.inner.metadata_exif.clone()
     }
 
-    pub fn metadata_orientation(&self) -> Option<u16> {
-        self.inner.metadata_orientation
+    pub fn transformation_orientation(&self) -> Option<Orientation> {
+        self.inner.transformation_orientation
     }
 
     pub fn metadata_xmp(&self) -> Option<BinaryData> {

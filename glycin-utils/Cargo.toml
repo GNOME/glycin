@@ -24,7 +24,7 @@ serde.workspace = true
 zbus.workspace = true
 thiserror.workspace = true
 libc.workspace = true
-gufo-common.workspace = true
+gufo-common = { workspace = true, features = ["serde", "zvariant"] }
 paste.workspace = true
 glib = { workspace = true, optional = true }
 tokio = { workspace = true, optional = true }

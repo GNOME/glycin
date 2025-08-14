@@ -3,6 +3,7 @@ use std::os::fd::AsRawFd;
 use std::time::Duration;
 
 use glycin_common::{BinaryData, MemoryFormat, MemoryFormatInfo};
+use gufo_common::orientation::Orientation;
 use memmap::MmapMut;
 use serde::{Deserialize, Serialize};
 use zbus::zvariant::{self, DeserializeDict, Optional, SerializeDict, Type};
@@ -71,11 +72,11 @@ pub struct ImageDetails {
     /// Textual description of the image dimensions
     pub info_dimensions_text: Option<String>,
     pub metadata_exif: Option<BinaryData>,
-    /// Explicit exif orientation. If `None` check Exif or XMP.
-    pub metadata_orientation: Option<u16>,
     pub metadata_xmp: Option<BinaryData>,
     pub metadata_key_value: Option<BTreeMap<String, String>>,
     pub transformation_ignore_exif: bool,
+    /// Explicit orientation. If `None` check Exif or XMP.
+    pub transformation_orientation: Option<Orientation>,
 }
 
 impl ImageDetails {
@@ -87,10 +88,10 @@ impl ImageDetails {
             info_dimensions_text: None,
             info_format_name: None,
             metadata_exif: None,
-            metadata_orientation: None,
             metadata_xmp: None,
             metadata_key_value: None,
             transformation_ignore_exif: false,
+            transformation_orientation: None,
         }
     }
 }

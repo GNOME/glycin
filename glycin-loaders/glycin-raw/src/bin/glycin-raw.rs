@@ -47,7 +47,10 @@ pub fn thread(
 
     image_info.info_format_name = Some(String::from("RAW"));
     image_info.metadata_xmp = xmp.and_then(|xmp| BinaryData::from_data(xmp).ok());
-    image_info.metadata_orientation = Some(orientation as u16);
+    image_info.transformation_orientation = orientation
+        .try_into()
+        .ok()
+        .and_then(|x: u16| gufo_common::orientation::Orientation::try_from(x).ok());
     image_info.transformation_ignore_exif = false;
 
     info_send.send(Ok(image_info)).unwrap();

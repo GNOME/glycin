@@ -1087,6 +1087,7 @@ name = "glycin-raw"
 version = "2.0.0-beta.1"
 dependencies = [
  "glycin-utils",
+ "gufo-common",
  "libopenraw",
 ]
 
@@ -1169,13 +1170,14 @@ dependencies = [
 
 [[package]]
 name = "gufo-common"
-version = "1.0.0-beta"
+version = "1.0.0-beta.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b369fe87840c7f9769e475e65500420072bf040c09b12d00fda83567190ea0f"
+checksum = "56466a12b409255e161e146f24fa257856147d5296e9f75257189632992408b5"
 dependencies = [
  "paste",
  "serde",
  "thiserror",
+ "zvariant",
 ]
 
 [[package]]
