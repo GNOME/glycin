@@ -6,7 +6,7 @@ license = "MPL-2.0 OR LGPL-2.1-or-later"
 homepage = "https://gitlab.gnome.org/GNOME/glycin"
 repository = "https://gitlab.gnome.org/GNOME/glycin"
 edition = "2021"
-rust-version = "1.81"
+rust-version = "1.83"
 
 [profile.release]
 lto = true
