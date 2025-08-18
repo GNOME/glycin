@@ -17,7 +17,7 @@ fontconfig_req = '>= 2.13.0'
 compat_version = '2+'
 
 datadir = get_option('prefix') / get_option('datadir')
-bindir = get_option('bindir')
+bindir = get_option('prefix') / get_option('bindir')
 libdir = get_option('prefix') / get_option('libdir')
 includedir = get_option('prefix') / get_option('includedir')
 
