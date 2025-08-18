@@ -74,16 +74,6 @@ fn x(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let input_file = gio::File::for_uri(&input_uri);
 
-    let file_info = input_file.query_info(
-        &format!(
-            "{},{}",
-            gio::FILE_ATTRIBUTE_TIME_MODIFIED,
-            gio::FILE_ATTRIBUTE_STANDARD_SIZE
-        ),
-        gio::FileQueryInfoFlags::NONE,
-        gio::Cancellable::NONE,
-    )?;
-
     let mut loader = glycin::Loader::new(input_file.clone());
 
     // Disable sandbox since thumbnailers run in their own sandbox
@@ -122,19 +112,6 @@ fn x(
 
     let mut encoder = png::Encoder::new(buf_writer, thumbnail_width, thumbnail_height);
     encoder.set_color(color);
-
-    // <https://specifications.freedesktop.org/thumbnail-spec/latest/creation.html#addinfos>
-    encoder.add_text_chunk(String::from("Thumb::URI"), input_uri.to_string())?;
-    if let Some(mtime) = file_info.modification_date_time() {
-        encoder.add_text_chunk(String::from("Thumb::MTime"), mtime.to_unix().to_string())?;
-    } else {
-        glib::g_warning!("glycin-thumbnailer", "Could not read mtime.");
-    }
-    encoder.add_text_chunk(String::from("Thumb::Size"), file_info.size().to_string())?;
-    encoder.add_text_chunk(
-        String::from("Software"),
-        format!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION")),
-    )?;
 
     let mut writer = encoder.write_header()?;
 
