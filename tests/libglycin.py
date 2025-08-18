@@ -204,8 +204,8 @@ def main():
 
     encoded_image = creator.create()
 
-    data = encoded_image.get_data().get_data()
-    assert list(data[0:4]) == [0x89, 0x50, 0x4E, 0x47]
+    encoded_image_data = encoded_image.get_data().get_data()
+    assert list(encoded_image_data[0:4]) == [0x89, 0x50, 0x4E, 0x47]
 
     loader = Gly.Loader.new_for_bytes(encoded_image.get_data())
     image = loader.load()
@@ -218,6 +218,12 @@ def main():
     except GLib.GError as e:
         error_domain = e.domain
     assert error_domain == "gly-loader-error"
+
+    creator = Gly.Creator(mime_type="image/jpeg")
+    creator.set_sandbox_selector(Gly.SandboxSelector.NOT_SANDBOXED)
+
+    frame = creator.add_frame_with_stride(1, 1, 4, Gly.MemoryFormat.R8G8B8, data)
+    creator.create()
 
     # Async
     global async_tests_remaining

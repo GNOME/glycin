@@ -8,6 +8,7 @@ use glib::ffi::{gpointer, GBytes, GError, GType};
 use glib::subclass::prelude::*;
 use glib::translate::*;
 use glycin::gobject::{self};
+use glycin::SandboxSelector as GlySandboxSelector;
 
 use crate::common::*;
 use crate::*;
@@ -32,7 +33,6 @@ pub unsafe extern "C" fn gly_creator_new(
     }
 }
 
-/*
 #[no_mangle]
 pub unsafe extern "C" fn gly_creator_set_sandbox_selector(
     loader: *mut GlyLoader,
@@ -43,7 +43,6 @@ pub unsafe extern "C" fn gly_creator_set_sandbox_selector(
 
     obj.set_sandbox_selector(sandbox_selector);
 }
- */
 
 #[no_mangle]
 pub unsafe extern "C" fn gly_creator_create(

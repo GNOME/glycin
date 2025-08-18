@@ -1016,4 +1016,16 @@ void gly_creator_set_encoding_quality(GlyCreator *creator,
 void gly_creator_set_encoding_compression(GlyCreator *creator,
                                           uint8_t compression);
 
+/**
+ * gly_creator_set_sandbox_selector:
+ * @creator:
+ * @sandbox_selector: Method by which the sandbox mechanism is selected
+ *
+ * Selects which sandbox mechanism should be used. The default without calling this function is [enum@SandboxSelector]`.AUTO`.
+ *
+ * Since: 2.0
+ */
+void gly_creator_set_sandbox_selector(GlyCreator *loader,
+                                      GlySandboxSelector sandbox_selector);
+
 G_END_DECLS

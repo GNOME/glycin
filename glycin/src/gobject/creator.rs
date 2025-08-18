@@ -1,4 +1,4 @@
-use std::sync::OnceLock;
+use std::sync::{Mutex, OnceLock};
 
 use async_lock::MutexGuard;
 use gio::glib;
@@ -15,12 +15,14 @@ static_assertions::assert_impl_all!(GlyCreator: Send, Sync);
 use super::init;
 
 pub mod imp {
+
     use super::*;
 
     #[derive(Default, Debug, glib::Properties)]
     #[properties(wrapper_type = super::GlyCreator)]
     pub struct GlyCreator {
-        sandbox_selector: AsyncMutex<SandboxSelector>,
+        #[property(get, set, builder(SandboxSelector::default()))]
+        pub(super) sandbox_selector: Mutex<SandboxSelector>,
         #[property(get, construct_only)]
         mime_type: OnceLock<String>,
 
@@ -148,7 +150,8 @@ impl GlyCreator {
     }
 
     pub async fn create(&self) -> Result<gobject::GlyEncodedImage, crate::ErrorCtx> {
-        if let Some(creator) = std::mem::take(&mut *self.imp().creator.lock_blocking()) {
+        if let Some(mut creator) = std::mem::take(&mut *self.imp().creator.lock_blocking()) {
+            creator.sandbox_selector(self.sandbox_selector());
             let encoded_image: crate::EncodedImage = creator.create().await?;
             Ok(gobject::GlyEncodedImage::new(encoded_image))
         } else {
