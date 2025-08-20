@@ -16,6 +16,7 @@ glycin-utils = { workspace = true, features = [
     "image-rs",
 ] }
 glycin-common.workspace = true
+gufo-common.workspace = true
 jpegxl-rs = { version = "0.11", default-features = false, features = ["image"] }
 jpegxl-sys = { version = "=0.11", default-features = false }
 safe-transmute.workspace = true

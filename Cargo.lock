@@ -1077,6 +1077,7 @@ version = "2.0.0-beta.3"
 dependencies = [
  "glycin-common",
  "glycin-utils",
+ "gufo-common",
  "jpegxl-rs",
  "jpegxl-sys",
  "safe-transmute",
@@ -1170,9 +1171,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-common"
-version = "1.0.0-beta.1"
+version = "1.0.0-beta.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56466a12b409255e161e146f24fa257856147d5296e9f75257189632992408b5"
+checksum = "08092cfc847b6a9df0d088fb4226a4807d0a14dcc93c54f25de1302bc8a3cafa"
 dependencies = [
  "paste",
  "serde",

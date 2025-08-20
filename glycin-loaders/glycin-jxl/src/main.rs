@@ -7,7 +7,11 @@ use std::mem::MaybeUninit;
 
 use glycin_utils::image_rs::memory_format_from_color_type;
 use glycin_utils::*;
+use gufo_common::cicp::{Cicp, ColorPrimaries, MatrixCoefficients, TransferCharacteristics};
 use jpegxl_rs::image::ToDynamic;
+use jpegxl_sys::color::color_encoding::{
+    JxlColorEncoding, JxlColorSpace, JxlPrimaries, JxlTransferFunction, JxlWhitePoint,
+};
 use jpegxl_sys::common::types::{JxlBool, JxlBoxType};
 use jpegxl_sys::decode::*;
 use jpegxl_sys::metadata::codestream_header::*;
@@ -16,11 +20,11 @@ use crate::editing::ImgEditor;
 
 init_main_loader_editor!(ImgDecoder, ImgEditor);
 
-type InitData = (Vec<u8>, Option<Vec<u8>>);
-
 #[derive(Default)]
 pub struct ImgDecoder {
-    pub decoder: InitData,
+    data: Vec<u8>,
+    icc_profile: Option<Vec<u8>>,
+    cicp: Option<Cicp>,
 }
 
 impl LoaderImplementation for ImgDecoder {
@@ -31,7 +35,7 @@ impl LoaderImplementation for ImgDecoder {
     ) -> Result<(Self, ImageDetails), ProcessError> {
         let mut data = Vec::new();
         stream.read_to_end(&mut data).expected_error()?;
-        let (info, iccp, exif) = basic_info(&data);
+        let (info, icc_profile, exif, cicp) = basic_info(&data);
 
         let info = info.expected_error()?;
 
@@ -44,15 +48,15 @@ impl LoaderImplementation for ImgDecoder {
         image_info.transformation_ignore_exif = true;
 
         let loader_implementation = ImgDecoder {
-            decoder: (data, iccp),
+            data,
+            icc_profile,
+            cicp,
         };
 
         Ok((loader_implementation, image_info))
     }
 
     fn frame(&mut self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
-        let (data, iccp) = &self.decoder;
-
         let runner = jpegxl_rs::parallel::resizable_runner::ResizableRunner::new(None).unwrap();
         let decoder = jpegxl_rs::decoder_builder()
             .parallel_runner(&runner)
@@ -60,7 +64,7 @@ impl LoaderImplementation for ImgDecoder {
             .expected_error()?;
 
         let image = decoder
-            .decode_to_image(&data)
+            .decode_to_image(&self.data)
             .expected_error()?
             .expected_error()?;
 
@@ -80,11 +84,14 @@ impl LoaderImplementation for ImgDecoder {
 
         let mut frame = Frame::new(width, height, memory_format, texture).expected_error()?;
 
-        frame.details.color_icc_profile = iccp
+        frame.details.color_icc_profile = self
+            .icc_profile
             .clone()
             .map(BinaryData::from_data)
             .transpose()
             .expected_error()?;
+
+        frame.details.color_cicp = self.cicp.map(|x| x.to_bytes());
 
         if bits != 8 {
             frame.details.info_bit_depth = Some(bits);
@@ -102,7 +109,14 @@ impl LoaderImplementation for ImgDecoder {
     }
 }
 
-fn basic_info(data: &[u8]) -> (Option<JxlBasicInfo>, Option<Vec<u8>>, Option<Vec<u8>>) {
+fn basic_info(
+    data: &[u8],
+) -> (
+    Option<JxlBasicInfo>,
+    Option<Vec<u8>>,
+    Option<Vec<u8>>,
+    Option<Cicp>,
+) {
     unsafe {
         let decoder = JxlDecoderCreate(std::ptr::null());
 
@@ -119,6 +133,7 @@ fn basic_info(data: &[u8]) -> (Option<JxlBasicInfo>, Option<Vec<u8>>, Option<Vec
         let mut basic_info = None;
         let mut icc_profile = None;
         let mut exif = None;
+        let mut cicp = None;
 
         let mut exif_buf = Vec::new();
         let mut buf = Vec::new();
@@ -151,6 +166,18 @@ fn basic_info(data: &[u8]) -> (Option<JxlBasicInfo>, Option<Vec<u8>>, Option<Vec
                     JxlDecoderSetBoxBuffer(decoder, buf.as_mut_ptr(), buf.len());
                 }
                 JxlDecoderStatus::ColorEncoding => {
+                    let mut color_encoding = MaybeUninit::uninit();
+                    let res = JxlDecoderGetColorAsEncodedProfile(
+                        decoder,
+                        JxlColorProfileTarget::Original,
+                        color_encoding.as_mut_ptr(),
+                    );
+
+                    if res == JxlDecoderStatus::Success {
+                        let color_encoding = color_encoding.assume_init();
+                        cicp = color_encoding_to_cicp(color_encoding);
+                    }
+
                     let mut size = 0;
                     let mut iccp = Vec::new();
 
@@ -199,6 +226,42 @@ fn basic_info(data: &[u8]) -> (Option<JxlBasicInfo>, Option<Vec<u8>>, Option<Vec
             }
         }
 
-        (basic_info, icc_profile, exif)
+        (basic_info, icc_profile, exif, cicp)
     }
+}
+
+fn color_encoding_to_cicp(c: JxlColorEncoding) -> Option<Cicp> {
+    if c.color_space != JxlColorSpace::Rgb {
+        return None;
+    }
+
+    let color_primaries = if c.primaries == JxlPrimaries::P3 && c.white_point == JxlWhitePoint::Dci
+    {
+        ColorPrimaries::DciP3
+    } else if c.primaries == JxlPrimaries::P3 && c.white_point == JxlWhitePoint::D65 {
+        ColorPrimaries::DisplayP3
+    } else if c.primaries == JxlPrimaries::Rec2100 && c.white_point == JxlWhitePoint::D65 {
+        ColorPrimaries::Rec2020
+    } else {
+        return None;
+    };
+
+    let transfer_characteristics = match c.transfer_function {
+        JxlTransferFunction::Linear => TransferCharacteristics::Linear,
+        JxlTransferFunction::HLG => TransferCharacteristics::Hlg,
+        JxlTransferFunction::PQ => TransferCharacteristics::Pq,
+        JxlTransferFunction::SRGB => TransferCharacteristics::Gamma24,
+        JxlTransferFunction::BT709 => TransferCharacteristics::Gamma22,
+        JxlTransferFunction::DCI => TransferCharacteristics::Dci,
+        _ => {
+            return None;
+        }
+    };
+
+    Some(Cicp {
+        color_primaries,
+        matrix_coefficients: MatrixCoefficients::Identity,
+        transfer_characteristics,
+        video_full_range_flag: gufo_common::cicp::VideoRangeFlag::Full,
+    })
 }
