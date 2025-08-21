@@ -1,4 +1,3 @@
-use std::ffi::CString;
 use std::ops::{Deref, DerefMut};
 use std::os::fd::{AsRawFd, OwnedFd};
 
@@ -13,9 +12,8 @@ pub struct SharedMemory {
 impl SharedMemory {
     pub fn new(size: u64) -> Result<Self, Error> {
         let memfd = nix::sys::memfd::memfd_create(
-            &CString::new("glycin-frame").unwrap(),
-            nix::sys::memfd::MemFdCreateFlag::MFD_CLOEXEC
-                | nix::sys::memfd::MemFdCreateFlag::MFD_ALLOW_SEALING,
+            c"glycin-frame",
+            nix::sys::memfd::MFdFlags::MFD_CLOEXEC | nix::sys::memfd::MFdFlags::MFD_ALLOW_SEALING,
         )
         .expect("Failed to create memfd");
 

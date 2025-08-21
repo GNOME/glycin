@@ -255,11 +255,11 @@ impl Sandbox {
 
         // Allow FD to be passed to child process
         let mut flags = nix::fcntl::FdFlag::from_bits_truncate(nix::fcntl::fcntl(
-            dbus_fd,
+            &self.dbus_socket,
             nix::fcntl::FcntlArg::F_GETFD,
         )?);
         flags.remove(nix::fcntl::FdFlag::FD_CLOEXEC);
-        nix::fcntl::fcntl(dbus_fd, nix::fcntl::FcntlArg::F_SETFD(flags))?;
+        nix::fcntl::fcntl(&self.dbus_socket, nix::fcntl::FcntlArg::F_SETFD(flags))?;
 
         // Clear ENV
         if matches!(self.sandbox_mechanism, SandboxMechanism::FlatpakSpawn) {
