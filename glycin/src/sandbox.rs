@@ -509,7 +509,7 @@ impl Sandbox {
     fn seccomp_filter(&self) -> Result<ScmpFilterContext, SeccompError> {
         // Using `KillProcess` allows rejected syscalls to be logged by auditd. But it
         // doesn't work with tools like valgrind. That's why it's not used by default.
-        let mut filter = if std::env::var("GLYCIN_SECCPOMP_DEFAULT_ACTION")
+        let mut filter = if std::env::var("GLYCIN_SECCOMP_DEFAULT_ACTION")
             .ok()
             .as_deref()
             == Some("KILL_PROCESS")
