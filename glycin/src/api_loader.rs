@@ -7,7 +7,7 @@ pub use glycin_common::MemoryFormat;
 use glycin_common::{BinaryData, MemoryFormatSelection};
 #[cfg(feature = "gdk4")]
 use glycin_utils::safe_math::*;
-use gufo_common::orientation::Orientation;
+use gufo_common::orientation::{Orientation, Rotation};
 use zbus::zvariant::OwnedObjectPath;
 
 use crate::api_common::*;
@@ -136,7 +136,7 @@ impl Loader {
         .err_no_context(&self.cancellable)?;
 
         let process = process_basics.process.use_();
-        let info = process
+        let mut remote_image = process
             .init(
                 process_basics.g_file_worker.unwrap(),
                 &process_basics.mime_type,
@@ -144,7 +144,17 @@ impl Loader {
             .await
             .err_context(&process, &self.cancellable)?;
 
-        let path = info.frame_request.clone();
+        match Image::transformation_orientation_internal(&remote_image.details).rotate() {
+            Rotation::_90 | Rotation::_270 => {
+                std::mem::swap(
+                    &mut remote_image.details.width,
+                    &mut remote_image.details.height,
+                );
+            }
+            _ => {}
+        }
+
+        let path = remote_image.frame_request.clone();
         self.cancellable.connect_cancelled(glib::clone!(
             #[strong(rename_to=process)]
             process_basics.process,
@@ -156,8 +166,8 @@ impl Loader {
 
         Ok(Image {
             process: process_basics.process,
-            frame_request: info.frame_request,
-            details: Arc::new(info.details),
+            frame_request: remote_image.frame_request,
+            details: Arc::new(remote_image.details),
             loader: self,
             mime_type: process_basics.mime_type,
             active_sandbox_mechanism: process_basics.sandbox_mechanism,
@@ -297,11 +307,15 @@ impl Image {
     /// transformations have to be applied to display the image correctly.
     /// Otherwise, they are applied automatically to the image after loading it.
     pub fn transformation_orientation(&self) -> Orientation {
-        if let Some(orientation) = self.details().transformation_orientation() {
+        Self::transformation_orientation_internal(&self.details)
+    }
+
+    fn transformation_orientation_internal(details: &glycin_utils::ImageDetails) -> Orientation {
+        if let Some(orientation) = details.transformation_orientation {
             orientation
-        } else if !self.details().transformation_ignore_exif() {
-            self.details()
-                .metadata_exif()
+        } else if !details.transformation_ignore_exif {
+            details
+                .metadata_exif
                 .as_ref()
                 .and_then(|x| x.get_full().ok())
                 .and_then(|x| match gufo_exif::Exif::new(x) {

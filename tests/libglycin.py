@@ -119,11 +119,9 @@ def main():
     # Don't apply transformations
 
     loader = Gly.Loader(file=file_orientation)
-    image = loader.load()
+    rotated_image = loader.load()
 
-    frame = image.next_frame()
-    width = frame.get_width()
-    height = frame.get_height()
+    rotated_frame = rotated_image.next_frame()
 
     loader = Gly.Loader(file=file_orientation)
     loader.set_apply_transformations(False)
@@ -131,8 +129,11 @@ def main():
 
     frame = image.next_frame()
 
-    assert width == frame.get_height()
-    assert height == frame.get_width()
+    assert rotated_frame.get_width() == frame.get_height()
+    assert rotated_frame.get_height() == frame.get_width()
+
+    assert rotated_image.get_width() == frame.get_height()
+    assert rotated_image.get_height() == frame.get_width()
 
     # Orientation
 
