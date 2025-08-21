@@ -16,7 +16,7 @@ sudo apt install auditd
 systemctl start auditd.service
 ```
 
-After that you have to execute the failing operation again.
+After that you have to execute the failing operation again while running the program with `GLYCIN_SECCPOMP_DEFAULT_ACTION=KILL_PROCESS`.
 
 On Fedora the logs should be accessible via
 
