@@ -514,9 +514,9 @@ impl Sandbox {
             .as_deref()
             == Some("KILL_PROCESS")
         {
-            ScmpFilterContext::new_filter(ScmpAction::KillProcess)?
+            ScmpFilterContext::new(ScmpAction::KillProcess)?
         } else {
-            ScmpFilterContext::new_filter(ScmpAction::Trap)?
+            ScmpFilterContext::new(ScmpAction::Trap)?
         };
 
         let mut syscalls = vec![ALLOWED_SYSCALLS];
@@ -537,13 +537,13 @@ impl Sandbox {
     ///
     /// Bubblewrap supports taking an fd to seccomp filters in the BPF format.
     fn seccomp_export_bpf(filter: &ScmpFilterContext) -> Result<Memfd, Error> {
-        let mut memfd = MemfdOptions::default()
+        let memfd = MemfdOptions::default()
             .close_on_exec(false)
             .create("seccomp-bpf-filter")?;
-
-        filter.export_bpf(&mut memfd)?;
-
         let mut file = memfd.as_file();
+
+        filter.export_bpf(&mut file)?;
+
         file.rewind()?;
 
         Ok(memfd)
