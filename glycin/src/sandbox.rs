@@ -498,7 +498,7 @@ impl Sandbox {
             let _ = libc::write(libc::STDERR_FILENO, msg.as_ptr() as *const _, msg.len());
         }
 
-        if let Err(_) = resource::setrlimit(resource::Resource::RLIMIT_AS, limit, limit) {
+        if resource::setrlimit(resource::Resource::RLIMIT_AS, limit, limit).is_err() {
             let msg = b"Error setrlimit(RLIMIT_AS)\n";
             unsafe {
                 let _ = libc::write(libc::STDERR_FILENO, msg.as_ptr() as *const _, msg.len());
@@ -511,8 +511,7 @@ impl Sandbox {
         // doesn't work with tools like valgrind. That's why it's not used by default.
         let mut filter = if std::env::var("GLYCIN_SECCPOMP_DEFAULT_ACTION")
             .ok()
-            .as_ref()
-            .map(|x| x.as_str())
+            .as_deref()
             == Some("KILL_PROCESS")
         {
             ScmpFilterContext::new_filter(ScmpAction::KillProcess)?

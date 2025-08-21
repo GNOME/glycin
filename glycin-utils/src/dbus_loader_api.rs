@@ -82,7 +82,7 @@ pub struct Image<T: LoaderImplementation> {
 }
 
 impl<T: LoaderImplementation> Image<T> {
-    pub fn get_loader_state(&self) -> Result<MutexGuard<Box<T>>, RemoteError> {
+    pub fn get_loader_state(&self) -> Result<MutexGuard<'_, Box<T>>, RemoteError> {
         self.loader_implementation.lock().map_err(|err| {
             RemoteError::InternalLoaderError(format!(
                 "Failed to lock loader state for operation: {err}"

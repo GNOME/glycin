@@ -56,7 +56,7 @@ impl ImgBuf {
                     borrowed_fd,
                     libc::off_t::try_from(new_len).map_err(|_| DimensionTooLargerError)?,
                 )
-                .map_err(|x| std::io::Error::from(x))?;
+                .map_err(std::io::Error::from)?;
 
                 // Need a new mmap with correct size
                 let mmap = unsafe { memmap::MmapMut::map_mut(raw_fd) }?;

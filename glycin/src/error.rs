@@ -36,14 +36,14 @@ impl std::fmt::Display for ErrorCtx {
         if let Some(stderr) = &self.stderr {
             if !stderr.is_empty() {
                 f.write_str("\n\nstderr:\n")?;
-                f.write_str(&stderr)?;
+                f.write_str(stderr)?;
             }
         }
 
         if let Some(stdout) = &self.stdout {
             if !stdout.is_empty() {
                 f.write_str("\n\nstdout:\n")?;
-                f.write_str(&stdout)?;
+                f.write_str(stdout)?;
             }
         }
 

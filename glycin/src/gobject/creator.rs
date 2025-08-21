@@ -82,7 +82,7 @@ impl GlyCreator {
             .clone()
     }
 
-    pub fn creator(&self) -> MutexGuard<Option<Creator>> {
+    pub fn creator(&self) -> MutexGuard<'_, Option<Creator>> {
         self.imp().creator.lock_blocking()
     }
 

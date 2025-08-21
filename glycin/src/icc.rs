@@ -43,7 +43,7 @@ fn transform(
     let multiple = std::thread::available_parallelism().map_or(2, |x| x.get());
     tracing::trace!("Applying ICC profiles while using {multiple} threads");
 
-    let chunk_size = ((buf.len() / memory_format.n_bytes().usize() + multiple - 1) / multiple)
+    let chunk_size = (buf.len() / memory_format.n_bytes().usize()).div_ceil(multiple)
         * memory_format.n_bytes().usize();
 
     std::thread::scope(|s| {

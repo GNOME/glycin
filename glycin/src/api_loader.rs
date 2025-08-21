@@ -233,7 +233,7 @@ static_assertions::assert_impl_all!(Image: Send, Sync);
 
 impl Drop for Image {
     fn drop(&mut self) {
-        self.process.use_().done_background(&self);
+        self.process.use_().done_background(self);
         *self.loader_alive.lock().unwrap() = Arc::new(());
         spawn_detached(self.loader.pool.clone().clean_loaders());
     }
@@ -251,7 +251,6 @@ impl Image {
         process
             .request_frame(glycin_utils::FrameRequest::default(), self)
             .await
-            .map_err(Into::into)
             .err_context(&process, &self.cancellable())
     }
 
@@ -265,7 +264,6 @@ impl Image {
         process
             .request_frame(frame_request.request, self)
             .await
-            .map_err(Into::into)
             .err_context(&process, &self.cancellable())
     }
 
@@ -356,11 +354,11 @@ impl ImageDetails {
 
     /// A textual representation of the image format
     pub fn info_format_name(&self) -> Option<&str> {
-        self.inner.info_format_name.as_ref().map(|x| x.as_str())
+        self.inner.info_format_name.as_deref()
     }
 
     pub fn info_dimensions_text(&self) -> Option<&str> {
-        self.inner.info_dimensions_text.as_ref().map(|x| x.as_str())
+        self.inner.info_dimensions_text.as_deref()
     }
 
     pub fn metadata_exif(&self) -> Option<BinaryData> {

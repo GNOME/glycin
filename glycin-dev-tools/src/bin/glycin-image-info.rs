@@ -29,10 +29,7 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
     println!("dimensions = {} x {}", info.width(), info.height());
     println!(
         "format_name = {}",
-        info.info_format_name()
-            .as_ref()
-            .cloned()
-            .unwrap_or("-".into())
+        info.info_format_name().as_ref().cloned().unwrap_or("-")
     );
     println!(
         "exif = {}",

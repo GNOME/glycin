@@ -72,7 +72,7 @@ fn x(
     output_path: &OsStr,
     thumbnail_size: u32,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let input_file = gio::File::for_uri(&input_uri);
+    let input_file = gio::File::for_uri(input_uri);
 
     let mut loader = glycin::Loader::new(input_file.clone());
 
@@ -85,7 +85,7 @@ fn x(
     let frame = glib::MainContext::default().block_on(image.specific_frame(frame_request))?;
 
     let out_file = std::fs::File::create(output_path)?;
-    let ref mut buf_writer = std::io::BufWriter::new(out_file);
+    let buf_writer = &mut std::io::BufWriter::new(out_file);
 
     // Reduce max size to thumbnail size
     let scale = thumbnail_size as f32 / u32::max(frame.width(), frame.height()) as f32;

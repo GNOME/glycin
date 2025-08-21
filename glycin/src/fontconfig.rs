@@ -38,9 +38,8 @@ unsafe fn config_files_and_dirs(config: *mut fc::FcConfig) -> Option<BTreeSet<Pa
     let mut config_files_without_confd = all_config_files
         .into_iter()
         .filter(|x| {
-            x.parent().map_or(false, |p| {
-                !config_dirs.contains(p) && !config_dirs.contains(x)
-            })
+            x.parent()
+                .is_some_and(|p| !config_dirs.contains(p) && !config_dirs.contains(x))
         })
         .collect();
 

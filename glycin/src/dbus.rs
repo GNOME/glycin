@@ -114,7 +114,7 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
                 tracing::debug!("Spawning loader/editor:\n    {command_dbg}");
                 let mut child = match command.spawn() {
                     Ok(mut child) => {
-                        let id = child.id().clone();
+                        let id = child.id();
                         let info = Ok((child.stderr.take(), child.stdout.take(), id));
                         if let Err(err) = sender_child.send(info) {
                             tracing::info!(
@@ -192,7 +192,7 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
             },
             return_status = child_return.fuse() => {
                 match return_status? {
-                    Ok(status) => Err(Error::PrematureExit { status: status.clone(), cmd: command_dbg }),
+                    Ok(status) => Err(Error::PrematureExit { status: status, cmd: command_dbg }),
                     Err(err) => Err(Error::StdIoError{ err: Arc::new(err), info: command_dbg }),
                 }
             }
@@ -321,7 +321,7 @@ impl RemoteProcess<LoaderProxy<'static>> {
         validate_frame(&frame, &img_buf)?;
 
         let img_buf = if image.loader.apply_transformations {
-            orientation::apply_exif_orientation(img_buf, &mut frame, &image)
+            orientation::apply_exif_orientation(img_buf, &mut frame, image)
         } else {
             img_buf
         };
@@ -331,7 +331,6 @@ impl RemoteProcess<LoaderProxy<'static>> {
         let img_buf = if let Some(cicp) = frame
             .details
             .color_cicp
-            .clone()
             .and_then(|x| x.try_into().ok())
             .and_then(|x| Cicp::from_bytes(&x).ok())
         {
@@ -417,7 +416,7 @@ impl RemoteProcess<EditorProxy<'static>> {
         gfile_worker: &GFileWorker,
         mime_type: &MimeType,
     ) -> Result<RemoteEditableImage, Error> {
-        let init_request = self.init_request(&gfile_worker, mime_type)?;
+        let init_request = self.init_request(gfile_worker, mime_type)?;
 
         self.proxy.edit(init_request).await.map_err(Into::into)
     }

@@ -114,7 +114,7 @@ where
                 } else if let Some(err) =
                     ((&err) as &dyn Any).downcast_ref::<glycin_common::Error>()
                 {
-                    if matches!(err, glycin_common::Error::OutOfMemory { .. }) {
+                    if matches!(err, glycin_common::Error::OutOfMemory) {
                         ProcessError::out_of_memory()
                     } else {
                         ProcessError::expected(err)

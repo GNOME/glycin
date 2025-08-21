@@ -109,7 +109,7 @@ pub struct EditableImage {
 
 impl Drop for EditableImage {
     fn drop(&mut self) {
-        self.process.use_().done_background(&self);
+        self.process.use_().done_background(self);
         *self.editor_alive.lock().unwrap() = Arc::new(());
         spawn_detached(self.editor.pool.clone().clean_loaders());
     }

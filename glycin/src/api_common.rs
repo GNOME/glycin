@@ -141,7 +141,7 @@ impl Source {
     pub fn send(&mut self) -> Self {
         let new = self
             .file()
-            .map(|x| Self::File(x))
+            .map(Self::File)
             .unwrap_or(Self::TransferredStream);
 
         std::mem::replace(self, new)
