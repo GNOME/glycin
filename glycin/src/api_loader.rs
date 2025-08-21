@@ -441,27 +441,20 @@ impl Frame {
 
     #[cfg(feature = "gdk4")]
     pub fn texture(&self) -> gdk::Texture {
-        use crate::memory_texture_builder::MemoryTextureBuilder;
-
-        let builder = MemoryTextureBuilder::new();
-
-        builder.set_bytes(Some(&self.buffer));
-
-        // Use unwraps here since the compatibility was checked before
-        builder.set_width(self.width().try_i32().unwrap());
-        builder.set_height(self.height().try_i32().unwrap());
-        builder.set_stride(self.stride().try_usize().unwrap());
-
-        builder.set_format(crate::util::gdk_memory_format(self.memory_format()));
-
         let color_state = crate::util::gdk_color_state(&self.color_state).unwrap_or_else(|_| {
             tracing::warn!("Unsupported color state: {:?}", self.color_state);
             gdk::ColorState::srgb()
         });
 
-        builder.set_color_state(Some(&color_state));
-
-        builder.build()
+        gdk::MemoryTextureBuilder::new()
+            .set_bytes(Some(&self.buffer))
+            // Use unwraps here since the compatibility was checked before
+            .set_width(self.width().try_i32().unwrap())
+            .set_height(self.height().try_i32().unwrap())
+            .set_stride(self.stride().try_usize().unwrap())
+            .set_format(crate::util::gdk_memory_format(self.memory_format()))
+            .set_color_state(&color_state)
+            .build()
     }
 }
 
