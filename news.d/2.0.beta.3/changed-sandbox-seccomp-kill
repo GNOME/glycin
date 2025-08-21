@@ -1,1 +1,0 @@
-Use `KillProcess` instead of `Trap` to enable logging of seccomp filter violations via auditd.
