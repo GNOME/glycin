@@ -234,7 +234,7 @@ impl Config {
                     if let Ok(path) = result {
                         if path.extension() == Some(OsStr::new(CONFIG_FILE_EXT)) {
                             if let Err(err) = Self::load_file(&path, &mut config).await {
-                                eprintln!("Failed to load config file: {err}");
+                                tracing::error!("Failed to load config file: {err}");
                             }
                         }
                     }

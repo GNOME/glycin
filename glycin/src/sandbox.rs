@@ -243,7 +243,7 @@ impl Sandbox {
                 ("flatpak-spawn".into(), args, None)
             }
             SandboxMechanism::NotSandboxed => {
-                eprintln!("WARNING: Glycin running without sandbox.");
+                tracing::warn!("WARNING: Glycin running without sandbox.");
                 (self.exec(), vec![], None)
             }
         };
@@ -411,7 +411,7 @@ impl Sandbox {
 
             // Create cache dir
             match util::spawn_blocking(move || std::fs::create_dir_all(fc_cache_dir)).await {
-                Err(err) => eprintln!("Failed to create cache dir: {err:?}"),
+                Err(err) => tracing::warn!("Failed to create fontconfig cache dir: {err:?}"),
                 Ok(()) => {
                     args.push("--bind-try".into());
                     args.push(cache_dir.clone());
@@ -423,7 +423,7 @@ impl Sandbox {
                 }
             }
         } else {
-            eprintln!("WARNING: Failed to load fonftconfig environment");
+            tracing::warn!("Failed to load fonftconfig environment");
         }
 
         Ok(args)
@@ -588,12 +588,12 @@ impl SystemSetup {
             Ok(dir_content) => {
                 for entry in dir_content {
                     if let Err(err) = self.add_dir(entry).await {
-                        eprintln!("Unable to access entry in root directory (/): {err}");
+                        tracing::warn!("Unable to access entry in root directory (/): {err}");
                     }
                 }
             }
             Err(err) => {
-                eprintln!("Unable to list root directory (/) entries: {err}");
+                tracing::error!("Unable to list root directory (/) entries: {err}");
             }
         }
 

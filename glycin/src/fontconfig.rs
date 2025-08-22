@@ -69,7 +69,7 @@ unsafe fn str_list_to_set(list: *mut fc::FcStrList) -> Option<BTreeSet<PathBuf>>
         } else if let Ok(cs) = CStr::from_ptr(s as *const c_char).to_str() {
             vec.insert(PathBuf::from(cs));
         } else {
-            eprintln!("fontconfig: Invalid path");
+            tracing::error!("fontconfig: Invalid path");
         }
     }
 

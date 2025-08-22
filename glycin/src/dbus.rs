@@ -351,7 +351,7 @@ impl RemoteProcess<LoaderProxy<'static>> {
 
             match icc_result {
                 Err(err) => {
-                    eprintln!("Failed to apply ICC profile: {err}");
+                    tracing::warn!("Failed to apply ICC profile: {err}");
                 }
                 Ok(new_color_state) => {
                     color_state = new_color_state;
