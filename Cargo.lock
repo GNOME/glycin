@@ -1073,14 +1073,14 @@ dependencies = [
 
 [[package]]
 name = "glycin-jxl"
-version = "2.0.0-beta.3"
+version = "2.0.0-beta.6"
 dependencies = [
  "glycin-common",
  "glycin-utils",
  "gufo-common",
  "jpegxl-rs",
  "jpegxl-sys",
- "safe-transmute",
+ "zerocopy",
 ]
 
 [[package]]
@@ -1439,7 +1439,6 @@ dependencies = [
  "byteorder",
  "derive_builder",
  "half",
- "image",
  "jpegxl-sys",
  "thiserror",
 ]

@@ -1,6 +1,6 @@
 [package]
 name = "glycin-jxl"
-version = "2.0.0-beta.3"
+version = "2.0.0-beta.6"
 authors.workspace = true
 description.workspace = true
 license.workspace = true
@@ -10,13 +10,9 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-glycin-utils = { workspace = true, features = [
-    "async-io",
-    "loader-utils",
-    "image-rs",
-] }
+glycin-utils = { workspace = true, features = ["async-io", "loader-utils"] }
 glycin-common.workspace = true
 gufo-common.workspace = true
-jpegxl-rs = { version = "0.11", default-features = false, features = ["image"] }
+jpegxl-rs = { version = "0.11", default-features = false }
 jpegxl-sys = { version = "=0.11", default-features = false }
-safe-transmute.workspace = true
+zerocopy.workspace = true

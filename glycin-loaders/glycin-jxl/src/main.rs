@@ -5,16 +5,15 @@ mod editing;
 use std::io::{Cursor, Read, Write};
 use std::mem::MaybeUninit;
 
-use glycin_utils::image_rs::memory_format_from_color_type;
 use glycin_utils::*;
 use gufo_common::cicp::{Cicp, ColorPrimaries, MatrixCoefficients, TransferCharacteristics};
-use jpegxl_rs::image::ToDynamic;
 use jpegxl_sys::color::color_encoding::{
     JxlColorEncoding, JxlColorSpace, JxlPrimaries, JxlTransferFunction, JxlWhitePoint,
 };
 use jpegxl_sys::common::types::{JxlBool, JxlBoxType};
 use jpegxl_sys::decode::*;
 use jpegxl_sys::metadata::codestream_header::*;
+use zerocopy::IntoBytes;
 
 use crate::editing::ImgEditor;
 
@@ -63,18 +62,71 @@ impl LoaderImplementation for ImgDecoder {
             .build()
             .expected_error()?;
 
-        let image = decoder
-            .decode_to_image(&self.data)
-            .expected_error()?
-            .expected_error()?;
+        let (metadata, pixels) = decoder.decode(&self.data).expected_error()?;
 
-        let memory_format = memory_format_from_color_type(image.color());
-        let (alpha_channel, grayscale, bits) =
-            image_rs::channel_details(image.color().into()).internal_error()?;
-        let width = image.width();
-        let height = image.height();
+        let memory_format;
+        let bytes;
+        let bits;
+        let f16_bytes;
 
-        let bytes = image.into_bytes();
+        let alpha_channel = metadata.has_alpha_channel;
+        let grayscale = metadata.num_color_channels == 1;
+
+        match &pixels {
+            jpegxl_rs::decode::Pixels::Float(data) => {
+                bits = 32;
+                bytes = data.as_bytes();
+
+                memory_format = match (metadata.num_color_channels, metadata.has_alpha_channel) {
+                    (3, false) => MemoryFormat::R32g32b32Float,
+                    (3, true) => MemoryFormat::R32g32b32a32Float,
+                    _ => unimplemented!(),
+                };
+            }
+            jpegxl_rs::decode::Pixels::Float16(data) => {
+                bits = 16;
+                f16_bytes = data
+                    .into_iter()
+                    .map(|x| x.to_le_bytes())
+                    .flatten()
+                    .collect::<Vec<u8>>();
+                bytes = f16_bytes.as_bytes();
+
+                memory_format = match (metadata.num_color_channels, metadata.has_alpha_channel) {
+                    (3, false) => MemoryFormat::R16g16b16Float,
+                    (3, true) => MemoryFormat::R16g16b16a16Float,
+                    _ => unimplemented!(),
+                };
+            }
+            jpegxl_rs::decode::Pixels::Uint16(data) => {
+                bits = 16;
+                bytes = data.as_bytes();
+
+                memory_format = match (metadata.num_color_channels, metadata.has_alpha_channel) {
+                    (3, false) => MemoryFormat::R16g16b16,
+                    (3, true) => MemoryFormat::R16g16b16a16,
+                    (1, false) => MemoryFormat::G16,
+                    (1, true) => MemoryFormat::G16a16,
+                    _ => unimplemented!(),
+                };
+            }
+            jpegxl_rs::decode::Pixels::Uint8(data) => {
+                bits = 8;
+                bytes = data.as_bytes();
+
+                memory_format = match (metadata.num_color_channels, metadata.has_alpha_channel) {
+                    (3, false) => MemoryFormat::R8g8b8,
+                    (3, true) => MemoryFormat::R8g8b8a8,
+                    (1, false) => MemoryFormat::G8,
+                    (1, true) => MemoryFormat::G8a8,
+                    _ => unimplemented!(),
+                };
+            }
+        }
+
+        let width = metadata.width;
+        let height = metadata.height;
+
         let mut memory = SharedMemory::new(bytes.len() as u64).expected_error()?;
 
         Cursor::new(memory.as_mut())
