@@ -1,5 +1,5 @@
 [workspace.package]
-version = "2.0.0-beta.1"
+version = "2.0.0-beta.3"
 authors = ["Sophie Herold"]
 description = "Sandboxed image decoding"
 license = "MPL-2.0 OR LGPL-2.1-or-later"
@@ -63,8 +63,8 @@ gdk = { package = "gdk4", version = "0.10.0", features = ["v4_16"] }
 gio = { version = "0.21.0", features = ["v2_62"] }
 glib = { version = "0.21.0", features = ["v2_68"] }
 glycin = { path = "glycin/", default-features = false }
-glycin-common = { version = "1.0.0-beta.1", path = "glycin-common/" }
-glycin-utils = { version = "4.0.0-beta.1", path = "glycin-utils/", default-features = false }
+glycin-common = { version = "1.0.0-beta.3", path = "glycin-common/" }
+glycin-utils = { version = "4.0.0-beta.3", path = "glycin-utils/", default-features = false }
 gufo = { version = "0.3.0-beta", features = ["all-image-formats"] }
 gufo-common = { version = "1.0.0-beta.2", features = ["serde"] }
 gufo-exif = { version = "0.3.0-beta" }
@@ -94,6 +94,7 @@ tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.0", features = ["env-filter", "fmt"] }
 yeslogic-fontconfig-sys = "6.0.0"
 # Fix to 5.6 since newer versions don't work in thumbnailer sandbox
+# See <https://github.com/dbus2/zbus/pull/1472>
 zbus = { version = "=5.6.0", default-features = false, features = ["p2p"] }
 zvariant = { version = "5.4.0", default-features = false }
 zerocopy = "0.8.12"

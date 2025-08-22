@@ -1016,7 +1016,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-common"
-version = "1.0.0-beta.1"
+version = "1.0.0-beta.3"
 dependencies = [
  "bitflags 2.9.2",
  "glib",
@@ -1034,7 +1034,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-dev-tools"
-version = "2.0.0-beta.1"
+version = "2.0.0-beta.3"
 dependencies = [
  "async-io",
  "gdk4",
@@ -1046,7 +1046,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-heif"
-version = "2.0.0-beta.1"
+version = "2.0.0-beta.3"
 dependencies = [
  "four-cc",
  "glycin-utils",
@@ -1057,7 +1057,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-image-rs"
-version = "2.0.0-beta.1"
+version = "2.0.0-beta.3"
 dependencies = [
  "glycin-utils",
  "gufo",
@@ -1073,7 +1073,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-jxl"
-version = "2.0.0-beta.6"
+version = "2.0.0-beta.3"
 dependencies = [
  "glycin-common",
  "glycin-utils",
@@ -1085,7 +1085,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-raw"
-version = "2.0.0-beta.1"
+version = "2.0.0-beta.3"
 dependencies = [
  "glycin-utils",
  "gufo-common",
@@ -1094,7 +1094,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-svg"
-version = "2.0.0-beta.1"
+version = "2.0.0-beta.3"
 dependencies = [
  "cairo-rs",
  "gio",
@@ -1104,7 +1104,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-thumbnailer"
-version = "2.0.0-beta.1"
+version = "2.0.0-beta.3"
 dependencies = [
  "gio",
  "glycin",
@@ -2454,7 +2454,7 @@ dependencies = [
 
 [[package]]
 name = "tests"
-version = "2.0.0-beta.1"
+version = "2.0.0-beta.3"
 dependencies = [
  "async-io",
  "blocking",
