@@ -1,0 +1,1 @@
+Allow recv syscall since it is needed on PowerPC64 LE.

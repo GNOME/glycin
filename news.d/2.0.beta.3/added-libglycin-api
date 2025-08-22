@@ -1,0 +1,1 @@
+Expose more API in libglycin that was needed by gdk-pixbuf glycin loaders to work correctly.
