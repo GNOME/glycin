@@ -1,0 +1,46 @@
+{
+    "glycin-common": {
+        "version": "1.0.0-beta.3",
+        "state": "changed"
+    },
+    "glycin-heif": {
+        "version": "2.0.0-beta.3",
+        "state": "changed"
+    },
+    "glycin-image-rs": {
+        "version": "2.0.0-beta.3",
+        "state": "changed"
+    },
+    "glycin-jxl": {
+        "version": "2.0.0-beta.3",
+        "state": "changed"
+    },
+    "glycin-raw": {
+        "version": "2.0.0-beta.3",
+        "state": "changed"
+    },
+    "glycin-svg": {
+        "version": "2.0.0-beta.3",
+        "state": "changed"
+    },
+    "glycin-thumbnailer": {
+        "version": "2.0.0-beta.3",
+        "state": "changed"
+    },
+    "glycin-utils": {
+        "version": "4.0.0-beta.3",
+        "state": "changed"
+    },
+    "glycin": {
+        "version": "3.0.0-beta.3",
+        "state": "changed"
+    },
+    "libglycin": {
+        "version": "2.0.0-beta.3",
+        "state": "changed"
+    },
+    "libglycin-gtk4": {
+        "version": "2.0.0-beta.3",
+        "state": "changed"
+    }
+}

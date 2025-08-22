@@ -1,3 +1,45 @@
+## 2.0.beta.3 (Unreleased)
+
+This release contains the following new component versions:
+
+- glycin-common 1.0.0-beta.3
+- glycin-heif 2.0.0-beta.3
+- glycin-image-rs 2.0.0-beta.3
+- glycin-jxl 2.0.0-beta.3
+- glycin-raw 2.0.0-beta.3
+- glycin-svg 2.0.0-beta.3
+- glycin-thumbnailer 2.0.0-beta.3
+- glycin-utils 4.0.0-beta.3
+- glycin 3.0.0-beta.3
+- libglycin 2.0.0-beta.3
+- libglycin-gtk4 2.0.0-beta.3
+
+### Added
+
+- Expose more API in libglycin that was needed by gdk-pixbuf glycin loaders to
+  work correctly.
+
+### Fixed
+
+- Allow `exit_group` syscall, needed by some systems to load SVGs.
+- Allow recv syscall since it is needed on PowerPC64 LE.
+- Apply rotation to the dimension in `Image` as well. They were correct in
+  `Frame`s already.
+- Bump gufo-jpeg to fix editing some JPEGs saved with progressive mode.
+- Fix glycin-thumbnailer not working inside the thumbnailer sandbox due to an
+  issue introduced in zbus 5.7. Pin to zbus 5.6 for now. See
+  <https://github.com/dbus2/zbus/pull/1472>
+- Regular unnecessary recompiles of components.
+- glycin/sandbox: Allow `{get,set}priority` syscalls, since they are used by
+  libheif on Gentoo.
+
+### Changed
+
+- Don't use the image-rs feature in jpegxl-rs to convert texture date to avoid a
+  copy of the data. This speeds up loading.
+- glycin: Parallelize ICC profile transformations.
+- jxl: Use a parallel runner for decoding, reducing image loading times.
+
 ## 2.0.beta.2 (2025-08-01)
 
 This release contains the following new component versions:
@@ -162,6 +204,13 @@ This release contains the following new component versions:
 - Use a new loader/editor D-Bus API version 2+ and simultanously bump libglycin
   to 2.0 and glycin (Rust API) to 3.0. This was required for supporting pooled
   loaders.
+
+## 1.2.4 (Unreleased)
+
+### Fixed
+
+- glycin/sandbox: Allow `recv` syscall. Needed on powerpc.
+- jpeg: Bump gufo-jpeg to fix editing some JPEG with progressive mode.
 
 ## 1.2.3 (2025-08-01)
 
