@@ -1,0 +1,4 @@
+[Thumbnailer Entry]
+TryExec=@BINDIR@/glycin-thumbnailer
+Exec=@BINDIR@/glycin-thumbnailer --input %u --output %o --size %s
+MimeType=image/jp2

@@ -1,0 +1,21 @@
+[package]
+name = "glycin-jpeg2000"
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+glycin-utils = { workspace = true, features = ["async-io", "image-rs"] }
+jpeg2k = { version = "0.10.0", default-features = false, features = [
+    "openjp2",
+    "image",
+] }
+image.workspace = true
+
+[lints]
+workspace = true
