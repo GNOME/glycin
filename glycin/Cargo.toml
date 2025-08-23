@@ -29,6 +29,7 @@ gobject = [
     "dep:tracing-subscriber",
 ]
 gdk4 = ["dep:gdk"]
+unstable-config = []
 
 [dependencies]
 async-fs = { workspace = true, optional = true }

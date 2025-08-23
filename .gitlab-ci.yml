@@ -177,12 +177,23 @@ cargo-vet:
     - cargo install cargo-vet
     - CARGO_BUILD_TARGET=x86_64-unknown-linux-gnu cargo vet
 
+
+website:
+  image: rust
+  extends: .install_dependencies
+  interruptible: true
+  script:
+    - ./docs/website/build.bash
+  artifacts:
+    paths:
+      - public
+
 pages:
   stage: deploy
   dependencies:
+    - website
     - test-x86_64
   script:
-    - mkdir public
     - mv libglycin-docs public/libglycin
     - mv libglycin-gtk4-docs public/libglycin-gtk4
   artifacts:

@@ -1,0 +1,118 @@
+:root {
+  --primary-color: #D09300;
+  --fg-color: #241f31;
+  --bg-color: #f6f5f4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fg-color: #ddd;
+    --bg-color: #14111b;
+  }
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: InterVariable;
+  color: var(--fg-color);
+  background-color: var(--bg-color);
+}
+
+.container {
+  max-width: 720px;
+  padding: 0 20px;
+  margin: auto;
+}
+
+header.container {
+  text-align: center;
+  margin-top: 5em;
+}
+
+header img {
+  border-radius: 1em;
+  max-width: 7em;
+  width: 100%;
+}
+
+@media (prefers-color-scheme: dark) {
+  header img {
+    filter: invert(90%);
+  }
+}
+
+h2 {
+  margin: 2em 0 0.5em;
+}
+
+h3 {
+  margin: 2em 0 0.5em;
+}
+
+h4 {
+  font-weight: normal;
+  margin: 1em 0 0.5em;
+}
+
+ul.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 250px);
+  justify-content: center;
+  gap: 1em;
+}
+
+ul.cards li {
+  display: contents;
+}
+
+ul.cards li a {
+  display: block;
+  text-decoration: none;
+  font-size: 2em;
+  background-color: var(--primary-color);
+  color: var(--bg-color);
+  font-weight: 800;
+  border-radius: 0.3em;
+  line-height: 2em;
+  text-align: center;
+  padding: 0 1em;
+  background: linear-gradient(var(--primary-color), color-mix(in srgb, var(--primary-color) 70%, black));
+}
+
+ul.cards li a:hover,
+ul.cards li a:active {
+  opacity: 0.8;
+}
+
+ul.features {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+ul.features li {
+  display: inline-block;
+  padding: 2px 14px;
+  min-width: 90px;
+  border: 2px solid var(--primary-color);
+  border-radius: 20px;
+  margin: 5px;
+  line-height: 1.4em;
+  font-size: 0.9em;
+  font-weight: bold;
+}
+
+ul.features li.missing {
+  opacity: 0.7;
+  border-style: dotted;
+}
+
+ul.features li.unknown {
+  border-color: var(--dark1);
+  border-style: dotted;
+  opacity: 0.7;
+}

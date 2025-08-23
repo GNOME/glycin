@@ -199,7 +199,6 @@ impl Loader {
         "image/webp",
         "image/tiff",
         "image/x-tga",
-        "image/vnd-ms.dds",
         "image/x-dds",
         "image/bmp",
         "image/vnd.microsoft.icon",

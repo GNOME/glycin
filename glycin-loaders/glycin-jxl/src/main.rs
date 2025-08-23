@@ -278,6 +278,8 @@ fn basic_info(
             }
         }
 
+        JxlDecoderDestroy(decoder);
+
         (basic_info, icc_profile, exif, cicp)
     }
 }

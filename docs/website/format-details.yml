@@ -1,0 +1,160 @@
+image/jpeg:
+  icc: true
+  cicp: unsupported
+  exif: true
+  xmp: true
+  animation: unsupported
+
+image/heif:
+  icc: true
+  cicp: true
+  exif: true
+  xmp: false
+  animation: false
+
+image/avif:
+  icc: true
+  cicp: true
+  exif: true
+  xmp: false
+  animation: false
+
+image/jxl:
+  icc: true
+  cicp: true
+  exif: true
+  xmp: false
+  animation: false
+
+image/png:
+  icc: true
+  cicp: true
+  exif: true
+  xmp: true
+  animation: unsupported
+
+image/apng:
+  icc: true
+  cicp: true
+  exif: true
+  xmp: true
+  animation: true
+
+image/webp:
+  icc: true
+  cicp: true
+  exif: true
+  xmp: false
+  animation: true
+
+image/tiff:
+  icc: true
+  exif: true
+  cicp: false
+  xmp: false
+  animation: unsupported
+
+image/svg+xml:
+  icc: false
+  exif: unsupported
+  cicp: unsupported
+  xmp: false
+  animation: unsupported
+
+image/svg+xml-compressed:
+  icc: false
+  exif: unsupported
+  cicp: unsupported
+  xmp: false
+  animation: unsupported
+
+image/gif:
+  icc: unsupported
+  cicp: unsupported
+  exif: unsupported
+  xmp: false
+  animation: true
+
+image/bmp:
+  icc: false
+  cicp: unsupported
+  exif: unsupported
+  xmp: unsupported
+  animation: unsupported
+
+image/qoi:
+  icc: unsupported
+  cicp: unsupported
+  exif: unsupported
+  xmp: unsupported
+  animation: unsupported
+
+image/x-qoi:
+  icc: unsupported
+  cicp: unsupported
+  exif: unsupported
+  xmp: unsupported
+  animation: unsupported
+
+image/jp2:
+  icc: false
+  cicp: unsupported
+  exif: false
+  xmp: false
+  animation: unsupported
+
+image/x-tga:
+  icc: unsupported
+  cicp: unsupported
+  exif: unsupported
+  xmp: unsupported
+  animation: unsupported
+
+image/vnd.microsoft.icon:
+  icc: unsupported
+  cicp: unsupported
+  exif: unsupported
+  xmp: unsupported
+  animation: unsupported
+
+image/x-dds:
+  icc: unsupported
+  cicp: unsupported
+  exif: unsupported
+  xmp: unsupported
+  animation: unsupported
+
+image/x-portable-anymap:
+  icc: unsupported
+  cicp: unsupported
+  exif: unsupported
+  xmp: unsupported
+  animation: unsupported
+
+image/x-portable-bitmap:
+  icc: unsupported
+  cicp: unsupported
+  exif: unsupported
+  xmp: unsupported
+  animation: unsupported
+
+image/x-portable-graymap:
+  icc: unsupported
+  cicp: unsupported
+  exif: unsupported
+  xmp: unsupported
+  animation: unsupported
+
+image/x-portable-pixmap:
+  icc: unsupported
+  cicp: unsupported
+  exif: unsupported
+  xmp: unsupported
+  animation: unsupported
+
+image/x-exr:
+  icc: false
+  cicp: unsupported
+  exif: unsupported
+  xmp: false
+  animation: unsupported

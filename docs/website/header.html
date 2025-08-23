@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Glycin – Safe image loading and editing</title>
+
+    <link href="https://static.gnome.org/css/inter.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <header class="container">
+        <img alt="" src="icon.svg" />
+        <h1>glycin</h1>
+    </header>
+
+    <div class="container">
+
+        <p>Glycin allows to load, edit, and create images as well as read metadata. The decoding happens in sandboxed
+            modular image loaders and editors making it safe and extendable.</p>
+
+        <h2>Use Glycin</h2>
+
+        <p>Glycin supports GObject introspection, which allows the C library libglycin to be used form several
+            programming languages. Since glycin is written in Rust, it is also available as native Rust crate.</p>
+
+        <ul class="cards">
+            <li><a href="https://gnome.pages.gitlab.gnome.org/glycin/libglycin/">C</a></li>
+            <li><a href="https://docs.rs/glycin">Rust</a></li>
+        </ul>
+
+        <h2 id="supported-image-formats">Supported Image Formats</h2>
+
+        <p>These are the image formats supported by the loaders developed by the glycin project itself.</p>

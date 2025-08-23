@@ -4,6 +4,7 @@ yanked = "deny"
 ignore = [
     # Crate `paste` is no longer maintained
     "RUSTSEC-2024-0436",
+    "image@0.25.7",
 ]
 
 [licenses]

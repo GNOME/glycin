@@ -249,7 +249,10 @@ impl Config {
         config
     }
 
-    async fn load_file(path: &Path, config: &mut Config) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn load_file(
+        path: &Path,
+        config: &mut Config,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let data = read(path).await?;
         let bytes = glib::Bytes::from_owned(data);
 

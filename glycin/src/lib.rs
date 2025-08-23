@@ -70,7 +70,10 @@ mod api_common;
 mod api_creator;
 mod api_editor;
 mod api_loader;
+#[cfg(feature = "unstable-config")]
 pub mod config;
+#[cfg(not(feature = "unstable-config"))]
+mod config;
 mod dbus;
 mod error;
 mod fontconfig;

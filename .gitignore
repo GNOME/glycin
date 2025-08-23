@@ -3,3 +3,4 @@ builddir/
 install/
 target/
 tests/failures
+public/
