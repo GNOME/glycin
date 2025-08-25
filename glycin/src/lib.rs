@@ -93,5 +93,6 @@ pub use glycin_common::{
     BinaryData, MemoryFormat, MemoryFormatSelection, Operation, OperationId, Operations,
 };
 pub use gufo_common::cicp::Cicp;
+pub use pool::{Pool, PoolConfig};
 #[cfg(feature = "gdk4")]
 pub use util::gdk_memory_format;

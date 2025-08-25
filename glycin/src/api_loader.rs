@@ -118,6 +118,11 @@ impl Loader {
         self
     }
 
+    pub fn pool(&mut self, pool: Arc<Pool>) -> &mut Self {
+        self.pool = pool;
+        self
+    }
+
     /// Load basic image information and enable further operations
     pub async fn load(mut self) -> Result<Image, ErrorCtx> {
         let source = self.source.send();

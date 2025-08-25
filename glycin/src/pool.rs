@@ -1,10 +1,11 @@
-static DEFAULT_POOL: LazyLock<Arc<Pool>> = LazyLock::new(Pool::new);
+static DEFAULT_POOL: LazyLock<Arc<Pool>> = LazyLock::new(|| Arc::new(Pool::default()));
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, LazyLock, Mutex};
 use std::time::{Duration, Instant};
+use std::usize;
 
 use gio::glib;
 use gio::prelude::*;
@@ -26,33 +27,69 @@ impl<P: ZbusProxy<'static> + 'static> PooledProcess<P> {
         *self.last_use.lock().unwrap() = Instant::now();
         self.process.clone()
     }
+
+    pub fn n_users(&self) -> usize {
+        self.users
+            .iter()
+            .map(|x| (x.strong_count() > 0) as usize)
+            .sum()
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct Pool {
+    loaders: AsyncMutex<
+        BTreeMap<config::ConfigEntryHash, Vec<Arc<PooledProcess<dbus::LoaderProxy<'static>>>>>,
+    >,
+    editors: AsyncMutex<
+        BTreeMap<config::ConfigEntryHash, Vec<Arc<PooledProcess<dbus::EditorProxy<'static>>>>>,
+    >,
+    config: PoolConfig,
 }
 
 #[derive(Debug)]
-pub struct Pool {
-    loaders: AsyncMutex<
-        BTreeMap<config::ConfigEntryHash, Arc<PooledProcess<dbus::LoaderProxy<'static>>>>,
-    >,
-    editors: AsyncMutex<
-        BTreeMap<config::ConfigEntryHash, Arc<PooledProcess<dbus::EditorProxy<'static>>>>,
-    >,
+pub struct PoolConfig {
     loader_retention_time: Duration,
+    max_parallel_operations: usize,
+}
+
+impl Default for PoolConfig {
+    fn default() -> Self {
+        Self {
+            loader_retention_time: Duration::from_secs(60),
+            max_parallel_operations: usize::MAX,
+        }
+    }
+}
+
+impl PoolConfig {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn max_parallel_operations(&mut self, max_parallel_operations: usize) -> &mut Self {
+        if max_parallel_operations == 0 {
+            self.max_parallel_operations = usize::MAX;
+        } else {
+            self.max_parallel_operations = max_parallel_operations;
+        }
+        self
+    }
 }
 
 impl Pool {
-    pub fn new() -> Arc<Self> {
-        Arc::new(Self {
-            loader_retention_time: Duration::from_secs(60),
-            loaders: Default::default(),
-            editors: Default::default(),
-        })
+    pub fn new(config: PoolConfig) -> Arc<Self> {
+        let mut pool = Self::default();
+        pool.config = config;
+
+        Arc::new(pool)
     }
 
     pub fn global() -> Arc<Self> {
         DEFAULT_POOL.clone()
     }
 
-    pub async fn get_loader(
+    pub(crate) async fn get_loader(
         &self,
         loader_config: config::ImageLoaderConfig,
         sandbox_mechanism: SandboxMechanism,
@@ -76,7 +113,7 @@ impl Pool {
         Ok(pp)
     }
 
-    pub async fn get_editor(
+    pub(crate) async fn get_editor(
         &self,
         editor_config: config::ImageEditorConfig,
         sandbox_mechanism: SandboxMechanism,
@@ -100,29 +137,29 @@ impl Pool {
         Ok(pp)
     }
 
-    pub async fn get_process<P: ZbusProxy<'static> + 'static>(
+    pub(crate) async fn get_process<P: ZbusProxy<'static> + 'static>(
         &self,
-        pooled_processes: &AsyncMutex<BTreeMap<ConfigEntryHash, Arc<PooledProcess<P>>>>,
+        pooled_processes: &AsyncMutex<BTreeMap<ConfigEntryHash, Vec<Arc<PooledProcess<P>>>>>,
         config: config::ConfigEntry,
         sandbox_mechanism: SandboxMechanism,
         base_dir: Option<PathBuf>,
         cancellable: &gio::Cancellable,
         alive: std::sync::Weak<()>,
     ) -> Result<Arc<PooledProcess<P>>, Error> {
-        let mut pooled_processes = pooled_processes.lock().await;
-
         let config_hash = config.hash_value(base_dir.clone(), sandbox_mechanism);
+        let mut pooled_processes = pooled_processes.lock().await;
+        let pooled_processes = pooled_processes.entry(config_hash).or_default();
 
-        let pooled_process = pooled_processes.get(&config_hash).cloned();
-
-        if let Some(loader) = pooled_process {
-            if loader.process.process_disconnected.load(Ordering::Relaxed) {
+        for process in pooled_processes.iter() {
+            if process.process.process_disconnected.load(Ordering::Relaxed) {
+                tracing::debug!("Existing loader/editor in pool is disconnected. Trying next.");
+            } else if process.n_users() >= self.config.max_parallel_operations {
                 tracing::debug!(
-                    "Existing loader in pool is disconnected. Dropping existing loader."
+                    "Existing loader/editor in pool is at 'max_parallel_operations'. Trying next."
                 );
             } else {
                 tracing::debug!("Using existing loader from pool.");
-                return Ok(loader);
+                return Ok(process.clone());
             }
         }
 
@@ -155,25 +192,28 @@ impl Pool {
             users: vec![alive],
         });
 
-        pooled_processes.insert(config_hash, pp.clone());
+        pooled_processes.push(pp.clone());
 
         Ok(pp)
     }
 
-    pub async fn clean_loaders(self: Arc<Self>) {
-        let mut loaders = self.loaders.lock().await;
+    pub(crate) async fn clean_loaders(self: Arc<Self>) {
+        let mut loader_map = self.loaders.lock().await;
 
-        loaders.retain(|cfg, loader| {
-            let drop = loader.users.iter().all(|x| x.strong_count() == 0)
-                && loader.last_use.lock().unwrap().elapsed() > self.loader_retention_time;
-            if drop {
-                tracing::debug!(
-                    "Dropping loader {:?} {}",
-                    cfg.exec(),
-                    Arc::strong_count(&loader.process)
-                )
-            }
-            !drop
-        });
+        for (cfg, loaders) in loader_map.iter_mut() {
+            loaders.retain(|loader| {
+                let drop = loader.n_users() == 0
+                    && loader.last_use.lock().unwrap().elapsed()
+                        > self.config.loader_retention_time;
+                if drop {
+                    tracing::debug!(
+                        "Dropping loader {:?} {}",
+                        cfg.exec(),
+                        Arc::strong_count(&loader.process)
+                    )
+                }
+                !drop
+            });
+        }
     }
 }
