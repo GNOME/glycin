@@ -222,6 +222,7 @@ impl Sandbox {
                 (command, None)
             }
             SandboxMechanism::NotSandboxed => {
+                eprintln!("WARNING: Glycin running without sandbox.");
                 let command = self.no_sandbox_command();
 
                 (command, None)
