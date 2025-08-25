@@ -93,8 +93,6 @@ tokio-stream = { version = "0.1.15", features = ["fs"] }
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.0", features = ["env-filter", "fmt"] }
 yeslogic-fontconfig-sys = "6.0.0"
-# Fix to 5.6 since newer versions don't work in thumbnailer sandbox
-# See <https://github.com/dbus2/zbus/pull/1472>
-zbus = { version = "=5.6.0", default-features = false, features = ["p2p"] }
+zbus = { version = "5.10.0", default-features = false, features = ["p2p"] }
 zvariant = { version = "5.4.0", default-features = false }
 zerocopy = "0.8.12"
