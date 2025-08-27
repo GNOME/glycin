@@ -202,9 +202,17 @@ impl Pool {
 
         for (cfg, loaders) in loader_map.iter_mut() {
             loaders.retain(|loader| {
-                let drop = loader.n_users() == 0
-                    && loader.last_use.lock().unwrap().elapsed()
-                        > self.config.loader_retention_time;
+                let n_users = loader.n_users();
+                let idle = loader.last_use.lock().unwrap().elapsed();
+                tracing::debug!(
+                    "Loader {:?}: users {n_users} (max {}), idle {idle:?} (max {:?})",
+                    cfg.exec(),
+                    self.config.max_parallel_operations,
+                    self.config.loader_retention_time
+                );
+
+                let drop = n_users == 0 && idle > self.config.loader_retention_time;
+
                 if drop {
                     tracing::debug!(
                         "Dropping loader {:?} {}",
