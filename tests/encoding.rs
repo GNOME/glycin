@@ -101,6 +101,86 @@ fn write_jpeg() {
 }
 
 #[test]
+fn write_jpeg_stride() {
+    block_on(async {
+        init();
+
+        let mut encoder = Creator::new(MimeType::JPEG).await.unwrap();
+        encoder.set_encoding_quality(100).unwrap();
+        let width = 2;
+        let height = 2;
+        let memory_format = glycin::MemoryFormat::R8g8b8;
+        let texture = vec![
+            255, 0, 0, 0, 255, 0, 100, 101, // First line
+            0, 0, 255, 25, 50, 75, 102, 103,
+        ];
+
+        encoder
+            .add_frame_with_stride(width, height, 8, memory_format, texture)
+            .unwrap();
+
+        let encoded_image = encoder.create().await.unwrap();
+
+        let loader = glycin::Loader::new_vec(encoded_image.data_full().unwrap());
+        let image = loader.load().await.unwrap();
+        let frame = image.next_frame().await.unwrap();
+
+        assert!(frame.buf_slice()[2 * 3] < 10);
+        assert!(frame.buf_slice()[2 * 3 + 1] < 10);
+        assert!(frame.buf_slice()[2 * 3 + 2] > 245);
+    });
+}
+
+#[test]
+fn write_jpeg_stride_last_row() {
+    block_on(async {
+        init();
+
+        let mut encoder = Creator::new(MimeType::JPEG).await.unwrap();
+        encoder.set_encoding_quality(100).unwrap();
+        let width = 2;
+        let height = 2;
+        let memory_format = glycin::MemoryFormat::R8g8b8;
+        let texture = vec![
+            255, 0, 0, 0, 255, 0, 100, 101, // First line with stride
+            0, 0, 255, 25, 150, 175,
+        ];
+
+        encoder
+            .add_frame_with_stride(width, height, 8, memory_format, texture)
+            .unwrap();
+
+        let encoded_image = encoder.create().await.unwrap();
+
+        let loader = glycin::Loader::new_vec(encoded_image.data_full().unwrap());
+        let image = loader.load().await.unwrap();
+        let frame = image.next_frame().await.unwrap();
+
+        assert!(frame.buf_slice()[2 * 3] < 10);
+        assert!(frame.buf_slice()[2 * 3 + 1] < 10);
+        assert!(frame.buf_slice()[2 * 3 + 2] > 245);
+    });
+}
+
+#[test]
+fn write_jpeg_stride_invalid() {
+    block_on(async {
+        init();
+
+        let mut encoder = Creator::new(MimeType::JPEG).await.unwrap();
+        encoder.set_encoding_quality(100).unwrap();
+        let width = 2;
+        let height = 2;
+        let memory_format = glycin::MemoryFormat::R8g8b8;
+        let texture = vec![0; 13];
+
+        let res = encoder.add_frame_with_stride(width, height, 8, memory_format, texture);
+
+        assert!(matches!(res, Err(glycin::Error::TextureWrongSize { .. })));
+    });
+}
+
+#[test]
 fn create_jpeg_quality() {
     block_on(async {
         init();

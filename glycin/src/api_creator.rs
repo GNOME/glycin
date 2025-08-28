@@ -93,7 +93,8 @@ impl Creator {
             )));
         }
 
-        if stride as usize * height as usize != texture.len() {
+        // Allow that last row doesn't have the complete stride length
+        if texture.len() < stride as usize * (height - 1) as usize + smallest_stride as usize {
             return Err(Error::TextureWrongSize {
                 texture_size: texture.len(),
                 frame: format!("Stride size: {stride} Image size: {width} x {height}"),
@@ -105,12 +106,16 @@ impl Creator {
             let new_stride = smallest_stride as usize;
 
             let height_ = height as usize;
-            let width_ = width as usize;
-            let mut source = vec![0; width_];
+            let mut source = vec![0; new_stride];
 
-            for row in 1..height_ {
-                source.copy_from_slice(&texture[row * old_stride..row * old_stride + new_stride]);
-                texture[row * new_stride..(row + 1) * new_stride].copy_from_slice(&source);
+            for row in 0..height_ {
+                let old_row_begin = row * old_stride;
+                let old_row_end = old_row_begin + new_stride;
+                source.copy_from_slice(&texture[old_row_begin..old_row_end]);
+
+                let new_row_begin = row * new_stride;
+                let new_row_end = new_row_begin + new_stride;
+                texture[new_row_begin..new_row_end].copy_from_slice(&source);
             }
 
             texture.resize(new_stride * height_, 0);
