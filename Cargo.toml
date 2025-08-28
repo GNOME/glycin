@@ -1,5 +1,5 @@
 [workspace.package]
-version = "2.0.0-beta.3"
+version = "2.0.0-rc"
 authors = ["Sophie Herold"]
 description = "Sandboxed image decoding"
 license = "MPL-2.0 OR LGPL-2.1-or-later"
@@ -63,12 +63,12 @@ gdk = { package = "gdk4", version = "0.10.0", features = ["v4_16"] }
 gio = { version = "0.21.0", features = ["v2_62"] }
 glib = { version = "0.21.0", features = ["v2_68"] }
 glycin = { path = "glycin/", default-features = false }
-glycin-common = { version = "1.0.0-beta.3", path = "glycin-common/" }
-glycin-utils = { version = "4.0.0-beta.3", path = "glycin-utils/", default-features = false }
-gufo = { version = "0.3.0-beta", features = ["all-image-formats"] }
-gufo-common = { version = "1.0.0-beta.2", features = ["serde"] }
-gufo-exif = { version = "0.3.0-beta" }
-gufo-jpeg = { version = "0.3.0-beta.1" }
+glycin-common = { version = "1.0.0-rc", path = "glycin-common/" }
+glycin-utils = { version = "4.0.0-rc", path = "glycin-utils/", default-features = false }
+gufo = { version = "0.3.0", features = ["all-image-formats"] }
+gufo-common = { version = "1.0.0", features = ["serde"] }
+gufo-exif = { version = "0.3.0" }
+gufo-jpeg = { version = "0.3.0" }
 half = "2.4.1"
 image = { version = "0.25.6", default-features = false }
 lcms2 = "6.0.3"

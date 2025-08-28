@@ -100,9 +100,9 @@ dependencies = [
 
 [[package]]
 name = "async-executor"
-version = "1.13.2"
+version = "1.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb812ffb58524bdd10860d7d974e2f01cc0950c2438a74ee5ec2e2280c6c4ffa"
+checksum = "497c00e0fd83a72a79a39fcbd8e3e2f055d6f6c7e025f3b3d91f4f8e76527fb8"
 dependencies = [
  "async-task",
  "concurrent-queue",
@@ -259,9 +259,9 @@ dependencies = [
 
 [[package]]
 name = "bit_field"
-version = "0.10.2"
+version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc827186963e592360843fb5ba4b973e145841266c1357f7180c43526f2e5b61"
+checksum = "1e4b40c7323adcfc0a41c4b88143ed58346ff65a288fc144329c5c45e05d70c6"
 
 [[package]]
 name = "bitflags"
@@ -987,7 +987,7 @@ dependencies = [
 
 [[package]]
 name = "glycin"
-version = "3.0.0-beta.3"
+version = "3.0.0-rc"
 dependencies = [
  "async-fs",
  "async-io",
@@ -1022,7 +1022,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-common"
-version = "1.0.0-beta.3"
+version = "1.0.0-rc"
 dependencies = [
  "bitflags 2.9.3",
  "glib",
@@ -1040,7 +1040,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-dev-tools"
-version = "2.0.0-beta.3"
+version = "2.0.0-rc"
 dependencies = [
  "async-io",
  "gdk4",
@@ -1052,7 +1052,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-heif"
-version = "2.0.0-beta.3"
+version = "2.0.0-rc"
 dependencies = [
  "four-cc",
  "glycin-utils",
@@ -1063,7 +1063,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-image-rs"
-version = "2.0.0-beta.3"
+version = "2.0.0-rc"
 dependencies = [
  "glycin-utils",
  "gufo",
@@ -1079,7 +1079,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-jpeg2000"
-version = "2.0.0-beta.3"
+version = "2.0.0-rc"
 dependencies = [
  "glycin-utils",
  "image",
@@ -1088,7 +1088,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-jxl"
-version = "2.0.0-beta.3"
+version = "2.0.0-rc"
 dependencies = [
  "glycin-common",
  "glycin-utils",
@@ -1100,7 +1100,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-raw"
-version = "2.0.0-beta.3"
+version = "2.0.0-rc"
 dependencies = [
  "glycin-utils",
  "gufo-common",
@@ -1109,7 +1109,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-svg"
-version = "2.0.0-beta.3"
+version = "2.0.0-rc"
 dependencies = [
  "cairo-rs",
  "gio",
@@ -1119,7 +1119,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-thumbnailer"
-version = "2.0.0-beta.3"
+version = "2.0.0-rc"
 dependencies = [
  "gio",
  "glycin",
@@ -1129,7 +1129,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-utils"
-version = "4.0.0-beta.3"
+version = "4.0.0-rc"
 dependencies = [
  "async-lock",
  "bitflags 2.9.3",
@@ -1169,9 +1169,9 @@ dependencies = [
 
 [[package]]
 name = "gufo"
-version = "0.3.0-beta"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e9435439d70fa59b423987deab75a19d54d05491b50f87da0eae5ad8687e7b40"
+checksum = "fbd1a9cdb84d3166fa067fa352651f9212567af36701230e7dd7044919e1ce78"
 dependencies = [
  "gufo-common",
  "gufo-exif",
@@ -1186,9 +1186,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-common"
-version = "1.0.0-beta.2"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08092cfc847b6a9df0d088fb4226a4807d0a14dcc93c54f25de1302bc8a3cafa"
+checksum = "c51075301871a558c79a76f238cac4ef0673ff1802656a174262e4c6106a8fbc"
 dependencies = [
  "paste",
  "serde",
@@ -1198,9 +1198,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-exif"
-version = "0.3.0-beta"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42ed15d1144c2ea214eaf8cb8a83168c9a4dccdbc3b18b889e5610f8cf33128d"
+checksum = "9d2b06ed83ed41cff519aeac7bc7ae4580c7b8ffd8f5688f4dcc362df1f1d349"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.16",
@@ -1209,9 +1209,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-jpeg"
-version = "0.3.0-beta.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "751223b7e5965dde03fbd7f3402b0bc9970b83b7accc70f5e9d04eddb12f0843"
+checksum = "2ddb8a93bbd671390189f8dee0209731200bdfe403606c6abf6a2aaec5a935f5"
 dependencies = [
  "gufo-common",
  "indexmap",
@@ -1222,9 +1222,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-png"
-version = "0.3.0-beta"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c32da92cb12732b4efe70ecaecb92a2230cf95c69649d6251dfb93a363e6df43"
+checksum = "6efe26f06316c479656b897b7374fa97a44a89de91dcf427178901937d8afaba"
 dependencies = [
  "crc32fast",
  "encoding_rs",
@@ -1236,9 +1236,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-tiff"
-version = "0.3.0-beta"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3b6d95abd5718a805c40986fc6625f4579cd6c32e3a30b4bbf5f7bf07c61171"
+checksum = "ebb22afeeb3c8733cc65bce0116489da9fc8649f3c7b4bcc61b5ee31416cf9af"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.16",
@@ -1246,9 +1246,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-webp"
-version = "0.3.0-beta"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "998e5253d01101d5952f8c4f256df64421d1845b699b5ef0297e88d641b0c0a0"
+checksum = "78b5ff49ef9a4b4163cf846534e13b2e8b867d404e7c540facda6e3e7f210224"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.16",
@@ -1256,9 +1256,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-xmp"
-version = "0.3.0-beta"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3c7cdf09b849f38bc54d49e55d3ef54b2928e61d71e7e75dbe90b5a0be3da57"
+checksum = "86844cef8838b44b8750f95d3de02d5a17999ca61afc00026b058b3d18dec4c4"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.16",
@@ -1361,9 +1361,9 @@ dependencies = [
 
 [[package]]
 name = "image-webp"
-version = "0.2.3"
+version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6970fe7a5300b4b42e62c52efa0187540a5bef546c60edaf554ef595d2e6f0b"
+checksum = "525e9ff3e1a4be2fbea1fdf0e98686a6d98b4d8f937e1bf7402245af1909e8c3"
 dependencies = [
  "byteorder-lite",
  "quick-error",
@@ -1533,7 +1533,7 @@ checksum = "6a82ae493e598baaea5209805c49bbf2ea7de956d50d7da0da1164f9c6d28543"
 
 [[package]]
 name = "libglycin"
-version = "2.0.0-beta.3"
+version = "2.0.0-rc"
 dependencies = [
  "async-global-executor",
  "futures-task",
@@ -1546,7 +1546,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4"
-version = "2.0.0-beta.3"
+version = "2.0.0-rc"
 dependencies = [
  "gdk4",
  "glycin",
@@ -2489,7 +2489,7 @@ dependencies = [
 
 [[package]]
 name = "tests"
-version = "2.0.0-beta.3"
+version = "2.0.0-rc"
 dependencies = [
  "async-io",
  "blocking",
