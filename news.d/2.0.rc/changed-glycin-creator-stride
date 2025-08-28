@@ -1,0 +1,1 @@
+glycin/creator: Allow last line to not have complete stride length for GdkPixbuf compatibility

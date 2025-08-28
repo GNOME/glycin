@@ -1,0 +1,1 @@
+Don't pin to zbus 5.6, depend on 5.10 instead which fixes sandbox issues.
