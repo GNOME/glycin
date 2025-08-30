@@ -514,7 +514,7 @@ impl Sandbox {
         // Consider max of 20 GB free RAM for use
         let mem_considered = resource::rlim_t::min(
             mem_available,
-            const { 20 * (1024 as resource::rlim_t).pow(3) },
+            const { (1024 as resource::rlim_t).pow(3).saturating_mul(20) },
         )
         // Keep at least 200 MB free
         .saturating_sub(1024 * 1024 * 200);
