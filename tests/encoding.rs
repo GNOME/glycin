@@ -79,7 +79,7 @@ fn write_jpeg() {
         let frame = encoder
             .add_frame(width, height, memory_format, texture)
             .unwrap();
-        frame.set_color_icc_profile(Some(vec![1, 2, 3]));
+        frame.set_color_icc_profile(Some(vec![1, 2, 3])).unwrap();
 
         let encoded_image = encoder.create().await.unwrap();
 
@@ -284,7 +284,9 @@ fn write_png() {
         let new_frame = encoder
             .add_frame(width, height, memory_format, texture)
             .unwrap();
-        new_frame.set_color_icc_profile(Some(vec![1, 2, 3]));
+        new_frame
+            .set_color_icc_profile(Some(vec![1, 2, 3]))
+            .unwrap();
 
         let encoded_image = encoder.create().await.unwrap();
 

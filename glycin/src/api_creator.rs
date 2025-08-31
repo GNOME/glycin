@@ -165,6 +165,10 @@ impl Creator {
     }
 
     pub fn set_encoding_quality(&mut self, quality: u8) -> Result<(), FeatureNotSupported> {
+        if !self.config.creator_encoding_quality {
+            return Err(FeatureNotSupported);
+        }
+
         self.encoding_options.quality = Some(quality);
         Ok(())
     }
@@ -174,6 +178,10 @@ impl Creator {
     /// This sets the lossless compression level. The range is from 0 (no
     /// compression) to 100 (highest compression).
     pub fn set_encoding_compression(&mut self, compression: u8) -> Result<(), FeatureNotSupported> {
+        if !self.config.creator_encoding_compression {
+            return Err(FeatureNotSupported);
+        }
+
         self.encoding_options.compression = Some(compression);
         Ok(())
     }
@@ -182,6 +190,10 @@ impl Creator {
         &mut self,
         key_value: BTreeMap<String, String>,
     ) -> Result<(), FeatureNotSupported> {
+        if !self.config.creator_metadata_key_value {
+            return Err(FeatureNotSupported);
+        }
+
         self.new_image.image_info.metadata_key_value = Some(key_value);
         Ok(())
     }
@@ -191,6 +203,10 @@ impl Creator {
         key: String,
         value: String,
     ) -> Result<(), FeatureNotSupported> {
+        if !self.config.creator_metadata_key_value {
+            return Err(FeatureNotSupported);
+        }
+
         let mut key_value = self
             .new_image
             .image_info
@@ -219,7 +235,7 @@ impl Creator {
 
 #[derive(Debug)]
 pub struct NewFrame {
-    //config: ImageEditorConfig,
+    config: ImageEditorConfig,
     width: u32,
     height: u32,
     //stride: Option<u32>,
@@ -239,7 +255,7 @@ impl NewFrame {
         texture: Vec<u8>,
     ) -> NewFrame {
         Self {
-            //config,
+            config,
             width,
             height,
             memory_format,
@@ -255,6 +271,10 @@ impl NewFrame {
         &self,
         icc_profile: Option<Vec<u8>>,
     ) -> Result<(), FeatureNotSupported> {
+        if !self.config.creator_color_icc_profile {
+            return Err(FeatureNotSupported);
+        }
+
         *self.icc_profile.lock().unwrap() = icc_profile;
         Ok(())
     }

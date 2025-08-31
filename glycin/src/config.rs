@@ -154,6 +154,10 @@ pub struct ImageEditorConfig {
     pub fontconfig: bool,
     pub operations: Vec<OperationId>,
     pub creator: bool,
+    pub creator_color_icc_profile: bool,
+    pub creator_encoding_quality: bool,
+    pub creator_encoding_compression: bool,
+    pub creator_metadata_key_value: bool,
 }
 
 impl ConfigEntry {
@@ -301,12 +305,32 @@ impl Config {
 
                             let creator = keyfile.boolean(group, "Creator").unwrap_or_default();
 
+                            let creator_color_icc_profile = keyfile
+                                .boolean(group, "CreatorColorIccProfile")
+                                .unwrap_or_default();
+
+                            let creator_encoding_compression = keyfile
+                                .boolean(group, "CreatorEncodingCompression")
+                                .unwrap_or_default();
+
+                            let creator_encoding_quality = keyfile
+                                .boolean(group, "CreatorEncodingQuality")
+                                .unwrap_or_default();
+
+                            let creator_metadata_key_value = keyfile
+                                .boolean(group, "CreatorMetadataKeyValue")
+                                .unwrap_or_default();
+
                             let cfg = ImageEditorConfig {
                                 exec: exec.into(),
                                 expose_base_dir,
                                 fontconfig,
                                 operations,
                                 creator,
+                                creator_color_icc_profile,
+                                creator_encoding_compression,
+                                creator_encoding_quality,
+                                creator_metadata_key_value,
                             };
 
                             config.image_editor.insert(mime_type, cfg);
