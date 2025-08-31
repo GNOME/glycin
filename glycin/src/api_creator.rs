@@ -256,16 +256,14 @@ impl NewFrame {
     }
 
     fn frame(&self) -> Result<glycin_utils::Frame, Error> {
-        // TODO fix unwrap
-        let texture = BinaryData::from_data(&self.texture).unwrap();
+        let texture = BinaryData::from_data(&self.texture)?;
         let mut frame =
             glycin_utils::Frame::new(self.width, self.height, self.memory_format, texture)?;
 
         frame.details = self.details.clone();
 
         if let Some(icc_profile) = self.icc_profile.lock().unwrap().as_ref() {
-            // TODO unwrap
-            let icc_profile = BinaryData::from_data(icc_profile).unwrap();
+            let icc_profile = BinaryData::from_data(icc_profile)?;
             frame.details.color_icc_profile = Some(icc_profile);
         }
 

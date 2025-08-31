@@ -175,6 +175,8 @@ pub enum Error {
     LoaderUsedTwice,
     #[error("Math error: {0}")]
     MathError(#[from] gufo_common::math::MathError),
+    #[error("Glycin common error: {0}")]
+    CommonError(#[from] glycin_common::Error),
 }
 
 impl Error {
