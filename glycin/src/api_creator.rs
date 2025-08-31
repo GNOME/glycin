@@ -251,8 +251,12 @@ impl NewFrame {
         }
     }
 
-    pub fn set_color_icc_profile(&self, icc_profile: Option<Vec<u8>>) {
+    pub fn set_color_icc_profile(
+        &self,
+        icc_profile: Option<Vec<u8>>,
+    ) -> Result<(), FeatureNotSupported> {
         *self.icc_profile.lock().unwrap() = icc_profile;
+        Ok(())
     }
 
     fn frame(&self) -> Result<glycin_utils::Frame, Error> {

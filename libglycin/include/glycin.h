@@ -809,9 +809,11 @@ G_DECLARE_FINAL_TYPE(GlyNewFrame, gly_new_frame, GLY, NEW_FRAME, GObject)
  * @new_frame:
  * @icc_profile: ICC profile
  *
+ * Returns: `TRUE` if format supports ICC color profiles.
+ *
  * Since: 2.0
  */
-void gly_new_frame_set_color_icc_profile(GlyNewFrame *new_frame, GBytes *icc_profile);
+gboolean gly_new_frame_set_color_icc_profile(GlyNewFrame *new_frame, GBytes *icc_profile);
 
 /**
  * GlyEncodedImage:
@@ -990,31 +992,37 @@ GlyEncodedImage *gly_creator_create_finish(GlyCreator *creator,
  *
  * If an entry with `key` already exists, it will be replaced.
  *
+ * Returns: `TRUE` if format supports key-value storage.
+ *
  * Since: 2.0
  **/
-void gly_creator_add_metadata_key_value(GlyCreator *creator,
-                                        const gchar *key,
-                                        const gchar *value);
+gboolean gly_creator_add_metadata_key_value(GlyCreator *creator,
+                                            const gchar *key,
+                                            const gchar *value);
 
 /**
  * gly_creator_set_encoding_quality:
  * @creator:
  * @quality: Value between 0 and 100
  *
+ * Returns: `TRUE` if format supports a quality setting.
+ *
  * Since: 2.0
  **/
-void gly_creator_set_encoding_quality(GlyCreator *creator,
-                                      uint8_t quality);
+gboolean gly_creator_set_encoding_quality(GlyCreator *creator,
+                                          uint8_t quality);
 
 /**
  * gly_creator_set_encoding_compression:
  * @creator:
  * @compression: Value between 0 and 100
  *
+ * Returns: `TRUE` if the format supports compression setting.
+ *
  * Since: 2.0
  **/
-void gly_creator_set_encoding_compression(GlyCreator *creator,
-                                          uint8_t compression);
+gboolean gly_creator_set_encoding_compression(GlyCreator *creator,
+                                              uint8_t compression);
 
 /**
  * gly_creator_set_sandbox_selector:
@@ -1025,7 +1033,7 @@ void gly_creator_set_encoding_compression(GlyCreator *creator,
  *
  * Since: 2.0
  */
-void gly_creator_set_sandbox_selector(GlyCreator *loader,
-                                      GlySandboxSelector sandbox_selector);
+gboolean gly_creator_set_sandbox_selector(GlyCreator *loader,
+                                          GlySandboxSelector sandbox_selector);
 
 G_END_DECLS

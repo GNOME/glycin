@@ -1,7 +1,7 @@
 // Copyright (c) 2024 GNOME Foundation Inc.
 
+use std::ffi::{c_int, c_void};
 use std::os::fd::FromRawFd;
-use std::os::raw::{c_int, c_void};
 use std::os::unix::net::UnixStream;
 use std::sync::Mutex;
 

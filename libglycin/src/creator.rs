@@ -178,34 +178,38 @@ pub unsafe extern "C" fn gly_creator_add_metadata_key_value(
     creator: *mut GlyCreator,
     key: *const c_char,
     value: *const c_char,
-) {
+) -> glib::ffi::gboolean {
     let key = glib::GStr::from_ptr_checked(key).unwrap().as_str();
     let value = glib::GStr::from_ptr_checked(value).unwrap().as_str();
     let creator = gobject::GlyCreator::from_glib_ptr_borrow(&creator);
 
-    // TODO unwrap
     creator
         .metadata_add_key_value(key.to_string(), value.to_string())
-        .unwrap();
+        .is_ok()
+        .into_glib()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn gly_creator_set_encoding_quality(creator: *mut GlyCreator, quality: u8) {
+pub unsafe extern "C" fn gly_creator_set_encoding_quality(
+    creator: *mut GlyCreator,
+    quality: u8,
+) -> glib::ffi::gboolean {
     let creator = gobject::GlyCreator::from_glib_ptr_borrow(&creator);
 
-    // TODO unwrap
-    creator.set_encoding_quality(quality).unwrap();
+    creator.set_encoding_quality(quality).is_ok().into_glib()
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn gly_creator_set_encoding_compression(
     creator: *mut GlyCreator,
     compression: u8,
-) {
+) -> glib::ffi::gboolean {
     let creator = gobject::GlyCreator::from_glib_ptr_borrow(&creator);
 
-    // TODO unwrap
-    creator.set_encoding_compression(compression).unwrap();
+    creator
+        .set_encoding_compression(compression)
+        .is_ok()
+        .into_glib()
 }
 
 #[no_mangle]
