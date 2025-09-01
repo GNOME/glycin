@@ -334,9 +334,9 @@ void gly_loader_load_async(GlyLoader *loader,
  * @result: A `GAsyncResult`
  * @error:
  *
- * Finishes the [method@Image.next_frame_async] call.
+ * Finishes the [method@Loader.load_async] call.
  *
- * Returns: (transfer full): Loaded frame.
+ * Returns: (transfer full): Loaded image.
  *
  * Since: 2.0
  */
