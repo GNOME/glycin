@@ -1014,7 +1014,7 @@ dependencies = [
 
 [[package]]
 name = "glycin"
-version = "3.0.0-rc"
+version = "3.0.0-rc.1"
 dependencies = [
  "async-fs",
  "async-io",
