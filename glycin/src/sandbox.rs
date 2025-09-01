@@ -1,6 +1,5 @@
 // Copyright (c) 2024 GNOME Foundation Inc.
 
-use std::ffi::OsString;
 use std::fs::{canonicalize, DirEntry, File};
 use std::io::{self, BufRead, BufReader, Seek};
 use std::os::fd::AsRawFd;
