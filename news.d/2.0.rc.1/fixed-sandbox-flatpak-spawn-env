@@ -1,0 +1,1 @@
+Using --clear-env actually breaks the portal due to a Flatpak bug <https://github.com/flatpak/flatpak/issues/5271>.

@@ -406,24 +406,22 @@ impl Sandbox {
             "--watch-bus",
             // change working directory to something that exists
             "--directory=/",
-            // start from a clean environment
-            "--clear-env",
         ]);
+
+        // Start from a clean environment
+        //
+        // It's not really cleared due to this issue but nothing we can do about this:
+        // <https://github.com/flatpak/flatpak/issues/5271>
+        command.env_clear();
 
         // Inherit some environment variables
         for key in INHERITED_ENVIRONMENT_VARIABLES {
             if let Some(val) = std::env::var_os(key) {
-                let mut arg = OsString::new();
-                arg.push("--env=");
-                arg.push(key);
-                arg.push("=");
-                arg.push(val);
-
-                command.arg(arg);
+                command.env(key, val);
             }
         }
 
-        // forward dbus connection
+        // Forward dbus connection
         command.arg(format!("--forward-fd={dbus_fd}"));
 
         // Start loader with memory limit
