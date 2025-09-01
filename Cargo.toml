@@ -69,7 +69,7 @@ glycin = { path = "glycin/", default-features = false }
 glycin-common = { version = "1.0.0-rc", path = "glycin-common/" }
 glycin-utils = { version = "4.0.0-rc", path = "glycin-utils/", default-features = false }
 gufo = { version = "0.3.0", features = ["all-image-formats"] }
-gufo-common = { version = "1.0.0", features = ["serde"] }
+gufo-common = { version = "1.0.1", features = ["serde"] }
 gufo-exif = { version = "0.3.0" }
 gufo-jpeg = { version = "0.3.0" }
 half = "2.4.1"
