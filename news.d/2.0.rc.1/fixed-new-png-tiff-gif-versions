@@ -1,0 +1,1 @@
+Use new versions of TIFF, GIF, PNG decoders, and image-rs to support more variants of these formats.
