@@ -425,7 +425,7 @@ impl ChannelValue for half::f16 {
     }
 
     fn as_bytes_wrapper(&self) -> &[u8] {
-        todo!()
+        self.as_bytes()
     }
 }
 

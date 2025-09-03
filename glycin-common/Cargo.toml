@@ -16,7 +16,7 @@ workspace = true
 bitflags.workspace = true
 glib = { workspace = true, optional = true }
 gufo-common.workspace = true
-half.workspace = true
+half = { workspace = true, features = ["zerocopy"] }
 memmap.workspace = true
 nix.workspace = true
 paste.workspace = true
