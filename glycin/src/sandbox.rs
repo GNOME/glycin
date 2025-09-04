@@ -163,7 +163,7 @@ const ALLOWED_SYSCALLS_FONTCONFIG: &[&str] = &[
     "unlinkat",
 ];
 
-const INHERITED_ENVIRONMENT_VARIABLES: &[&str] = &["RUST_BACKTRACE", "RUST_LOG"];
+const INHERITED_ENVIRONMENT_VARIABLES: &[&str] = &["RUST_BACKTRACE", "RUST_LOG", "XDG_RUNTIME_DIR"];
 
 pub struct Sandbox {
     sandbox_mechanism: SandboxMechanism,
