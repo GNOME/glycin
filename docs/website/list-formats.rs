@@ -163,7 +163,7 @@ fn add_flag(s: &mut String, name: &str, v: Option<String>) {
         Some("true") => s.push_str(&format!("<li class='implemented' title='The feature “{name}” is implemented for this format.'>✔ {name}</li>")),
         Some("false") => s.push_str(&format!("<li class='missing' title='The feature “{name}” is not yet implemented for this format.'>🗙 {name}</li>")),
         Some("unsupported") => {}
-        None => s.push_str(&format!("<li class='unknown' title='It is unknown if the format supporte the feature “{name}”.'>🯄 {name}</li>")),
+        None => s.push_str(&format!("<li class='unknown' title='It is unknown if the format supports the feature “{name}”.'>🯄 {name}</li>")),
         Some(x) => panic!("Unsupported value: {x}"),
     }
 }
