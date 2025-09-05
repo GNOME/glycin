@@ -62,5 +62,9 @@ pub unsafe extern "C" fn gly_gtk_frame_get_texture(frame: *mut GlyFrame) -> *mut
         gdk::ffi::gdk_memory_texture_builder_set_color_state(texture, color_state.to_glib_none().0);
     }
 
-    gdk::ffi::gdk_memory_texture_builder_build(texture) as *mut GdkTexture
+    let result = gdk::ffi::gdk_memory_texture_builder_build(texture) as *mut GdkTexture;
+
+    glib::gobject_ffi::g_object_unref(texture as *mut _);
+
+    result
 }
