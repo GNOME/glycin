@@ -161,7 +161,10 @@ foreach package : packages
     pkg.generate(
         name: f'glycin@suffix@-2',
         description: 'Glycin: Sandboxed and extendable image decoding',
-        libraries: deps + libglycin_shim + libglycin_copy_library_as_dep,
+        libraries: deps
+        + libglycin_shim
+        + libglycin_copy_library_as_dep
+        + global_libglycin,
         subdirs: f'glycin@suffix@-2',
         version: version,
     )
