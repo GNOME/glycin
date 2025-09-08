@@ -26,7 +26,7 @@ pub struct ImgDecoderDetails {
 
 pub struct Instruction {
     total_size: (u32, u32),
-    area: cairo::Rectangle,
+    area: Option<rsvg::Rectangle>,
 }
 
 pub fn thread(
@@ -58,17 +58,30 @@ pub fn thread(
 
     let mut image_info = ImageDetails::new(original_width, original_height);
 
+    let intrinsic_dimensions = handle.intrinsic_dimensions();
+
     image_info.info_format_name = Some(String::from("SVG"));
-    image_info.info_dimensions_text = dimensions_text(handle.intrinsic_dimensions());
-    image_info.dimensions_inch = dimensions_inch(handle.intrinsic_dimensions());
+    image_info.info_dimensions_text = dimensions_text(intrinsic_dimensions);
+    image_info.dimensions_inch = dimensions_inch(intrinsic_dimensions);
 
     info_send.send(Ok(image_info)).unwrap();
 
-    while let Ok(instr) = instr_recv.recv() {
-        let (total_width, total_height) = instr.total_size;
+    while let Ok(mut instr) = instr_recv.recv() {
+        // Overwrite scale width/height with aspect ratio of SVG
+        let svg_dimensions = svg_dimensions_float(&handle);
+        let scale1 = instr.total_size.0 as f64 / svg_dimensions.0;
+        let scale2 = instr.total_size.1 as f64 / svg_dimensions.1;
+
+        let (total_width, total_height) = if scale1 < scale2 {
+            (svg_dimensions.0 * scale1, svg_dimensions.1 * scale1)
+        } else {
+            (svg_dimensions.0 * scale2, svg_dimensions.1 * scale2)
+        };
+
+        instr.total_size = (total_width.round() as u32, total_height.round() as u32);
 
         // librsvg does not currently support larger images
-        if total_height > RSVG_MAX_SIZE || total_width > RSVG_MAX_SIZE {
+        if instr.total_size.0 > RSVG_MAX_SIZE || instr.total_size.1 > RSVG_MAX_SIZE {
             continue;
         }
 
@@ -79,8 +92,10 @@ pub fn thread(
 }
 
 pub fn render(renderer: &rsvg::Handle, instr: Instruction) -> Result<Frame, ProcessError> {
-    let area = instr.area;
     let (total_width, total_height) = instr.total_size;
+    let area = instr
+        .area
+        .unwrap_or_else(|| rsvg::Rectangle::new(0., 0., total_width as f64, total_height as f64));
 
     let surface = cairo::ImageSurface::create(
         cairo::Format::ARgb32,
@@ -167,9 +182,14 @@ impl LoaderImplementation for ImgDecoder {
 
         let total_size = frame_request.scale.unwrap_or((width, height));
         let area = if let Some(clip) = frame_request.clip {
-            cairo::Rectangle::new(clip.0.into(), clip.1.into(), clip.2.into(), clip.3.into())
+            Some(rsvg::Rectangle::new(
+                clip.0.into(),
+                clip.1.into(),
+                clip.2.into(),
+                clip.3.into(),
+            ))
         } else {
-            cairo::Rectangle::new(0., 0., total_size.0.into(), total_size.1.into())
+            None
         };
 
         let instr = Instruction { total_size, area };
@@ -180,9 +200,9 @@ impl LoaderImplementation for ImgDecoder {
     }
 }
 
-pub fn svg_dimensions(renderer: &rsvg::Handle) -> (u32, u32) {
+pub fn svg_dimensions_float(renderer: &rsvg::Handle) -> (f64, f64) {
     if let Some((width, height)) = renderer.intrinsic_size_in_pixels() {
-        (width.ceil() as u32, height.ceil() as u32)
+        (width, height)
     } else {
         let (width, height, vbox) = renderer.intrinsic_dimensions();
 
@@ -191,16 +211,21 @@ pub fn svg_dimensions(renderer: &rsvg::Handle) -> (u32, u32) {
                 if width.unit() == rsvg::Unit::Percent && height.unit() == rsvg::Unit::Percent =>
             {
                 (
-                    (width.length() * vbox.width()).ceil() as u32,
-                    (height.length() * vbox.height()).ceil() as u32,
+                    width.length() * vbox.width(),
+                    height.length() * vbox.height(),
                 )
             }
             dimensions => {
                 eprintln!("Failed to parse SVG dimensions: {dimensions:?}");
-                (300, 300)
+                (300., 300.)
             }
         }
     }
+}
+
+pub fn svg_dimensions(renderer: &rsvg::Handle) -> (u32, u32) {
+    let (width, height) = svg_dimensions_float(renderer);
+    (width.ceil() as u32, height.ceil() as u32)
 }
 
 const fn memory_format() -> MemoryFormat {
