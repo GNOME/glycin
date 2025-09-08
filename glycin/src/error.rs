@@ -150,6 +150,11 @@ pub enum Error {
         cmd: String,
         err: Arc<std::io::Error>,
     },
+    #[error("Could not spawn the following command. Is the used binary available? `{cmd}`: {err}")]
+    SpawnErrorNotFound {
+        cmd: String,
+        err: Arc<std::io::Error>,
+    },
     #[error("Texture is only {texture_size} but was announced differently: {frame}")]
     TextureWrongSize { texture_size: usize, frame: String },
     #[error("Texture size exceeds hardcoded limit of {MAX_TEXTURE_SIZE} bytes")]

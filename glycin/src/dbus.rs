@@ -124,9 +124,16 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
                         child
                     }
                     Err(err) => {
-                        let err = Error::SpawnError {
-                            cmd: command_dbg.clone(),
-                            err: Arc::new(err),
+                        let err = if err.kind() == std::io::ErrorKind::NotFound {
+                            Error::SpawnErrorNotFound {
+                                cmd: command_dbg.clone(),
+                                err: Arc::new(err),
+                            }
+                        } else {
+                            Error::SpawnError {
+                                cmd: command_dbg.clone(),
+                                err: Arc::new(err),
+                            }
                         };
                         tracing::debug!("Failed to spawn process: {err}");
                         if let Err(err) = sender_child.send(Err(err)) {
