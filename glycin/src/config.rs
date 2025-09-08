@@ -253,6 +253,8 @@ impl Config {
         path: &Path,
         config: &mut Config,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        tracing::trace!("Loading config file {path:?}");
+
         let data = read(path).await?;
         let bytes = glib::Bytes::from_owned(data);
 
@@ -352,8 +354,8 @@ impl Config {
         if let Some(data_dir) = std::env::var_os("GLYCIN_DATA_DIR") {
             vec![data_dir.into()]
         } else {
-            let mut data_dirs = glib::system_data_dirs();
-            data_dirs.push(glib::user_data_dir());
+            let mut data_dirs = vec![glib::user_data_dir()];
+            data_dirs.extend(glib::system_data_dirs());
             data_dirs
         }
     }
