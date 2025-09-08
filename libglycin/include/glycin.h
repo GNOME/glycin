@@ -1033,7 +1033,7 @@ gboolean gly_creator_set_encoding_compression(GlyCreator *creator,
  *
  * Since: 2.0
  */
-gboolean gly_creator_set_sandbox_selector(GlyCreator *loader,
+gboolean gly_creator_set_sandbox_selector(GlyCreator *creator,
                                           GlySandboxSelector sandbox_selector);
 
 G_END_DECLS
