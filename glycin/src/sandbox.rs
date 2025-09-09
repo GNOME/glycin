@@ -141,6 +141,7 @@ const ALLOWED_SYSCALLS: &[&str] = &[
     "timerfd_settime",
     "timerfd_settime64",
     "ugetrlimit",
+    "uname",
     "unshare",
     "wait4",
     "write",
