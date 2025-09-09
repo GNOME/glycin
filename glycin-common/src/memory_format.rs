@@ -304,7 +304,7 @@ impl MemoryFormat {
             };
         }
 
-        if source_format.is_premultiplied() {
+        if source_format.is_premultiplied() && channels_f32[3] > 0. {
             channels_f32[0] /= channels_f32[3];
             channels_f32[1] /= channels_f32[3];
             channels_f32[2] /= channels_f32[3];

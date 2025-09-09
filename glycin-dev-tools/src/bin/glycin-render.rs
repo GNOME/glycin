@@ -23,7 +23,7 @@ where
 {
     let file = gio::File::for_path(path);
     let mut loader = Loader::new(file);
-    loader.accepted_memory_formats(MemoryFormatSelection::R8g8b8);
+    loader.accepted_memory_formats(MemoryFormatSelection::R8g8b8a8);
     let image = loader.load().await.expect("request failed");
     let frame = image.next_frame().await.expect("next frame failed");
 
