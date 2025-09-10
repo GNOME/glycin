@@ -96,11 +96,9 @@ test-i386:
 test-aarch64:
   image: rust:1.85-bookworm
   tags:
-    - aarch64
+    - asan-aarch64
   extends: .install_dependencies
   interruptible: true
-  # As long as runners fail to start bwrap
-  allow_failure: true
   script:
     - export LD_LIBRARY_PATH=/usr/local/lib/aarch64-linux-gnu/
     - meson setup -Dbuildtype=debug -Dpython_tests=true -Dtest_skip_install=true --prefix=/usr builddir
