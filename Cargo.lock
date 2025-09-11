@@ -1014,7 +1014,7 @@ dependencies = [
 
 [[package]]
 name = "glycin"
-version = "3.0.0-rc.1"
+version = "3.0.0"
 dependencies = [
  "async-fs",
  "async-io",
@@ -1049,7 +1049,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-common"
-version = "1.0.0-rc"
+version = "1.0.0"
 dependencies = [
  "bitflags 2.9.3",
  "glib",
@@ -1067,7 +1067,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-dev-tools"
-version = "2.0.0-rc"
+version = "2.0.0"
 dependencies = [
  "async-io",
  "gdk4",
@@ -1079,7 +1079,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-heif"
-version = "2.0.0-rc"
+version = "2.0.0"
 dependencies = [
  "four-cc",
  "glycin-utils",
@@ -1090,7 +1090,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-image-rs"
-version = "2.0.0-rc"
+version = "2.0.0"
 dependencies = [
  "glycin-utils",
  "gufo",
@@ -1105,7 +1105,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-jpeg2000"
-version = "2.0.0-rc"
+version = "2.0.0"
 dependencies = [
  "glycin-utils",
  "image",
@@ -1114,7 +1114,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-jxl"
-version = "2.0.0-rc"
+version = "2.0.0"
 dependencies = [
  "glycin-common",
  "glycin-utils",
@@ -1126,7 +1126,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-raw"
-version = "2.0.0-rc"
+version = "2.0.0"
 dependencies = [
  "glycin-utils",
  "gufo-common",
@@ -1135,7 +1135,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-svg"
-version = "2.0.0-rc"
+version = "2.0.0"
 dependencies = [
  "cairo-rs",
  "gio",
@@ -1145,7 +1145,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-thumbnailer"
-version = "2.0.0-rc"
+version = "2.0.0"
 dependencies = [
  "gio",
  "glycin",
@@ -1155,7 +1155,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-utils"
-version = "4.0.0-rc"
+version = "4.0.0"
 dependencies = [
  "async-lock",
  "bitflags 2.9.3",
@@ -1561,7 +1561,7 @@ checksum = "6a82ae493e598baaea5209805c49bbf2ea7de956d50d7da0da1164f9c6d28543"
 
 [[package]]
 name = "libglycin"
-version = "2.0.0-rc"
+version = "2.0.0"
 dependencies = [
  "async-global-executor",
  "futures-task",
@@ -1574,7 +1574,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4"
-version = "2.0.0-rc"
+version = "2.0.0"
 dependencies = [
  "gdk4",
  "glycin",
@@ -2483,7 +2483,7 @@ dependencies = [
 
 [[package]]
 name = "tests"
-version = "2.0.0-rc"
+version = "2.0.0"
 dependencies = [
  "async-io",
  "blocking",
