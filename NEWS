@@ -1,3 +1,32 @@
+## 2.0.0 (2025-09-11)
+
+This release contains the following new component versions:
+
+- glycin-common 1.0.0
+- glycin-heif 2.0.0
+- glycin-image-rs 2.0.0
+- glycin-jpeg2000 2.0.0
+- glycin-jxl 2.0.0
+- glycin-raw 2.0.0
+- glycin-svg 2.0.0
+- glycin-thumbnailer 2.0.0
+- glycin-utils 4.0.0
+- glycin 3.0.0
+- libglycin 2.0.0
+- libglycin-gtk4 2.0.0
+
+### Fixed
+
+- Use new versions of TIFF, GIF, PNG decoders, and image-rs to support more
+  variants of these formats.
+- Using --clear-env actually breaks the portal due to a Flatpak bug
+  <https://github.com/flatpak/flatpak/issues/5271>.
+- glycin/sandbox: Allow uname sycall for Arm64 SVE
+- glycin/sandbox: Pass XDG_RUNTIME_DIR env var to flatpak-spawn. This fixes
+  flatpak-spawn not working.
+- libglycin-gtk4: List "glycin" in the public "Requires" for pkgconf
+- svg: Keep aspect ratio when scaling
+
 ## 2.0.rc (2025-08-28)
 
 This release contains the following new component versions:
@@ -239,12 +268,19 @@ This release contains the following new component versions:
   to 2.0 and glycin (Rust API) to 3.0. This was required for supporting pooled
   loaders.
 
-## 1.2.4 (Unreleased)
+## 1.2.4 (2025-09-11)
+
+This release contains the following new component versions:
+
+- glycin 2.1.4
+- libglycin 1.0.4
+- glycin-svg 1.2.4
 
 ### Fixed
 
 - glycin/sandbox: Allow `recv` syscall. Needed on powerpc.
 - jpeg: Bump gufo-jpeg to fix editing some JPEG with progressive mode.
+- svg: Correctly define data from rsvg as premultiplied.
 
 ## 1.2.3 (2025-08-01)
 
