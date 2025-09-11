@@ -73,11 +73,11 @@ impl Editor {
         ));
 
         Ok(EditableImage {
-            active_sandbox_mechanism: process_context.sandbox_mechanism,
+            _active_sandbox_mechanism: process_context.sandbox_mechanism,
             editor: self,
             editor_alive: Default::default(),
             edit_request: editable_image.edit_request,
-            mime_type: process_context.mime_type,
+            _mime_type: process_context.mime_type,
             process: process_context.process,
         })
     }
@@ -102,8 +102,9 @@ pub struct EditableImage {
     pub(crate) editor: Editor,
     pub(crate) process: Arc<PooledProcess<EditorProxy<'static>>>,
     edit_request: OwnedObjectPath,
-    mime_type: MimeType,
-    active_sandbox_mechanism: SandboxMechanism,
+    // TODO: Use in error messages
+    _mime_type: MimeType,
+    _active_sandbox_mechanism: SandboxMechanism,
     editor_alive: Mutex<Arc<()>>,
 }
 
