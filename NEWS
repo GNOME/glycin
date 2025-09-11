@@ -1,3 +1,17 @@
+## 1.2.4 (2025-09-11)
+
+This release contains the following new component versions:
+
+- glycin 2.1.4
+- libglycin 1.0.4
+- glycin-svg 1.2.4
+
+### Fixed
+
+- glycin/sandbox: Allow `recv` syscall. Needed on powerpc.
+- jpeg: Bump gufo-jpeg to fix editing some JPEG with progressive mode.
+- svg: Correctly define data from rsvg as premultiplied.
+
 ## 1.2.3 (2025-08-01)
 
 This release contains the following new component versions:
