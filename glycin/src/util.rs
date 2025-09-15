@@ -73,6 +73,7 @@ pub enum RunEnvironment {
     Flatpak,
     /// Inside Flatpak and development environment
     FlatpakDevel,
+    GenericSandbox,
 }
 
 impl RunEnvironment {
@@ -81,7 +82,9 @@ impl RunEnvironment {
         if let Some(result) = RUN_ENVIRONMENT.get() {
             *result
         } else {
-            let run_env = if let Some(devel) = flatpak_devel().await {
+            let run_env = if read("/.sandbox").await.is_ok() {
+                Self::GenericSandbox
+            } else if let Some(devel) = flatpak_devel().await {
                 if devel {
                     Self::FlatpakDevel
                 } else {

@@ -1,0 +1,1 @@
+Follow the `/.sandbox` indicator introduced by libgnome-desktop to not spawn an additional sandbox which would fail inside a sandbox.
