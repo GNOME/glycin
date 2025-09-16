@@ -585,7 +585,7 @@ impl Sandbox {
     pub async fn check_bwrap_syscalls_blocked() -> bool {
         match Self::check_bwrap_syscalls_blocked_internal().await {
             Err(err) => {
-                tracing::info!("Can't determined if bwrap syscalls are blocked: {err} ({err:?})");
+                tracing::info!("Can't determine if bwrap syscalls are blocked: {err} ({err:?})");
                 // For error states we assume that bwrap failed for other reasons than sandbox
                 // creation being blocked
                 false
