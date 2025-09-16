@@ -4,7 +4,7 @@ use std::fs::{canonicalize, DirEntry, File};
 use std::io::{self, BufRead, BufReader, Seek};
 use std::os::fd::AsRawFd;
 use std::os::unix::net::UnixStream;
-use std::os::unix::process::CommandExt;
+use std::os::unix::process::{CommandExt, ExitStatusExt};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::Arc;
@@ -15,8 +15,8 @@ use libseccomp::{ScmpAction, ScmpFilterContext, ScmpSyscall};
 use memfd::{Memfd, MemfdOptions};
 use nix::sys::resource;
 
-use crate::config::ConfigEntry;
-use crate::util::{self, new_async_mutex, AsyncMutex};
+use crate::config::{ConfigEntry, ImageLoaderConfig};
+use crate::util::{self, new_async_mutex, spawn_blocking, AsyncMutex};
 use crate::{Error, SandboxMechanism};
 
 type SystemSetupStore = Arc<Result<SystemSetup, Arc<io::Error>>>;
@@ -579,6 +579,62 @@ impl Sandbox {
         file.rewind()?;
 
         Ok(memfd)
+    }
+
+    /// Returns `true` if bwrap syscalls are blocked
+    pub async fn check_bwrap_syscalls_blocked() -> bool {
+        match Self::check_bwrap_syscalls_blocked_internal().await {
+            Err(err) => {
+                tracing::info!("Can't determined if bwrap syscalls are blocked: {err} ({err:?})");
+                // For error states we assume that bwrap failed for other reasons than sandbox
+                // creation being blocked
+                false
+            }
+            Ok(blocked) => blocked,
+        }
+    }
+
+    async fn check_bwrap_syscalls_blocked_internal() -> Result<bool, Error> {
+        let config_entry = ConfigEntry::Loader(ImageLoaderConfig {
+            exec: PathBuf::from("/bin/true"),
+            expose_base_dir: false,
+            fontconfig: false,
+        });
+
+        let (dbus_socket, _) = UnixStream::pair()?;
+        let sandbox = Self::new(SandboxMechanism::Bwrap, config_entry, dbus_socket);
+
+        let seccomp_memfd = Self::seccomp_export_bpf(&sandbox.seccomp_filter()?)?;
+        let mut command = sandbox.bwrap_command(&seccomp_memfd).await?;
+
+        tracing::debug!("Testing bwrap availability with: {command:?}");
+
+        let output = spawn_blocking(move || command.output()).await?;
+
+        tracing::debug!("bwrap availability test returned: {output:?}");
+
+        if output.status.success() {
+            Ok(false)
+        } else {
+            if matches!(output.status.signal(), Some(libc::SIGSYS)) {
+                tracing::debug!("bwrap syscalls not available: Terminated with SIGSYS");
+                Ok(true)
+            } else if std::str::from_utf8(&output.stderr).map_or(false, |x| {
+                [
+                    "Creating new namespace failed",
+                    "No permissions to create a new namespace",
+                    // Wrong grammar in older bwrap versions
+                    "No permissions to creating new namespace",
+                ]
+                .iter()
+                .any(|y| x.contains(y))
+            }) {
+                tracing::debug!("bwrap syscalls not available: STDERR contains known string");
+                Ok(true)
+            } else {
+                Ok(false)
+            }
+        }
     }
 }
 

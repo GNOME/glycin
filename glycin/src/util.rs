@@ -7,6 +7,7 @@ use gio::glib;
 #[cfg(feature = "gdk4")]
 use glycin_utils::MemoryFormat;
 
+use crate::sandbox::Sandbox;
 #[cfg(feature = "gdk4")]
 use crate::ColorState;
 
@@ -69,6 +70,8 @@ pub fn gdk_color_state(format: &ColorState) -> Result<gdk::ColorState, crate::Er
 pub enum RunEnvironment {
     /// Not inside Flatpak
     Host,
+
+    HostBwrapSyscallsBlocked,
     /// Inside Flatpak
     Flatpak,
     /// Inside Flatpak and development environment
@@ -88,7 +91,11 @@ impl RunEnvironment {
                     Self::Flatpak
                 }
             } else {
-                Self::Host
+                if Sandbox::check_bwrap_syscalls_blocked().await {
+                    Self::HostBwrapSyscallsBlocked
+                } else {
+                    Self::Host
+                }
             };
 
             *RUN_ENVIRONMENT.get_or_init(|| run_env)

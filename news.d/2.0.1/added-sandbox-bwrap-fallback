@@ -1,0 +1,1 @@
+glycin/sandbox: Detect if bwrap can't be used due to syscalls being blocked. This is an indication of running in an already sandboxed environment like libgnome-desktop thumbnailer or a CI. In this case we fall back to unsandboxed mode.

@@ -25,6 +25,7 @@ impl SandboxMechanism {
             RunEnvironment::FlatpakDevel => Self::NotSandboxed,
             RunEnvironment::Flatpak => Self::FlatpakSpawn,
             RunEnvironment::Host => Self::Bwrap,
+            RunEnvironment::HostBwrapSyscallsBlocked => Self::NotSandboxed,
         }
     }
 
