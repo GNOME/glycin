@@ -1,0 +1,1 @@
+glycin/sandobx: Canonicalize fontconfig paths before passing to --ro-bind-try as source because wrap fails on symlinks otherwise.

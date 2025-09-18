@@ -343,9 +343,12 @@ impl Sandbox {
         } else if let Some(fc_paths) = crate::fontconfig::cached_paths() {
             // Expose paths to fonts, configs, and caches
             for path in fc_paths {
-                command.arg("--ro-bind-try");
-                command.arg(&path);
-                command.arg(&path);
+                // Canonicalize because --ro-bind-try fails on symlinks otherwise
+                if let Ok(canonicalized) = std::fs::canonicalize(path) {
+                    command.arg("--ro-bind-try");
+                    command.arg(&canonicalized);
+                    command.arg(&path);
+                }
             }
 
             // Fontconfig needs a writeable cache if the cache is outdated
