@@ -150,10 +150,13 @@ mod test {
     fn u16_to_u8() {
         let (a, _) = std::os::unix::net::UnixStream::pair().unwrap();
         let texture = BinaryData::from(unsafe { OwnedFd::from_raw_fd(a.into_raw_fd()) });
-        let img_buf = ImgBuf::Vec(vec![
-            127, 0, 128, 0, 127, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 127, 253, 128, 253, 255,
-            255,
-        ]);
+        let img_buf = ImgBuf::Vec(if cfg!(target_endian = "little") {
+            vec![127, 0, 128, 0, 127, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 127, 253, 128, 253,
+                255, 255]
+        } else {
+            vec![0, 127, 0, 128, 2, 127, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 253, 127, 253, 128,
+            255, 255]
+        });
         let frame = Frame::new(2, 2, crate::MemoryFormat::R16g16b16, texture).unwrap();
         let x = change_memory_format(img_buf, frame, MemoryFormat::R8g8b8)
             .unwrap()
