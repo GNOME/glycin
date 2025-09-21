@@ -1,0 +1,1 @@
+heif: Overwrite matrix coefficients (YCbCr) in CICP since currently RGB is forced and GSK gl and cairo don't support YCbCr. This fixes wrong colors in HEIC and AVIF images.

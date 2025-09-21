@@ -203,7 +203,8 @@ fn get_cicp(profile: Option<ColorProfileNCLX>) -> Option<Cicp> {
             Cicp::from_bytes(&[
                 nclx.color_primaries() as u8,
                 nclx.transfer_characteristics() as u8,
-                nclx.matrix_coefficients() as u8,
+                // Force RGB until we support YCbCr
+                0,
                 nclx.full_range_flag(),
             ])
             .ok()
