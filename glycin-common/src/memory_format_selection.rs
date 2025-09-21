@@ -146,7 +146,7 @@ impl MemoryFormatSelection {
     /// The function returns `None` if no formats are selected.
     ///
     /// ```
-    /// # use glycin_utils::{MemoryFormatSelection, MemoryFormat};
+    /// # use glycin_common::{MemoryFormatSelection, MemoryFormat};
     ///
     /// assert_eq!(
     ///     (MemoryFormatSelection::R8g8b8 | MemoryFormatSelection::R8g8b8a8)

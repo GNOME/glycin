@@ -62,7 +62,7 @@ impl Operations {
     /// Prepend operations
     ///
     /// ```
-    /// # use glycin_utils::operations::{Operation, Operations};
+    /// # use glycin_common::{Operation, Operations};
     /// # use gufo_common::orientation::{Orientation, Rotation};
     /// let mut ops = Operations::new(vec![Operation::MirrorVertically]);
     /// ops.prepend(Operations::new_orientation(Orientation::Rotation90));
@@ -112,7 +112,7 @@ impl Operations {
     /// Returns an [`Orientation`] if all operations can be reduced to that
     ///
     /// ```
-    /// # use glycin_utils::operations::{Operations, Operation};
+    /// # use glycin_common::{Operations, Operation};
     /// # use gufo_common::orientation::{Rotation, Orientation};
     /// assert_eq!(
     ///     Operations::new(vec![
@@ -238,7 +238,7 @@ impl FromStr for OperationId {
     type Err = value::Error;
 
     /// ```
-    /// # use glycin_utils::operations::OperationId;
+    /// # use glycin_common::OperationId;
     /// # use std::str::FromStr;
     /// let id = OperationId::from_str("Clip").unwrap();
     /// assert_eq!(id, OperationId::Clip)

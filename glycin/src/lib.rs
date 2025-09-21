@@ -16,13 +16,13 @@
 //!
 //! ```no_run
 //! # use glycin::*;
-//! # async_global_executor::block_on(async {
+//! # async {
 //! let file = gio::File::for_path("image.jpg");
 //! let image = Loader::new(file).load().await?;
 //!
-//! let height = image.info().height();
+//! let height = image.details().height();
 //! let texture = image.next_frame().await?.texture();
-//! # Ok::<(), Error>(()) });
+//! # Ok::<(), ErrorCtx>(()) };
 //! ```
 //!
 //! You can pass the [`texture`](Frame#structfield.texture) of a [`Frame`] to
