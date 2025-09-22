@@ -2,7 +2,6 @@ use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
 
 use gio::glib;
-use gio::glib::clone::Downgrade;
 use gio::prelude::{IsA, *};
 use glycin_common::BinaryData;
 use glycin_utils::safe_math::SafeConversion;
@@ -43,10 +42,9 @@ impl Editor {
 
         let process_context = spin_up_editor(
             source,
-            &self.pool,
+            self.pool.clone(),
             &self.cancellable,
             &self.sandbox_selector,
-            Arc::new(()).downgrade(),
         )
         .await
         .err_no_context(&self.cancellable)?;

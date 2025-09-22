@@ -231,3 +231,39 @@ pub async fn sleep(duration: std::time::Duration) {
 
 #[cfg(feature = "tokio")]
 pub use tokio::time::sleep;
+
+#[cfg(not(feature = "tokio"))]
+pub type TimerHandle = async_global_executor::Task<()>;
+
+#[cfg(not(feature = "tokio"))]
+pub fn spawn_timeout(
+    duration: std::time::Duration,
+    f: impl Future + Send + 'static,
+) -> TimerHandle {
+    async_global_executor::spawn(async move {
+        async_io::Timer::after(duration).await;
+        f.await;
+    })
+}
+
+#[cfg(feature = "tokio")]
+#[derive(Debug)]
+pub struct TimerHandle(tokio::task::JoinHandle<()>);
+
+#[cfg(feature = "tokio")]
+impl Drop for TimerHandle {
+    fn drop(&mut self) {
+        self.0.abort();
+    }
+}
+
+#[cfg(feature = "tokio")]
+pub fn spawn_timeout(
+    duration: std::time::Duration,
+    f: impl Future + Send + 'static,
+) -> TimerHandle {
+    TimerHandle(tokio::task::spawn(async move {
+        tokio::time::sleep(duration).await;
+        f.await;
+    }))
+}

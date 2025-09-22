@@ -199,14 +199,14 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
             },
             return_status = child_return.fuse() => {
                 match return_status? {
-                    Ok(status) => Err(Error::PrematureExit { status: status, cmd: command_dbg }),
-                    Err(err) => Err(Error::StdIoError{ err: Arc::new(err), info: command_dbg }),
+                    Ok(status) => Err(Error::PrematureExit { status: status, cmd: command_dbg.clone() }),
+                    Err(err) => Err(Error::StdIoError{ err: Arc::new(err), info: command_dbg.clone() }),
                 }
             }
         }?;
 
         cancellable.connect_cancelled(move |_| {
-            tracing::debug!("Killing process due to cancellation (late).");
+            tracing::debug!("Killing process due to cancellation (late): {command_dbg}");
             let _result = signal::kill(subprocess_id, signal::Signal::SIGKILL);
         });
 
@@ -283,13 +283,6 @@ impl RemoteProcess<LoaderProxy<'static>> {
         }
 
         Ok(image_info)
-    }
-
-    pub fn done_background(self: Arc<Self>, image: &Image) {
-        let frame_request_path = image.frame_request_path();
-        let arc = self.clone();
-
-        crate::util::spawn_detached(arc.done(frame_request_path));
     }
 
     pub async fn done(self: Arc<Self>, frame_request_path: OwnedObjectPath) -> Result<(), Error> {

@@ -1017,6 +1017,7 @@ name = "glycin"
 version = "3.0.1"
 dependencies = [
  "async-fs",
+ "async-global-executor",
  "async-io",
  "async-lock",
  "blocking",

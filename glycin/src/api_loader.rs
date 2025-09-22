@@ -1,7 +1,6 @@
 use std::sync::{Arc, Mutex};
 
 use gio::glib;
-use gio::glib::clone::Downgrade;
 use gio::prelude::*;
 pub use glycin_common::MemoryFormat;
 use glycin_common::{BinaryData, MemoryFormatSelection};
@@ -14,7 +13,7 @@ use crate::api_common::*;
 pub use crate::config::MimeType;
 use crate::dbus::*;
 use crate::error::ResultExt;
-use crate::pool::{Pool, PooledProcess};
+use crate::pool::{Pool, PooledProcess, UsageTracker};
 use crate::util::spawn_detached;
 use crate::{config, ErrorCtx};
 
@@ -127,15 +126,12 @@ impl Loader {
     pub async fn load(mut self) -> Result<Image, ErrorCtx> {
         let source = self.source.send();
 
-        let loader_alive = Arc::new(());
-
         let process_basics = spin_up_loader(
             source,
             self.use_expose_base_dir,
-            &self.pool,
+            self.pool.clone(),
             &self.cancellable,
             &self.sandbox_selector,
-            loader_alive.downgrade(),
         )
         .await
         .err_no_context(&self.cancellable)?;
@@ -176,7 +172,7 @@ impl Loader {
             loader: self,
             mime_type: process_basics.mime_type,
             active_sandbox_mechanism: process_basics.sandbox_mechanism,
-            loader_alive: Default::default(),
+            usage_tracker: Mutex::new(Some(process_basics.usage_tracker)),
         })
     }
 
@@ -230,16 +226,23 @@ pub struct Image {
     details: Arc<glycin_utils::ImageDetails>,
     mime_type: MimeType,
     active_sandbox_mechanism: SandboxMechanism,
-    loader_alive: Mutex<Arc<()>>,
+    usage_tracker: Mutex<Option<Arc<UsageTracker>>>,
 }
 
 static_assertions::assert_impl_all!(Image: Send, Sync);
 
 impl Drop for Image {
     fn drop(&mut self) {
-        self.process.use_().done_background(self);
-        *self.loader_alive.lock().unwrap() = Arc::new(());
-        spawn_detached(self.loader.pool.clone().clean_loaders());
+        let process = self.process.clone();
+        let path = self.frame_request_path();
+        let loader_alive = std::mem::take(&mut *self.usage_tracker.lock().unwrap());
+        spawn_detached(async move {
+            if let Err(err) = process.use_().done(path).await {
+                tracing::warn!("Failed to tear down loader: {err}")
+            }
+
+            drop(loader_alive);
+        });
     }
 }
 

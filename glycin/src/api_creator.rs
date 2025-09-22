@@ -138,10 +138,9 @@ impl Creator {
     pub async fn create(self) -> Result<EncodedImage, ErrorCtx> {
         let process_context = spin_up_encoder(
             self.mime_type.clone(),
-            &self.pool,
+            self.pool.clone(),
             &self.cancellable,
             &self.sandbox_selector,
-            Arc::downgrade(&Arc::new(())),
         )
         .await
         .err_no_context(&self.cancellable)?;

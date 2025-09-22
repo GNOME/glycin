@@ -7,7 +7,7 @@ use gio::prelude::*;
 
 use crate::config::{Config, ImageEditorConfig, ImageLoaderConfig};
 use crate::dbus::{EditorProxy, GFileWorker, LoaderProxy, ZbusProxy};
-use crate::pool::{Pool, PooledProcess};
+use crate::pool::{Pool, PooledProcess, UsageTracker};
 use crate::util::RunEnvironment;
 use crate::{config, Error, MimeType};
 
@@ -85,6 +85,7 @@ pub(crate) struct RemoteProcessContext<P: ZbusProxy<'static> + 'static> {
     pub g_file_worker: Option<GFileWorker>,
     pub mime_type: MimeType,
     pub sandbox_mechanism: SandboxMechanism,
+    pub usage_tracker: Arc<UsageTracker>,
 }
 
 /// A version of an input stream that can be sent.
@@ -222,21 +223,19 @@ pub(crate) async fn spin_up<T: GetConfig + Clone>(
 
 pub(crate) async fn spin_up_editor<'a>(
     source: Source,
-    pool: &Pool,
+    pool: Arc<Pool>,
     cancellable: &gio::Cancellable,
     sandbox_selector: &SandboxSelector,
-    loader_alive: std::sync::Weak<()>,
 ) -> Result<RemoteProcessContext<EditorProxy<'static>>, Error> {
     let process_basics =
         spin_up::<ImageEditorConfig>(source, false, cancellable, sandbox_selector).await?;
 
-    let process = pool
+    let (process, usage_tracker) = pool
         .get_editor(
             process_basics.config_entry,
             process_basics.sandbox_mechanism,
             process_basics.base_dir,
             cancellable,
-            loader_alive,
         )
         .await?;
 
@@ -245,27 +244,21 @@ pub(crate) async fn spin_up_editor<'a>(
         g_file_worker: process_basics.g_file_worker,
         mime_type: process_basics.mime_type,
         sandbox_mechanism: process_basics.sandbox_mechanism,
+        usage_tracker,
     })
 }
 
 pub(crate) async fn spin_up_encoder<'a>(
     mime_type: MimeType,
-    pool: &Pool,
+    pool: Arc<Pool>,
     cancellable: &gio::Cancellable,
     sandbox_selector: &SandboxSelector,
-    editor_alive: std::sync::Weak<()>,
 ) -> Result<RemoteProcessContext<EditorProxy<'static>>, Error> {
     let config_entry = Config::cached().await.editor(&mime_type)?;
     let sandbox_mechanism = sandbox_selector.determine_sandbox_mechanism().await;
 
-    let process = pool
-        .get_editor(
-            config_entry.clone(),
-            sandbox_mechanism,
-            None,
-            cancellable,
-            editor_alive,
-        )
+    let (process, usage_tracker) = pool
+        .get_editor(config_entry.clone(), sandbox_mechanism, None, cancellable)
         .await?;
 
     Ok(RemoteProcessContext {
@@ -273,32 +266,33 @@ pub(crate) async fn spin_up_encoder<'a>(
         g_file_worker: None,
         mime_type,
         sandbox_mechanism,
+        usage_tracker,
     })
 }
 
 pub(crate) async fn spin_up_loader<'a>(
     source: Source,
     use_expose_base_dir: bool,
-    pool: &Pool,
+    pool: Arc<Pool>,
     cancellable: &gio::Cancellable,
     sandbox_selector: &SandboxSelector,
-    loader_alive: std::sync::Weak<()>,
 ) -> Result<RemoteProcessContext<LoaderProxy<'static>>, Error> {
     let process_basics =
         spin_up(source, use_expose_base_dir, cancellable, sandbox_selector).await?;
 
-    let process = pool
+    let (process, usage_tracker) = pool
+        .clone()
         .get_loader(
             process_basics.config_entry,
             process_basics.sandbox_mechanism,
             process_basics.base_dir,
             cancellable,
-            loader_alive,
         )
         .await?;
 
     Ok(RemoteProcessContext {
         process,
+        usage_tracker,
         g_file_worker: process_basics.g_file_worker,
         mime_type: process_basics.mime_type,
         sandbox_mechanism: process_basics.sandbox_mechanism,
