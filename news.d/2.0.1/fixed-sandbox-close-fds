@@ -1,0 +1,1 @@
+Close all unused FDs in fork. Before we were sharing all FDs that don't have CLOEXEC set. In Rust that's usually not a problem because that's set by default. But when used by C in libglycin this is much more unclear. This is an attempt at fixing Firefox issues.

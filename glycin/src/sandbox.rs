@@ -2,7 +2,7 @@
 
 use std::fs::{canonicalize, DirEntry, File};
 use std::io::{self, BufRead, BufReader, Seek};
-use std::os::fd::AsRawFd;
+use std::os::fd::{AsRawFd, BorrowedFd};
 use std::os::unix::net::UnixStream;
 use std::os::unix::process::{CommandExt, ExitStatusExt};
 use std::path::{Path, PathBuf};
@@ -209,10 +209,14 @@ impl Sandbox {
     pub async fn spawn(self) -> Result<SpawnedSandbox, Error> {
         let dbus_fd = self.dbus_socket.as_raw_fd();
 
+        let mut shared_fds = Vec::new();
+
         let (mut command, seccomp_fd) = match self.sandbox_mechanism {
             SandboxMechanism::Bwrap => {
                 let seccomp_memfd = Self::seccomp_export_bpf(&self.seccomp_filter()?)?;
                 let command = self.bwrap_command(&seccomp_memfd).await?;
+
+                shared_fds.push(seccomp_memfd.as_raw_fd());
 
                 (command, Some(seccomp_memfd))
             }
@@ -232,16 +236,29 @@ impl Sandbox {
         command.arg("--dbus-fd");
         command.arg(dbus_fd.to_string());
 
-        // Allow FD to be passed to child process
-        let mut flags = nix::fcntl::FdFlag::from_bits_truncate(nix::fcntl::fcntl(
-            &self.dbus_socket,
-            nix::fcntl::FcntlArg::F_GETFD,
-        )?);
-        flags.remove(nix::fcntl::FdFlag::FD_CLOEXEC);
-        nix::fcntl::fcntl(&self.dbus_socket, nix::fcntl::FcntlArg::F_SETFD(flags))?;
-
+        command.stdin(Stdio::piped());
         command.stderr(Stdio::piped());
         command.stdout(Stdio::piped());
+
+        shared_fds.push(self.dbus_socket.as_raw_fd());
+
+        unsafe {
+            command.pre_exec(move || {
+                libc::close_range(3, libc::c_uint::MAX, libc::CLOSE_RANGE_CLOEXEC as i32);
+
+                // Allow FDs to be passed to child process
+                for raw_fd in &shared_fds {
+                    let fd = BorrowedFd::borrow_raw(*raw_fd);
+                    if let Ok(flags) = nix::fcntl::fcntl(&fd, nix::fcntl::FcntlArg::F_GETFD) {
+                        let mut flags = nix::fcntl::FdFlag::from_bits_truncate(flags);
+                        flags.remove(nix::fcntl::FdFlag::FD_CLOEXEC);
+                        let _ = nix::fcntl::fcntl(&fd, nix::fcntl::FcntlArg::F_SETFD(flags));
+                    }
+                }
+
+                Ok(())
+            });
+        }
 
         Ok(SpawnedSandbox {
             command,
@@ -434,7 +451,7 @@ impl Sandbox {
         // Loader binary
         command.arg(self.exec());
 
-        // Set sandbox memory limit
+        // Let flatpak-spawn die if the thread calling it exits
         unsafe {
             command.pre_exec(|| {
                 nix::sys::prctl::set_pdeathsig(nix::sys::signal::SIGKILL).map_err(Into::into)
