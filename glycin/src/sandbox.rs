@@ -332,40 +332,64 @@ impl Sandbox {
             command.arg(&dest);
         }
 
+        let mut mounted_paths = Vec::<PathBuf>::new();
+        let mut mount = |command: &mut Command, way: &str, path: &Path| {
+            if path.is_symlink() {
+                if !mounted_paths.iter().any(|x| path.starts_with(x)) {
+                    match canonicalize(&path) {
+                        Ok(target) => {
+                            command.arg("--symlink");
+                            command.arg(&target);
+                            command.arg(&path);
+                            tracing::trace!("Symlink {path:?} -> {target:?}");
+                        }
+                        Err(err) => tracing::debug!("Couldn't canonicalize path {path:?}: {err}"),
+                    }
+                } else {
+                    tracing::trace!("Parent of symlink {path:?} already mounted. Skipping.");
+                }
+            }
+
+            match canonicalize(&path) {
+                Ok(path) => {
+                    if !mounted_paths.iter().any(|x| path.starts_with(x)) {
+                        command.arg(way);
+                        command.arg(&path);
+                        command.arg(&path);
+                        tracing::trace!("Mounting {path:?}");
+                        mounted_paths.push(path);
+                    } else {
+                        tracing::trace!("Parent of mount path {path:?} already mounted. Skipping.");
+                    }
+                }
+                Err(err) => tracing::debug!("Couldn't canonicalize path {path:?}: {err}"),
+            }
+        };
+
         // Mount paths like /lib64 if they exist
         for dir in &system.lib_dirs {
-            command.arg("--ro-bind");
-            command.arg(&dir);
-            command.arg(&dir);
+            mount(&mut command, "--ro-bind", dir);
         }
 
         // Make extra dirs available
         for dir in &self.ro_bind_extra {
-            command.arg("--ro-bind");
-            command.arg(&dir);
-            command.arg(&dir);
+            mount(&mut command, "--ro-bind", dir);
         }
 
         // Make loader binary available if not in /usr. This is useful for testing and
         // adding loaders in user (/home) configurations.
         if !self.exec().starts_with("/usr") {
-            command.arg("--ro-bind");
-            command.arg(self.exec());
-            command.arg(self.exec());
+            mount(&mut command, "--ro-bind", self.exec());
         }
 
         // Fontconfig
         if !self.config_entry.fontconfig() {
-            // TODO: log fontconfig disabled
+            tracing::trace!("Fontconfig not enabled for loader/editor");
         } else if let Some(fc_paths) = crate::fontconfig::cached_paths() {
             // Expose paths to fonts, configs, and caches
             for path in fc_paths {
-                // Canonicalize because --ro-bind-try fails on symlinks otherwise
-                if let Ok(canonicalized) = std::fs::canonicalize(path) {
-                    command.arg("--ro-bind-try");
-                    command.arg(&canonicalized);
-                    command.arg(&path);
-                }
+                dbg!(&path);
+                mount(&mut command, "--ro-bind-try", path);
             }
 
             // Fontconfig needs a writeable cache if the cache is outdated
