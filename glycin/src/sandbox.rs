@@ -388,7 +388,6 @@ impl Sandbox {
         } else if let Some(fc_paths) = crate::fontconfig::cached_paths() {
             // Expose paths to fonts, configs, and caches
             for path in fc_paths {
-                dbg!(&path);
                 mount(&mut command, "--ro-bind-try", path);
             }
 
