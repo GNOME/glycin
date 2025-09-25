@@ -35,6 +35,8 @@ pub struct FrameRequest {
     pub scale: Option<(u32, u32)>,
     /// Instruction to only decode part of the image
     pub clip: Option<(u32, u32, u32, u32)>,
+    /// Get first frame, if previously selected frame was the last one
+    pub loop_animation: bool,
 }
 
 /// Various image metadata

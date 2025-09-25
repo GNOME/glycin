@@ -17,8 +17,8 @@ use log::trace;
 init_main_loader_editor!(ImgDecoder, ImgEditor);
 
 type Reader = Cursor<Vec<u8>>;
-type FrameReceiver = Receiver<Result<Frame, ProcessError>>;
-type FrameSender = Sender<Result<Frame, ProcessError>>;
+type FrameReceiver = Receiver<Result<(Frame, bool), ProcessError>>;
+type FrameSender = Sender<Result<(Frame, bool), ProcessError>>;
 
 #[derive(Default)]
 pub struct ImgDecoder {
@@ -36,6 +36,8 @@ fn animated_worker(
     let mut format = Some(format);
 
     std::thread::park();
+
+    let mut looped = false;
 
     // Replay animation from beginning
     loop {
@@ -91,7 +93,7 @@ fn animated_worker(
             let frame_details = (!is_animated).then(|| frame_details.clone()).flatten();
 
             let decoded_frame = animated_get_frame(frame, frame_details, is_animated);
-            send.send(decoded_frame).unwrap();
+            send.send(decoded_frame.map(|x| (x, looped))).unwrap();
 
             // If not really an animation no need to keep the thread around
             if !is_animated {
@@ -101,6 +103,8 @@ fn animated_worker(
 
             std::thread::park();
         }
+
+        looped = true;
     }
 }
 
@@ -217,12 +221,16 @@ impl LoaderImplementation for ImgDecoder {
         Ok((loader_impelementation, image_info))
     }
 
-    fn frame(&mut self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
+    fn frame(&mut self, frame_request: FrameRequest) -> Result<Frame, ProcessError> {
         let mut frame = if let Some(decoder) = std::mem::take(&mut *self.format.lock().unwrap()) {
             decoder.frame().expected_error()?
         } else if let Some((ref thread, ref recv)) = *self.thread.lock().unwrap() {
             thread.thread().unpark();
-            recv.recv().internal_error()??
+            let (frame, looped) = recv.recv().internal_error()??;
+            if !frame_request.loop_animation && matches!(frame.details.n_frame, Some(0)) && looped {
+                return Err(ProcessError::NoMoreFrames);
+            }
+            frame
         } else {
             return Err(ProcessError::NoMoreFrames);
         };

@@ -255,8 +255,11 @@ impl Image {
     pub async fn next_frame(&self) -> Result<Frame, ErrorCtx> {
         let process = self.process.use_();
 
+        let mut frame_request = glycin_utils::FrameRequest::default();
+        frame_request.loop_animation = true;
+
         process
-            .request_frame(glycin_utils::FrameRequest::default(), self)
+            .request_frame(frame_request, self)
             .await
             .err_context(&process, &self.cancellable())
     }
@@ -474,6 +477,9 @@ pub struct FrameRequest {
 
 impl FrameRequest {
     pub fn new() -> Self {
+        let mut request = glycin_utils::FrameRequest::default();
+        request.loop_animation = true;
+
         Self::default()
     }
 
@@ -484,6 +490,15 @@ impl FrameRequest {
 
     pub fn clip(mut self, x: u32, y: u32, width: u32, height: u32) -> Self {
         self.request.clip = Some((x, y, width, height));
+        self
+    }
+
+    /// Controls if first frame is returned after last frame
+    ///
+    /// By default, this option is set to `true`, returning the first frame, if
+    /// the previously requested frame was the last frame.
+    pub fn loop_animation(mut self, loop_animation: bool) -> Self {
+        self.request.loop_animation = loop_animation;
         self
     }
 }

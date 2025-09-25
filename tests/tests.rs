@@ -82,7 +82,7 @@ async fn test_dir_animated(dir: impl AsRef<Path>) {
         image_request.use_expose_base_dir(true);
         let image = image_request.load().await.unwrap();
 
-        for n_frame in [0, 1, 2, 0] {
+        for n_frame in [0, 1, 2, 3, 0, 1, 2, 3] {
             let reference_path = reference_image_path(&dir, Some(n_frame));
 
             let frame = loop {
@@ -102,6 +102,16 @@ async fn test_dir_animated(dir: impl AsRef<Path>) {
                 eprintln!("{n_frame}    (OK)");
             }
         }
+
+        assert!(matches!(
+            image
+                .specific_frame(glycin::FrameRequest::default().loop_animation(false))
+                .await
+                .map_err(|x| x.error().clone()),
+            Err(glycin::Error::RemoteError(
+                glycin_utils::RemoteError::NoMoreFrames
+            ))
+        ));
     }
 }
 
