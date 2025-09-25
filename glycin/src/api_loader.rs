@@ -468,11 +468,17 @@ impl Frame {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 #[must_use]
 /// Request information to get a specific frame
 pub struct FrameRequest {
-    request: glycin_utils::FrameRequest,
+    pub(crate) request: glycin_utils::FrameRequest,
+}
+
+impl Default for FrameRequest {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl FrameRequest {
@@ -480,7 +486,7 @@ impl FrameRequest {
         let mut request = glycin_utils::FrameRequest::default();
         request.loop_animation = true;
 
-        Self::default()
+        Self { request }
     }
 
     pub fn scale(mut self, width: u32, height: u32) -> Self {

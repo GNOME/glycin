@@ -20,6 +20,10 @@ pub mod imp {
         pub scale_width: PhantomData<u32>,
         #[property(get = Self::scale_height)]
         pub scale_height: PhantomData<u32>,
+        #[property(set = Self::set_loop_animation, get = Self::loop_animation)]
+        loop_animation: PhantomData<bool>,
+
+        pub(super) frame_request: Mutex<crate::FrameRequest>,
 
         pub(super) scale: Mutex<Option<(u32, u32)>>,
     }
@@ -41,6 +45,15 @@ pub mod imp {
         fn scale_height(&self) -> u32 {
             self.scale.lock().unwrap().map_or(0, |x| x.1)
         }
+
+        fn loop_animation(&self) -> bool {
+            self.frame_request.lock().unwrap().request.loop_animation
+        }
+
+        fn set_loop_animation(&self, loop_animation: bool) {
+            let mut frame_request = self.frame_request.lock().unwrap();
+            *frame_request = frame_request.clone().loop_animation(loop_animation);
+        }
     }
 }
 
@@ -59,7 +72,7 @@ impl GlyFrameRequest {
     }
 
     pub fn frame_request(&self) -> FrameRequest {
-        let frame_request = FrameRequest::default();
+        let frame_request = self.imp().frame_request.lock().unwrap().clone();
 
         let frame_request = if let Some((width, height)) = *self.imp().scale.lock().unwrap() {
             frame_request.scale(width, height)

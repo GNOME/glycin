@@ -200,6 +200,10 @@ impl Error {
     pub fn is_out_of_memory(&self) -> bool {
         matches!(self, Self::RemoteError(RemoteError::OutOfMemory(_)))
     }
+
+    pub fn is_no_more_frames(&self) -> bool {
+        matches!(self, Self::RemoteError(RemoteError::NoMoreFrames))
+    }
 }
 
 impl From<std::io::Error> for Error {

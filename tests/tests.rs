@@ -103,15 +103,11 @@ async fn test_dir_animated(dir: impl AsRef<Path>) {
             }
         }
 
-        assert!(matches!(
-            image
-                .specific_frame(glycin::FrameRequest::default().loop_animation(false))
-                .await
-                .map_err(|x| x.error().clone()),
-            Err(glycin::Error::RemoteError(
-                glycin_utils::RemoteError::NoMoreFrames
-            ))
-        ));
+        assert!(image
+            .specific_frame(glycin::FrameRequest::default().loop_animation(false))
+            .await
+            .unwrap_err()
+            .is_no_more_frames());
     }
 }
 

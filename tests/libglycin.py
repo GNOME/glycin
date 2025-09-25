@@ -64,6 +64,9 @@ def main():
     test_image_orientation = os.path.join(dir, "test-images/images/color-exif-orientation/color-rotated-90.jpg")
     file_orientation = Gio.File.new_for_path(test_image_orientation)
 
+    test_image_animation = os.path.join(dir, "test-images/images/animated-numbers/animated-numbers.apng")
+    file_animation = Gio.File.new_for_path(test_image_animation)
+
     # Types
 
     assert Gly.SandboxSelector.AUTO.__gtype__.name == "GlySandboxSelector"
@@ -188,6 +191,23 @@ def main():
     assert cicp.get_transfer_function() == 13
     assert cicp.get_matrix_coefficients() == 0
     assert cicp.get_range() == Gdk.CicpRange.FULL
+
+    # Animation
+
+    loader = Gly.Loader.new(file_animation)
+    image = loader.load()
+    frame_request = Gly.FrameRequest()
+    for i in range(0, 2 * 4):
+        image.get_specific_frame(frame_request)
+
+    frame_request.set_loop_animation(False)
+    try:
+        image.get_specific_frame(frame_request)
+    except GLib.Error as e:
+        assert (e.matches(Gly.LoaderError.quark(), Gly.LoaderError.NO_MORE_FRAMES))
+    else:
+        raise Exception('Failed to raise Error')
+
 
     # Functions
 

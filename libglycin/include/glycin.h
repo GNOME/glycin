@@ -378,6 +378,21 @@ void gly_frame_request_set_scale(GlyFrameRequest *frame_request,
                                  uint32_t width,
                                  uint32_t height);
 
+/**
+ * gly_frame_request_set_loop_animation:
+ * @frame_request:
+ * @loop_animation:
+ *
+ * Controls if first frame is returned after last frame
+ *
+ * By default, this option is set to `TRUE`, returning the first frame, if
+ * the previously requested frame was the last frame.
+ *
+ * Since: 2.0.1
+ */
+void gly_frame_request_set_loop_animation(GlyFrameRequest *frame_request,
+                                          gboolean loop_animation);
+
 /**************** GlyImage ****************/
 
 /**
@@ -767,8 +782,9 @@ GlyCicp *gly_frame_get_color_cicp(GlyFrame *frame);
 
 /**
  * GlyLoaderError:
- * @GLY_LOADER_ERROR_FAILED: Generic type for all other errors.
- * @GLY_LOADER_ERROR_UNKNOWN_IMAGE_FORMAT: Unknown image format.
+ * @GLY_LOADER_ERROR_FAILED:
+ * @GLY_LOADER_ERROR_UNKNOWN_IMAGE_FORMAT:
+ * @GLY_LOADER_ERROR_NO_MORE_FRAMES:
  *
  * Errors that can appear while loading images.
  *
@@ -776,8 +792,30 @@ GlyCicp *gly_frame_get_color_cicp(GlyFrame *frame);
  */
 typedef enum
 {
+    /**
+     * GLY_LOADER_ERROR_FAILED:
+     *
+     * Generic type for all other errors.
+     *
+     * Since: 2.0
+     */
     GLY_LOADER_ERROR_FAILED,
+    /**
+     * GLY_LOADER_ERROR_UNKNOWN_IMAGE_FORMAT:
+     *
+     * Unknown image format.
+     *
+     * Since: 2.0
+     */
     GLY_LOADER_ERROR_UNKNOWN_IMAGE_FORMAT,
+    /**
+     * GLY_LOADER_ERROR_NO_MORE_FRAMES:
+     *
+     * Generic type for all other errors.
+     *
+     * Since: 2.0.1
+     */
+    GLY_LOADER_ERROR_NO_MORE_FRAMES,
 } GlyLoaderError;
 
 /**

@@ -1,3 +1,5 @@
+use std::ffi::c_int;
+
 use gio::prelude::*;
 use glib::ffi::GType;
 use glib::subclass::prelude::*;
@@ -25,4 +27,13 @@ pub unsafe extern "C" fn gly_frame_request_set_scale(
 ) {
     let frame_request = gobject::GlyFrameRequest::from_glib_ptr_borrow(&frame_request);
     frame_request.set_scale(width, height);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gly_frame_request_set_loop_animation(
+    frame_request: *mut GlyFrameRequest,
+    loop_animation: c_int,
+) {
+    let frame_request = gobject::GlyFrameRequest::from_glib_ptr_borrow(&frame_request);
+    frame_request.set_loop_animation(loop_animation != 0);
 }
