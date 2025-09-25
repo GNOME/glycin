@@ -125,7 +125,7 @@ cargo-semver-checks:
     - meson install -C builddir
     - cargo install cargo-semver-checks --locked
     - cargo semver-checks -p glycin -p glycin-utils
-    - cargo semver-checks -p libglycin -p libglycin-gtk4 --baseline-rev 5977f6d12aa9f337e20d9da74d26997fee1fe704
+    - cargo semver-checks -p libglycin -p libglycin-gtk4 --baseline-rev 2.0.0
 
 cargo-fmt:
   image: rust

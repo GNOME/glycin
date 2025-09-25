@@ -7,6 +7,7 @@ use glib::translate::*;
 #[error_domain(name = "gly-loader-error")]
 #[repr(C)]
 #[enum_type(name = "GlyLoaderError")]
+#[non_exhaustive]
 pub enum GlyLoaderError {
     Failed = 0,
     UnknownImageFormat = 1,

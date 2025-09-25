@@ -21,3 +21,6 @@ tracing.workspace = true
 [lib]
 name = "glycin"
 crate-type = ["cdylib"]
+
+[package.metadata.cargo-semver-checks.lints]
+enum_marked_non_exhaustive = { level = "warn", required-update = "minor" }
