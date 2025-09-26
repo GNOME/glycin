@@ -811,7 +811,7 @@ typedef enum
     /**
      * GLY_LOADER_ERROR_NO_MORE_FRAMES:
      *
-     * Generic type for all other errors.
+     * Reached last frame in an animation with [method@FrameRequest.set_loop_animation] to `FALSE`.
      *
      * Since: 2.0.1
      */
