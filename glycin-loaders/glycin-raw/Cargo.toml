@@ -1,5 +1,6 @@
 [package]
 name = "glycin-raw"
+publish = false
 version.workspace = true
 authors = ["Hubert Figuière <hub@figuiere.net>"]
 description.workspace = true

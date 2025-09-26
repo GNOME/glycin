@@ -1,5 +1,6 @@
 [package]
 name = "glycin-jxl"
+publish = false
 version.workspace = true
 authors.workspace = true
 description.workspace = true
