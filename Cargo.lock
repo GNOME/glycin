@@ -1091,7 +1091,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-image-rs"
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [
  "glycin-utils",
  "gufo",
@@ -1156,7 +1156,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-utils"
-version = "4.0.0"
+version = "4.0.1"
 dependencies = [
  "async-lock",
  "bitflags 2.9.3",
