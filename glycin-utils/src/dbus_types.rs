@@ -6,6 +6,7 @@ use glycin_common::{BinaryData, MemoryFormat, MemoryFormatInfo};
 use gufo_common::orientation::Orientation;
 use memmap::MmapMut;
 use serde::{Deserialize, Serialize};
+use zbus::zvariant::as_value::{self, optional};
 use zbus::zvariant::{self, DeserializeDict, Optional, SerializeDict, Type};
 
 use crate::error::DimensionTooLargerError;
@@ -27,15 +28,18 @@ pub struct InitializationDetails {
     pub base_dir: Option<std::path::PathBuf>,
 }
 
-#[derive(DeserializeDict, SerializeDict, Type, Debug, Clone, Default)]
+#[derive(Deserialize, Serialize, Type, Debug, Clone, Default)]
 #[zvariant(signature = "dict")]
 #[non_exhaustive]
 pub struct FrameRequest {
     /// Scale image to these dimensions
+    #[serde(with = "optional", skip_serializing_if = "Option::is_none", default)]
     pub scale: Option<(u32, u32)>,
     /// Instruction to only decode part of the image
+    #[serde(with = "optional", skip_serializing_if = "Option::is_none", default)]
     pub clip: Option<(u32, u32, u32, u32)>,
     /// Get first frame, if previously selected frame was the last one
+    #[serde(with = "as_value", skip_serializing_if = "std::ops::Not::not", default)]
     pub loop_animation: bool,
 }
 

@@ -1068,7 +1068,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-dev-tools"
-version = "2.0.0"
+version = "2.0.2"
 dependencies = [
  "async-io",
  "gdk4",
@@ -1080,7 +1080,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-heif"
-version = "2.0.0"
+version = "2.0.2"
 dependencies = [
  "four-cc",
  "glycin-utils",
@@ -1106,7 +1106,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-jpeg2000"
-version = "2.0.0"
+version = "2.0.2"
 dependencies = [
  "glycin-utils",
  "image",
@@ -1115,7 +1115,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-jxl"
-version = "2.0.0"
+version = "2.0.2"
 dependencies = [
  "glycin-common",
  "glycin-utils",
@@ -1127,7 +1127,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-raw"
-version = "2.0.0"
+version = "2.0.2"
 dependencies = [
  "glycin-utils",
  "gufo-common",
@@ -1136,7 +1136,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-svg"
-version = "2.0.0"
+version = "2.0.2"
 dependencies = [
  "cairo-rs",
  "gio",
@@ -1156,7 +1156,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-utils"
-version = "4.0.1"
+version = "4.0.2"
 dependencies = [
  "async-lock",
  "bitflags 2.9.3",
@@ -2484,7 +2484,7 @@ dependencies = [
 
 [[package]]
 name = "tests"
-version = "2.0.0"
+version = "2.0.2"
 dependencies = [
  "async-io",
  "blocking",

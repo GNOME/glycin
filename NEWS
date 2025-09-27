@@ -1,3 +1,21 @@
+## 2.0.2 (2025-09-27)
+
+This release contains the following new component versions:
+
+- glycin-heif 2.0.2
+- glycin-jpeg2000 2.0.2
+- glycin-jxl 2.0.2
+- glycin-raw 2.0.2
+- glycin-svg 2.0.2
+- glycin-utils 4.0.2
+
+### Fixed
+
+- Loaders in 2.0.1 required specifying the loop_animation field explicitly,
+  making it incompatible with previous glycin/libglycin versions. The
+  loop_animation is no assumed to be false when not present, as originally
+  intended.
+
 ## 2.0.1 (2025-09-26)
 
 This release contains the following new component versions:
