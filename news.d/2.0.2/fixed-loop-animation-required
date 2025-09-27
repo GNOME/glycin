@@ -1,1 +1,1 @@
-Loaders in 2.0.1 required specifying the loop_animation field explicitly, making it incompatible with previous glycin/libglycin versions. The loop_animation is no assumed to be false when not present, as originally intended.
+Loaders in 2.0.1 required specifying the loop_animation field explicitly, making it incompatible with previous glycin/libglycin versions. The loop_animation is now assumed to be false when not present, as originally intended.
