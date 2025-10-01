@@ -52,7 +52,7 @@ The following features are supported by the glycin loaders provided in the [load
 | OpenEXR      | image-rs | —   | —    | —    | —   | —         | image-rs
 | PNG          | image-rs | ✔   | ✔    | ✔    | ✔   | ✔         | image-rs
 | PNM          | image-rs | —   | —    | —    | —   | —         | image-rs
-| SVG          | image-rs | ✘   | —    | —    | ✘   | —         | librsvg + gio/cairo (C)
+| SVG          | svg      | ✘   | —    | —    | ✘   | —         | librsvg + gio/cairo (C)
 | TGA          | image-rs | —   | —    | —    | —   | —         | image-rs
 | TIFF         | image-rs | ✔   | —    | ✔    | ✘   | —         | image-rs
 | WEBP         | image-rs | ✔   | —    | ✔    | ✘   | ✔         | image-rs
