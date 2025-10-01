@@ -11,6 +11,13 @@
 
   <programming-language>Rust</programming-language>
 
+  <repository>
+    <GitRepository>
+      <browse rdf:resource="https://gitlab.gnome.org/GNOME/glycin/"/>
+      <location rdf:resource="https://gitlab.gnome.org/GNOME/glycin.git"/>
+    </GitRepository>
+  </repository>
+
   <maintainer>
     <foaf:Person>
       <foaf:name>Sophie Herold</foaf:name>
