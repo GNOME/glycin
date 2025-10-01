@@ -6,7 +6,7 @@
   <shortdesc xml:lang="en">Sandboxed and extendable image loading and editing</shortdesc>
   <description xml:lang="en">Sandboxed and extendable image loading and editing</description>
 
-  <homepage rdf:resource="https://gitlab.gnome.org/GNOME/glycin/" />
+  <homepage rdf:resource="https://gnome.pages.gitlab.gnome.org/glycin/" />
   <bug-database rdf:resource="https://gitlab.gnome.org/GNOME/glycin/-/issues" />
 
   <programming-language>Rust</programming-language>
