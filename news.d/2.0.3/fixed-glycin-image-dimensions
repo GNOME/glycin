@@ -1,0 +1,1 @@
+glycin: Honor apply_transformations for imgage dimensions. Before, the width and height would be changed for rotated images if `apply_transformations` was set to false. #215

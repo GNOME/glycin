@@ -145,14 +145,16 @@ impl Loader {
             .await
             .err_context(&process, &self.cancellable)?;
 
-        match Image::transformation_orientation_internal(&remote_image.details).rotate() {
-            Rotation::_90 | Rotation::_270 => {
-                std::mem::swap(
-                    &mut remote_image.details.width,
-                    &mut remote_image.details.height,
-                );
+        if self.apply_transformations {
+            match Image::transformation_orientation_internal(&remote_image.details).rotate() {
+                Rotation::_90 | Rotation::_270 => {
+                    std::mem::swap(
+                        &mut remote_image.details.width,
+                        &mut remote_image.details.height,
+                    );
+                }
+                _ => {}
             }
-            _ => {}
         }
 
         let path = remote_image.frame_request.clone();
