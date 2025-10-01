@@ -33,36 +33,7 @@ Glycin is based on technologies like memfds, unix sockets, and linux namespaces.
 
 ## Supported Image Formats
 
-The following features are supported by the glycin loaders provided in the [loaders](loaders) directory.
-
-| Format       | Decoder  | ICC | CICP | EXIF | XMP | Animation | Library                    |
-|--------------|----------|-----|------|------|-----|-----------|----------------------------|
-| AVIF         | heif     | ✔   | ✔    | ✔    | ✘   | ✘         | libheif-rs + libheif (C++) |
-| BMP          | image-rs | ✘   | —    | —    | —   | —         | image-rs                   |
-| Camera RAW † | raw      | —   | —    | ✘    | ✔ § | —         | libopenraw                 |
-| DDS          | image-rs | —   | —    | —    | —   | —         | image-rs                   |
-| farbfeld     | no mime  | —   | —    | —    | —   | —         | image-rs                   |
-| QOI          | image-rs | —   | —    | —    | —   | —         | image-rs                   |
-| GIF          | image-rs | ✘   | —    | —    | ✘   | ✔         | image-rs                   |
-| HEIC         | heif     | ✔   | ✔    | ✔    | ✘   | ✘         | libheif-rs + libheif (C++) |
-| ICO          | image-rs | —   | —    | —    | —   | —         | image-rs                   |
-| JPEG         | image-rs | ✔   | —    | ✔    | ✔   | —         | image-rs                   |
-| JPEG XL      | jxl      | ✔   | ✘    | ✔    | ✘   | ✘         | jpegxl-rs + libjxl (C++)   |
-| OpenEXR      | image-rs | —   | —    | —    | —   | —         | image-rs                   |
-| PNG          | image-rs | ✔   | ✔    | ✔    | ✔   | ✔         | image-rs                   |
-| PNM          | image-rs | —   | —    | —    | —   | —         | image-rs                   |
-| SVG          | image-rs | ✘   | —    | —    | ✘   | —         | librsvg + gio/cairo (C)    |
-| TGA          | image-rs | —   | —    | —    | —   | —         | image-rs                   |
-| TIFF         | image-rs | ✔   | —    | ✔    | ✘   | —         | image-rs                   |
-| WEBP         | image-rs | ✔   | —    | ✔    | ✘   | ✔         | image-rs                   |
-
-| Symbol | Meaning                                     |
-|--------|---------------------------------------------|
-| ✔      | Supported                                   |
-| ✘      | Supported by format but not implemented yet |
-| —      | Not available for this format               |
-| †      | Camera RAW format support varies            |
-| §      | DNG or XMP sidecar if available             |
+See https://gnome.pages.gitlab.gnome.org/glycin/
 
 ## Image Loader Configuration
 
