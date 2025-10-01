@@ -112,6 +112,7 @@ const ALLOWED_SYSCALLS: &[&str] = &[
     "recv",
     "recvfrom",
     "recvmsg",
+    "restart_syscall",
     "rseq",
     "rt_sigaction",
     "rt_sigprocmask",
