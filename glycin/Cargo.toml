@@ -19,6 +19,7 @@ async-io = [
     "dep:async-lock",
     "dep:blocking",
     "dep:futures-timer",
+    "dep:futures-lite",
     "glycin-utils/async-io",
     "zbus/async-io",
 ]
@@ -40,6 +41,7 @@ blocking = { workspace = true, optional = true }
 futures-channel.workspace = true
 futures-timer = { workspace = true, optional = true }
 futures-util.workspace = true
+futures-lite = { workspace = true, optional = true }
 gdk = { workspace = true, optional = true }
 gio.workspace = true
 glib.workspace = true

@@ -2,7 +2,7 @@
 
 //! Internal DBus API
 
-use std::io::{BufRead, Read};
+use std::io::{Read, Write};
 use std::mem;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::os::unix::net::UnixStream;
@@ -494,7 +494,6 @@ impl RemoteProcess<EditorProxy<'static>> {
     }
 }
 
-use std::io::{BufReader, Write};
 const BUF_SIZE: usize = u16::MAX as usize;
 
 #[zbus::proxy(interface = "org.gnome.glycin.Loader")]
@@ -730,37 +729,85 @@ fn remove_stride_if_needed(mut img_buf: ImgBuf, frame: &mut Frame) -> Result<Img
     Ok(img_buf.resize(frame.n_bytes()?.i64()?)?)
 }
 
+#[cfg(not(feature = "tokio"))]
+fn spawn_stdio_reader(
+    stdio: &mut Option<impl Read + Send + std::os::fd::AsFd + async_io::IoSafe + 'static>,
+    store: &Arc<Mutex<String>>,
+    process_disconnected: Arc<AtomicBool>,
+    name: &'static str,
+) {
+    use futures_lite::AsyncBufReadExt;
+    if let Some(stdio) = stdio.take() {
+        let store = store.clone();
+        util::spawn_detached(async move {
+            match async_io::Async::new(stdio) {
+                Err(err) => {
+                    tracing::error!("Can't read {name}: {err}");
+                }
+                Ok(read_stdio) => {
+                    let mut read_stdio = futures_lite::io::BufReader::new(read_stdio);
+
+                    let mut buf = String::new();
+                    loop {
+                        match read_stdio.read_line(&mut buf).await {
+                            Ok(len) => {
+                                if len == 0 {
+                                    process_disconnected.store(true, Ordering::Relaxed);
+                                    tracing::debug!("{name} disconnected without error");
+                                    break;
+                                }
+                                tracing::debug!("Loader {name}: {buf}", buf = buf.trim_end());
+                                store.lock().unwrap().push_str(&buf);
+                                buf.clear();
+                            }
+                            Err(err) => {
+                                process_disconnected.store(true, Ordering::Relaxed);
+                                tracing::debug!("{name} disconnected with error: {err}");
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+#[cfg(feature = "tokio")]
 fn spawn_stdio_reader(
     stdio: &mut Option<impl Read + Send + 'static>,
     store: &Arc<Mutex<String>>,
     process_disconnected: Arc<AtomicBool>,
     name: &'static str,
 ) {
+    use std::io::{BufRead, BufReader};
     if let Some(stdout) = stdio.take() {
         let store = store.clone();
-        util::spawn_blocking_detached(move || {
-            let mut stdout = BufReader::new(stdout);
+        let _ = std::thread::Builder::new()
+            .name(format!("gly-{name}"))
+            .spawn(move || {
+                let mut stdout = BufReader::new(stdout);
 
-            let mut buf = String::new();
-            loop {
-                match stdout.read_line(&mut buf) {
-                    Ok(len) => {
-                        if len == 0 {
+                let mut buf = String::new();
+                loop {
+                    match stdout.read_line(&mut buf) {
+                        Ok(len) => {
+                            if len == 0 {
+                                process_disconnected.store(true, Ordering::Relaxed);
+                                tracing::debug!("{name} disconnected without error");
+                                break;
+                            }
+                            tracing::debug!("Loader {name}: {buf}", buf = buf.trim_end());
+                            store.lock().unwrap().push_str(&buf);
+                            buf.clear();
+                        }
+                        Err(err) => {
                             process_disconnected.store(true, Ordering::Relaxed);
-                            tracing::debug!("{name} disconnected without error");
+                            tracing::debug!("{name} disconnected with error: {err}");
                             break;
                         }
-                        tracing::debug!("Loader {name}: {buf}", buf = buf.trim_end());
-                        store.lock().unwrap().push_str(&buf);
-                        buf.clear();
-                    }
-                    Err(err) => {
-                        process_disconnected.store(true, Ordering::Relaxed);
-                        tracing::debug!("{name} disconnected with error: {err}");
-                        break;
                     }
                 }
-            }
-        });
+            });
     }
 }
