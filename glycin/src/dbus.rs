@@ -59,16 +59,19 @@ static_assertions::assert_impl_all!(RemoteProcess<LoaderProxy>: Send, Sync);
 static_assertions::assert_impl_all!(RemoteProcess<EditorProxy>: Send, Sync);
 
 pub trait ZbusProxy<'a>: Sized + Sync + Send + From<zbus::Proxy<'a>> {
+    const TYPE: &'static str;
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self>;
 }
 
 impl<'a> ZbusProxy<'a> for LoaderProxy<'a> {
+    const TYPE: &'static str = "loader";
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self> {
         Self::builder(conn)
     }
 }
 
 impl<'a> ZbusProxy<'a> for EditorProxy<'a> {
+    const TYPE: &'static str = "editor";
     fn builder(conn: &zbus::Connection) -> zbus::proxy::Builder<'a, Self> {
         Self::builder(conn)
     }
@@ -104,60 +107,62 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
 
         // Spawning an extra thread to run and wait for the loader process since
         // PR_SET_PDEATHSIG in child processes is bound to the thread.
-        std::thread::spawn(glib::clone!(
-            #[strong]
-            process_disconnected,
-            move || {
-                let mut command = spawned_sandbox.command;
-                let command_dbg = format!("{:?}", command);
+        std::thread::Builder::new()
+            .name(format!("gly-hdl-{}", P::TYPE,))
+            .spawn(glib::clone!(
+                #[strong]
+                process_disconnected,
+                move || {
+                    let mut command = spawned_sandbox.command;
+                    let command_dbg = format!("{:?}", command);
 
-                tracing::debug!("Spawning loader/editor:\n    {command_dbg}");
-                let mut child = match command.spawn() {
-                    Ok(mut child) => {
-                        let id = child.id();
-                        let info = Ok((child.stderr.take(), child.stdout.take(), id));
-                        if let Err(err) = sender_child.send(info) {
-                            tracing::info!(
+                    tracing::debug!("Spawning loader/editor:\n    {command_dbg}");
+                    let mut child = match command.spawn() {
+                        Ok(mut child) => {
+                            let id = child.id();
+                            let info = Ok((child.stderr.take(), child.stdout.take(), id));
+                            if let Err(err) = sender_child.send(info) {
+                                tracing::info!(
                                 "Failed to inform coordinating thread about process state: {err:?}"
                             );
+                            }
+                            child
                         }
-                        child
-                    }
-                    Err(err) => {
-                        let err = if err.kind() == std::io::ErrorKind::NotFound {
-                            Error::SpawnErrorNotFound {
-                                cmd: command_dbg.clone(),
-                                err: Arc::new(err),
-                            }
-                        } else {
-                            Error::SpawnError {
-                                cmd: command_dbg.clone(),
-                                err: Arc::new(err),
-                            }
-                        };
-                        tracing::debug!("Failed to spawn process: {err}");
-                        if let Err(err) = sender_child.send(Err(err)) {
-                            tracing::info!(
+                        Err(err) => {
+                            let err = if err.kind() == std::io::ErrorKind::NotFound {
+                                Error::SpawnErrorNotFound {
+                                    cmd: command_dbg.clone(),
+                                    err: Arc::new(err),
+                                }
+                            } else {
+                                Error::SpawnError {
+                                    cmd: command_dbg.clone(),
+                                    err: Arc::new(err),
+                                }
+                            };
+                            tracing::debug!("Failed to spawn process: {err}");
+                            if let Err(err) = sender_child.send(Err(err)) {
+                                tracing::info!(
                                 "Failed to inform coordinating thread about process state: {err:?}"
                             );
+                            }
+                            return;
                         }
-                        return;
-                    }
-                };
+                    };
 
-                let result = child.wait();
-                process_disconnected.store(true, Ordering::Relaxed);
-                tracing::debug!(
-                    "Process exited: {:?} {result:?}",
-                    result.as_ref().ok().map(|x| x.code())
-                );
-                if let Err(err) = sender_child_return.send(result) {
+                    let result = child.wait();
+                    process_disconnected.store(true, Ordering::Relaxed);
                     tracing::debug!(
-                        "Failed to send process return value to coordinating thread: {err:?}"
+                        "Process exited: {:?} {result:?}",
+                        result.as_ref().ok().map(|x| x.code())
                     );
+                    if let Err(err) = sender_child_return.send(result) {
+                        tracing::debug!(
+                            "Failed to send process return value to coordinating thread: {err:?}"
+                        );
+                    }
                 }
-            }
-        ));
+            ))?;
 
         let mut child_process = child_process.await??;
 
