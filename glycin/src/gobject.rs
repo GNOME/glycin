@@ -38,5 +38,11 @@ pub fn init() {
             .init();
 
         tracing::debug!("Initialized logging");
+
+        async_global_executor::init_with_config(
+            async_global_executor::GlobalExecutorConfig::default()
+                .with_min_threads(1)
+                .with_thread_name_fn(|| String::from("gly-global-exec")),
+        );
     });
 }
