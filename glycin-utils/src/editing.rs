@@ -40,6 +40,8 @@ pub enum Error {
     ZerocopyConvertError(String),
     #[error("Unknown operation: {0:?}")]
     UnknownOperation(OperationId),
+    #[error("Failed to build rayon thread pool: {0}")]
+    ThreadPoolBuildError(#[from] Arc<rayon::ThreadPoolBuildError>),
 }
 
 impl<A: Display, S: Display, V: Display> From<zerocopy::ConvertError<A, S, V>> for Error {

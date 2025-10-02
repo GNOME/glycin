@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use glycin_common::{ChannelType, MemoryFormatInfo, Source, Target};
 use gufo_common::math::Checked;
 use rayon::iter::IntoParallelIterator;
@@ -38,94 +40,102 @@ pub fn change_memory_format(
         rest
     });
 
-    if src_format.channel_type() == target_format.channel_type()
-        && src_format.is_premultiplied() == target_format.is_premultiplied()
-        && (!src_format.source_definition().contains(&Source::Opaque)
-            || !target_format.target_definition().contains(&Target::A))
-        && !target_format.target_definition().contains(&Target::RgbAvg)
-    {
-        let mut source_target_index_map = [0; 4];
-        for (n, target) in target_format.target_definition().iter().enumerate() {
-            source_target_index_map[n] = src_format.source_definition()[*target as usize] as usize;
-        }
+    rayon::ThreadPoolBuilder::new()
+        .thread_name(|i| format!("gly-rayon-{i}"))
+        .build()
+        .map_err(Arc::new)?
+        .install(|| {
+            if src_format.channel_type() == target_format.channel_type()
+                && src_format.is_premultiplied() == target_format.is_premultiplied()
+                && (!src_format.source_definition().contains(&Source::Opaque)
+                    || !target_format.target_definition().contains(&Target::A))
+                && !target_format.target_definition().contains(&Target::RgbAvg)
+            {
+                let mut source_target_index_map = [0; 4];
+                for (n, target) in target_format.target_definition().iter().enumerate() {
+                    source_target_index_map[n] =
+                        src_format.source_definition()[*target as usize] as usize;
+                }
 
-        let target_n_channels = target_format.n_channels();
+                let target_n_channels = target_format.n_channels();
 
-        target_rows.into_par_iter().for_each(|(y, new_row)| {
-            for x in 0..frame.width as usize {
-                let x_ = x * src_pixel_n_bytes;
+                target_rows.into_par_iter().for_each(|(y, new_row)| {
+                    for x in 0..frame.width as usize {
+                        let x_ = x * src_pixel_n_bytes;
 
-                // src bytes for pixel
-                let i0 = x_ + y * frame.stride as usize;
+                        // src bytes for pixel
+                        let i0 = x_ + y * frame.stride as usize;
 
-                // target bytes for pixel
-                let k0 = x * target_pixel_n_bytes;
+                        // target bytes for pixel
+                        let k0 = x * target_pixel_n_bytes;
 
-                for channel_byte in 0..target_format.channel_type().size() {
-                    for i in 0..target_n_channels as usize {
-                        new_row[k0 + i + channel_byte] =
-                            src_data[i0 + source_target_index_map[i] + channel_byte];
+                        for channel_byte in 0..target_format.channel_type().size() {
+                            for i in 0..target_n_channels as usize {
+                                new_row[k0 + i + channel_byte] =
+                                    src_data[i0 + source_target_index_map[i] + channel_byte];
+                            }
+                        }
                     }
+                });
+            } else if src_format.channel_type() == ChannelType::U16
+                && target_format.channel_type() == ChannelType::U8
+                && src_format.is_premultiplied() == target_format.is_premultiplied()
+                && (!src_format.source_definition().contains(&Source::Opaque)
+                    || !target_format.target_definition().contains(&Target::A))
+                && !target_format.target_definition().contains(&Target::RgbAvg)
+            {
+                let mut source_target_index_map = [0; 4];
+                for (n, target) in target_format.target_definition().iter().enumerate() {
+                    source_target_index_map[n] =
+                        src_format.source_definition()[*target as usize] as usize;
                 }
+
+                let target_n_channels = target_format.n_channels();
+                let source_channel_size = src_format.channel_type().size();
+
+                target_rows.into_par_iter().for_each(|(y, new_row)| {
+                    for x in 0..frame.width as usize {
+                        let x_ = x * src_pixel_n_bytes;
+
+                        // src bytes for pixel
+                        let i0 = x_ + y * frame.stride as usize;
+
+                        // target bytes for pixel
+                        let k0 = x * target_pixel_n_bytes;
+
+                        for i in 0..target_n_channels as usize {
+                            new_row[k0 + i] = (u16::from_ne_bytes([
+                                src_data[i0 + source_target_index_map[i] * source_channel_size],
+                                src_data[i0 + source_target_index_map[i] * source_channel_size + 1],
+                            ])
+                            .saturating_add(128)
+                                >> 8) as u8;
+                        }
+                    }
+                });
+            } else {
+                target_rows.into_par_iter().for_each(|(y, new_row)| {
+                    for x in 0..frame.width as usize {
+                        let x_ = x * src_pixel_n_bytes;
+
+                        // src bytes for pixel
+                        let i0 = x_ + y * frame.stride as usize;
+                        let i1 = i0 + src_pixel_n_bytes;
+
+                        // target bytes for pixel
+                        let k0 = x * target_pixel_n_bytes;
+                        let k1 = k0 + target_pixel_n_bytes;
+
+                        MemoryFormat::transform(
+                            src_format,
+                            &src_data[i0..i1],
+                            target_format,
+                            &mut new_row[k0..k1],
+                        );
+                    }
+                });
             }
         });
-    } else if src_format.channel_type() == ChannelType::U16
-        && target_format.channel_type() == ChannelType::U8
-        && src_format.is_premultiplied() == target_format.is_premultiplied()
-        && (!src_format.source_definition().contains(&Source::Opaque)
-            || !target_format.target_definition().contains(&Target::A))
-        && !target_format.target_definition().contains(&Target::RgbAvg)
-    {
-        let mut source_target_index_map = [0; 4];
-        for (n, target) in target_format.target_definition().iter().enumerate() {
-            source_target_index_map[n] = src_format.source_definition()[*target as usize] as usize;
-        }
-
-        let target_n_channels = target_format.n_channels();
-        let source_channel_size = src_format.channel_type().size();
-
-        target_rows.into_par_iter().for_each(|(y, new_row)| {
-            for x in 0..frame.width as usize {
-                let x_ = x * src_pixel_n_bytes;
-
-                // src bytes for pixel
-                let i0 = x_ + y * frame.stride as usize;
-
-                // target bytes for pixel
-                let k0 = x * target_pixel_n_bytes;
-
-                for i in 0..target_n_channels as usize {
-                    new_row[k0 + i] = (u16::from_ne_bytes([
-                        src_data[i0 + source_target_index_map[i] * source_channel_size],
-                        src_data[i0 + source_target_index_map[i] * source_channel_size + 1],
-                    ])
-                    .saturating_add(128)
-                        >> 8) as u8;
-                }
-            }
-        });
-    } else {
-        target_rows.into_par_iter().for_each(|(y, new_row)| {
-            for x in 0..frame.width as usize {
-                let x_ = x * src_pixel_n_bytes;
-
-                // src bytes for pixel
-                let i0 = x_ + y * frame.stride as usize;
-                let i1 = i0 + src_pixel_n_bytes;
-
-                // target bytes for pixel
-                let k0 = x * target_pixel_n_bytes;
-                let k1 = k0 + target_pixel_n_bytes;
-
-                MemoryFormat::transform(
-                    src_format,
-                    &src_data[i0..i1],
-                    target_format,
-                    &mut new_row[k0..k1],
-                );
-            }
-        });
-    }
 
     frame.stride = new_stride;
     frame.memory_format = target_format;
