@@ -166,7 +166,7 @@ where
     F: Future + Send + 'static,
     F::Output: Send + 'static,
 {
-    blocking::unblock(move || async_io::block_on(f)).detach()
+    async_global_executor::spawn(f).detach()
 }
 
 #[cfg(feature = "tokio")]
