@@ -28,7 +28,7 @@ use nix::sys::signal;
 use zbus::zvariant::{self, OwnedObjectPath};
 
 use crate::sandbox::Sandbox;
-use crate::util::{self, block_on, spawn_blocking, spawn_blocking_detached};
+use crate::util::{self, block_on, spawn_blocking, spawn_blocking_detached, spawn_detached};
 use crate::{
     api_loader, config, icc, orientation, ColorState, EditableImage, Error, Image, MimeType,
     SandboxMechanism, Source,
@@ -190,6 +190,7 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
             .p2p()
             .server(guid)?
             .auth_mechanism(zbus::AuthMechanism::Anonymous)
+            .internal_executor(false)
             .build()
             .shared();
 
@@ -216,6 +217,17 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
         });
 
         let dbus_connection = dbus_result.await?;
+
+        spawn_detached(glib::clone!(
+            #[strong]
+            dbus_connection,
+            async move {
+                let executor = dbus_connection.executor();
+                loop {
+                    executor.tick().await;
+                }
+            }
+        ));
 
         let decoding_instruction = P::builder(&dbus_connection)
             // Unused since P2P connection
