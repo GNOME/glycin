@@ -115,6 +115,7 @@ const ALLOWED_SYSCALLS: &[&str] = &[
     "recvfrom",
     "recvmsg",
     "restart_syscall",
+    "riscv_hwprobe",
     "rseq",
     "rt_sigaction",
     "rt_sigprocmask",
@@ -641,8 +642,13 @@ impl Sandbox {
         }
 
         for syscall_name in syscalls.into_iter().flatten() {
-            let syscall = ScmpSyscall::from_name(syscall_name)?;
-            filter.add_rule(ScmpAction::Allow, syscall)?;
+            match ScmpSyscall::from_name(syscall_name) {
+                Ok(syscall) => {
+                    filter.add_rule(ScmpAction::Allow, syscall)?;
+                    ()
+                }
+                Err(err) => tracing::warn!("Failed to allow syscall '{syscall_name}': {err}"),
+            }
         }
 
         Ok(filter)
