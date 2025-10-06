@@ -1,6 +1,5 @@
 use std::future::Future;
 use std::path::{Path, PathBuf};
-use std::sync::OnceLock;
 
 use futures_util::{Stream, StreamExt};
 use gio::glib;
@@ -80,9 +79,12 @@ pub enum RunEnvironment {
 
 impl RunEnvironment {
     pub async fn cached() -> Self {
-        static RUN_ENVIRONMENT: OnceLock<RunEnvironment> = OnceLock::new();
-        if let Some(result) = RUN_ENVIRONMENT.get() {
-            *result
+        static RUN_ENVIRONMENT: AsyncMutex<Option<RunEnvironment>> = new_async_mutex(None);
+
+        let mut run_environment = RUN_ENVIRONMENT.lock().await;
+
+        if let Some(result) = *run_environment {
+            result
         } else {
             let run_env = if let Some(devel) = flatpak_devel().await {
                 if devel {
@@ -98,7 +100,8 @@ impl RunEnvironment {
                 }
             };
 
-            *RUN_ENVIRONMENT.get_or_init(|| run_env)
+            *run_environment = Some(run_env);
+            run_env
         }
     }
 }
@@ -132,7 +135,7 @@ pub fn block_on<F: std::future::Future>(future: F) -> F::Output {
 
 #[cfg(feature = "tokio")]
 pub fn block_on<F: std::future::Future>(future: F) -> F::Output {
-    static TOKIO_RT: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
+    static TOKIO_RT: std::sync::OnceLock<tokio::runtime::Runtime> = std::sync::OnceLock::new();
     let runtime =
         TOKIO_RT.get_or_init(|| tokio::runtime::Runtime::new().expect("tokio runtime was created"));
     runtime.block_on(future)

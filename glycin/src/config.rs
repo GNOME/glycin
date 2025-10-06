@@ -2,13 +2,13 @@ use std::collections::BTreeMap;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
-use std::sync::OnceLock;
+use std::sync::Arc;
 
 use futures_util::StreamExt;
 use gio::glib;
 use glycin_common::OperationId;
 
-use crate::util::{read, read_dir};
+use crate::util::{new_async_mutex, read, read_dir, AsyncMutex};
 use crate::{Error, SandboxMechanism};
 
 #[derive(Clone, Debug)]
@@ -198,14 +198,16 @@ impl ConfigEntry {
 }
 
 impl Config {
-    pub async fn cached() -> &'static Self {
-        static CONFIG: OnceLock<Config> = OnceLock::new();
+    pub async fn cached() -> Arc<Self> {
+        static CONFIG: AsyncMutex<Option<Arc<Config>>> = new_async_mutex(None);
+        let mut config = CONFIG.lock().await;
 
-        if let Some(config) = CONFIG.get() {
+        if let Some(config) = config.clone() {
             config
         } else {
-            let config = Self::load().await;
-            CONFIG.get_or_init(|| config)
+            let loaded_config = Arc::new(Self::load().await);
+            *config = Some(loaded_config.clone());
+            loaded_config
         }
     }
 

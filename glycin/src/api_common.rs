@@ -202,7 +202,7 @@ pub(crate) async fn spin_up<T: GetConfig + Clone>(
     let mime_type = guess_mime_type(&g_file_worker).await?;
 
     let config = config::Config::cached().await;
-    let config_entry = T::config_entry(config, &mime_type)?.clone().clone();
+    let config_entry = T::config_entry(&config, &mime_type)?.clone().clone();
 
     let base_dir = if use_expose_base_dir && config_entry.expose_base_dir() {
         file.and_then(|x| x.parent()).and_then(|x| x.path())
@@ -254,11 +254,11 @@ pub(crate) async fn spin_up_encoder<'a>(
     cancellable: &gio::Cancellable,
     sandbox_selector: &SandboxSelector,
 ) -> Result<RemoteProcessContext<EditorProxy<'static>>, Error> {
-    let config_entry = Config::cached().await.editor(&mime_type)?;
+    let config_entry = Config::cached().await.editor(&mime_type)?.clone();
     let sandbox_mechanism = sandbox_selector.determine_sandbox_mechanism().await;
 
     let (process, usage_tracker) = pool
-        .get_editor(config_entry.clone(), sandbox_mechanism, None, cancellable)
+        .get_editor(config_entry, sandbox_mechanism, None, cancellable)
         .await?;
 
     Ok(RemoteProcessContext {
