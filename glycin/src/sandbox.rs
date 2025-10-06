@@ -672,6 +672,8 @@ impl Sandbox {
                     "No permissions to create a new namespace",
                     // Wrong grammar in older bwrap versions
                     "No permissions to creating new namespace",
+                    // Wording of an old Debian patch
+                    "No permissions to create new namespace",
                 ]
                 .iter()
                 .any(|y| x.contains(y))
