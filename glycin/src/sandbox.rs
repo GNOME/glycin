@@ -643,7 +643,9 @@ impl Sandbox {
 
     async fn check_bwrap_syscalls_blocked_internal() -> Result<bool, Error> {
         let config_entry = ConfigEntry::Loader(ImageLoaderConfig {
-            exec: PathBuf::from("/bin/true"),
+            // The binary is not really relevant, since sandbox is also assumed to work, if the
+            // binary does not exist.
+            exec: PathBuf::from("/usr/bin/true"),
             expose_base_dir: false,
             fontconfig: false,
         });
@@ -658,12 +660,18 @@ impl Sandbox {
 
         let output = spawn_blocking(move || command.output()).await?;
 
-        tracing::debug!("bwrap availability test returned: {output:?}");
+        tracing::debug!(
+            "bwrap availability test returned: {output:?} (Signal: {signal:?}, Code: {code:?})",
+            signal = output.status.signal(),
+            code = output.status.code(),
+        );
 
         if output.status.success() {
             Ok(false)
         } else {
-            if matches!(output.status.signal(), Some(libc::SIGSYS)) {
+            if matches!(output.status.signal(), Some(libc::SIGSYS))
+                || output.status.code() == Some(128 + libc::SIGSYS)
+            {
                 tracing::debug!("bwrap syscalls not available: Terminated with SIGSYS");
                 Ok(true)
             } else if std::str::from_utf8(&output.stderr).map_or(false, |x| {

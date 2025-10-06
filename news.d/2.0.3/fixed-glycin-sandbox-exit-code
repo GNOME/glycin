@@ -1,0 +1,1 @@
+glycin: Also detect SIGSYS from bwrap exit code.
