@@ -634,7 +634,10 @@ impl Sandbox {
                 // creation being blocked
                 false
             }
-            Ok(blocked) => blocked,
+            Ok(blocked) => {
+                tracing::debug!("bwrap sandboxing available: {}", !blocked);
+                blocked
+            }
         }
     }
 
