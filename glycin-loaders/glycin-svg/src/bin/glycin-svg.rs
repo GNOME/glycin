@@ -225,7 +225,7 @@ pub fn svg_dimensions_float(renderer: &rsvg::Handle) -> (f64, f64) {
 
 pub fn svg_dimensions(renderer: &rsvg::Handle) -> (u32, u32) {
     let (width, height) = svg_dimensions_float(renderer);
-    (width.ceil() as u32, height.ceil() as u32)
+    (width.round() as u32, height.round() as u32)
 }
 
 const fn memory_format() -> MemoryFormat {
