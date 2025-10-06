@@ -1,0 +1,1 @@
+glycin/libglycin: Drastically reduce the number of used threads, especially for libglycin.
