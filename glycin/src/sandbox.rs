@@ -1,5 +1,6 @@
 // Copyright (c) 2024 GNOME Foundation Inc.
 
+use std::ffi::{c_int, c_void};
 use std::fs::{canonicalize, DirEntry, File};
 use std::io::{self, BufRead, BufReader, Seek};
 use std::os::fd::{AsRawFd, BorrowedFd};
@@ -13,6 +14,7 @@ use gio::glib;
 use libseccomp::error::SeccompError;
 use libseccomp::{ScmpAction, ScmpFilterContext, ScmpSyscall};
 use memfd::{Memfd, MemfdOptions};
+use nix::libc::siginfo_t;
 use nix::sys::resource;
 
 use crate::config::{ConfigEntry, ImageLoaderConfig};
@@ -656,6 +658,13 @@ impl Sandbox {
         let seccomp_memfd = Self::seccomp_export_bpf(&sandbox.seccomp_filter()?)?;
         let mut command = sandbox.bwrap_command(&seccomp_memfd).await?;
 
+        unsafe {
+            command.pre_exec(|| {
+                setup_sigsys_handler();
+                Ok(())
+            })
+        };
+
         tracing::debug!("Testing bwrap availability with: {command:?}");
 
         let output = spawn_blocking(move || command.output()).await?;
@@ -767,5 +776,43 @@ impl SystemSetup {
         };
 
         Ok(())
+    }
+}
+
+#[allow(non_camel_case_types)]
+extern "C" fn sigsys_handler(_: c_int, _info: *mut siginfo_t, _: *mut c_void) {
+    libc_eprint("glycin sandbox availability test: Blocked syscall used\n");
+
+    unsafe {
+        libc::exit(128 + libc::SIGSYS);
+    }
+}
+
+fn setup_sigsys_handler() {
+    let mut mask = nix::sys::signal::SigSet::empty();
+    mask.add(nix::sys::signal::Signal::SIGSYS);
+
+    let sigaction = nix::sys::signal::SigAction::new(
+        nix::sys::signal::SigHandler::SigAction(sigsys_handler),
+        nix::sys::signal::SaFlags::SA_SIGINFO,
+        mask,
+    );
+
+    unsafe {
+        if nix::sys::signal::sigaction(nix::sys::signal::Signal::SIGSYS, &sigaction).is_err() {
+            libc_eprint(
+                "glycin sandbox availability test: Failed to init syscall failure signal handler",
+            );
+        }
+    };
+}
+
+fn libc_eprint(s: &str) {
+    unsafe {
+        libc::write(
+            libc::STDERR_FILENO,
+            s.as_ptr() as *const libc::c_void,
+            s.len(),
+        );
     }
 }
