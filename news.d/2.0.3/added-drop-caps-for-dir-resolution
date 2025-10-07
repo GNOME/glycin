@@ -1,0 +1,1 @@
+glycin/sandbox: Drop `CAP_DAC_OVERRIDE` and `CAP_DAC_READ_SEARCH_POSTION` during directory resolution to ensure that bwrap does not try to mount directories that it does no longer have access to after it dropped these caps.

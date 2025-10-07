@@ -369,6 +369,33 @@ impl Sandbox {
             }
         };
 
+        let caps = get_caps();
+        let mut caps_reset_guard = None;
+
+        match caps {
+            Ok(caps) => {
+                const CAP_DAC_OVERRIDE_POSITION: u32 = 1_u32 % 32;
+                const CAP_DAC_READ_SEARCH_POSTION: u32 = 2_u32 % 32;
+
+                if caps[0].effective & (1 << CAP_DAC_OVERRIDE_POSITION) != 0
+                    || caps[0].effective & (1 << CAP_DAC_READ_SEARCH_POSTION) != 0
+                {
+                    let mut new_caps = caps.clone();
+                    new_caps[0].effective &= !(1 << CAP_DAC_OVERRIDE_POSITION);
+                    new_caps[0].effective &= !(1 << CAP_DAC_READ_SEARCH_POSTION);
+
+                    if let Err(err) = set_caps(new_caps) {
+                        tracing::error!("Failed to set caps: {err}");
+                    } else {
+                        caps_reset_guard = Some(CapsGuard(caps));
+                    }
+                } else {
+                    tracing::trace!("CAP_DAC_OVERRIDE not set. Not touching CAPs");
+                }
+            }
+            Err(ref err) => tracing::error!("Couldn't get Linux caps: {err}"),
+        }
+
         // Mount paths like /lib64 if they exist
         for dir in &system.lib_dirs {
             mount(&mut command, "--ro-bind", dir);
@@ -419,6 +446,9 @@ impl Sandbox {
         } else {
             tracing::warn!("Failed to load fonftconfig environment");
         }
+
+        // Reset to original caps
+        drop(caps_reset_guard);
 
         // Configure seccomp
         command.arg("--seccomp");
@@ -814,5 +844,84 @@ fn libc_eprint(s: &str) {
             s.as_ptr() as *const libc::c_void,
             s.len(),
         );
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+struct CapHeader {
+    version: u32,
+    pid: i32,
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
+struct CapData {
+    effective: u32,
+    permitted: u32,
+    inheritable: u32,
+}
+
+const _LINUX_CAPABILITY_VERSION_3: u32 = 0x20080522;
+
+fn capget(header: &mut CapHeader, data: &mut [CapData; 2]) -> std::io::Result<()> {
+    if unsafe {
+        libc::syscall(
+            libc::SYS_capget,
+            header as *mut CapHeader,
+            data as *mut CapData,
+        )
+    } != 0
+    {
+        return Err(std::io::Error::last_os_error());
+    } else {
+        Ok(())
+    }
+}
+
+fn capset(header: &mut CapHeader, data: &mut [CapData; 2]) -> std::io::Result<()> {
+    if unsafe {
+        libc::syscall(
+            libc::SYS_capset,
+            header as *mut CapHeader,
+            data as *mut CapData,
+        ) as i32
+    } != 0
+    {
+        return Err(std::io::Error::last_os_error());
+    } else {
+        Ok(())
+    }
+}
+
+fn get_caps() -> std::io::Result<[CapData; 2]> {
+    let mut hdr = CapHeader {
+        version: _LINUX_CAPABILITY_VERSION_3,
+        pid: 0,
+    };
+
+    let mut data: [CapData; 2] = unsafe { std::mem::zeroed() };
+
+    capget(&mut hdr, &mut data)?;
+
+    Ok(data)
+}
+
+fn set_caps(mut caps: [CapData; 2]) -> std::io::Result<()> {
+    let mut hdr = CapHeader {
+        version: _LINUX_CAPABILITY_VERSION_3,
+        pid: 0,
+    };
+
+    capset(&mut hdr, &mut caps)
+}
+
+struct CapsGuard([CapData; 2]);
+
+impl Drop for CapsGuard {
+    fn drop(&mut self) {
+        if let Err(err) = set_caps(self.0) {
+            tracing::error!("Failed to reset linux caps to original state: {err}")
+        }
     }
 }
