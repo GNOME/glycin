@@ -1,3 +1,42 @@
+## 2.0.3 (2025-10-09)
+
+This release contains the following new component versions:
+
+- glycin-common 1.0.3
+- glycin-heif 2.0.3
+- glycin-image-rs 2.0.3
+- glycin-jpeg2000 2.0.3
+- glycin-jxl 2.0.3
+- glycin-raw 2.0.3
+- glycin-svg 2.0.3
+- glycin-thumbnailer 2.0.3
+- glycin-utils 4.0.3
+- glycin 3.0.3
+- libglycin 2.0.3
+- libglycin-gtk4 2.0.3
+
+### Added
+
+- glycin/sandbox: Drop `CAP_DAC_OVERRIDE` and `CAP_DAC_READ_SEARCH_POSTION`
+  during directory resolution to ensure that bwrap does not try to mount
+  directories that it does no longer have access to after it dropped these caps.
+
+### Fixed
+
+- SIGSYS because `restart_syscall` syscall is not allowed. #213
+- glycin: Also detect SIGSYS from bwrap exit code.
+- glycin: Honor apply_transformations for imgage dimensions. Before, the width
+  and height would be changed for rotated images if `apply_transformations` was
+  set to false. #215
+
+### Changed
+
+- glycin/libglycin: Drastically reduce the number of used threads, especially
+  for libglycin.
+- glycin: Avoid loading configs or checking system properties multiple times
+  because of race condition in cache.
+- svg: Round image dimensions instead of rounding up.
+
 ## 2.0.2 (2025-09-27)
 
 This release contains the following new component versions:
@@ -13,7 +52,7 @@ This release contains the following new component versions:
 
 - Loaders in 2.0.1 required specifying the loop_animation field explicitly,
   making it incompatible with previous glycin/libglycin versions. The
-  loop_animation is no assumed to be false when not present, as originally
+  loop_animation is now assumed to be false when not present, as originally
   intended.
 
 ## 2.0.1 (2025-09-26)
