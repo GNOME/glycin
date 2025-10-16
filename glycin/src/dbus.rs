@@ -28,7 +28,7 @@ use nix::sys::signal;
 use zbus::zvariant::{self, OwnedObjectPath};
 
 use crate::sandbox::Sandbox;
-use crate::util::{self, block_on, spawn_blocking, spawn_blocking_detached, spawn_detached};
+use crate::util::{self, block_on, spawn, spawn_blocking, spawn_blocking_detached, Task};
 use crate::{
     api_loader, config, icc, orientation, ColorState, EditableImage, Error, Image, MimeType,
     SandboxMechanism, Source,
@@ -40,6 +40,7 @@ pub(crate) const MAX_TEXTURE_SIZE: u64 = 8 * 10u64.pow(9);
 #[derive(Debug)]
 pub struct RemoteProcess<P: ZbusProxy<'static> + 'static> {
     dbus_connection: zbus::Connection,
+    _dbus_connection_task: Task<()>,
     proxy: P,
     pub stderr_content: Arc<Mutex<String>>,
     pub stdout_content: Arc<Mutex<String>>,
@@ -218,7 +219,7 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
 
         let dbus_connection = dbus_result.await?;
 
-        spawn_detached(glib::clone!(
+        let dbus_connection_task = spawn(glib::clone!(
             #[strong]
             dbus_connection,
             async move {
@@ -238,6 +239,7 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
 
         Ok(Self {
             dbus_connection,
+            _dbus_connection_task: dbus_connection_task,
             proxy: decoding_instruction,
             stderr_content,
             stdout_content,

@@ -154,6 +154,26 @@ pub async fn spawn_blocking<F: FnOnce() -> T + Send + 'static, T: Send + 'static
 }
 
 #[cfg(not(feature = "tokio"))]
+pub type Task<T> = async_task::Task<T>;
+
+#[cfg(feature = "tokio")]
+pub type Task<T> = tokio::task::JoinHandle<T>;
+
+#[cfg(not(feature = "tokio"))]
+pub fn spawn<T: Send + 'static>(
+    f: impl std::future::Future<Output = T> + Send + 'static,
+) -> Task<T> {
+    async_global_executor::spawn(f)
+}
+
+#[cfg(feature = "tokio")]
+pub fn spawn<T: Send + 'static>(
+    f: impl std::future::Future<Output = T> + Send + 'static,
+) -> Task<T> {
+    tokio::task::spawn(f)
+}
+
+#[cfg(not(feature = "tokio"))]
 pub fn spawn_blocking_detached<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(f: F) {
     blocking::unblock(f).detach()
 }
