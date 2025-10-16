@@ -1014,7 +1014,7 @@ dependencies = [
 
 [[package]]
 name = "glycin"
-version = "3.0.3"
+version = "3.0.4"
 dependencies = [
  "async-fs",
  "async-global-executor",
@@ -1564,7 +1564,7 @@ checksum = "6a82ae493e598baaea5209805c49bbf2ea7de956d50d7da0da1164f9c6d28543"
 
 [[package]]
 name = "libglycin"
-version = "2.0.3"
+version = "2.0.4"
 dependencies = [
  "async-global-executor",
  "futures-task",
@@ -1577,7 +1577,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4"
-version = "2.0.3"
+version = "2.0.4"
 dependencies = [
  "gdk4",
  "glycin",
