@@ -341,10 +341,17 @@ impl Sandbox {
                 if !mounted_paths.iter().any(|x| path.starts_with(x)) {
                     match canonicalize(&path) {
                         Ok(target) => {
-                            command.arg("--symlink");
-                            command.arg(&target);
-                            command.arg(&path);
-                            tracing::trace!("Symlink {path:?} -> {target:?}");
+                            if !mounted_paths.iter().any(|x| path.starts_with(x)) {
+                                command.arg("--symlink");
+                                command.arg(&target);
+                                command.arg(&path);
+                                tracing::trace!("Symlink {path:?} -> {target:?}");
+                                mounted_paths.push(path.to_owned());
+                            } else {
+                                tracing::trace!(
+                                    "Parent of symlink path {path:?} already mounted. Skipping."
+                                );
+                            }
                         }
                         Err(err) => tracing::debug!("Couldn't canonicalize path {path:?}: {err}"),
                     }

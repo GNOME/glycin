@@ -1,0 +1,1 @@
+Support having symlinks in a directory that is already a symlink and both a explicitly picked up by fontconfig.
