@@ -1,3 +1,26 @@
+## 2.0.4 (2025-10-20)
+
+This release contains the following new component versions:
+
+- glycin-heif 2.0.4
+- glycin-image-rs 2.0.4
+- glycin-jpeg2000 2.0.4
+- glycin-jxl 2.0.4
+- glycin-raw 2.0.4
+- glycin-svg 2.0.4
+- glycin-utils 4.0.4
+- glycin 3.0.4
+- libglycin 2.0.4
+- libglycin-gtk4 2.0.4
+
+### Fixed
+
+- D-Bus connections were never completely closed, causing a memory and FD leak.
+- Default to loop for animations if no explicit value is set. This fixed as
+  backward compatibility issue when glycin/libglycin is not a .3 or later.
+- Support having symlinks in a directory that is already a symlink and both a
+  explicitly picked up by fontconfig.
+
 ## 2.0.3 (2025-10-09)
 
 This release contains the following new component versions:
