@@ -28,6 +28,10 @@ pub struct InitializationDetails {
     pub base_dir: Option<std::path::PathBuf>,
 }
 
+const fn true_const() -> bool {
+    true
+}
+
 #[derive(Deserialize, Serialize, Type, Debug, Clone, Default)]
 #[zvariant(signature = "dict")]
 #[non_exhaustive]
@@ -39,7 +43,7 @@ pub struct FrameRequest {
     #[serde(with = "optional", skip_serializing_if = "Option::is_none", default)]
     pub clip: Option<(u32, u32, u32, u32)>,
     /// Get first frame, if previously selected frame was the last one
-    #[serde(with = "as_value", skip_serializing_if = "std::ops::Not::not", default)]
+    #[serde(with = "as_value", default = "true_const")]
     pub loop_animation: bool,
 }
 

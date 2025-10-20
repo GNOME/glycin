@@ -1,0 +1,1 @@
+Default to loop for animations if no explicit value is set. This fixed as backward compatibility issue when glycin/libglycin is not a .3 or later.
