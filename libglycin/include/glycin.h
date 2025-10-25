@@ -549,7 +549,7 @@ uint32_t gly_image_get_height(GlyImage *image);
  *
  * Since: 2.0
  **/
-const gchar *
+gchar *
 gly_image_get_metadata_key_value(GlyImage *image,
                                  const gchar *key);
 
