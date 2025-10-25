@@ -157,7 +157,7 @@ pub unsafe extern "C" fn gly_image_get_height(image: *mut GlyImage) -> u32 {
 pub unsafe extern "C" fn gly_image_get_metadata_key_value(
     image: *mut GlyImage,
     key: *const c_char,
-) -> *const c_char {
+) -> *mut c_char {
     let image = gobject::GlyImage::from_glib_ptr_borrow(&image);
     let key = glib::GStr::from_ptr_checked(key).unwrap().as_str();
 
