@@ -22,14 +22,15 @@ G_BEGIN_DECLS
  * loader = gly_loader_new (file);
  * image = gly_loader_load (loader, NULL);
  * if (image)
- * {
- *   frame = gly_image_next_frame (image, NULL);
- *   if (frame) {
- *     texture = gly_gtk_frame_get_texture (frame);
- *     printf ("Image height: %d\n", gdk_texture_get_height (texture));
- *     image_widget = gtk_image_new_from_paintable (GDK_PAINTABLE (texture));
+ *   {
+ *     frame = gly_image_next_frame (image, NULL);
+ *     if (frame)
+ *       {
+ *         texture = gly_gtk_frame_get_texture (frame);
+ *         g_print ("Image height: %d\n", gdk_texture_get_height (texture));
+ *         image_widget = gtk_image_new_from_paintable (GDK_PAINTABLE (texture));
+ *       }
  *   }
- * }
  * ```
  *
  * Since: 2.0
