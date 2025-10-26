@@ -129,6 +129,15 @@ cargo-semver-checks:
     # building merge requests might fail.
     - cargo semver-checks -p libglycin -p libglycin-gtk4 --baseline-rev d992950c
 
+libglycin-rebind:
+  image: rust:1.86-bookworm
+  extends: .install_dependencies
+  interruptible: true
+  script:
+    - meson setup -Dbuildtype=debug -Dglycin-loaders=false -Dglycin-thumbnailer=false -Dtest_skip_install=true -Dvapi=false --prefix=/usr builddir
+    - meson install -C builddir
+    - cargo build --package libglycin-gtk4-rebind --package libglycin-rebind
+
 cargo-fmt:
   image: rust
   interruptible: true
