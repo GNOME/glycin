@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!-- This file was automatically generated from C sources - DO NOT EDIT!
+To affect the contents of this file, edit the original C definitions,
+and/or use gtk-doc annotations.  -->
+<repository version="1.2"
+            xmlns="http://www.gtk.org/introspection/core/1.0"
+            xmlns:c="http://www.gtk.org/introspection/c/1.0"
+            xmlns:doc="http://www.gtk.org/introspection/doc/1.0"
+            xmlns:glib="http://www.gtk.org/introspection/glib/1.0">
+  <include name="GLib" version="2.0"/>
+  <include name="GObject" version="2.0"/>
+  <include name="Gdk" version="4.0"/>
+  <include name="Gio" version="2.0"/>
+  <include name="Gly" version="2"/>
+  <package name="glycin-gtk4-2"/>
+  <c:include name="glycin-gtk4.h"/>
+  <doc:format name="unknown"/>
+  <namespace name="GlyGtk4"
+             version="2"
+             shared-library="libglycin-gtk4-2.so.0"
+             c:identifier-prefixes="GlyGtk4"
+             c:symbol-prefixes="gly_gtk">
+    <function name="frame_get_texture"
+              c:identifier="gly_gtk_frame_get_texture"
+              version="2.0">
+      <doc xml:space="preserve"
+           filename="libglycin/include/glycin-gtk4.h"
+           line="8">Gets the actual image from a frame. See the [class@Gly.Loader] docs
+for a complete example.</doc>
+      <source-position filename="libglycin/include/glycin-gtk4.h" line="19"/>
+      <return-value transfer-ownership="full">
+        <doc xml:space="preserve"
+             filename="libglycin/include/glycin-gtk4.h"
+             line="15">A GDK Texture</doc>
+        <type name="Gdk.Texture" c:type="GdkTexture*"/>
+      </return-value>
+      <parameters>
+        <parameter name="frame" transfer-ownership="none">
+          <doc xml:space="preserve"
+               filename="libglycin/include/glycin-gtk4.h"
+               line="10">Frame</doc>
+          <type name="Gly.Frame" c:type="GlyFrame*"/>
+        </parameter>
+      </parameters>
+    </function>
+  </namespace>
+</repository>

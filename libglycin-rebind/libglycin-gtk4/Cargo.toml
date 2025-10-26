@@ -1,0 +1,57 @@
+[package]
+name = "libglycin-gtk4-rebind"
+version = "0.0.1"
+authors = ["Maximiliano Sandoval <msandova@gnome.org>"]
+edition = "2021"
+readme = "../README.md"
+# TODO
+# homepage = ""
+description = "Rust bindings for libglycin-gtk4"
+license = "MIT"
+repository = "https://gitlab.gnome.org/GNOME/glycin"
+# TODO
+# documentation = ""
+categories = ["api-bindings", "gui"]
+keywords = ["gtk4-rs", "gnome", "glycin", "GUI"]
+
+[lib]
+name = "libglycin_gtk4"
+
+[package.metadata.docs.rs]
+all-features = true
+rustc-args = ["--cfg", "docsrs"]
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
+libc = '0.2'
+
+[dependencies.glib]
+git = "https://github.com/gtk-rs/gtk-rs-core"
+branch = "main"
+version = "0.22"
+
+[dependencies.gio]
+git = "https://github.com/gtk-rs/gtk-rs-core"
+branch = "main"
+version = "0.22"
+
+[dependencies.gtk]
+package = "gtk4"
+git = "https://github.com/gtk-rs/gtk4-rs"
+branch = "main"
+version = "0.11"
+
+[dependencies.gdk]
+package = "gdk4"
+git = "https://github.com/gtk-rs/gtk4-rs"
+branch = "main"
+version = "0.11"
+
+[dependencies.gly]
+package = "libglycin-rebind"
+path = "../libglycin"
+
+[dependencies.ffi]
+package = "libglycin-gtk4-rebind-sys"
+path = './sys'
+version = "0.0.1"

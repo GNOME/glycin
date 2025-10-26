@@ -1,0 +1,33 @@
+[options]
+girs_directories = ["../gir-files", "../"]
+library = "GlyGtk4"
+version = "2"
+min_cfg_version = "2"
+target_path = "."
+use_gi_docgen = true
+work_mode = "normal"
+generate_safety_asserts = true
+deprecate_by_min_version = true
+# with this option enabled, versions for gir and gir-files saved only to one file to minimize noise
+single_version_file = true
+generate_builder = true
+trust_return_value_nullability = true
+
+external_libraries = [
+    "Gio",
+    "GLib",
+    "GObject",
+    "Gdk",
+    "Gly",
+]
+
+manual = [
+    "Gdk.Texture",
+    "Gly.Frame",
+]
+
+[[object]]
+name = "GlyGtk4.*"
+status = "generate"
+    [[object.function]]
+    pattern = "frame_get_texture"

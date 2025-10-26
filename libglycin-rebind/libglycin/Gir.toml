@@ -1,0 +1,48 @@
+[options]
+girs_directories = ["../gir-files", "../"]
+library = "Gly"
+version = "2"
+min_cfg_version = "2.0.1"
+target_path = "."
+use_gi_docgen = true
+work_mode = "normal"
+generate_safety_asserts = true
+deprecate_by_min_version = true
+# with this option enabled, versions for gir and gir-files saved only to one file to minimize noise
+single_version_file = true
+generate_builder = true
+trust_return_value_nullability = true
+
+external_libraries = [
+    "GLib",
+    "GObject",
+    "Gio",
+]
+
+generate = [
+    "Gly.Creator",
+    "Gly.EncodedImage",
+    "Gly.FrameRequest",
+    "Gly.Image",
+    "Gly.Loader",
+    "Gly.MemoryFormat",
+    "Gly.MemoryFormatSelection",
+    "Gly.NewFrame",
+    "Gly.SandboxSelector",
+]
+
+manual = [
+    "GLib.Bytes",
+    "GLib.Error",
+    "Gio.Cancellable",
+    "Gio.File",
+    "Gio.InputStream",
+]
+
+[[object]]
+name = "Gly.Frame"
+status = "generate"
+    [[object.function]]
+    name = "get_color_cicp"
+    # TODO Add accesors for Gly.Cicp.
+    ignore = true

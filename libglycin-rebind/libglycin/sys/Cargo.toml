@@ -1,0 +1,57 @@
+[package]
+name = "libglycin-rebind-sys"
+version = "0.0.1"
+build = "build.rs"
+links = "glycin-2"
+categories = ["api-bindings", "gui"]
+keywords = ["gtk4-rs", "gnome", "glycin", "GUI"]
+description = "FFI bindings for libglycin"
+license = "MIT"
+
+[package.edition]
+workspace = true
+
+[package.metadata.system-deps.glycin_2]
+name = "glycin-2"
+version = "2"
+
+[package.metadata.system-deps.glycin_2.v2]
+version = "2"
+
+[package.metadata.system-deps.glycin_2.v2_0_1]
+version = "2.0.1"
+
+[package.metadata.docs.rs]
+features = []
+rustc-args = ["--cfg", "docsrs"]
+rustdoc-args = ["--cfg", "docsrs", "--generate-link-to-definition"]
+
+[lib]
+name = "libglycin_sys"
+
+[dependencies]
+libc = "0.2"
+
+[dependencies.gio-sys]
+git = "https://github.com/gtk-rs/gtk-rs-core"
+branch = "main"
+version = "0.22"
+
+[dependencies.glib-sys]
+git = "https://github.com/gtk-rs/gtk-rs-core"
+branch = "main"
+version = "0.22"
+
+[dependencies.gobject-sys]
+git = "https://github.com/gtk-rs/gtk-rs-core"
+branch = "main"
+version = "0.22"
+
+[build-dependencies]
+system-deps = "7"
+
+[dev-dependencies]
+shell-words = "1.0.0"
+tempfile = "3"
+
+[features]

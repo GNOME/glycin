@@ -1,3 +1,9 @@
 [submodule "tests/test-images"]
 	path = tests/test-images
 	url = https://gitlab.gnome.org/sophie-h/test-images.git
+[submodule "libglycin-rebind/gir"]
+	path = libglycin-rebind/gir
+	url = https://github.com/gtk-rs/gir.git
+[submodule "libglycin-rebind/gir-files"]
+	path = libglycin-rebind/gir-files
+	url = https://github.com/gtk-rs/gir-files.git

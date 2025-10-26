@@ -1,0 +1,14 @@
+[options]
+work_mode = "sys"
+library = "GlyGtk4"
+version = "2"
+girs_directories = ["../../gir-files", "../../"]
+min_cfg_version = "2"
+external_libraries = [
+   "GLib",
+   "Gdk",
+   "Gly",
+]
+
+ignore = [
+]
