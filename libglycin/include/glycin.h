@@ -250,7 +250,7 @@ void gly_loader_get_mime_types_async(
  *
  * Since: 2.0
  */
-GStrv *gly_loader_get_mime_types_finish(
+GStrv gly_loader_get_mime_types_finish(
     GAsyncResult *result,
     GError **error);
 
