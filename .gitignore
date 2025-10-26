@@ -5,3 +5,5 @@ target/
 tests/failures
 public/
 libglycin-rebind/Cargo.lock
+libglycin-rebind/gir-rustdoc.py
+libglycin-rebind/_rustdoc-html-before-content.html

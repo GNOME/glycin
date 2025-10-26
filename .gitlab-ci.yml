@@ -133,10 +133,36 @@ libglycin-rebind:
   image: rust:1.86-bookworm
   extends: .install_dependencies
   interruptible: true
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+    RUSTDOCFLAGS: "--cfg docsrs"
   script:
     - meson setup -Dbuildtype=debug -Dglycin-loaders=false -Dglycin-thumbnailer=false -Dtest_skip_install=true -Dvapi=false --prefix=/usr builddir
     - meson install -C builddir
     - cargo build --package libglycin-gtk4-rebind --package libglycin-rebind
+    # dependencies for the docs
+    - curl --proto '=https' --tlsv1.2 -sSf -o libglycin-rebind/gir-rustdoc.py
+      https://gitlab.gnome.org/World/Rust/gir-rustdoc/-/raw/main/gir-rustdoc.py
+    - apt update
+    - apt install -y python3-requests
+    # generate the docs
+    - cd libglycin-rebind
+    - cargo install rustdoc-stripper
+    - python3 generator.py --embed-docs --no-fmt
+    - rustup default nightly
+    - eval $(python3 ./gir-rustdoc.py --branch=main pre-docs)
+    - cd ../  # move back to the root
+    - cargo doc --all-features --no-deps --package libglycin-gtk4-rebind --package libglycin-rebind --package libglycin-gtk4-rebind-sys --package libglycin-rebind-sys
+    - mv target/doc/libglycin libglycin-rebind-docs
+    - mv target/doc/libglycin_sys libglycin-rebind-sys-docs
+    - mv target/doc/libglycin_gtk4 libglycin-gtk4-rebind-docs
+    - mv target/doc/libglycin_gtk4_sys libglycin-gtk4-rebind-sys-docs
+  artifacts:
+    paths:
+      - libglycin-rebind-docs
+      - libglycin-rebind-sys-docs
+      - libglycin-gtk4-rebind-docs
+      - libglycin-gtk4-rebind-sys-docs
 
 cargo-fmt:
   image: rust
