@@ -5,7 +5,7 @@
 
 use glib::translate::*;
 
-use crate::{ffi, MemoryFormat};
+use crate::{ffi, Cicp, MemoryFormat};
 
 glib::wrapper! {
     #[doc(alias = "GlyFrame")]
@@ -21,6 +21,12 @@ impl Frame {
     #[doc(alias = "get_buf_bytes")]
     pub fn buf_bytes(&self) -> glib::Bytes {
         unsafe { from_glib_none(ffi::gly_frame_get_buf_bytes(self.to_glib_none().0)) }
+    }
+
+    #[doc(alias = "gly_frame_get_color_cicp")]
+    #[doc(alias = "get_color_cicp")]
+    pub fn color_cicp(&self) -> Option<Cicp> {
+        unsafe { from_glib_full(ffi::gly_frame_get_color_cicp(self.to_glib_none().0)) }
     }
 
     #[doc(alias = "gly_frame_get_delay")]

@@ -22,6 +22,7 @@ external_libraries = [
 generate = [
     "Gly.Creator",
     "Gly.EncodedImage",
+    "Gly.Frame",
     "Gly.FrameRequest",
     "Gly.Image",
     "Gly.Loader",
@@ -40,9 +41,6 @@ manual = [
 ]
 
 [[object]]
-name = "Gly.Frame"
+name = "Gly.Cicp"
 status = "generate"
-    [[object.function]]
-    name = "get_color_cicp"
-    # TODO Add accesors for Gly.Cicp.
-    ignore = true
+boxed_inline = true

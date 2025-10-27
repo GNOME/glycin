@@ -21,3 +21,5 @@ macro_rules! skip_assert_initialized {
 mod auto;
 
 pub use auto::*;
+
+mod cicp;

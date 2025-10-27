@@ -24,6 +24,9 @@ pub use self::loader::Loader;
 mod new_frame;
 pub use self::new_frame::NewFrame;
 
+mod cicp;
+pub use self::cicp::Cicp;
+
 mod enums;
 pub use self::enums::{MemoryFormat, SandboxSelector};
 
