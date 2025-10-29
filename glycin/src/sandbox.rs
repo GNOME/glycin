@@ -248,8 +248,19 @@ impl Sandbox {
 
         unsafe {
             command.pre_exec(move || {
-                libc::close_range(3, libc::c_uint::MAX, libc::CLOSE_RANGE_CLOEXEC as i32);
-
+                #[cfg(not(all(target_os = "linux", target_env = "musl")))]
+                {
+                    libc::close_range(3, libc::c_uint::MAX, libc::CLOSE_RANGE_CLOEXEC as i32);
+                }
+                #[cfg(all(target_os = "linux", target_env = "musl"))]
+                {
+                    libc::syscall(
+                        libc::SYS_close_range,
+                        3,
+                        libc::c_uint::MAX,
+                        libc::CLOSE_RANGE_CLOEXEC as libc::c_uint,
+                    );
+                }
                 // Allow FDs to be passed to child process
                 for raw_fd in &shared_fds {
                     let fd = BorrowedFd::borrow_raw(*raw_fd);
