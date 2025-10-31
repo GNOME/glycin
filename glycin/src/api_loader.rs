@@ -199,6 +199,7 @@ impl Loader {
         "image/x-tga",
         "image/x-dds",
         "image/bmp",
+        "image/x-win-bitmap",
         "image/vnd.microsoft.icon",
         "image/vnd.radiance",
         "image/x-exr",

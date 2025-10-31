@@ -299,7 +299,7 @@ impl ImageRsFormat<Reader> {
             ))
             .format_name("GIF")
             .default_bit_depth(8),
-            "image/vnd.microsoft.icon" => Self::new(ImageRsDecoder::Ico(
+            "image/x-win-bitmap" | "image/vnd.microsoft.icon" => Self::new(ImageRsDecoder::Ico(
                 codecs::ico::IcoDecoder::new(data).expected_error()?,
             ))
             .format_name("ICO"),

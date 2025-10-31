@@ -158,3 +158,10 @@ image/x-exr:
   exif: unsupported
   xmp: false
   animation: unsupported
+
+image/x-win-bitmap:
+  icc: unsupported
+  cicp: unsupported
+  exif: unsupported
+  xmp: unsupported
+  animation: unsupported
