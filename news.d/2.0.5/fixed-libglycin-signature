@@ -1,0 +1,1 @@
+libglycin: Don't mark `gly_image_get_metadata_key_value` return type as const.

@@ -1,7 +1,7 @@
 [package]
 name = "libglycin-gtk4"
 publish = false
-version = "2.0.4"
+version = "2.0.5"
 authors.workspace = true
 description.workspace = true
 license.workspace = true

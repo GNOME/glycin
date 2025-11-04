@@ -1,0 +1,1 @@
+libglycin: Don't return a pointer to GStrv for `gly_loader_get_mime_types_finish`.

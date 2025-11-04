@@ -1,0 +1,1 @@
+Fix build error on musl libc since it doesn't has a `close_range` function.

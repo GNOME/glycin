@@ -1093,7 +1093,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-image-rs"
-version = "2.0.4"
+version = "2.0.5"
 dependencies = [
  "glycin-utils",
  "gufo",
@@ -1564,7 +1564,7 @@ checksum = "6a82ae493e598baaea5209805c49bbf2ea7de956d50d7da0da1164f9c6d28543"
 
 [[package]]
 name = "libglycin"
-version = "2.0.4"
+version = "2.0.5"
 dependencies = [
  "async-global-executor",
  "futures-task",
@@ -1577,7 +1577,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4"
-version = "2.0.4"
+version = "2.0.5"
 dependencies = [
  "gdk4",
  "glycin",
@@ -3290,9 +3290,9 @@ dependencies = [
 
 [[package]]
 name = "zune-jpeg"
-version = "0.4.20"
+version = "0.4.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc1f7e205ce79eb2da3cd71c5f55f3589785cb7c79f6a03d1c8d1491bda5d089"
+checksum = "29ce2c8a9384ad323cf564b67da86e21d3cfdff87908bc1223ed5c99bc792713"
 dependencies = [
  "zune-core",
 ]
