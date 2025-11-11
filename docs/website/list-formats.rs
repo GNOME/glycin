@@ -116,6 +116,15 @@ fn main() {
         }
     }
 
+    let output_type = std::env::args().nth(1).unwrap();
+    match output_type.as_ref() {
+        "html" => output_html(info),
+        "markdown" => output_markdown(info),
+        t => eprintln!("Unknown output type '{t}'"),
+    }
+}
+
+fn output_html(info: BTreeMap<String, Format>) {
     let s = &mut String::new();
     for (mime_type, info) in info {
         let ext = if let Some(ext) = glycin::MimeType::new(mime_type.clone()).extension() {
@@ -150,6 +159,19 @@ fn main() {
 
             s.push_str("</ul>");
         }
+    }
+    print!("{s}");
+}
+
+fn output_markdown(info: BTreeMap<String, Format>) {
+    let s = &mut String::new();
+    for (mime_type, info) in info {
+        let ext = if let Some(ext) = glycin::MimeType::new(mime_type.clone()).extension() {
+            ext.to_uppercase()
+        } else {
+            info.description
+        };
+        println!("| {ext} | {} |", info.loader.unwrap().name);
     }
     print!("{s}");
 }
