@@ -9,7 +9,7 @@
     },
     "glycin-image-rs": {
         "version": "2.0.5",
-        "state": "changed"
+        "state": "unchanged"
     },
     "glycin-jpeg2000": {
         "version": "2.0.4",
@@ -36,15 +36,15 @@
         "state": "unchanged"
     },
     "glycin": {
-        "version": "3.0.4",
-        "state": "unchanged"
+        "version": "3.0.6",
+        "state": "changed"
     },
     "libglycin": {
-        "version": "2.0.5",
+        "version": "2.0.6",
         "state": "changed"
     },
     "libglycin-gtk4": {
-        "version": "2.0.5",
+        "version": "2.0.6",
         "state": "changed"
     }
 }
