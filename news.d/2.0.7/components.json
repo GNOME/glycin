@@ -36,15 +36,15 @@
         "state": "unchanged"
     },
     "glycin": {
-        "version": "3.0.6",
+        "version": "3.0.7",
         "state": "changed"
     },
     "libglycin": {
-        "version": "2.0.6",
+        "version": "2.0.7",
         "state": "changed"
     },
     "libglycin-gtk4": {
-        "version": "2.0.6",
+        "version": "2.0.7",
         "state": "changed"
     }
 }
