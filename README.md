@@ -69,20 +69,20 @@ The following features are supported by the glycin loaders provided in the [load
 Loader configurations are read by the client library from `XDG_DATA_DIRS` and `XDG_DATA_HOME`. The location is typically of the from
 
 ```
-<data-dir>/share/glycin/<compat-version>+/conf.d/<loader-name>.conf
+<data-dir>/share/glycin-loaders/<compat-version>+/conf.d/<loader-name>.conf
 ```
 
 so for example
 
 ```
-<data-dir>/share/glycin/0+/conf.d/glyicn-image-rs.conf
+<data-dir>/share/glycin-loaders/2+/conf.d/glycin-image-rs.conf
 ```
 
 The configs are [glib KeyFiles](https://docs.gtk.org/glib/struct.KeyFile.html) of the the form
 
 ```ini
 [loader:image/png]
-Exec = /usr/libexec/glycin/2+/glycin-image-rs
+Exec = /usr/libexec/glycin-loaders/2+/glycin-image-rs
 ```
 
 Where the part behind `loader` is a mime-type and the value of `Exec` can be any executable path.
