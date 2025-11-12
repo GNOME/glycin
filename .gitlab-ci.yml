@@ -125,7 +125,9 @@ cargo-semver-checks:
     - meson install -C builddir
     - cargo install cargo-semver-checks --locked
     - cargo semver-checks -p glycin -p glycin-utils
-    - cargo semver-checks -p libglycin -p libglycin-gtk4 --baseline-rev 2.0.0
+    # Use the 2.0.1 commit hash since forks might not have tags and therefore
+    # building merge requests might fail.
+    - cargo semver-checks -p libglycin -p libglycin-gtk4 --baseline-rev d992950c
 
 cargo-fmt:
   image: rust
