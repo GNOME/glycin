@@ -33,19 +33,13 @@ name = "libglycin_sys"
 libc = "0.2"
 
 [dependencies.gio-sys]
-git = "https://github.com/gtk-rs/gtk-rs-core"
-branch = "main"
-version = "0.22"
+version = "0.21"
 
 [dependencies.glib-sys]
-git = "https://github.com/gtk-rs/gtk-rs-core"
-branch = "main"
-version = "0.22"
+version = "0.21"
 
 [dependencies.gobject-sys]
-git = "https://github.com/gtk-rs/gtk-rs-core"
-branch = "main"
-version = "0.22"
+version = "0.21"
 
 [build-dependencies]
 system-deps = "7"

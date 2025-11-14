@@ -29,15 +29,11 @@ name = "libglycin_gtk4_sys"
 libc = "0.2"
 
 [dependencies.glib-sys]
-git = "https://github.com/gtk-rs/gtk-rs-core"
-branch = "main"
-version = "0.22"
+version = "0.21"
 
 [dependencies.gdk-sys]
 package = "gdk4-sys"
-git = "https://github.com/gtk-rs/gtk4-rs"
-branch = "main"
-version = "0.11"
+version = "0.10"
 
 [dependencies.gly-sys]
 package = "libglycin-rebind-sys"
