@@ -22,4 +22,8 @@ mod auto;
 
 pub use auto::*;
 
+pub mod builders {
+    pub use super::auto::builders::*;
+}
+
 mod cicp;

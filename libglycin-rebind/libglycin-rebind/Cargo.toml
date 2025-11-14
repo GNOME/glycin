@@ -14,9 +14,6 @@ repository = "https://gitlab.gnome.org/GNOME/glycin"
 categories = ["api-bindings", "gui"]
 keywords = ["gtk4-rs", "gnome", "glycin", "GUI"]
 
-[lib]
-name = "libglycin"
-
 [package.metadata.docs.rs]
 all-features = true
 rustc-args = ["--cfg", "docsrs"]

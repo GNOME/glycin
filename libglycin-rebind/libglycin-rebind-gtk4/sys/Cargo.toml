@@ -22,9 +22,6 @@ rustc-args = ["--cfg", "docsrs"]
 rustdoc-args = ["--cfg", "docsrs", "--generate-link-to-definition"]
 all-features = true
 
-[lib]
-name = "libglycin_gtk4_sys"
-
 [dependencies]
 libc = "0.2"
 

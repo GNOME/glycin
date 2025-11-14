@@ -26,9 +26,6 @@ features = []
 rustc-args = ["--cfg", "docsrs"]
 rustdoc-args = ["--cfg", "docsrs", "--generate-link-to-definition"]
 
-[lib]
-name = "libglycin_sys"
-
 [dependencies]
 libc = "0.2"
 
