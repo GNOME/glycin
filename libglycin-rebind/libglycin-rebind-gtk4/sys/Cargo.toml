@@ -41,7 +41,7 @@ version = "0.11"
 
 [dependencies.gly-sys]
 package = "libglycin-rebind-sys"
-path = "../../libglycin/sys"
+path = "../../libglycin-rebind/sys"
 
 [build-dependencies]
 system-deps = "7"

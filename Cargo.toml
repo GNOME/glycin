@@ -29,14 +29,12 @@ members = [
     "libglycin",
     "libglycin/libglycin-gtk4",
     "tests",
-    "libglycin-rebind/libglycin",
-    "libglycin-rebind/libglycin/sys",
-    "libglycin-rebind/libglycin-gtk4",
-    "libglycin-rebind/libglycin-gtk4/sys",
+    "libglycin-rebind/libglycin-rebind",
+    "libglycin-rebind/libglycin-rebind/sys",
+    "libglycin-rebind/libglycin-rebind-gtk4",
+    "libglycin-rebind/libglycin-rebind-gtk4/sys",
 ]
-exclude = [
-    "libglycin-rebind/gir",
-]
+exclude = ["libglycin-rebind/gir"]
 default-members = [
     "glycin",
     "glycin-common",
