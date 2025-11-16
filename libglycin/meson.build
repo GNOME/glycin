@@ -51,6 +51,8 @@ if get_option('libglycin-gtk4')
     }
 endif
 
+global_libglycin_gir = 'non-existent'
+
 foreach package : packages
     suffix = package['suffix']
     namespace_suffix = package['namespace_suffix']
