@@ -116,6 +116,6 @@ $ sed -i s/'<array c:type="GStrv">'/'<array c:type="gchar**">'/ Gly-2.gir
 then regenerate the bindings
 
 ``` sh
-$ (cd libglycin-rebind && ./gir/generator.py)
+$ (cd libglycin-rebind && ./gir/generator.py --no-fmt)
 $ cargo +nightly fmt
 ```
