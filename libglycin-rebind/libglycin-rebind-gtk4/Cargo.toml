@@ -28,10 +28,6 @@ version = "0.21"
 [dependencies.gio]
 version = "0.21"
 
-[dependencies.gtk]
-package = "gtk4"
-version = "0.10"
-
 [dependencies.gdk]
 package = "gdk4"
 version = "0.10"
