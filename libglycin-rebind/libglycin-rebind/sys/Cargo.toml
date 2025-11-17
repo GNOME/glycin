@@ -10,6 +10,7 @@ description = "FFI bindings for libglycin"
 license = "MIT"
 homepage.workspace = true
 repository.workspace = true
+exclude = ["Gir.toml"]
 
 [package.metadata.system-deps.glycin_2]
 name = "glycin-2"

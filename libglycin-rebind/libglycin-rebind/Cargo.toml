@@ -13,6 +13,7 @@ homepage.workspace = true
 repository.workspace = true
 categories = ["api-bindings"]
 keywords = ["gnome", "glycin"]
+exclude = ["Gir.toml"]
 
 [package.metadata.docs.rs]
 all-features = true

@@ -13,6 +13,7 @@ repository.workspace = true
 # documentation = ""
 categories = ["api-bindings", "gui"]
 keywords = ["gtk4-rs", "gnome", "glycin", "GUI"]
+exclude = ["Gir.toml"]
 
 [package.metadata.docs.rs]
 all-features = true
