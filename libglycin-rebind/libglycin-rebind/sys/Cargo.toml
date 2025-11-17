@@ -1,15 +1,15 @@
 [package]
 name = "libglycin-rebind-sys"
 version = "0.0.1"
-build = "build.rs"
 links = "glycin-2"
-categories = ["api-bindings", "gui"]
-keywords = ["gtk4-rs", "gnome", "glycin", "GUI"]
+edition.workspace = true
+rust-version.workspace = true
+categories = ["api-bindings"]
+keywords = ["gnome", "glycin"]
 description = "FFI bindings for libglycin"
 license = "MIT"
-
-[package.edition]
-workspace = true
+homepage.workspace = true
+repository.workspace = true
 
 [package.metadata.system-deps.glycin_2]
 name = "glycin-2"

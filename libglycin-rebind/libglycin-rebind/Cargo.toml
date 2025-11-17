@@ -3,16 +3,16 @@ name = "libglycin-rebind"
 version = "0.0.1"
 authors = ["Maximiliano Sandoval <msandova@gnome.org>"]
 edition.workspace = true
+rust-version.workspace = true
 readme = "../README.md"
-# TODO
-# homepage = ""
-description = "Rust bindings for libglycin"
+description = "Safe bindings for libglycin"
 license = "MIT"
-repository = "https://gitlab.gnome.org/GNOME/glycin"
 # TODO
 # documentation = ""
-categories = ["api-bindings", "gui"]
-keywords = ["gtk4-rs", "gnome", "glycin", "GUI"]
+homepage.workspace = true
+repository.workspace = true
+categories = ["api-bindings"]
+keywords = ["gnome", "glycin"]
 
 [package.metadata.docs.rs]
 all-features = true

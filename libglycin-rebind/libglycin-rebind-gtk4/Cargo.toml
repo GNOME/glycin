@@ -2,13 +2,13 @@
 name = "libglycin-gtk4-rebind"
 version = "0.0.1"
 authors = ["Maximiliano Sandoval <msandova@gnome.org>"]
-edition = "2021"
+edition.workspace = true
+rust-version.workspace = true
 readme = "../README.md"
-# TODO
-# homepage = ""
-description = "Rust bindings for libglycin-gtk4"
+description = "Safe bindings for libglycin-gtk4"
 license = "MIT"
-repository = "https://gitlab.gnome.org/GNOME/glycin"
+homepage.workspace = true
+repository.workspace = true
 # TODO
 # documentation = ""
 categories = ["api-bindings", "gui"]
@@ -35,6 +35,7 @@ version = "0.10"
 [dependencies.gly]
 package = "libglycin-rebind"
 path = "../libglycin-rebind"
+version = "0.0.1"
 
 [dependencies.ffi]
 package = "libglycin-gtk4-rebind-sys"
