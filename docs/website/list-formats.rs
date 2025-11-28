@@ -6,10 +6,12 @@ glib = "0.21"
 gio = "0.21"
 async-io = "2.5"
 serde = { version = "1.0", features = ["derive"] }
-serde_yaml_ng = { version = "0.10" }
+serde_yaml_ng = "0.10"
+itertools = "0.14"
 ---
 
 use glycin::OperationId;
+use itertools::Itertools;
 use std::collections::BTreeMap;
 
 #[derive(Debug)]
@@ -41,7 +43,38 @@ struct Details {
     cicp: Option<String>,
     xmp: Option<String>,
     animation: Option<String>,
-    loader_codec: Option<Codec>,
+    #[serde(default)]
+    loader_codec: Codecs,
+}
+
+#[derive(Debug, Clone, serde::Deserialize)]
+#[serde(untagged)]
+enum Codecs {
+    Codecs(Vec<Codec>),
+    Codec(Codec),
+}
+
+impl Default for Codecs {
+    fn default() -> Self {
+        Self::Codecs(Vec::new())
+    }
+}
+
+impl Codecs {
+    fn to_vec(&self) -> Vec<Codec> {
+        match self {
+            Self::Codec(c) => vec![c.to_owned()],
+            Self::Codecs(v) => v.to_vec(),
+        }
+    }
+
+    fn html(&self) -> String {
+        self.to_vec().into_iter().map(|x| x.html()).join(", ")
+    }
+
+    fn markdown(&self) -> String {
+        self.to_vec().into_iter().map(|x| x.markdown()).join(", ")
+    }
 }
 
 #[derive(Debug, Clone, serde::Deserialize)]
@@ -52,13 +85,24 @@ enum Codec {
 }
 
 impl Codec {
-    fn display(&self) -> String {
+    fn html(&self) -> String {
         match self {
             Self::Crate(cr) => {
                 format!(", codec: <a href='https://crates.io/crates/{cr}'>{cr}</a> (Rust)")
             }
             Self::CodecDetails(CodecDetails { name, url, lang }) => {
                 format!(", codec: <a href='{url}'>{name}</a> ({lang})")
+            }
+        }
+    }
+
+    fn markdown(&self) -> String {
+        match self {
+            Self::Crate(cr) => {
+                format!("[{cr}](https://crates.io/crates/{cr}) (Rust)")
+            }
+            Self::CodecDetails(CodecDetails { name, url, lang }) => {
+                format!("[{name}]({url}) ({lang})")
             }
         }
     }
@@ -72,11 +116,27 @@ struct CodecDetails {
 }
 
 fn main() {
+    let info = info();
+
+    match std::env::args().nth(1).unwrap().as_str() {
+        "html" => {
+            println!("{}", html(info));
+        }
+        "markdown" => {
+            println!("{}", markdown(info));
+        }
+        format => panic!("Unknown output format: {format}"),
+    }
+}
+
+fn info() -> BTreeMap<String, Format> {
     let mut info = BTreeMap::<String, Format>::new();
 
     let details: BTreeMap<String, Details> =
         serde_yaml_ng::from_reader(std::fs::File::open("docs/website/format-details.yml").unwrap())
             .unwrap();
+
+    dbg!(&details);
 
     for entry in std::fs::read_dir("glycin-loaders").unwrap() {
         let entry = entry.unwrap();
@@ -114,7 +174,7 @@ fn main() {
 
                 let mut config = glycin::config::Config::default();
                 async_io::block_on(glycin::config::Config::load_file(&path, &mut config)).unwrap();
-                let mut entry = info.entry(mime_type.to_string()).or_default();
+                let entry = info.entry(mime_type.to_string()).or_default();
 
                 entry.mime_type = mime_type.to_string();
                 entry.description =
@@ -145,7 +205,12 @@ fn main() {
         }
     }
 
-    let s = &mut String::new();
+    info
+}
+
+fn html(info: BTreeMap<String, Format>) -> String {
+    let mut html = String::new();
+    let s = &mut html;
     for (mime_type, info) in info {
         let ext = if let Some(ext) = glycin::MimeType::new(mime_type.clone()).extension() {
             format!(" (.{ext})")
@@ -157,10 +222,7 @@ fn main() {
         s.push_str(&format!(
             "<h4>Loader: {}{}</h4>",
             info.loader.unwrap().name,
-            info.details
-                .loader_codec
-                .map(|x| x.display())
-                .unwrap_or_default()
+            info.details.loader_codec.html()
         ));
 
         s.push_str("<ul class='features'>");
@@ -187,7 +249,36 @@ fn main() {
             s.push_str("</ul>");
         }
     }
-    print!("{s}");
+
+    html
+}
+
+fn markdown(info: BTreeMap<String, Format>) -> String {
+    let mut markdown = String::new();
+    let s = &mut markdown;
+
+    s.push_str("| Format | Glycin Loader | Decoder |\n");
+    s.push_str("|-|-|-|\n");
+
+    for (mime_type, info) in info {
+        let ext = if let Some(ext) = glycin::MimeType::new(mime_type.clone()).extension() {
+            format!(" (.{ext})")
+        } else {
+            String::new()
+        };
+
+        s.push_str("| ");
+
+        s.push_str(&format!("{} {ext} |", info.description));
+
+        s.push_str(&format!(" {} |", info.loader.unwrap().name,));
+
+        s.push_str(&format!("{} |", info.details.loader_codec.markdown()));
+
+        s.push_str("\n");
+    }
+
+    markdown
 }
 
 fn add_entry(s: &mut String, name: &str, value: &str) {
