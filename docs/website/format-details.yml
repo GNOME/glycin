@@ -80,7 +80,7 @@ image/svg+xml:
   loader-codec:
     name: librsvg
     url: https://gitlab.gnome.org/GNOME/librsvg
-    lang: Rust/C
+    lang: C/Rust
 
 image/svg+xml-compressed:
   icc: false
@@ -91,7 +91,7 @@ image/svg+xml-compressed:
   loader-codec:
     name: librsvg
     url: https://gitlab.gnome.org/GNOME/librsvg
-    lang: Rust/C
+    lang: C/Rust
 
 image/gif:
   icc: unsupported

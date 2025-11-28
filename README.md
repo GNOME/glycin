@@ -33,36 +33,43 @@ Glycin is based on technologies like memfds, unix sockets, and linux namespaces.
 
 ## Supported Image Formats
 
-The following features are supported by the glycin loaders provided in the [loaders](loaders) directory.
+The following formats are supported by the glycin loaders provided in the [loaders](loaders) directory. You can learn more about the supported features for each format on the [glycin website](https://gnome.pages.gitlab.gnome.org/glycin/#supported-image-formats).
 
-| Format       | Decoder  | ICC | CICP | EXIF | XMP | Animation | Library                    |
-|--------------|----------|-----|------|------|-----|-----------|----------------------------|
-| AVIF         | heif     | ✔   | ✔    | ✔    | ✘   | ✘         | libheif-rs + libheif (C++) |
-| BMP          | image-rs | ✘   | —    | —    | —   | —         | image-rs                   |
-| Camera RAW † | raw      | —   | —    | ✘    | ✔ § | —         | libopenraw                 |
-| DDS          | image-rs | —   | —    | —    | —   | —         | image-rs                   |
-| farbfeld     | no mime  | —   | —    | —    | —   | —         | image-rs                   |
-| QOI          | image-rs | —   | —    | —    | —   | —         | image-rs                   |
-| GIF          | image-rs | ✘   | —    | —    | ✘   | ✔         | image-rs                   |
-| HEIC         | heif     | ✔   | ✔    | ✔    | ✘   | ✘         | libheif-rs + libheif (C++) |
-| ICO          | image-rs | —   | —    | —    | —   | —         | image-rs                   |
-| JPEG         | image-rs | ✔   | —    | ✔    | ✔   | —         | image-rs                   |
-| JPEG XL      | jxl      | ✔   | ✘    | ✔    | ✘   | ✘         | jpegxl-rs + libjxl (C++)   |
-| OpenEXR      | image-rs | —   | —    | —    | —   | —         | image-rs                   |
-| PNG          | image-rs | ✔   | ✔    | ✔    | ✔   | ✔         | image-rs                   |
-| PNM          | image-rs | —   | —    | —    | —   | —         | image-rs                   |
-| SVG          | image-rs | ✘   | —    | —    | ✘   | —         | librsvg + gio/cairo (C)    |
-| TGA          | image-rs | —   | —    | —    | —   | —         | image-rs                   |
-| TIFF         | image-rs | ✔   | —    | ✔    | ✘   | —         | image-rs                   |
-| WEBP         | image-rs | ✔   | —    | ✔    | ✘   | ✔         | image-rs                   |
-
-| Symbol | Meaning                                     |
-|--------|---------------------------------------------|
-| ✔      | Supported                                   |
-| ✘      | Supported by format but not implemented yet |
-| —      | Not available for this format               |
-| †      | Camera RAW format support varies            |
-| §      | DNG or XMP sidecar if available             |
+| Format | Glycin Loader | Decoder |
+|-|-|-|
+| Animated PNG image  | glycin-image-rs |[png](https://crates.io/crates/png) (Rust) |
+| AVIF image  (.avif) | glycin-heif |[libheif](https://github.com/strukturag/libheif) (C++) |
+| Windows BMP image  (.bmp) | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
+| GIF image  (.gif) | glycin-image-rs |[gif](https://crates.io/crates/gif) (Rust) |
+| HEIF image  (.heic) | glycin-heif |[libheif](https://github.com/strukturag/libheif) (C++) |
+| JPEG-2000 JP2 image  | glycin-jpeg2000 |[jpeg2k](https://crates.io/crates/jpeg2k) (Rust) |
+| JPEG image  (.jpg) | glycin-image-rs |[zune-jpeg](https://crates.io/crates/zune-jpeg) (Rust) |
+| JPEG XL image  (.jxl) | glycin-jxl |[libjxl](https://github.com/libjxl/libjxl) (C++) |
+| PNG image  (.png) | glycin-image-rs |[png](https://crates.io/crates/png) (Rust) |
+| Quite OK Image Format  (.qoi) | glycin-image-rs |[qoi](https://crates.io/crates/qoi) (Rust) |
+| SVG image  | glycin-svg |[librsvg](https://gitlab.gnome.org/GNOME/librsvg) (C/Rust) |
+| Compressed SVG image  | glycin-svg |[librsvg](https://gitlab.gnome.org/GNOME/librsvg) (C/Rust) |
+| TIFF image  (.tiff) | glycin-image-rs |[tiff](https://crates.io/crates/tiff) (Rust) |
+| Windows icon  (.ico) | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust), [bmp](https://crates.io/crates/bmp) (Rust), [png](https://crates.io/crates/png) (Rust) |
+| WebP image  (.webp) | glycin-image-rs |[image-webp](https://crates.io/crates/image-webp) (Rust) |
+| Adobe DNG negative  | glycin-raw | |
+| Canon CR2 raw image  | glycin-raw | |
+| DirectDraw surface  (.dds) | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust) |
+| image/x-epson-erf type  | glycin-raw | |
+| EXR image  (.exr) | glycin-image-rs |[exr](https://crates.io/crates/exr) (Rust) |
+| Minolta MRW raw image  | glycin-raw | |
+| Olympus ORF raw image  | glycin-raw | |
+| Panasonic raw image  | glycin-raw | |
+| Panasonic raw image  | glycin-raw | |
+| Pentax PEF raw image  | glycin-raw | |
+| PNM image  | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust) |
+| PBM image  | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust) |
+| PGM image  | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust) |
+| PPM image  | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust) |
+| image/x-qoi type  | glycin-image-rs |[qoi](https://crates.io/crates/qoi) (Rust) |
+| Sony SRF raw image  | glycin-raw | |
+| TGA image  (.tga) | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust) |
+| Windows cursor  | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust), [bmp](https://crates.io/crates/bmp) (Rust), [png](https://crates.io/crates/png) (Rust) |
 
 ## Image Loader Configuration
 
@@ -120,7 +127,7 @@ For information on how to implement a loader, please consult the [`glycin-utils`
 
 ## Packaging Status
 
-[![Packaging Status](https://repology.org/badge/vertical-allrepos/glycin-loaders.svg?exclude_unsupported=1&header=)](https://repology.org/project/glycin-loaders/versions)
+[![Packaging Status](https://repology.org/badge/vertical-allrepos/glycin.svg?exclude_unsupported=1&header=&minversion=2)](https://repology.org/project/glycin/versions)
 
 ## Apps Using Glycin
 
