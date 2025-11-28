@@ -99,7 +99,7 @@ image/gif:
   exif: unsupported
   xmp: false
   animation: true
-  code: gif
+  loader-codec: gif
 
 image/bmp:
   icc: false
@@ -139,6 +139,7 @@ image/x-tga:
   exif: unsupported
   xmp: unsupported
   animation: unsupported
+  loader-codec: image-rs
 
 image/vnd.microsoft.icon:
   icc: unsupported
@@ -146,6 +147,7 @@ image/vnd.microsoft.icon:
   exif: unsupported
   xmp: unsupported
   animation: unsupported
+  loader-codec: [image-rs, bmp, png]
 
 image/x-dds:
   icc: unsupported
@@ -153,6 +155,7 @@ image/x-dds:
   exif: unsupported
   xmp: unsupported
   animation: unsupported
+  loader-codec: image-rs
 
 image/x-portable-anymap:
   icc: unsupported
@@ -160,6 +163,7 @@ image/x-portable-anymap:
   exif: unsupported
   xmp: unsupported
   animation: unsupported
+  loader-codec: image-rs
 
 image/x-portable-bitmap:
   icc: unsupported
@@ -167,6 +171,7 @@ image/x-portable-bitmap:
   exif: unsupported
   xmp: unsupported
   animation: unsupported
+  loader-codec: image-rs
 
 image/x-portable-graymap:
   icc: unsupported
@@ -174,6 +179,7 @@ image/x-portable-graymap:
   exif: unsupported
   xmp: unsupported
   animation: unsupported
+  loader-codec: image-rs
 
 image/x-portable-pixmap:
   icc: unsupported
@@ -181,6 +187,7 @@ image/x-portable-pixmap:
   exif: unsupported
   xmp: unsupported
   animation: unsupported
+  loader-codec: image-rs
 
 image/x-exr:
   icc: false
@@ -188,6 +195,7 @@ image/x-exr:
   exif: unsupported
   xmp: false
   animation: unsupported
+  loader-codec: exr
 
 image/x-win-bitmap:
   icc: unsupported
@@ -195,3 +203,4 @@ image/x-win-bitmap:
   exif: unsupported
   xmp: unsupported
   animation: unsupported
+  loader-codec: [image-rs, bmp, png]
