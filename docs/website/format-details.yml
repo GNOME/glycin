@@ -4,6 +4,7 @@ image/jpeg:
   exif: true
   xmp: true
   animation: unsupported
+  loader-codec: zune-jpeg
 
 image/heif:
   icc: true
@@ -11,6 +12,10 @@ image/heif:
   exif: true
   xmp: false
   animation: false
+  loader-codec:
+    name: libheif
+    url: https://github.com/strukturag/libheif
+    lang: C++
 
 image/avif:
   icc: true
@@ -18,6 +23,10 @@ image/avif:
   exif: true
   xmp: false
   animation: false
+  loader-codec:
+    name: libheif
+    url: https://github.com/strukturag/libheif
+    lang: C++
 
 image/jxl:
   icc: true
@@ -25,6 +34,10 @@ image/jxl:
   exif: true
   xmp: false
   animation: false
+  loader-codec:
+    name: libjxl
+    url: https://github.com/libjxl/libjxl
+    lang: C++
 
 image/png:
   icc: true
@@ -32,6 +45,7 @@ image/png:
   exif: true
   xmp: true
   animation: unsupported
+  loader-codec: png
 
 image/apng:
   icc: true
@@ -39,6 +53,7 @@ image/apng:
   exif: true
   xmp: true
   animation: true
+  loader-codec: png
 
 image/webp:
   icc: true
@@ -46,6 +61,7 @@ image/webp:
   exif: true
   xmp: false
   animation: true
+  loader-codec: image-webp
 
 image/tiff:
   icc: true
@@ -53,6 +69,7 @@ image/tiff:
   cicp: false
   xmp: false
   animation: unsupported
+  loader-codec: tiff
 
 image/svg+xml:
   icc: false
@@ -60,6 +77,10 @@ image/svg+xml:
   cicp: unsupported
   xmp: false
   animation: unsupported
+  loader-codec:
+    name: librsvg
+    url: https://gitlab.gnome.org/GNOME/librsvg
+    lang: Rust/C
 
 image/svg+xml-compressed:
   icc: false
@@ -67,6 +88,10 @@ image/svg+xml-compressed:
   cicp: unsupported
   xmp: false
   animation: unsupported
+  loader-codec:
+    name: librsvg
+    url: https://gitlab.gnome.org/GNOME/librsvg
+    lang: Rust/C
 
 image/gif:
   icc: unsupported
@@ -74,6 +99,7 @@ image/gif:
   exif: unsupported
   xmp: false
   animation: true
+  code: gif
 
 image/bmp:
   icc: false
@@ -81,6 +107,7 @@ image/bmp:
   exif: unsupported
   xmp: unsupported
   animation: unsupported
+  loader-codec: image
 
 image/qoi:
   icc: unsupported
@@ -88,6 +115,7 @@ image/qoi:
   exif: unsupported
   xmp: unsupported
   animation: unsupported
+  loader-codec: qoi
 
 image/x-qoi:
   icc: unsupported
@@ -95,6 +123,7 @@ image/x-qoi:
   exif: unsupported
   xmp: unsupported
   animation: unsupported
+  loader-codec: qoi
 
 image/jp2:
   icc: false
@@ -102,6 +131,7 @@ image/jp2:
   exif: false
   xmp: false
   animation: unsupported
+  loader-codec: jpeg2k
 
 image/x-tga:
   icc: unsupported

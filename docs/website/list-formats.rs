@@ -34,12 +34,41 @@ struct Format {
 }
 
 #[derive(Debug, Default, Clone, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
 struct Details {
     exif: Option<String>,
     icc: Option<String>,
     cicp: Option<String>,
     xmp: Option<String>,
     animation: Option<String>,
+    loader_codec: Option<Codec>,
+}
+
+#[derive(Debug, Clone, serde::Deserialize)]
+#[serde(untagged)]
+enum Codec {
+    Crate(String),
+    CodecDetails(CodecDetails),
+}
+
+impl Codec {
+    fn display(&self) -> String {
+        match self {
+            Self::Crate(cr) => {
+                format!(", codec: <a href='https://crates.io/crates/{cr}'>{cr}</a> (Rust)")
+            }
+            Self::CodecDetails(CodecDetails { name, url, lang }) => {
+                format!(", codec: <a href='{url}'>{name}</a> ({lang})")
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, serde::Deserialize)]
+struct CodecDetails {
+    name: String,
+    url: String,
+    lang: String,
 }
 
 fn main() {
@@ -125,7 +154,14 @@ fn main() {
         };
         s.push_str(&format!("<h3>{} – {mime_type}{ext}</h3>", info.description));
 
-        s.push_str(&format!("<h4>Loader: {}</h4>", info.loader.unwrap().name));
+        s.push_str(&format!(
+            "<h4>Loader: {}{}</h4>",
+            info.loader.unwrap().name,
+            info.details
+                .loader_codec
+                .map(|x| x.display())
+                .unwrap_or_default()
+        ));
 
         s.push_str("<ul class='features'>");
         add_flag(s, "ICC Profile", info.details.icc);
