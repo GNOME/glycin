@@ -272,11 +272,13 @@ impl Loader {
     }
 
     #[doc(alias = "apply-transformation")]
-    pub fn connect_apply_transformation_notify<F: Fn(&Self) + 'static>(
+    pub fn connect_apply_transformation_notify<F: Fn(&Self) + Send + Sync + 'static>(
         &self,
         f: F,
     ) -> SignalHandlerId {
-        unsafe extern "C" fn notify_apply_transformation_trampoline<F: Fn(&Loader) + 'static>(
+        unsafe extern "C" fn notify_apply_transformation_trampoline<
+            F: Fn(&Loader) + Send + Sync + 'static,
+        >(
             this: *mut ffi::GlyLoader,
             _param_spec: glib::ffi::gpointer,
             f: glib::ffi::gpointer,
@@ -298,8 +300,13 @@ impl Loader {
     }
 
     #[doc(alias = "cancellable")]
-    pub fn connect_cancellable_notify<F: Fn(&Self) + 'static>(&self, f: F) -> SignalHandlerId {
-        unsafe extern "C" fn notify_cancellable_trampoline<F: Fn(&Loader) + 'static>(
+    pub fn connect_cancellable_notify<F: Fn(&Self) + Send + Sync + 'static>(
+        &self,
+        f: F,
+    ) -> SignalHandlerId {
+        unsafe extern "C" fn notify_cancellable_trampoline<
+            F: Fn(&Loader) + Send + Sync + 'static,
+        >(
             this: *mut ffi::GlyLoader,
             _param_spec: glib::ffi::gpointer,
             f: glib::ffi::gpointer,
@@ -321,11 +328,13 @@ impl Loader {
     }
 
     #[doc(alias = "memory-format-selection")]
-    pub fn connect_memory_format_selection_notify<F: Fn(&Self) + 'static>(
+    pub fn connect_memory_format_selection_notify<F: Fn(&Self) + Send + Sync + 'static>(
         &self,
         f: F,
     ) -> SignalHandlerId {
-        unsafe extern "C" fn notify_memory_format_selection_trampoline<F: Fn(&Loader) + 'static>(
+        unsafe extern "C" fn notify_memory_format_selection_trampoline<
+            F: Fn(&Loader) + Send + Sync + 'static,
+        >(
             this: *mut ffi::GlyLoader,
             _param_spec: glib::ffi::gpointer,
             f: glib::ffi::gpointer,
@@ -347,8 +356,13 @@ impl Loader {
     }
 
     #[doc(alias = "sandbox-selector")]
-    pub fn connect_sandbox_selector_notify<F: Fn(&Self) + 'static>(&self, f: F) -> SignalHandlerId {
-        unsafe extern "C" fn notify_sandbox_selector_trampoline<F: Fn(&Loader) + 'static>(
+    pub fn connect_sandbox_selector_notify<F: Fn(&Self) + Send + Sync + 'static>(
+        &self,
+        f: F,
+    ) -> SignalHandlerId {
+        unsafe extern "C" fn notify_sandbox_selector_trampoline<
+            F: Fn(&Loader) + Send + Sync + 'static,
+        >(
             this: *mut ffi::GlyLoader,
             _param_spec: glib::ffi::gpointer,
             f: glib::ffi::gpointer,
@@ -448,3 +462,6 @@ impl LoaderBuilder {
         self.builder.build()
     }
 }
+
+unsafe impl Send for Loader {}
+unsafe impl Sync for Loader {}

@@ -12,6 +12,7 @@ deprecate_by_min_version = true
 single_version_file = true
 generate_builder = true
 trust_return_value_nullability = true
+concurrency = "send+sync"
 
 external_libraries = [
     "GLib",

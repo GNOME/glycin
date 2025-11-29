@@ -226,8 +226,13 @@ impl Creator {
     }
 
     #[doc(alias = "sandbox-selector")]
-    pub fn connect_sandbox_selector_notify<F: Fn(&Self) + 'static>(&self, f: F) -> SignalHandlerId {
-        unsafe extern "C" fn notify_sandbox_selector_trampoline<F: Fn(&Creator) + 'static>(
+    pub fn connect_sandbox_selector_notify<F: Fn(&Self) + Send + Sync + 'static>(
+        &self,
+        f: F,
+    ) -> SignalHandlerId {
+        unsafe extern "C" fn notify_sandbox_selector_trampoline<
+            F: Fn(&Creator) + Send + Sync + 'static,
+        >(
             this: *mut ffi::GlyCreator,
             _param_spec: glib::ffi::gpointer,
             f: glib::ffi::gpointer,
@@ -285,3 +290,6 @@ impl CreatorBuilder {
         self.builder.build()
     }
 }
+
+unsafe impl Send for Creator {}
+unsafe impl Sync for Creator {}

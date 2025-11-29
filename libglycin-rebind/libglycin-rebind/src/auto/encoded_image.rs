@@ -28,8 +28,13 @@ impl EncodedImage {
     }
 
     #[doc(alias = "data")]
-    pub fn connect_data_notify<F: Fn(&Self) + 'static>(&self, f: F) -> SignalHandlerId {
-        unsafe extern "C" fn notify_data_trampoline<F: Fn(&EncodedImage) + 'static>(
+    pub fn connect_data_notify<F: Fn(&Self) + Send + Sync + 'static>(
+        &self,
+        f: F,
+    ) -> SignalHandlerId {
+        unsafe extern "C" fn notify_data_trampoline<
+            F: Fn(&EncodedImage) + Send + Sync + 'static,
+        >(
             this: *mut ffi::GlyEncodedImage,
             _param_spec: glib::ffi::gpointer,
             f: glib::ffi::gpointer,
@@ -50,3 +55,6 @@ impl EncodedImage {
         }
     }
 }
+
+unsafe impl Send for EncodedImage {}
+unsafe impl Sync for EncodedImage {}

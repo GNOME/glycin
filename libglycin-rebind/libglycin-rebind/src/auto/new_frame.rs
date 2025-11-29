@@ -27,3 +27,6 @@ impl NewFrame {
         }
     }
 }
+
+unsafe impl Send for NewFrame {}
+unsafe impl Sync for NewFrame {}

@@ -72,8 +72,13 @@ impl FrameRequest {
     }
 
     #[doc(alias = "loop-animation")]
-    pub fn connect_loop_animation_notify<F: Fn(&Self) + 'static>(&self, f: F) -> SignalHandlerId {
-        unsafe extern "C" fn notify_loop_animation_trampoline<F: Fn(&FrameRequest) + 'static>(
+    pub fn connect_loop_animation_notify<F: Fn(&Self) + Send + Sync + 'static>(
+        &self,
+        f: F,
+    ) -> SignalHandlerId {
+        unsafe extern "C" fn notify_loop_animation_trampoline<
+            F: Fn(&FrameRequest) + Send + Sync + 'static,
+        >(
             this: *mut ffi::GlyFrameRequest,
             _param_spec: glib::ffi::gpointer,
             f: glib::ffi::gpointer,
@@ -95,8 +100,13 @@ impl FrameRequest {
     }
 
     #[doc(alias = "scale-height")]
-    pub fn connect_scale_height_notify<F: Fn(&Self) + 'static>(&self, f: F) -> SignalHandlerId {
-        unsafe extern "C" fn notify_scale_height_trampoline<F: Fn(&FrameRequest) + 'static>(
+    pub fn connect_scale_height_notify<F: Fn(&Self) + Send + Sync + 'static>(
+        &self,
+        f: F,
+    ) -> SignalHandlerId {
+        unsafe extern "C" fn notify_scale_height_trampoline<
+            F: Fn(&FrameRequest) + Send + Sync + 'static,
+        >(
             this: *mut ffi::GlyFrameRequest,
             _param_spec: glib::ffi::gpointer,
             f: glib::ffi::gpointer,
@@ -118,8 +128,13 @@ impl FrameRequest {
     }
 
     #[doc(alias = "scale-width")]
-    pub fn connect_scale_width_notify<F: Fn(&Self) + 'static>(&self, f: F) -> SignalHandlerId {
-        unsafe extern "C" fn notify_scale_width_trampoline<F: Fn(&FrameRequest) + 'static>(
+    pub fn connect_scale_width_notify<F: Fn(&Self) + Send + Sync + 'static>(
+        &self,
+        f: F,
+    ) -> SignalHandlerId {
+        unsafe extern "C" fn notify_scale_width_trampoline<
+            F: Fn(&FrameRequest) + Send + Sync + 'static,
+        >(
             this: *mut ffi::GlyFrameRequest,
             _param_spec: glib::ffi::gpointer,
             f: glib::ffi::gpointer,
@@ -177,3 +192,6 @@ impl FrameRequestBuilder {
         self.builder.build()
     }
 }
+
+unsafe impl Send for FrameRequest {}
+unsafe impl Sync for FrameRequest {}

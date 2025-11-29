@@ -219,3 +219,6 @@ impl Image {
         }))
     }
 }
+
+unsafe impl Send for Image {}
+unsafe impl Sync for Image {}

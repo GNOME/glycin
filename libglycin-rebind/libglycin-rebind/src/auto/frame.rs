@@ -59,3 +59,6 @@ impl Frame {
         unsafe { ffi::gly_frame_get_width(self.to_glib_none().0) }
     }
 }
+
+unsafe impl Send for Frame {}
+unsafe impl Sync for Frame {}

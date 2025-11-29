@@ -1,16 +1,25 @@
 [package]
 name = "libglycin-gtk4-rebind-sys"
 version = "0.0.1"
-edition.workspace = true
-rust-version.workspace = true
 links = "glycin-gtk4-2"
 categories = ["api-bindings", "gui"]
 keywords = ["gtk4-rs", "gnome", "glycin", "GUI"]
 description = "FFI bindings for libglycin-gtk4"
 license = "MIT"
-homepage.workspace = true
-repository.workspace = true
 exclude = ["Gir.toml"]
+build = "build.rs"
+
+[package.edition]
+workspace = true
+
+[package.rust-version]
+workspace = true
+
+[package.homepage]
+workspace = true
+
+[package.repository]
+workspace = true
 
 [package.metadata.system-deps.glycin_2]
 name = "glycin-2"

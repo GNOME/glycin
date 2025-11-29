@@ -16,3 +16,6 @@ glib::wrapper! {
         type_ => || ffi::gly_cicp_get_type(),
     }
 }
+
+unsafe impl Send for Cicp {}
+unsafe impl Sync for Cicp {}
