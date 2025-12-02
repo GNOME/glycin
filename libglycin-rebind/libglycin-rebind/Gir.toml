@@ -27,6 +27,7 @@ generate = [
     "Gly.FrameRequest",
     "Gly.Image",
     "Gly.Loader",
+    "Gly.LoaderError",
     "Gly.MemoryFormat",
     "Gly.MemoryFormatSelection",
     "Gly.NewFrame",

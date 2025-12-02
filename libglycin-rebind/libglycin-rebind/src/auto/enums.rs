@@ -10,6 +10,130 @@ use crate::ffi;
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Clone, Copy)]
 #[non_exhaustive]
+#[doc(alias = "GlyLoaderError")]
+pub enum LoaderError {
+    #[doc(alias = "GLY_LOADER_ERROR_FAILED")]
+    Failed,
+    #[doc(alias = "GLY_LOADER_ERROR_UNKNOWN_IMAGE_FORMAT")]
+    UnknownImageFormat,
+    #[doc(alias = "GLY_LOADER_ERROR_NO_MORE_FRAMES")]
+    NoMoreFrames,
+    #[doc(hidden)]
+    __Unknown(i32),
+}
+
+#[doc(hidden)]
+impl IntoGlib for LoaderError {
+    type GlibType = ffi::GlyLoaderError;
+
+    #[inline]
+    fn into_glib(self) -> ffi::GlyLoaderError {
+        match self {
+            Self::Failed => ffi::GLY_LOADER_ERROR_FAILED,
+            Self::UnknownImageFormat => ffi::GLY_LOADER_ERROR_UNKNOWN_IMAGE_FORMAT,
+            Self::NoMoreFrames => ffi::GLY_LOADER_ERROR_NO_MORE_FRAMES,
+            Self::__Unknown(value) => value,
+        }
+    }
+}
+
+#[doc(hidden)]
+impl FromGlib<ffi::GlyLoaderError> for LoaderError {
+    #[inline]
+    unsafe fn from_glib(value: ffi::GlyLoaderError) -> Self {
+        skip_assert_initialized!();
+
+        match value {
+            ffi::GLY_LOADER_ERROR_FAILED => Self::Failed,
+            ffi::GLY_LOADER_ERROR_UNKNOWN_IMAGE_FORMAT => Self::UnknownImageFormat,
+            ffi::GLY_LOADER_ERROR_NO_MORE_FRAMES => Self::NoMoreFrames,
+            value => Self::__Unknown(value),
+        }
+    }
+}
+
+impl glib::error::ErrorDomain for LoaderError {
+    #[inline]
+    fn domain() -> glib::Quark {
+        skip_assert_initialized!();
+
+        unsafe { from_glib(ffi::gly_loader_error_quark()) }
+    }
+
+    #[inline]
+    fn code(self) -> i32 {
+        self.into_glib()
+    }
+
+    #[inline]
+    #[allow(clippy::match_single_binding)]
+    fn from(code: i32) -> Option<Self> {
+        skip_assert_initialized!();
+        match unsafe { from_glib(code) } {
+            Self::__Unknown(_) => Some(Self::Failed),
+            value => Some(value),
+        }
+    }
+}
+
+impl StaticType for LoaderError {
+    #[inline]
+    #[doc(alias = "gly_loader_error_get_type")]
+    fn static_type() -> glib::Type {
+        unsafe { from_glib(ffi::gly_loader_error_get_type()) }
+    }
+}
+
+impl glib::HasParamSpec for LoaderError {
+    type ParamSpec = glib::ParamSpecEnum;
+    type SetValue = Self;
+    type BuilderFn = fn(&str, Self) -> glib::ParamSpecEnumBuilder<Self>;
+
+    fn param_spec_builder() -> Self::BuilderFn {
+        Self::ParamSpec::builder_with_default
+    }
+}
+
+impl glib::value::ValueType for LoaderError {
+    type Type = Self;
+}
+
+unsafe impl<'a> glib::value::FromValue<'a> for LoaderError {
+    type Checker = glib::value::GenericValueTypeChecker<Self>;
+
+    #[inline]
+    unsafe fn from_value(value: &'a glib::Value) -> Self {
+        skip_assert_initialized!();
+        from_glib(glib::gobject_ffi::g_value_get_enum(value.to_glib_none().0))
+    }
+}
+
+impl ToValue for LoaderError {
+    #[inline]
+    fn to_value(&self) -> glib::Value {
+        let mut value = glib::Value::for_value_type::<Self>();
+        unsafe {
+            glib::gobject_ffi::g_value_set_enum(value.to_glib_none_mut().0, self.into_glib());
+        }
+        value
+    }
+
+    #[inline]
+    fn value_type(&self) -> glib::Type {
+        Self::static_type()
+    }
+}
+
+impl From<LoaderError> for glib::Value {
+    #[inline]
+    fn from(v: LoaderError) -> Self {
+        skip_assert_initialized!();
+        ToValue::to_value(&v)
+    }
+}
+
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Clone, Copy)]
+#[non_exhaustive]
 #[doc(alias = "GlyMemoryFormat")]
 pub enum MemoryFormat {
     #[doc(alias = "GLY_MEMORY_B8G8R8A8_PREMULTIPLIED")]

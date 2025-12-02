@@ -28,7 +28,7 @@ mod cicp;
 pub use self::cicp::Cicp;
 
 mod enums;
-pub use self::enums::{MemoryFormat, SandboxSelector};
+pub use self::enums::{LoaderError, MemoryFormat, SandboxSelector};
 
 mod flags;
 pub use self::flags::MemoryFormatSelection;
