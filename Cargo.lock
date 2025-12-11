@@ -1139,8 +1139,8 @@ name = "glycin-thumbnailer"
 version = "2.1.0-alpha.3"
 dependencies = [
  "gio",
- "glycin",
  "image",
+ "libglycin-rebind",
  "png",
 ]
 
