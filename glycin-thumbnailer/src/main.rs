@@ -74,15 +74,18 @@ fn x(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let input_file = gio::File::for_uri(input_uri);
 
-    let mut loader = glycin::Loader::new(input_file.clone());
+    let loader = glycin::Loader::new(&input_file);
 
     // Disable sandbox since thumbnailers run in their own sandbox
-    loader.sandbox_selector(glycin::SandboxSelector::NotSandboxed);
-    loader.accepted_memory_formats(MemoryFormatSelection::R8g8b8 | MemoryFormatSelection::R8g8b8a8);
+    loader.set_sandbox_selector(glycin::SandboxSelector::NotSandboxed);
+    loader.set_accepted_memory_formats(
+        MemoryFormatSelection::R8G8B8 | MemoryFormatSelection::R8G8B8A8,
+    );
 
-    let image = glib::MainContext::default().block_on(loader.load())?;
-    let frame_request = glycin::FrameRequest::new().scale(thumbnail_size, thumbnail_size);
-    let frame = glib::MainContext::default().block_on(image.specific_frame(frame_request))?;
+    let image = loader.load()?;
+    let frame_request = glycin::FrameRequest::new();
+    frame_request.set_scale(thumbnail_size, thumbnail_size);
+    let frame = image.specific_frame(&frame_request)?;
 
     let out_file = std::fs::File::create(output_path)?;
     let buf_writer = &mut std::io::BufWriter::new(out_file);
@@ -125,8 +128,9 @@ fn resize<T: image::Pixel<Subpixel = u8> + 'static>(
     thumbnail_width: u32,
     thumbnail_height: u32,
 ) -> Vec<u8> {
+    let frame_bytes = frame.buf_bytes();
     let img =
-        image::ImageBuffer::<T, _>::from_raw(frame.width(), frame.height(), frame.buf_slice())
+        image::ImageBuffer::<T, _>::from_raw(frame.width(), frame.height(), frame_bytes.as_ref())
             .unwrap();
 
     let rought_scaled = imageops::resize(

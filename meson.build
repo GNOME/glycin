@@ -68,5 +68,5 @@ if get_option('introspection') != introspection
 endif
 
 subdir('glycin-loaders')
-subdir('glycin-thumbnailer')
 subdir('libglycin')
+subdir('glycin-thumbnailer')
