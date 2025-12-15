@@ -15,6 +15,7 @@ variables:
   before_script:
     - apt update
     - apt install -y git curl meson pkg-config gobject-introspection gi-docgen valac libgirepository1.0-dev python3-gi build-essential liblcms2-dev gettext clang mold bubblewrap libseccomp-dev libfontconfig-dev
+    - apt-get install -y libheif-dev libheif-plugin-dav1d libgtk-4-dev libcairo2-dev librsvg2-2 libjxl-dev
 
     #- git clone https://github.com/libjxl/libjxl.git --recursive --shallow-submodules
     #- apt-get install -y clang cmake pkg-config libbrotli-dev
@@ -27,18 +28,18 @@ variables:
     #- cmake --install .
     #- cd ../..
 
-    - echo "deb https://deb.debian.org/debian/ trixie main" >> /etc/apt/sources.list
-    - apt-get update
-    - apt-get install -y libheif-dev libaom3 libgtk-4-dev libcairo2-dev meson
-    - apt-get install -y librsvg2-2
-    - apt-get install -y libjxl-dev
+    #- echo "deb https://deb.debian.org/debian/ trixie main" >> /etc/apt/sources.list
+    #- apt-get update
+    #- apt-get install -y libheif-dev libaom3 libgtk-4-dev libcairo2-dev meson
+    #- apt-get install -y librsvg2-2
+    #- apt-get install -y libjxl-dev
     # Fix valac issue in bookworm
-    - apt-get install -y valac
+    #- apt-get install -y valac
     # Get QOI support in bookworm
-    - apt-get install -y shared-mime-info
+    #- apt-get install -y shared-mime-info
     # Required for librsvg/fontconfig, somehow fails to install automatically.
     # Issue is new, first seen 2024-09-12
-    - apt-get install -y libbz2-dev
+    #- apt-get install -y libbz2-dev
   artifacts:
     when: always
     paths:
@@ -130,7 +131,7 @@ cargo-semver-checks:
     - cargo semver-checks -p libglycin -p libglycin-gtk4 --baseline-rev d992950c
 
 libglycin-rebind:
-  image: rust:1.86-bookworm
+  image: rust:1.89-trixie
   extends: .install_dependencies
   interruptible: true
   variables:
