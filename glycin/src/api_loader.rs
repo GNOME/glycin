@@ -124,6 +124,8 @@ impl Loader {
 
     /// Load basic image information and enable further operations
     pub async fn load(mut self) -> Result<Image, ErrorCtx> {
+        let x = include_str!("../../glycin-loaders/glycin-jpeg2000/glycin-jpeg2000.conf");
+
         let source = self.source.send();
 
         let process_basics = spin_up_loader(
