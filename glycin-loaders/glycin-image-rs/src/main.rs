@@ -162,6 +162,8 @@ impl LoaderImplementation for ImgDecoder {
         mime_type: String,
         _details: InitializationDetails,
     ) -> Result<(Self, ImageDetails), ProcessError> {
+        image_extras::register();
+
         let mut buf = Vec::new();
         stream.read_to_end(&mut buf).internal_error()?;
         let data = Cursor::new(buf);
@@ -262,6 +264,8 @@ pub enum ImageRsDecoder<T: std::io::BufRead + std::io::Seek> {
     Tga(codecs::tga::TgaDecoder<T>),
     Tiff(codecs::tiff::TiffDecoder<T>),
     WebP(codecs::webp::WebPDecoder<T>),
+    Xbm(image_extras::xbm::XbmDecoder<T>),
+    Xpm(image_extras::xpm::XpmDecoder<T>),
 }
 
 pub struct ImageRsFormat<T: std::io::BufRead + std::io::Seek> {
@@ -362,6 +366,18 @@ impl ImageRsFormat<Reader> {
             .format_name("WebP")
             .default_bit_depth(8)
             .supports_two_alpha_modes(true),
+            "image/x-xbitmap" => Self::new(ImageRsDecoder::Xbm(
+                image_extras::xbm::XbmDecoder::new(data).expected_error()?,
+            ))
+            .format_name("XBM")
+            .default_bit_depth(8)
+            .supports_two_alpha_modes(false),
+            "image/x-xpixmap" => Self::new(ImageRsDecoder::Xpm(
+                image_extras::xpm::XpmDecoder::new(data).expected_error()?,
+            ))
+            .format_name("XPM")
+            .default_bit_depth(8)
+            .supports_two_alpha_modes(false),
             mime_type => return Err(ProcessError::UnsupportedImageFormat(mime_type.to_string())),
         })
     }
@@ -414,6 +430,8 @@ impl<'a, T: std::io::BufRead + std::io::Seek + 'a> ImageRsFormat<T> {
             ImageRsDecoder::Tga(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Tiff(ref mut d) => self.handler.info(d),
             ImageRsDecoder::WebP(ref mut d) => self.handler.info(d),
+            ImageRsDecoder::Xbm(ref mut d) => self.handler.info(d),
+            ImageRsDecoder::Xpm(ref mut d) => self.handler.info(d),
         }
     }
 
@@ -432,6 +450,8 @@ impl<'a, T: std::io::BufRead + std::io::Seek + 'a> ImageRsFormat<T> {
             ImageRsDecoder::Tga(d) => self.handler.frame(d),
             ImageRsDecoder::Tiff(d) => self.handler.frame(d),
             ImageRsDecoder::WebP(d) => self.handler.frame(d),
+            ImageRsDecoder::Xbm(d) => self.handler.frame(d),
+            ImageRsDecoder::Xpm(d) => self.handler.frame(d),
         }
     }
 
@@ -450,6 +470,8 @@ impl<'a, T: std::io::BufRead + std::io::Seek + 'a> ImageRsFormat<T> {
             ImageRsDecoder::Tga(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Tiff(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::WebP(ref mut d) => self.handler.frame_details(d),
+            ImageRsDecoder::Xbm(ref mut d) => self.handler.frame_details(d),
+            ImageRsDecoder::Xpm(ref mut d) => self.handler.frame_details(d),
         }
     }
 
@@ -470,6 +492,8 @@ impl<'a, T: std::io::BufRead + std::io::Seek + 'a> ImageRsFormat<T> {
             ImageRsDecoder::Tga(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Tiff(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::WebP(ref mut d) => d.set_limits(limits),
+            ImageRsDecoder::Xbm(ref mut d) => d.set_limits(limits),
+            ImageRsDecoder::Xpm(ref mut d) => d.set_limits(limits),
         }
     }
 }

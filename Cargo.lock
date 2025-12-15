@@ -1064,6 +1064,7 @@ dependencies = [
  "gufo-exif",
  "gufo-jpeg",
  "image",
+ "image-extras",
  "jpeg-encoder",
  "log",
  "zune-jpeg",
@@ -1351,6 +1352,15 @@ dependencies = [
  "tiff",
  "zune-core",
  "zune-jpeg",
+]
+
+[[package]]
+name = "image-extras"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "86d29ba92ef6970a2685cc758b455d190842b8b9e96c865ffd31cdb9954b7548"
+dependencies = [
+ "image",
 ]
 
 [[package]]

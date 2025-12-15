@@ -204,3 +204,19 @@ image/x-win-bitmap:
   xmp: unsupported
   animation: unsupported
   loader-codec: [image-rs, bmp, png]
+
+image/x-xbitmap:
+  icc: unsupported
+  cicp: unsupported
+  exif: unsupported
+  xmp: unsupported
+  animation: unsupported
+  loader-codec: image-extras
+
+image/x-xpixmap:
+  icc: unsupported
+  cicp: unsupported
+  exif: unsupported
+  xmp: unsupported
+  animation: unsupported
+  loader-codec: image-extras

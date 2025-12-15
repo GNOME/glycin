@@ -31,6 +31,11 @@ fn gray_iccp() {
 }
 
 #[test]
+fn monochrome() {
+    test_dir("test-images/images/monochrome");
+}
+
+#[test]
 fn icon() {
     test_dir("test-images/images/icon");
 }

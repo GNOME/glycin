@@ -1,5 +1,8 @@
 #!/usr/bin/env -S cargo +nightly -Zscript
 ---
+[package]
+edition = "2024"
+
 [dependencies]
 glycin = { path = "../../glycin", features = ["unstable-config"] }
 glib = "0.21"
@@ -135,8 +138,6 @@ fn info() -> BTreeMap<String, Format> {
     let details: BTreeMap<String, Details> =
         serde_yaml_ng::from_reader(std::fs::File::open("docs/website/format-details.yml").unwrap())
             .unwrap();
-
-    dbg!(&details);
 
     for entry in std::fs::read_dir("glycin-loaders").unwrap() {
         let entry = entry.unwrap();

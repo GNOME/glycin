@@ -258,8 +258,8 @@ fn create_png_compression() {
 
         let size_0 = encoded_image.data_ref().unwrap().len();
 
-        assert!(size_100 < size_50);
-        assert!(size_50 < size_0);
+        assert!(size_100 < size_50, "{size_100} < {size_50}");
+        assert!(size_50 < size_0, "{size_50} < {size_0}");
     });
 }
 

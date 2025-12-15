@@ -47,7 +47,7 @@ variables:
 
 build-release-tarball:
   stage: build
-  image: rust:1.85-bookworm
+  image: rust:1.89-trixie
   extends: .install_dependencies
   script:
     - apt-get install -y gawk
@@ -63,7 +63,7 @@ build-release-tarball:
     - if: $CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED
 
 test-x86_64:
-  image: rust:1.85-bookworm
+  image: rust:1.89-trixie
   extends: .install_dependencies
   interruptible: true
   script:
@@ -81,7 +81,7 @@ test-x86_64:
 
 test-i386:
   # Use hash to force i386, lookup "MANIFEST DIGEST" here <https://hub.docker.com/r/i386/rust/tags>
-  image: rust@sha256:a82436f09b89b68853e3a25c4acfd7b2d11d78be8ef35f5b4a75d3c927f37d7b
+  image: rust@sha256:97eee056216db51d76c0a47fbc9b14a7486d2e8e7e8904fb09969e394dcc5922
   extends: .install_dependencies
   interruptible: true
   # As long as 32-bit CI is so unstable
@@ -94,7 +94,7 @@ test-i386:
     - meson test -vC builddir
 
 test-aarch64:
-  image: rust:1.85-bookworm
+  image: rust:1.89-trixie
   tags:
     - asan-aarch64
   extends: .install_dependencies

@@ -6,8 +6,7 @@ license = "MPL-2.0 OR LGPL-2.1-or-later"
 homepage = "https://gnome.pages.gitlab.gnome.org/glycin/"
 repository = "https://gitlab.gnome.org/GNOME/glycin"
 edition = "2021"
-# Would be 1.83 without moxcms
-rust-version = "1.85"
+rust-version = "1.89"
 
 [profile.release]
 lto = true
@@ -80,6 +79,10 @@ gufo-exif = { version = "0.3.0" }
 gufo-jpeg = { version = "0.3.0" }
 half = "2.4.1"
 image = { version = "0.25.7", default-features = false }
+image-extras = { version = "0.1.0", default-features = false, features = [
+    "xbm",
+    "xpm",
+] }
 lcms2 = "6.0.3"
 lcms2-sys = "4.0.4"
 libc = "0.2.152"
