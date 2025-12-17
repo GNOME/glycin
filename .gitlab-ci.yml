@@ -15,7 +15,7 @@ variables:
   before_script:
     - apt update
     - apt install -y git curl meson pkg-config gobject-introspection gi-docgen valac libgirepository1.0-dev python3-gi build-essential liblcms2-dev gettext clang mold bubblewrap libseccomp-dev libfontconfig-dev
-    - apt-get install -y libheif-dev 	libheif-plugin-x265 libgtk-4-dev libcairo2-dev librsvg2-2 libjxl-dev
+    - apt-get install -y libheif-dev libheif-plugin-aomenc libheif-plugin-x265 libgtk-4-dev libcairo2-dev librsvg2-2 libjxl-dev
   artifacts:
     when: always
     paths:
