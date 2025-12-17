@@ -46,7 +46,7 @@ test-x86_64:
   script:
     - export LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu/
     # Skip isolated install for tests to test usual installation scenario
-    - meson setup -Dbuildtype=debug -Dpython_tests=true -Dtest_skip_install=true -Dcapi_docs=true --prefix=/usr builddir
+    - meson setup -Dprofile=dev -Dpython_tests=true -Dtest_skip_install=true -Dcapi_docs=true --prefix=/usr builddir
     - meson install -C builddir
     - meson test -vC builddir
     - mv builddir/libglycin/libglycin-2 libglycin-docs
@@ -66,7 +66,7 @@ test-i386:
   script:
     - export LD_LIBRARY_PATH=/usr/local/lib/i386-linux-gnu/
     - apt-get install -y ninja-build
-    - meson setup -Dbuildtype=debug  -Dpython_tests=true -Dtest_skip_install=true -Dtest_skip_ext=avif --prefix=/usr builddir
+    - meson setup -Dprofile=dev  -Dpython_tests=true -Dtest_skip_install=true -Dtest_skip_ext=avif --prefix=/usr builddir
     - meson install -C builddir
     - meson test -vC builddir
 
@@ -78,7 +78,7 @@ test-aarch64:
   interruptible: true
   script:
     - export LD_LIBRARY_PATH=/usr/local/lib/aarch64-linux-gnu/
-    - meson setup -Dbuildtype=debug -Dpython_tests=true -Dtest_skip_install=true --prefix=/usr builddir
+    - meson setup -Dprofile=dev -Dpython_tests=true -Dtest_skip_install=true --prefix=/usr builddir
     - meson install -C builddir
     - meson test -vC builddir
 
@@ -98,7 +98,7 @@ cargo-semver-checks:
     GIT_DEPTH: 1000
   script:
     # We need libglycin to be properly installed for pkgconf to work in libglycin-gtk4
-    - meson setup -Dbuildtype=debug -Dglycin-loaders=false -Dglycin-thumbnailer=false --prefix=/usr builddir
+    - meson setup -Dprofile=dev -Dglycin-loaders=false -Dglycin-thumbnailer=false --prefix=/usr builddir
     - meson install -C builddir
     - cargo install cargo-semver-checks --locked
     - cargo semver-checks -p glycin -p glycin-utils
@@ -115,7 +115,7 @@ libglycin-rebind:
     RUSTDOCFLAGS: "--cfg docsrs"
   script:
     - git submodule update --checkout
-    - meson setup -Dbuildtype=debug -Dglycin-loaders=false -Dglycin-thumbnailer=false -Dtest_skip_install=true -Dvapi=false --prefix=/usr builddir
+    - meson setup -Dprofile=dev -Dglycin-loaders=false -Dglycin-thumbnailer=false -Dtest_skip_install=true -Dvapi=false --prefix=/usr builddir
     - meson install -C builddir
     - cargo build --package libglycin-gtk4-rebind --package libglycin-rebind
     # dependencies for the docs
