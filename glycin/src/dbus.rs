@@ -560,7 +560,9 @@ impl GFileWorker {
                 let reader = source.to_stream(&cancellable)?;
                 let mut buf = vec![0; BUF_SIZE];
 
-                let n = reader.read(&mut buf, Some(&cancellable))?;
+                let n = reader
+                    .read(&mut buf, Some(&cancellable))
+                    .map_err(Error::ImageSource)?;
                 let first_bytes = Arc::new(buf[..n].to_vec());
                 first_bytes_send
                     .send(first_bytes.clone())
@@ -572,7 +574,9 @@ impl GFileWorker {
                 drop(first_bytes);
 
                 loop {
-                    let n = reader.read(&mut buf, Some(&cancellable))?;
+                    let n = reader
+                        .read(&mut buf, Some(&cancellable))
+                        .map_err(Error::ImageSource)?;
                     if n == 0 {
                         break;
                     }

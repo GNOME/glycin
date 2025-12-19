@@ -130,7 +130,7 @@ impl Source {
             Self::File(file) => file
                 .read(Some(cancellable))
                 .map(|x| x.upcast())
-                .map_err(Into::into),
+                .map_err(Error::ImageSource),
             Self::Stream(stream) => Ok(stream.0.clone()),
             Self::TransferredStream => Err(Error::TransferredStream),
         }

@@ -122,6 +122,8 @@ pub enum Error {
     RemoteError(#[from] RemoteError),
     #[error("GLib error: {0}")]
     GLibError(#[from] glib::Error),
+    #[error("Failed to load file/stream: {0}")]
+    ImageSource(glib::Error),
     #[error("Libc error: {0}")]
     NixError(#[from] nix::errno::Errno),
     #[error("IO error: {err} {info}")]

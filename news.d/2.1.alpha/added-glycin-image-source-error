@@ -1,0 +1,1 @@
+Add a specific error for when glycin fails to load the image from it's file/stream.
