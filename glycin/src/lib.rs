@@ -91,7 +91,7 @@ pub use api_creator::*;
 pub use api_editor::*;
 pub use api_loader::*;
 pub use config::COMPAT_VERSION;
-pub use error::{Error, ErrorCtx};
+pub use error::{Error, ErrorContext, ErrorCtx};
 pub use glycin_common::{
     BinaryData, MemoryFormat, MemoryFormatSelection, Operation, OperationId, Operations,
 };

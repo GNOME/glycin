@@ -11,28 +11,14 @@ use libseccomp::error::SeccompError;
 use crate::config;
 use crate::dbus::{RemoteProcess, ZbusProxy, MAX_TEXTURE_SIZE};
 
-#[derive(Debug, Clone)]
-
-pub struct ErrorCtx {
-    error: Error,
+#[derive(Debug, Clone, Default)]
+pub struct ErrorContext {
     stderr: Option<String>,
     stdout: Option<String>,
 }
 
-impl Deref for ErrorCtx {
-    type Target = Error;
-
-    fn deref(&self) -> &Self::Target {
-        self.error()
-    }
-}
-
-impl std::error::Error for ErrorCtx {}
-
-impl std::fmt::Display for ErrorCtx {
+impl std::fmt::Display for ErrorContext {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.error.to_string())?;
-
         if let Some(stderr) = &self.stderr {
             if !stderr.is_empty() {
                 f.write_str("\n\nstderr:\n")?;
@@ -51,17 +37,46 @@ impl std::fmt::Display for ErrorCtx {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct ErrorCtx {
+    error: Error,
+    context: ErrorContext,
+}
+
+impl Deref for ErrorCtx {
+    type Target = Error;
+
+    fn deref(&self) -> &Self::Target {
+        self.error()
+    }
+}
+
+impl std::error::Error for ErrorCtx {}
+
+impl std::fmt::Display for ErrorCtx {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.error.to_string())?;
+
+        f.write_str(&self.context.to_string())?;
+
+        Ok(())
+    }
+}
+
 impl ErrorCtx {
     pub fn from_error(kind: Error) -> Self {
         ErrorCtx {
             error: kind,
-            stderr: None,
-            stdout: None,
+            context: ErrorContext::default(),
         }
     }
 
     pub fn error(&self) -> &Error {
         &self.error
+    }
+
+    pub fn context(&self) -> &ErrorContext {
+        &self.context
     }
 }
 
@@ -94,8 +109,7 @@ impl<T> ResultExt<T> for Result<T, Error> {
 
                 Err(ErrorCtx {
                     error,
-                    stderr,
-                    stdout,
+                    context: ErrorContext { stderr, stdout },
                 })
             }
         }
