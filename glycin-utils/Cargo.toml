@@ -18,7 +18,7 @@ futures-lite = { workspace = true, optional = true }
 futures-util.workspace = true
 glib = { workspace = true, optional = true }
 glycin-common.workspace = true
-gufo-common = { workspace = true, features = ["serde", "zvariant"] }
+gufo-common = { workspace = true, features = ["zvariant"] }
 half.workspace = true
 image = { workspace = true, optional = true }
 libc.workspace = true
