@@ -65,11 +65,11 @@ futures-lite = { version = "2.1.0" }
 futures-task = "0.3.30"
 futures-timer = "3.0.3"
 futures-util = "0.3.30"
-gdk = { package = "gdk4", version = "0.10.0", features = ["v4_16"] }
+gdk = { package = "gdk4", version = ">=0.11.0-alpha.1", features = ["v4_16"] }
 # Use newer version to fix issues
 gif = "0.13.3"
-gio = { version = "0.21.0", features = ["v2_62"] }
-glib = { version = "0.21.0", features = ["v2_68"] }
+gio = { version = ">=0.22.0-alpha.1", features = ["v2_62"] }
+glib = { version = ">=0.22.0-alpha.1", features = ["v2_68"] }
 glycin = { path = "glycin/", default-features = false }
 glycin-common = { version = "1.0.0", path = "glycin-common/" }
 glycin-utils = { version = "4.0.3", path = "glycin-utils/", default-features = false }
