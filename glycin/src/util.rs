@@ -92,12 +92,10 @@ impl RunEnvironment {
                 } else {
                     Self::Flatpak
                 }
+            } else if Sandbox::check_bwrap_syscalls_blocked().await {
+                Self::HostBwrapSyscallsBlocked
             } else {
-                if Sandbox::check_bwrap_syscalls_blocked().await {
-                    Self::HostBwrapSyscallsBlocked
-                } else {
-                    Self::Host
-                }
+                Self::Host
             };
 
             *run_environment = Some(run_env);

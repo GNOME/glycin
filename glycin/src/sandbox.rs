@@ -264,10 +264,10 @@ impl Sandbox {
                 // Allow FDs to be passed to child process
                 for raw_fd in &shared_fds {
                     let fd = BorrowedFd::borrow_raw(*raw_fd);
-                    if let Ok(flags) = nix::fcntl::fcntl(&fd, nix::fcntl::FcntlArg::F_GETFD) {
+                    if let Ok(flags) = nix::fcntl::fcntl(fd, nix::fcntl::FcntlArg::F_GETFD) {
                         let mut flags = nix::fcntl::FdFlag::from_bits_truncate(flags);
                         flags.remove(nix::fcntl::FdFlag::FD_CLOEXEC);
-                        let _ = nix::fcntl::fcntl(&fd, nix::fcntl::FcntlArg::F_SETFD(flags));
+                        let _ = nix::fcntl::fcntl(fd, nix::fcntl::FcntlArg::F_SETFD(flags));
                     }
                 }
 
@@ -343,20 +343,20 @@ impl Sandbox {
         // Symlink paths like /usr/lib64 to /lib64
         for (dest, src) in &system.lib_symlinks {
             command.arg("--symlink");
-            command.arg(&src);
-            command.arg(&dest);
+            command.arg(src);
+            command.arg(dest);
         }
 
         let mut mounted_paths = Vec::<PathBuf>::new();
         let mut mount = |command: &mut Command, way: &str, path: &Path| {
             if path.is_symlink() {
                 if !mounted_paths.iter().any(|x| path.starts_with(x)) {
-                    match canonicalize(&path) {
+                    match canonicalize(path) {
                         Ok(target) => {
                             if !mounted_paths.iter().any(|x| path.starts_with(x)) {
                                 command.arg("--symlink");
                                 command.arg(&target);
-                                command.arg(&path);
+                                command.arg(path);
                                 tracing::trace!("Symlink {path:?} -> {target:?}");
                                 mounted_paths.push(path.to_owned());
                             } else {
@@ -372,7 +372,7 @@ impl Sandbox {
                 }
             }
 
-            match canonicalize(&path) {
+            match canonicalize(path) {
                 Ok(path) => {
                     if !mounted_paths.iter().any(|x| path.starts_with(x)) {
                         command.arg(way);
@@ -393,13 +393,13 @@ impl Sandbox {
 
         match caps {
             Ok(caps) => {
-                const CAP_DAC_OVERRIDE_POSITION: u32 = 1_u32 % 32;
-                const CAP_DAC_READ_SEARCH_POSTION: u32 = 2_u32 % 32;
+                const CAP_DAC_OVERRIDE_POSITION: u32 = 1_u32;
+                const CAP_DAC_READ_SEARCH_POSTION: u32 = 2_u32;
 
                 if caps[0].effective & (1 << CAP_DAC_OVERRIDE_POSITION) != 0
                     || caps[0].effective & (1 << CAP_DAC_READ_SEARCH_POSTION) != 0
                 {
-                    let mut new_caps = caps.clone();
+                    let mut new_caps = caps;
                     new_caps[0].effective &= !(1 << CAP_DAC_OVERRIDE_POSITION);
                     new_caps[0].effective &= !(1 << CAP_DAC_READ_SEARCH_POSTION);
 
@@ -656,7 +656,6 @@ impl Sandbox {
             match ScmpSyscall::from_name(syscall_name) {
                 Ok(syscall) => {
                     filter.add_rule(ScmpAction::Allow, syscall)?;
-                    ()
                 }
                 Err(err) => tracing::warn!("Failed to allow syscall '{syscall_name}': {err}"),
             }
@@ -674,7 +673,7 @@ impl Sandbox {
             .create("seccomp-bpf-filter")?;
         let mut file = memfd.as_file();
 
-        filter.export_bpf(&mut file)?;
+        filter.export_bpf(file)?;
 
         file.rewind()?;
 
@@ -731,29 +730,27 @@ impl Sandbox {
 
         if output.status.success() {
             Ok(false)
+        } else if matches!(output.status.signal(), Some(libc::SIGSYS))
+            || output.status.code() == Some(128 + libc::SIGSYS)
+        {
+            tracing::debug!("bwrap syscalls not available: Terminated with SIGSYS");
+            Ok(true)
+        } else if std::str::from_utf8(&output.stderr).is_ok_and(|x| {
+            [
+                "Creating new namespace failed",
+                "No permissions to create a new namespace",
+                // Wrong grammar in older bwrap versions
+                "No permissions to creating new namespace",
+                // Wording of an old Debian patch
+                "No permissions to create new namespace",
+            ]
+            .iter()
+            .any(|y| x.contains(y))
+        }) {
+            tracing::debug!("bwrap syscalls not available: STDERR contains known string");
+            Ok(true)
         } else {
-            if matches!(output.status.signal(), Some(libc::SIGSYS))
-                || output.status.code() == Some(128 + libc::SIGSYS)
-            {
-                tracing::debug!("bwrap syscalls not available: Terminated with SIGSYS");
-                Ok(true)
-            } else if std::str::from_utf8(&output.stderr).map_or(false, |x| {
-                [
-                    "Creating new namespace failed",
-                    "No permissions to create a new namespace",
-                    // Wrong grammar in older bwrap versions
-                    "No permissions to creating new namespace",
-                    // Wording of an old Debian patch
-                    "No permissions to create new namespace",
-                ]
-                .iter()
-                .any(|y| x.contains(y))
-            }) {
-                tracing::debug!("bwrap syscalls not available: STDERR contains known string");
-                Ok(true)
-            } else {
-                Ok(false)
-            }
+            Ok(false)
         }
     }
 }
@@ -897,7 +894,7 @@ fn capget(header: &mut CapHeader, data: &mut [CapData; 2]) -> std::io::Result<()
         )
     } != 0
     {
-        return Err(std::io::Error::last_os_error());
+        Err(std::io::Error::last_os_error())
     } else {
         Ok(())
     }
@@ -912,7 +909,7 @@ fn capset(header: &mut CapHeader, data: &mut [CapData; 2]) -> std::io::Result<()
         ) as i32
     } != 0
     {
-        return Err(std::io::Error::last_os_error());
+        Err(std::io::Error::last_os_error())
     } else {
         Ok(())
     }
