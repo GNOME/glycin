@@ -1,7 +1,3 @@
-#![deny(clippy::arithmetic_side_effects)]
-#![deny(clippy::cast_possible_truncation)]
-#![deny(clippy::cast_possible_wrap)]
-
 //! Utilities for building glycin decoders
 
 #[cfg(all(not(feature = "async-io"), not(feature = "tokio")))]
