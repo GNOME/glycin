@@ -206,7 +206,7 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
             },
             return_status = child_return.fuse() => {
                 match return_status? {
-                    Ok(status) => Err(Error::PrematureExit { status: status, cmd: command_dbg.clone() }),
+                    Ok(status) => Err(Error::PrematureExit { status, cmd: command_dbg.clone() }),
                     Err(err) => Err(Error::StdIoError{ err: Arc::new(err), info: command_dbg.clone() }),
                 }
             }
