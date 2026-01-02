@@ -11,8 +11,8 @@ glib::wrapper! {
     pub struct Cicp(BoxedInline<ffi::GlyCicp>);
 
     match fn {
-        copy => |ptr| ffi::gly_cicp_copy(mut_override(ptr)),
-        free => |ptr| ffi::gly_cicp_free(ptr),
+        copy => |ptr| unsafe { ffi::gly_cicp_copy(mut_override(ptr)) },
+        free => |ptr| unsafe { ffi::gly_cicp_free(ptr) },
         type_ => || ffi::gly_cicp_get_type(),
     }
 }

@@ -1820,7 +1820,7 @@ premultiplied with the alpha value</doc>
               glib:name="B8g8r8a8Premultiplied">
         <doc xml:space="preserve"
              filename="libglycin/include/glycin.h"
-             line="115">8-bit RGRA premultiplied</doc>
+             line="115">8-bit BGRA premultiplied</doc>
       </member>
       <member name="a8r8g8b8_premultiplied"
               value="2"
@@ -1847,7 +1847,7 @@ premultiplied with the alpha value</doc>
               glib:name="B8g8r8a8">
         <doc xml:space="preserve"
              filename="libglycin/include/glycin.h"
-             line="118">8-bit RGBA</doc>
+             line="118">8-bit BGRA</doc>
       </member>
       <member name="a8r8g8b8"
               value="16"
@@ -1856,7 +1856,7 @@ premultiplied with the alpha value</doc>
               glib:name="A8r8g8b8">
         <doc xml:space="preserve"
              filename="libglycin/include/glycin.h"
-             line="119">8-bit AGBR</doc>
+             line="119">8-bit ARGB</doc>
       </member>
       <member name="r8g8b8a8"
               value="32"
