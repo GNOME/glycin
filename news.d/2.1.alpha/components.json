@@ -1,0 +1,66 @@
+{
+    "glycin-common": {
+        "version": "1.0.3",
+        "state": "unchanged"
+    },
+    "glycin-heif": {
+        "version": "2.1.0-alpha",
+        "state": "changed"
+    },
+    "glycin-image-rs": {
+        "version": "2.1.0-alpha",
+        "state": "changed"
+    },
+    "glycin-jpeg2000": {
+        "version": "2.1.0-alpha",
+        "state": "changed"
+    },
+    "glycin-jxl": {
+        "version": "2.1.0-alpha",
+        "state": "changed"
+    },
+    "glycin-raw": {
+        "version": "2.1.0-alpha",
+        "state": "changed"
+    },
+    "glycin-svg": {
+        "version": "2.1.0-alpha",
+        "state": "changed"
+    },
+    "glycin-thumbnailer": {
+        "version": "2.1.0-alpha",
+        "state": "changed"
+    },
+    "glycin-utils": {
+        "version": "4.0.4",
+        "state": "unchanged"
+    },
+    "glycin": {
+        "version": "3.1.0-alpha",
+        "state": "changed"
+    },
+    "libglycin-gtk4-rebind": {
+        "version": "0.0.1",
+        "state": "changed"
+    },
+    "libglycin-gtk4-rebind-sys": {
+        "version": "0.0.1",
+        "state": "changed"
+    },
+    "libglycin-rebind": {
+        "version": "0.0.1",
+        "state": "changed"
+    },
+    "libglycin-rebind-sys": {
+        "version": "0.0.1",
+        "state": "changed"
+    },
+    "libglycin": {
+        "version": "2.1.0-alpha",
+        "state": "changed"
+    },
+    "libglycin-gtk4": {
+        "version": "2.1.0-alpha",
+        "state": "changed"
+    }
+}

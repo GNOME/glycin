@@ -1,3 +1,28 @@
+## 2.1.alpha (2026-01-02)
+
+This release contains the following new component versions:
+
+- glycin-heif 2.1.0-alpha
+- glycin-image-rs 2.1.0-alpha
+- glycin-jpeg2000 2.1.0-alpha
+- glycin-jxl 2.1.0-alpha
+- glycin-raw 2.1.0-alpha
+- glycin-svg 2.1.0-alpha
+- glycin-thumbnailer 2.1.0-alpha
+- glycin 3.1.0-alpha
+- libglycin-gtk4-rebind 0.0.1
+- libglycin-gtk4-rebind-sys 0.0.1
+- libglycin-rebind 0.0.1
+- libglycin-rebind-sys 0.0.1
+- libglycin 2.1.0-alpha
+- libglycin-gtk4 2.1.0-alpha
+
+### Added
+
+- Add a specific error for when glycin fails to load the image from it's
+  file/stream.
+- image-rs: Add XBM and XPM support
+
 ## 2.0.7 (2025-11-11)
 
 This release contains the following new component versions:

@@ -1,7 +1,7 @@
 [package]
 name = "glycin-thumbnailer"
 publish = false
-version = "2.0.3"
+version.workspace = true
 authors.workspace = true
 description.workspace = true
 license.workspace = true
