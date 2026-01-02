@@ -26,12 +26,12 @@ impl From<&glycin::Error> for GlyLoaderError {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn gly_loader_error_quark() -> glib::ffi::GQuark {
     GlyLoaderError::domain().into_glib()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_loader_error_get_type() -> glib::ffi::GType {
     GlyLoaderError::static_type().into_glib()
 }

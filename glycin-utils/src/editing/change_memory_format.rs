@@ -5,7 +5,7 @@ use gufo_common::math::Checked;
 use rayon::iter::IntoParallelIterator;
 use rayon::prelude::*;
 
-use crate::{editing, Frame, ImgBuf, MemoryFormat};
+use crate::{Frame, ImgBuf, MemoryFormat, editing};
 pub fn change_memory_format(
     mut img_buf: ImgBuf,
     mut frame: Frame,

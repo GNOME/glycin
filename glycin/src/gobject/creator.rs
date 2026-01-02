@@ -9,7 +9,7 @@ use glycin_utils::MemoryFormat;
 use crate::error::ResultExt;
 use crate::gobject::GlyNewFrame;
 use crate::util::AsyncMutex;
-use crate::{gobject, Creator, Error, MimeType, SandboxSelector};
+use crate::{Creator, Error, MimeType, SandboxSelector, gobject};
 
 static_assertions::assert_impl_all!(GlyCreator: Send, Sync);
 use super::init;

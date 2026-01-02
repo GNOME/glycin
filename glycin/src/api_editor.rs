@@ -13,7 +13,7 @@ use crate::dbus::EditorProxy;
 use crate::error::ResultExt;
 use crate::pool::{Pool, PooledProcess};
 use crate::util::spawn_detached;
-use crate::{config, util, Error, ErrorCtx, MimeType};
+use crate::{Error, ErrorCtx, MimeType, config, util};
 
 /// Image edit builder
 #[derive(Debug)]

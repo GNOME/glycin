@@ -8,7 +8,7 @@ use futures_util::StreamExt;
 use gio::glib;
 use glycin_common::OperationId;
 
-use crate::util::{new_async_mutex, read, read_dir, AsyncMutex};
+use crate::util::{AsyncMutex, new_async_mutex, read, read_dir};
 use crate::{Error, SandboxMechanism};
 
 #[derive(Clone, Debug)]
@@ -237,12 +237,11 @@ impl Config {
 
             if let Ok(mut config_files) = read_dir(data_dir).await {
                 while let Some(result) = config_files.next().await {
-                    if let Ok(path) = result {
-                        if path.extension() == Some(OsStr::new(CONFIG_FILE_EXT)) {
-                            if let Err(err) = Self::load_file(&path, &mut config).await {
-                                tracing::error!("Failed to load config file: {err}");
-                            }
-                        }
+                    if let Ok(path) = result
+                        && path.extension() == Some(OsStr::new(CONFIG_FILE_EXT))
+                        && let Err(err) = Self::load_file(&path, &mut config).await
+                    {
+                        tracing::error!("Failed to load config file: {err}");
                     }
                 }
             }

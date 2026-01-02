@@ -1,6 +1,6 @@
 use std::io::{Cursor, Read};
-use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::Mutex;
+use std::sync::mpsc::{Receiver, Sender, channel};
 
 use gio::prelude::*;
 use glycin_utils::safe_math::*;

@@ -28,10 +28,10 @@ pub fn apply_sparse(
         operations.prepend(Operations::new_orientation(orientation));
     }
 
-    if let Some(orientation) = operations.orientation() {
-        if let Some(byte_changes) = rotate_sparse(orientation, &jpeg)? {
-            return Ok(SparseEditorOutput::byte_changes(byte_changes));
-        }
+    if let Some(orientation) = operations.orientation()
+        && let Some(byte_changes) = rotate_sparse(orientation, &jpeg)?
+    {
+        return Ok(SparseEditorOutput::byte_changes(byte_changes));
     }
 
     Ok(SparseEditorOutput::from(apply_non_sparse(
@@ -52,12 +52,12 @@ pub fn apply_complete(
         operations.prepend(Operations::new_orientation(orientation));
     }
 
-    if let Some(orientation) = operations.orientation() {
-        if let Some(byte_changes) = rotate_sparse(orientation, &jpeg)? {
-            let mut data = jpeg.into_inner();
-            byte_changes.apply(&mut data);
-            return CompleteEditorOutput::new_lossless(data);
-        }
+    if let Some(orientation) = operations.orientation()
+        && let Some(byte_changes) = rotate_sparse(orientation, &jpeg)?
+    {
+        let mut data = jpeg.into_inner();
+        byte_changes.apply(&mut data);
+        return CompleteEditorOutput::new_lossless(data);
     }
 
     apply_non_sparse(jpeg, operations)
@@ -112,7 +112,7 @@ fn apply_non_sparse(
     }
 
     let binary_data = BinaryData::from_data(out_buf).expected_error()?;
-    return Ok(CompleteEditorOutput::new(binary_data));
+    Ok(CompleteEditorOutput::new(binary_data))
 }
 
 fn rotate_sparse(

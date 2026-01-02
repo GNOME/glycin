@@ -7,12 +7,12 @@ use std::mem;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
 use futures_channel::oneshot;
-use futures_util::{future, FutureExt};
+use futures_util::{FutureExt, future};
 use gio::glib;
 use gio::prelude::*;
 use glycin_common::{MemoryFormatInfo, Operations};
@@ -28,10 +28,10 @@ use nix::sys::signal;
 use zbus::zvariant::{self, OwnedObjectPath};
 
 use crate::sandbox::Sandbox;
-use crate::util::{self, block_on, spawn, spawn_blocking, spawn_blocking_detached, Task};
+use crate::util::{self, Task, block_on, spawn, spawn_blocking, spawn_blocking_detached};
 use crate::{
-    api_loader, config, icc, orientation, ColorState, EditableImage, Error, Image, MimeType,
-    SandboxMechanism, Source,
+    ColorState, EditableImage, Error, Image, MimeType, SandboxMechanism, Source, api_loader,
+    config, icc, orientation,
 };
 
 /// Max texture size 8 GB in bytes
@@ -699,20 +699,24 @@ fn validate_frame(frame: &Frame, img_buf: &ImgBuf) -> Result<(), Error> {
 }
 
 unsafe fn gbytes_from_mmap(raw_fd: RawFd) -> Result<glib::Bytes, Error> {
-    let mut error = std::ptr::null_mut();
+    unsafe {
+        let mut error = std::ptr::null_mut();
 
-    let mapped_file = glib::ffi::g_mapped_file_new_from_fd(raw_fd, glib::ffi::GFALSE, &mut error);
+        let mapped_file =
+            glib::ffi::g_mapped_file_new_from_fd(raw_fd, glib::ffi::GFALSE, &mut error);
 
-    if !error.is_null() {
-        let err: glib::Error = glib::translate::from_glib_full(error);
-        return Err(err.into());
-    };
+        if !error.is_null() {
+            let err: glib::Error = glib::translate::from_glib_full(error);
+            return Err(err.into());
+        };
 
-    let bytes = glib::translate::from_glib_full(glib::ffi::g_mapped_file_get_bytes(mapped_file));
+        let bytes =
+            glib::translate::from_glib_full(glib::ffi::g_mapped_file_get_bytes(mapped_file));
 
-    glib::ffi::g_mapped_file_unref(mapped_file);
+        glib::ffi::g_mapped_file_unref(mapped_file);
 
-    Ok(bytes)
+        Ok(bytes)
+    }
 }
 
 fn remove_stride_if_needed(mut img_buf: ImgBuf, frame: &mut Frame) -> Result<ImgBuf, Error> {

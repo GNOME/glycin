@@ -106,9 +106,7 @@ impl EditorImplementation for ImgEditor {
                     .write_image(&img_buf, frame.width, frame.height, memory_format)
                     .internal_error()?;
 
-                let out_buf = png::add_metadata(out_buf, &new_image.image_info, &frame.details);
-
-                out_buf
+                png::add_metadata(out_buf, &new_image.image_info, &frame.details)
             }
             ImageFormat::Jpeg => {
                 let mut out_buf = Vec::new();

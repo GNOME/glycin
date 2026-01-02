@@ -6,9 +6,9 @@ use gio::glib;
 #[cfg(feature = "gdk4")]
 use glycin_utils::MemoryFormat;
 
-use crate::sandbox::Sandbox;
 #[cfg(feature = "gdk4")]
 use crate::ColorState;
+use crate::sandbox::Sandbox;
 
 #[cfg(feature = "gdk4")]
 pub const fn gdk_memory_format(format: MemoryFormat) -> gdk::MemoryFormat {

@@ -6,7 +6,7 @@ use glycin::gobject::{self, GlyCicp};
 
 pub type GlyFrame = <gobject::frame::imp::GlyFrame as ObjectSubclass>::Instance;
 
-extern "C" {
+unsafe extern "C" {
     pub fn gly_frame_get_width(frame: *mut GlyFrame) -> u32;
     pub fn gly_frame_get_height(frame: *mut GlyFrame) -> u32;
     pub fn gly_frame_get_memory_format(frame: *mut GlyFrame) -> i32;
@@ -17,7 +17,7 @@ extern "C" {
     pub fn gly_cicp_free(cicp: *mut GlyCicp);
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_gtk_frame_get_texture(frame: *mut GlyFrame) -> *mut GdkTexture {
     let width = gly_frame_get_width(frame) as i32;
     let height = gly_frame_get_height(frame) as i32;

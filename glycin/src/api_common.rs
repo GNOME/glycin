@@ -9,7 +9,7 @@ use crate::config::{Config, ImageEditorConfig, ImageLoaderConfig};
 use crate::dbus::{EditorProxy, GFileWorker, LoaderProxy, ZbusProxy};
 use crate::pool::{Pool, PooledProcess, UsageTracker};
 use crate::util::RunEnvironment;
-use crate::{config, Error, MimeType};
+use crate::{Error, MimeType, config};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 /// Sandboxing mechanism for image loading and editing
@@ -318,13 +318,13 @@ pub(crate) async fn guess_mime_type(gfile_worker: &GFileWorker) -> Result<MimeTy
     // Prefer file extension for text since it might be an XBM
     let is_text = mime_type.clone().ok() == Some("text/plain".into());
 
-    if unsure || is_tiff || is_xml || is_gzip || is_text {
-        if let Some(filename) = gfile_worker.file().and_then(|x| x.basename()) {
-            let content_type_fn = gio::content_type_guess(Some(filename), head.as_slice()).0;
-            return gio::content_type_get_mime_type(&content_type_fn)
-                .ok_or_else(|| Error::UnknownContentType(content_type_fn.to_string()))
-                .map(|x| MimeType::new(x.to_string()));
-        }
+    if (unsure || is_tiff || is_xml || is_gzip || is_text)
+        && let Some(filename) = gfile_worker.file().and_then(|x| x.basename())
+    {
+        let content_type_fn = gio::content_type_guess(Some(filename), head.as_slice()).0;
+        return gio::content_type_get_mime_type(&content_type_fn)
+            .ok_or_else(|| Error::UnknownContentType(content_type_fn.to_string()))
+            .map(|x| MimeType::new(x.to_string()));
     }
 
     mime_type.map(|x| MimeType::new(x.to_string()))

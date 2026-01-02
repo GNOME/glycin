@@ -5,7 +5,7 @@ description = "Sandboxed image decoding"
 license = "MPL-2.0 OR LGPL-2.1-or-later"
 homepage = "https://gnome.pages.gitlab.gnome.org/glycin/"
 repository = "https://gitlab.gnome.org/GNOME/glycin"
-edition = "2021"
+edition = "2024"
 rust-version = "1.92"
 
 [profile.release]
@@ -40,6 +40,7 @@ default-members = [
     "glycin-dev-tools",
     "glycin-thumbnailer",
     "glycin-utils",
+    "glycin-loaders/glycin-image-rs",
 ]
 
 [workspace.lints.clippy]

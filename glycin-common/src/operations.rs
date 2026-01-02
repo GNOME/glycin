@@ -2,7 +2,7 @@ use std::io::Read;
 use std::str::FromStr;
 
 use gufo_common::orientation::{Orientation, Rotation};
-use serde::de::{value, IntoDeserializer};
+use serde::de::{IntoDeserializer, value};
 use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
