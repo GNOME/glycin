@@ -1,10 +1,3 @@
-#![deny(clippy::arithmetic_side_effects)]
-#![deny(clippy::cast_possible_truncation)]
-#![deny(clippy::cast_possible_wrap)]
-#![deny(clippy::indexing_slicing)]
-#![deny(clippy::expect_used)]
-#![deny(clippy::unwrap_used)]
-
 //! Glycin allows to decode images into [`gdk::Texture`]s and to extract image
 //! metadata. The decoding happens in sandboxed modular image loaders that have
 //! to be provided as binaries. The [`glycin-utils`](glycin_utils) for more

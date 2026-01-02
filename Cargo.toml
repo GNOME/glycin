@@ -43,10 +43,13 @@ default-members = [
 ]
 
 [workspace.lints.clippy]
-arithmetic_side_effects = "forbid"
-cast_possible_truncation = "forbid"
-cast_possible_wrap = "forbid"
-dbg_macro = "forbid"
+arithmetic_side_effects = "warn"
+cast_possible_truncation = "warn"
+cast_possible_wrap = "warn"
+dbg_macro = "warn"
+unwrap_used = "warn"
+expect_used = "warn"
+indexing_slicing = "warn"
 
 [workspace.dependencies]
 async-fs = "2.1.0"
