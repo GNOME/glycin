@@ -3,7 +3,7 @@ use std::ptr;
 
 use gio::ffi::{GAsyncReadyCallback, GAsyncResult, GTask};
 use gio::prelude::*;
-use glib::ffi::{gpointer, GError, GStrv, GType};
+use glib::ffi::{GError, GStrv, GType, gpointer};
 use glib::subclass::prelude::*;
 use glib::translate::*;
 use glycin::gobject;
@@ -13,12 +13,12 @@ use crate::*;
 
 pub type GlyImage = <gobject::image::imp::GlyImage as ObjectSubclass>::Instance;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn gly_image_get_type() -> GType {
     <gobject::GlyImage as StaticType>::static_type().into_glib()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_image_next_frame(
     image: *mut GlyImage,
     g_error: *mut *mut GError,
@@ -27,7 +27,7 @@ pub unsafe extern "C" fn gly_image_next_frame(
     gly_image_get_specific_frame(image, frame_request.to_glib_none().0, g_error)
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_image_next_frame_async(
     image: *mut GlyImage,
     cancellable: *mut gio::ffi::GCancellable,
@@ -44,7 +44,7 @@ pub unsafe extern "C" fn gly_image_next_frame_async(
     );
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_image_next_frame_finish(
     image: *mut GlyImage,
     res: *mut GAsyncResult,
@@ -53,7 +53,7 @@ pub unsafe extern "C" fn gly_image_next_frame_finish(
     gly_image_get_specific_frame_finish(image, res, error)
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_image_get_specific_frame(
     image: *mut GlyImage,
     frame_request: *mut GlyFrameRequest,
@@ -74,7 +74,7 @@ pub unsafe extern "C" fn gly_image_get_specific_frame(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_image_get_specific_frame_async(
     image: *mut GlyImage,
     frame_request: *mut GlyFrameRequest,
@@ -116,7 +116,7 @@ pub unsafe extern "C" fn gly_image_get_specific_frame_async(
     .detach();
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_image_get_specific_frame_finish(
     _image: *mut GlyImage,
     res: *mut GAsyncResult,
@@ -135,25 +135,25 @@ pub unsafe extern "C" fn gly_image_get_specific_frame_finish(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_image_get_mime_type(image: *mut GlyImage) -> *const c_char {
     let image = gobject::GlyImage::from_glib_ptr_borrow(&image);
     image.mime_type().as_ptr()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_image_get_width(image: *mut GlyImage) -> u32 {
     let image = gobject::GlyImage::from_glib_ptr_borrow(&image);
     image.image_info().width()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_image_get_height(image: *mut GlyImage) -> u32 {
     let image = gobject::GlyImage::from_glib_ptr_borrow(&image);
     image.image_info().height()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_image_get_metadata_key_value(
     image: *mut GlyImage,
     key: *const c_char,
@@ -170,7 +170,7 @@ pub unsafe extern "C" fn gly_image_get_metadata_key_value(
     value.to_glib_full()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_image_get_metadata_keys(image: *mut GlyImage) -> GStrv {
     let image = gobject::GlyImage::from_glib_ptr_borrow(&image);
 
@@ -183,7 +183,7 @@ pub unsafe extern "C" fn gly_image_get_metadata_keys(image: *mut GlyImage) -> GS
         .into_raw()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_image_get_transformation_orientation(image: *mut GlyImage) -> u16 {
     let image = gobject::GlyImage::from_glib_ptr_borrow(&image);
     image.image().transformation_orientation().into()

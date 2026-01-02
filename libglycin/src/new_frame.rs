@@ -6,12 +6,12 @@ use glycin::gobject;
 
 pub type GlyNewFrame = <gobject::new_frame::imp::GlyNewFrame as ObjectSubclass>::Instance;
 
-#[no_mangle]
-pub extern "C" fn gly_new_frame_get_type() -> GType {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn gly_new_frame_get_type() -> GType {
     <gobject::GlyNewFrame as StaticType>::static_type().into_glib()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_new_frame_set_color_icc_profile(
     new_frame: *mut GlyNewFrame,
     icc_profile: *mut GBytes,

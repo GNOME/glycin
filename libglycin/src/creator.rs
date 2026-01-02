@@ -4,18 +4,18 @@ use std::ptr;
 use gio::ffi::{GAsyncReadyCallback, GAsyncResult, GTask};
 use gio::glib;
 use gio::prelude::*;
-use glib::ffi::{gpointer, GBytes, GError, GType};
+use glib::ffi::{GBytes, GError, GType, gpointer};
 use glib::subclass::prelude::*;
 use glib::translate::*;
-use glycin::gobject::{self};
 use glycin::SandboxSelector as GlySandboxSelector;
+use glycin::gobject::{self};
 
 use crate::common::*;
 use crate::*;
 
 pub type GlyCreator = <gobject::creator::imp::GlyCreator as ObjectSubclass>::Instance;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_creator_new(
     mime_type: *const c_char,
     g_error: *mut *mut GError,
@@ -33,7 +33,7 @@ pub unsafe extern "C" fn gly_creator_new(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_creator_set_sandbox_selector(
     loader: *mut GlyLoader,
     sandbox_selector: i32,
@@ -44,7 +44,7 @@ pub unsafe extern "C" fn gly_creator_set_sandbox_selector(
     obj.set_sandbox_selector(sandbox_selector);
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_creator_create(
     creator: *mut GlyCreator,
     g_error: *mut *mut GError,
@@ -62,7 +62,7 @@ pub unsafe extern "C" fn gly_creator_create(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_creator_add_frame(
     creator: *mut GlyCreator,
     width: u32,
@@ -87,7 +87,7 @@ pub unsafe extern "C" fn gly_creator_add_frame(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_creator_add_frame_with_stride(
     creator: *mut GlyCreator,
     width: u32,
@@ -113,7 +113,7 @@ pub unsafe extern "C" fn gly_creator_add_frame_with_stride(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_creator_create_async(
     creator: *mut GlyCreator,
     cancellable: *mut gio::ffi::GCancellable,
@@ -154,7 +154,7 @@ pub unsafe extern "C" fn gly_creator_create_async(
     .detach();
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_creator_create_finish(
     _creator: *mut GlyCreator,
     res: *mut GAsyncResult,
@@ -173,7 +173,7 @@ pub unsafe extern "C" fn gly_creator_create_finish(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_creator_add_metadata_key_value(
     creator: *mut GlyCreator,
     key: *const c_char,
@@ -189,7 +189,7 @@ pub unsafe extern "C" fn gly_creator_add_metadata_key_value(
         .into_glib()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_creator_set_encoding_quality(
     creator: *mut GlyCreator,
     quality: u8,
@@ -199,7 +199,7 @@ pub unsafe extern "C" fn gly_creator_set_encoding_quality(
     creator.set_encoding_quality(quality).is_ok().into_glib()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_creator_set_encoding_compression(
     creator: *mut GlyCreator,
     compression: u8,
@@ -212,7 +212,7 @@ pub unsafe extern "C" fn gly_creator_set_encoding_compression(
         .into_glib()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn gly_creator_get_type() -> GType {
     <gobject::GlyCreator as StaticType>::static_type().into_glib()
 }

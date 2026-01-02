@@ -1,6 +1,6 @@
 use std::os::fd::{AsRawFd, RawFd};
 
-use crate::{editing, DimensionTooLargerError};
+use crate::{DimensionTooLargerError, editing};
 
 pub enum ImgBuf {
     MMap {

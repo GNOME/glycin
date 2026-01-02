@@ -1,7 +1,7 @@
 use std::io::{Cursor, Read, Seek};
 
 use glycin_common::MemoryFormatInfo;
-use gufo_common::math::{checked, Checked};
+use gufo_common::math::{Checked, checked};
 
 use super::{EditingFrame, Error};
 

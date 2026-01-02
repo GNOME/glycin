@@ -9,9 +9,9 @@ use serde::{Deserialize, Serialize};
 use zbus::zvariant::as_value::{self, optional};
 use zbus::zvariant::{self, DeserializeDict, Optional, SerializeDict, Type};
 
+use crate::ImgBuf;
 use crate::error::DimensionTooLargerError;
 use crate::safe_math::{SafeConversion, SafeMath};
-use crate::ImgBuf;
 
 #[derive(Deserialize, Serialize, Type, Debug)]
 pub struct InitRequest {

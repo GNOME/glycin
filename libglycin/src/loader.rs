@@ -4,12 +4,12 @@ use std::ptr;
 use gio::ffi::{GAsyncReadyCallback, GAsyncResult, GTask};
 use gio::glib;
 use gio::prelude::*;
-use glib::ffi::{gpointer, GBytes, GError, GStrv, GType};
+use glib::ffi::{GBytes, GError, GStrv, GType, gpointer};
 use glib::subclass::prelude::*;
 use glib::translate::*;
 use glycin::{
-    gobject, MemoryFormatSelection as GlyMemoryFormatSelection,
-    SandboxSelector as GlySandboxSelector,
+    MemoryFormatSelection as GlyMemoryFormatSelection, SandboxSelector as GlySandboxSelector,
+    gobject,
 };
 
 use crate::common::*;
@@ -17,13 +17,13 @@ use crate::*;
 
 pub type GlyLoader = <gobject::loader::imp::GlyLoader as ObjectSubclass>::Instance;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_loader_new(file: *mut gio::ffi::GFile) -> *mut GlyLoader {
     let file = gio::File::from_glib_ptr_borrow(&file);
     gobject::GlyLoader::new(&file).into_glib_ptr()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_loader_new_for_stream(
     stream: *mut gio::ffi::GInputStream,
 ) -> *mut GlyLoader {
@@ -31,13 +31,13 @@ pub unsafe extern "C" fn gly_loader_new_for_stream(
     gobject::GlyLoader::for_stream(&stream).into_glib_ptr()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_loader_new_for_bytes(bytes: *mut GBytes) -> *mut GlyLoader {
     let bytes = glib::Bytes::from_glib_ptr_borrow(&bytes);
     gobject::GlyLoader::for_bytes(&bytes).into_glib_ptr()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_loader_set_sandbox_selector(
     loader: *mut GlyLoader,
     sandbox_selector: i32,
@@ -48,7 +48,7 @@ pub unsafe extern "C" fn gly_loader_set_sandbox_selector(
     obj.set_sandbox_selector(sandbox_selector);
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_loader_set_accepted_memory_formats(
     loader: *mut GlyLoader,
     memory_format_selection: u32,
@@ -60,7 +60,7 @@ pub unsafe extern "C" fn gly_loader_set_accepted_memory_formats(
     obj.set_memory_format_selection(memory_format_selection);
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_loader_set_apply_transformations(
     loader: *mut GlyLoader,
     apply_tansformations: c_int,
@@ -70,7 +70,7 @@ pub unsafe extern "C" fn gly_loader_set_apply_transformations(
     obj.set_apply_transformation(apply_tansformations != 0);
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_loader_load(
     loader: *mut GlyLoader,
     g_error: *mut *mut GError,
@@ -88,7 +88,7 @@ pub unsafe extern "C" fn gly_loader_load(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_loader_load_async(
     loader: *mut GlyLoader,
     cancellable: *mut gio::ffi::GCancellable,
@@ -128,7 +128,7 @@ pub unsafe extern "C" fn gly_loader_load_async(
     .detach();
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_loader_load_finish(
     _loader: *mut GlyLoader,
     res: *mut GAsyncResult,
@@ -147,7 +147,7 @@ pub unsafe extern "C" fn gly_loader_load_finish(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn gly_loader_get_mime_types() -> GStrv {
     let mime_types = glib::StrV::from_iter(
         glib::MainContext::default()
@@ -159,7 +159,7 @@ pub extern "C" fn gly_loader_get_mime_types() -> GStrv {
     mime_types.into_raw()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_loader_get_mime_types_async(
     cancellable: *mut gio::ffi::GCancellable,
     callback: GAsyncReadyCallback,
@@ -187,7 +187,7 @@ pub unsafe extern "C" fn gly_loader_get_mime_types_async(
     .detach();
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_loader_get_mime_types_finish(
     res: *mut GAsyncResult,
     error: *mut *mut GError,
@@ -205,17 +205,17 @@ pub unsafe extern "C" fn gly_loader_get_mime_types_finish(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn gly_loader_get_type() -> GType {
     <gobject::GlyLoader as StaticType>::static_type().into_glib()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn gly_sandbox_selector_get_type() -> GType {
     <GlySandboxSelector as StaticType>::static_type().into_glib()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn gly_memory_format_selection_get_type() -> GType {
     <GlyMemoryFormatSelection as StaticType>::static_type().into_glib()
 }

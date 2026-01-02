@@ -167,7 +167,7 @@ pub extern "C" fn pre_main() {
 macro_rules! init_main_loader {
     ($loader:path) => {
         /// Init handler for SIGSYS before main() to catch
-        #[cfg_attr(target_os = "linux", link_section = ".ctors")]
+        #[cfg_attr(target_os = "linux", unsafe(link_section = ".ctors"))]
         static __CTOR: extern "C" fn() = pre_main;
 
         fn main() {
@@ -184,7 +184,7 @@ macro_rules! init_main_loader {
 macro_rules! init_main_loader_editor {
     ($loader:path, $editor:path) => {
         /// Init handler for SIGSYS before main() to catch
-        #[cfg_attr(target_os = "linux", link_section = ".ctors")]
+        #[cfg_attr(target_os = "linux", unsafe(link_section = ".ctors"))]
         static __CTOR: extern "C" fn() = pre_main;
 
         fn main() {

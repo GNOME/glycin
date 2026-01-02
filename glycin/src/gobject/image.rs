@@ -1,6 +1,6 @@
 use std::sync::OnceLock;
 
-use gio::{glib, Cancellable};
+use gio::{Cancellable, glib};
 use glib::subclass::prelude::*;
 
 use super::GlyFrame;

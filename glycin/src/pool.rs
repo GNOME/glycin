@@ -12,8 +12,8 @@ use gio::prelude::*;
 
 use crate::config::{ConfigEntry, ConfigEntryHash};
 use crate::dbus::ZbusProxy;
-use crate::util::{spawn_timeout, AsyncMutex, TimerHandle};
-use crate::{config, dbus, Error, SandboxMechanism};
+use crate::util::{AsyncMutex, TimerHandle, spawn_timeout};
+use crate::{Error, SandboxMechanism, config, dbus};
 
 #[derive(Debug)]
 pub struct PooledProcess<P: ZbusProxy<'static> + 'static> {

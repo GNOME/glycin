@@ -9,7 +9,7 @@ use glycin_utils::{DimensionTooLargerError, RemoteError};
 use libseccomp::error::SeccompError;
 
 use crate::config;
-use crate::dbus::{RemoteProcess, ZbusProxy, MAX_TEXTURE_SIZE};
+use crate::dbus::{MAX_TEXTURE_SIZE, RemoteProcess, ZbusProxy};
 
 #[derive(Debug, Clone, Default)]
 pub struct ErrorContext {
@@ -19,18 +19,18 @@ pub struct ErrorContext {
 
 impl std::fmt::Display for ErrorContext {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if let Some(stderr) = &self.stderr {
-            if !stderr.is_empty() {
-                f.write_str("\n\nstderr:\n")?;
-                f.write_str(stderr)?;
-            }
+        if let Some(stderr) = &self.stderr
+            && !stderr.is_empty()
+        {
+            f.write_str("\n\nstderr:\n")?;
+            f.write_str(stderr)?;
         }
 
-        if let Some(stdout) = &self.stdout {
-            if !stdout.is_empty() {
-                f.write_str("\n\nstdout:\n")?;
-                f.write_str(stdout)?;
-            }
+        if let Some(stdout) = &self.stdout
+            && !stdout.is_empty()
+        {
+            f.write_str("\n\nstdout:\n")?;
+            f.write_str(stdout)?;
         }
 
         Ok(())

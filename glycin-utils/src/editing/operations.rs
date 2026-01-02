@@ -2,7 +2,7 @@ use glycin_common::{Operation, Operations};
 use gufo_common::orientation::{Orientation, Rotation};
 
 use super::{EditingFrame, Error};
-use crate::{editing, ImgBuf};
+use crate::{ImgBuf, editing};
 
 pub fn apply_operations(
     mut buf: Vec<u8>,

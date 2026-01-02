@@ -9,7 +9,7 @@ use std::pin::Pin;
 use glib::prelude::*;
 use glib::translate::*;
 
-use crate::{ffi, Frame, FrameRequest};
+use crate::{Frame, FrameRequest, ffi};
 
 glib::wrapper! {
     #[doc(alias = "GlyImage")]

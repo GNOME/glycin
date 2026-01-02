@@ -1,7 +1,7 @@
 // Copyright (c) 2024 GNOME Foundation Inc.
 
 use std::ffi::{c_int, c_void};
-use std::fs::{canonicalize, DirEntry, File};
+use std::fs::{DirEntry, File, canonicalize};
 use std::io::{self, BufRead, BufReader, Seek};
 use std::os::fd::{AsRawFd, BorrowedFd};
 use std::os::unix::net::UnixStream;
@@ -18,7 +18,7 @@ use nix::libc::siginfo_t;
 use nix::sys::resource;
 
 use crate::config::{ConfigEntry, ImageLoaderConfig};
-use crate::util::{self, new_async_mutex, spawn_blocking, AsyncMutex};
+use crate::util::{self, AsyncMutex, new_async_mutex, spawn_blocking};
 use crate::{Error, SandboxMechanism};
 
 type SystemSetupStore = Arc<Result<SystemSetup, Arc<io::Error>>>;
@@ -809,19 +809,19 @@ impl SystemSetup {
         let entry = entry?;
         let path = entry.path();
 
-        if let Some(last_segment) = path.file_name() {
-            if last_segment.as_encoded_bytes().starts_with(b"lib") {
-                let metadata = entry.metadata()?;
-                if metadata.is_dir() {
-                    // Lib dirs like /lib
-                    self.lib_dirs.push(entry.path());
-                } else if metadata.is_symlink() {
-                    // Symlinks like /lib -> /usr/lib
-                    let target = canonicalize(&path)?;
-                    // Only use symlinks that link somewhere into /usr/
-                    if target.starts_with("/usr/") {
-                        self.lib_symlinks.push((path, target));
-                    }
+        if let Some(last_segment) = path.file_name()
+            && last_segment.as_encoded_bytes().starts_with(b"lib")
+        {
+            let metadata = entry.metadata()?;
+            if metadata.is_dir() {
+                // Lib dirs like /lib
+                self.lib_dirs.push(entry.path());
+            } else if metadata.is_symlink() {
+                // Symlinks like /lib -> /usr/lib
+                let target = canonicalize(&path)?;
+                // Only use symlinks that link somewhere into /usr/
+                if target.starts_with("/usr/") {
+                    self.lib_symlinks.push((path, target));
                 }
             }
         };

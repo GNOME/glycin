@@ -15,7 +15,7 @@ use crate::dbus::*;
 use crate::error::ResultExt;
 use crate::pool::{Pool, PooledProcess, UsageTracker};
 use crate::util::spawn_detached;
-use crate::{config, ErrorCtx};
+use crate::{ErrorCtx, config};
 
 /// Image request builder
 #[derive(Debug)]
@@ -39,7 +39,7 @@ impl Loader {
 
     /// Create a loader with a [`gio::InputStream`] as source
     pub unsafe fn new_stream(stream: impl IsA<gio::InputStream>) -> Self {
-        Self::new_source(Source::Stream(GInputStreamSend::new(stream.upcast())))
+        unsafe { Self::new_source(Source::Stream(GInputStreamSend::new(stream.upcast()))) }
     }
 
     /// Create a loader with [`glib::Bytes`] as source

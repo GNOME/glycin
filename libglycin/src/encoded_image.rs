@@ -7,12 +7,12 @@ use glycin::gobject;
 pub type GlyEncodedImage =
     <gobject::encoded_image::imp::GlyEncodedImage as ObjectSubclass>::Instance;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn gly_encoded_image_get_type() -> GType {
     <gobject::GlyEncodedImage as StaticType>::static_type().into_glib()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_encoded_image_get_data(
     encoded_image: *mut GlyEncodedImage,
 ) -> *mut GBytes {

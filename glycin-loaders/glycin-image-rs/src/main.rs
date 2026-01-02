@@ -3,15 +3,15 @@
 mod editor;
 
 use std::io::{Cursor, Read};
-use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::Mutex;
+use std::sync::mpsc::{Receiver, Sender, channel};
 
 use editor::ImgEditor;
 use glycin_utils::image_rs::Handler;
 use glycin_utils::safe_math::*;
 use glycin_utils::{MemoryFormatInfo, *};
 use gufo_common::cicp::Cicp;
-use image::{codecs, AnimationDecoder, ImageDecoder, ImageResult, Limits};
+use image::{AnimationDecoder, ImageDecoder, ImageResult, Limits, codecs};
 use log::trace;
 
 init_main_loader_editor!(ImgDecoder, ImgEditor);

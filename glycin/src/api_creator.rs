@@ -9,7 +9,7 @@ use glycin_utils::{DimensionTooLargerError, MemoryFormat};
 use crate::config::{Config, ImageEditorConfig};
 use crate::error::ResultExt;
 use crate::pool::Pool;
-use crate::{spin_up_encoder, Error, ErrorCtx, MimeType, SandboxSelector};
+use crate::{Error, ErrorCtx, MimeType, SandboxSelector, spin_up_encoder};
 
 #[derive(Debug)]
 pub struct Creator {
