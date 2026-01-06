@@ -96,7 +96,7 @@ Where the part behind `loader` is a mime-type and the value of `Exec` can be any
 
 ### Existing Compatibility Versions
 
-Not every new major version of the library has to break compatibility with the loaders. If a glycin version X breaks compatibility, the new compativility version will be called X+. Only glycin X and newer version will be compatible with X+ until a new compatibilityv version is used. The definition of the API of each compatibility version is available in [`docs/`](docs/). The following compatibility versions currently exist
+Not every new major version of the library has to break compatibility with the loaders. If a glycin version X breaks compatibility, the new compatibility version will be called X+. Only glycin X and newer version will be compatible with X+ until a new compatibility version is used. The definition of the API of each compatibility version is available in [`docs/`](docs/). The following compatibility versions currently exist
 
 | compat-version | Compatible With                |
 |----------------|--------------------------------|
