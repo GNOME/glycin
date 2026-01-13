@@ -20,8 +20,8 @@ def main():
 
     this_release = changelog.releases[-1]
     last_release = changelog.releases[-2]
-    componens = Components(this_release.name, last_release.name)
-    componens.write()
+    components = Components(this_release.name, last_release.name)
+    components.write()
     this_release.load_components()
 
     with open(OUT_FILE, 'w') as f:
