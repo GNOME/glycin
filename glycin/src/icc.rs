@@ -14,7 +14,7 @@ fn transformation<P: lcms2::Pod>(
     icc_profile: &[u8],
     memory_format: MemoryFormat,
 ) -> std::result::Result<lcms2::Transform<P, P>, lcms2::Error> {
-    tracing::debug!("Conveting to sRGB via ICC profile");
+    tracing::debug!("Converting to sRGB via ICC profile");
 
     let icc_pixel_format = lcms_pixel_format(memory_format);
     let src_profile = lcms2::Profile::new_icc(icc_profile)?;

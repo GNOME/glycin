@@ -189,7 +189,7 @@ pub enum Error {
     Canceled(Option<String>),
     #[error("Editing: {0}")]
     Editing(#[from] glycin_utils::editing::Error),
-    #[error("Trying to access already trasferred GInputStream")]
+    #[error("Trying to access already transferred GInputStream")]
     TransferredStream,
     #[cfg(feature = "gobject")]
     #[error("A loader can only be used once")]

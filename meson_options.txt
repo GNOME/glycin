@@ -52,7 +52,7 @@ option(
 option(
   'test_skip_ext',
   type: 'array',
-  description: 'Image filename extensions, exlcuding dots, to skip during tests.',
+  description: 'Image filename extensions, excluding dots, to skip during tests.',
 )
 
 option(
