@@ -71,6 +71,7 @@ gdk-sys = { package = "gdk4-sys", version = "0.11.0-alpha.1", features = ["v4_16
 gif = "0.13.3"
 gio = { version = "0.22.0-alpha.1", features = ["v2_62"] }
 gio-sys = { version = "0.22.0-alpha.1", features = ["v2_62"] }
+gio-unix = "0.22.0-alpha.1"
 glib = { version = "0.22.0-alpha.1", features = ["v2_68"] }
 glib-sys = { version = "0.22.0-alpha.1", features = ["v2_68"] }
 gobject-sys = { version = "0.22.0-alpha.1", features = ["v2_68"] }

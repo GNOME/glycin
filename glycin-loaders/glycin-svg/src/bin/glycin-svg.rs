@@ -36,7 +36,7 @@ pub fn thread(
     frame_send: Sender<Result<Frame, ProcessError>>,
     instr_recv: Receiver<Instruction>,
 ) {
-    let input_stream = gio::UnixInputStream::take_fd(stream.into());
+    let input_stream = gio_unix::InputStream::take_fd(stream.into());
 
     let handle = rsvg::Handle::from_stream_sync(
         &input_stream,
@@ -47,7 +47,7 @@ pub fn thread(
     .expected_error();
 
     let handle = match handle {
-        Ok(handle) => handle.unwrap(),
+        Ok(handle) => handle,
         Err(err) => {
             info_send.send(Err(err)).unwrap();
             return;
