@@ -3,11 +3,8 @@
 // from gir-files
 // DO NOT EDIT
 
-use glib::bitflags::bitflags;
-use glib::prelude::*;
-use glib::translate::*;
-
 use crate::ffi;
+use glib::{bitflags::bitflags, prelude::*, translate::*};
 
 bitflags! {
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -109,7 +106,7 @@ unsafe impl<'a> glib::value::FromValue<'a> for MemoryFormatSelection {
     #[inline]
     unsafe fn from_value(value: &'a glib::Value) -> Self {
         skip_assert_initialized!();
-        from_glib(glib::gobject_ffi::g_value_get_flags(value.to_glib_none().0))
+        unsafe { from_glib(glib::gobject_ffi::g_value_get_flags(value.to_glib_none().0)) }
     }
 }
 

@@ -3,13 +3,9 @@
 // from gir-files
 // DO NOT EDIT
 
-use std::boxed::Box as Box_;
-use std::pin::Pin;
-
-use glib::prelude::*;
-use glib::translate::*;
-
 use crate::{ffi, Frame, FrameRequest};
+use glib::{prelude::*, translate::*};
+use std::{boxed::Box as Box_, pin::Pin};
 
 glib::wrapper! {
     #[doc(alias = "GlyImage")]
@@ -99,18 +95,23 @@ impl Image {
             res: *mut gio::ffi::GAsyncResult,
             user_data: glib::ffi::gpointer,
         ) {
-            let mut error = std::ptr::null_mut();
-            let ret =
-                ffi::gly_image_get_specific_frame_finish(_source_object as *mut _, res, &mut error);
-            let result = if error.is_null() {
-                Ok(from_glib_full(ret))
-            } else {
-                Err(from_glib_full(error))
-            };
-            let callback: Box_<glib::thread_guard::ThreadGuard<P>> =
-                Box_::from_raw(user_data as *mut _);
-            let callback: P = callback.into_inner();
-            callback(result);
+            unsafe {
+                let mut error = std::ptr::null_mut();
+                let ret = ffi::gly_image_get_specific_frame_finish(
+                    _source_object as *mut _,
+                    res,
+                    &mut error,
+                );
+                let result = if error.is_null() {
+                    Ok(from_glib_full(ret))
+                } else {
+                    Err(from_glib_full(error))
+                };
+                let callback: Box_<glib::thread_guard::ThreadGuard<P>> =
+                    Box_::from_raw(user_data as *mut _);
+                let callback: P = callback.into_inner();
+                callback(result);
+            }
         }
         let callback = specific_frame_async_trampoline::<P>;
         unsafe {
@@ -186,17 +187,20 @@ impl Image {
             res: *mut gio::ffi::GAsyncResult,
             user_data: glib::ffi::gpointer,
         ) {
-            let mut error = std::ptr::null_mut();
-            let ret = ffi::gly_image_next_frame_finish(_source_object as *mut _, res, &mut error);
-            let result = if error.is_null() {
-                Ok(from_glib_full(ret))
-            } else {
-                Err(from_glib_full(error))
-            };
-            let callback: Box_<glib::thread_guard::ThreadGuard<P>> =
-                Box_::from_raw(user_data as *mut _);
-            let callback: P = callback.into_inner();
-            callback(result);
+            unsafe {
+                let mut error = std::ptr::null_mut();
+                let ret =
+                    ffi::gly_image_next_frame_finish(_source_object as *mut _, res, &mut error);
+                let result = if error.is_null() {
+                    Ok(from_glib_full(ret))
+                } else {
+                    Err(from_glib_full(error))
+                };
+                let callback: Box_<glib::thread_guard::ThreadGuard<P>> =
+                    Box_::from_raw(user_data as *mut _);
+                let callback: P = callback.into_inner();
+                callback(result);
+            }
         }
         let callback = next_frame_async_trampoline::<P>;
         unsafe {

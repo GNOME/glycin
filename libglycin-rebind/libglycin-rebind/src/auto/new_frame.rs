@@ -3,9 +3,8 @@
 // from gir-files
 // DO NOT EDIT
 
-use glib::translate::*;
-
 use crate::ffi;
+use glib::translate::*;
 
 glib::wrapper! {
     #[doc(alias = "GlyNewFrame")]

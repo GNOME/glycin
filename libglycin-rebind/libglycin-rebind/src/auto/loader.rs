@@ -3,14 +3,13 @@
 // from gir-files
 // DO NOT EDIT
 
-use std::boxed::Box as Box_;
-use std::pin::Pin;
-
-use glib::prelude::*;
-use glib::signal::{connect_raw, SignalHandlerId};
-use glib::translate::*;
-
 use crate::{ffi, Image, MemoryFormatSelection, SandboxSelector};
+use glib::{
+    prelude::*,
+    signal::{connect_raw, SignalHandlerId},
+    translate::*,
+};
+use std::{boxed::Box as Box_, pin::Pin};
 
 glib::wrapper! {
     #[doc(alias = "GlyLoader")]
@@ -47,12 +46,9 @@ impl Loader {
     }
 
     // rustdoc-stripper-ignore-next
-    /// Creates a new builder-pattern struct instance to construct [`Loader`]
-    /// objects.
+    /// Creates a new builder-pattern struct instance to construct [`Loader`] objects.
     ///
-    /// This method returns an instance of
-    /// [`LoaderBuilder`](crate::builders::LoaderBuilder) which can be used to
-    /// create [`Loader`] objects.
+    /// This method returns an instance of [`LoaderBuilder`](crate::builders::LoaderBuilder) which can be used to create [`Loader`] objects.
     pub fn builder() -> LoaderBuilder {
         LoaderBuilder::new()
     }
@@ -95,17 +91,19 @@ impl Loader {
             res: *mut gio::ffi::GAsyncResult,
             user_data: glib::ffi::gpointer,
         ) {
-            let mut error = std::ptr::null_mut();
-            let ret = ffi::gly_loader_load_finish(_source_object as *mut _, res, &mut error);
-            let result = if error.is_null() {
-                Ok(from_glib_full(ret))
-            } else {
-                Err(from_glib_full(error))
-            };
-            let callback: Box_<glib::thread_guard::ThreadGuard<P>> =
-                Box_::from_raw(user_data as *mut _);
-            let callback: P = callback.into_inner();
-            callback(result);
+            unsafe {
+                let mut error = std::ptr::null_mut();
+                let ret = ffi::gly_loader_load_finish(_source_object as *mut _, res, &mut error);
+                let result = if error.is_null() {
+                    Ok(from_glib_full(ret))
+                } else {
+                    Err(from_glib_full(error))
+                };
+                let callback: Box_<glib::thread_guard::ThreadGuard<P>> =
+                    Box_::from_raw(user_data as *mut _);
+                let callback: P = callback.into_inner();
+                callback(result);
+            }
         }
         let callback = load_async_trampoline::<P>;
         unsafe {
@@ -238,17 +236,19 @@ impl Loader {
             res: *mut gio::ffi::GAsyncResult,
             user_data: glib::ffi::gpointer,
         ) {
-            let mut error = std::ptr::null_mut();
-            let ret = ffi::gly_loader_get_mime_types_finish(res, &mut error);
-            let result = if error.is_null() {
-                Ok(FromGlibPtrContainer::from_glib_full(ret))
-            } else {
-                Err(from_glib_full(error))
-            };
-            let callback: Box_<glib::thread_guard::ThreadGuard<P>> =
-                Box_::from_raw(user_data as *mut _);
-            let callback: P = callback.into_inner();
-            callback(result);
+            unsafe {
+                let mut error = std::ptr::null_mut();
+                let ret = ffi::gly_loader_get_mime_types_finish(res, &mut error);
+                let result = if error.is_null() {
+                    Ok(FromGlibPtrContainer::from_glib_full(ret))
+                } else {
+                    Err(from_glib_full(error))
+                };
+                let callback: Box_<glib::thread_guard::ThreadGuard<P>> =
+                    Box_::from_raw(user_data as *mut _);
+                let callback: P = callback.into_inner();
+                callback(result);
+            }
         }
         let callback = mime_types_async_trampoline::<P>;
         unsafe {
@@ -283,8 +283,10 @@ impl Loader {
             _param_spec: glib::ffi::gpointer,
             f: glib::ffi::gpointer,
         ) {
-            let f: &F = &*(f as *const F);
-            f(&from_glib_borrow(this))
+            unsafe {
+                let f: &F = &*(f as *const F);
+                f(&from_glib_borrow(this))
+            }
         }
         unsafe {
             let f: Box_<F> = Box_::new(f);
@@ -311,8 +313,10 @@ impl Loader {
             _param_spec: glib::ffi::gpointer,
             f: glib::ffi::gpointer,
         ) {
-            let f: &F = &*(f as *const F);
-            f(&from_glib_borrow(this))
+            unsafe {
+                let f: &F = &*(f as *const F);
+                f(&from_glib_borrow(this))
+            }
         }
         unsafe {
             let f: Box_<F> = Box_::new(f);
@@ -339,8 +343,10 @@ impl Loader {
             _param_spec: glib::ffi::gpointer,
             f: glib::ffi::gpointer,
         ) {
-            let f: &F = &*(f as *const F);
-            f(&from_glib_borrow(this))
+            unsafe {
+                let f: &F = &*(f as *const F);
+                f(&from_glib_borrow(this))
+            }
         }
         unsafe {
             let f: Box_<F> = Box_::new(f);
@@ -367,8 +373,10 @@ impl Loader {
             _param_spec: glib::ffi::gpointer,
             f: glib::ffi::gpointer,
         ) {
-            let f: &F = &*(f as *const F);
-            f(&from_glib_borrow(this))
+            unsafe {
+                let f: &F = &*(f as *const F);
+                f(&from_glib_borrow(this))
+            }
         }
         unsafe {
             let f: Box_<F> = Box_::new(f);

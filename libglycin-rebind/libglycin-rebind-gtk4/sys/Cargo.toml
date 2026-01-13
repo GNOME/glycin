@@ -35,10 +35,16 @@ rustdoc-args = ["--cfg", "docsrs", "--generate-link-to-definition"]
 all-features = true
 
 [dependencies]
-libc.workspace = true
-glib-sys.workspace = true
-gdk-sys.workspace = true
-system-deps.workspace = true
+libc = "0.2"
+
+[dependencies.glib-sys]
+workspace = true
+
+[dependencies.gdk-sys]
+workspace = true
+
+[dependencies.system-deps]
+workspace = true
 
 [dependencies.gly-sys]
 package = "libglycin-rebind-sys"
@@ -50,3 +56,6 @@ shell-words = "1.0.0"
 tempfile = "3"
 
 [features]
+
+[build-dependencies]
+system-deps = "7"

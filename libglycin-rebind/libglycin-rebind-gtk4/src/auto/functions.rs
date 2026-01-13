@@ -3,9 +3,8 @@
 // from gir-files
 // DO NOT EDIT
 
-use glib::translate::*;
-
 use crate::ffi;
+use glib::translate::*;
 
 #[doc(alias = "gly_gtk_frame_get_texture")]
 pub fn frame_get_texture(frame: &gly::Frame) -> gdk::Texture {
