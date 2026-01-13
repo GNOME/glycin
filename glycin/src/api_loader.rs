@@ -110,7 +110,7 @@ impl Loader {
     /// picture. By default, `use_expose_base_dir` is set to `false`. You need
     /// to enable it for the `use_base_dir` option to have any effect. The
     /// downside of enabling it is that separate sandboxes are needed for
-    /// different base directories, which has a noticable performance impact
+    /// different base directories, which has a noticeable performance impact
     /// when loading many small SVGs from many different directories.
     pub fn use_expose_base_dir(&mut self, use_epose_base_dir: bool) -> &mut Self {
         self.use_expose_base_dir = use_epose_base_dir;

@@ -73,7 +73,7 @@ $ stress-ng --vm-bytes 20G --vm-keep -m 1
 
 ## Test D-Bus API stability
 
-The following test will ensure that the lastest API documented in `docs/` hasn't changed.
+The following test will ensure that the latest API documented in `docs/` hasn't changed.
 
 ```
 $ cargo test -p tests -- dbus_api_stability --include-ignored

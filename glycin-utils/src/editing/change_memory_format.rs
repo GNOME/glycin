@@ -32,7 +32,7 @@ pub fn change_memory_format(
 
     let mut new_data = vec![0; new_total_size];
 
-    // Target rows for parralel processing
+    // Target rows for parallel processing
     let mut target_rows = Vec::new();
     (0..frame.height as usize).fold(new_data.as_mut_slice(), |x, y| {
         let (row, rest) = x.split_at_mut(new_stride as usize);
