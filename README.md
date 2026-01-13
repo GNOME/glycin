@@ -122,7 +122,7 @@ For information on how to implement a loader, please consult the [`glycin-utils`
 
 - The `-Dloaders` option allows to only build certain loaders.
 - The `-Dtest_skip_ext` option allows to skip certain image filename extensions during tests. The option `-Dtest_skip_ext=heic` might be needed if x265 is not available.
-- Running integration tests requires the glycin loaders to be installed. By default, `meson test` creates an separate installation against which the tests are run. This behavior can be changed by setting `-Dtest_skip_install=true`, requiring to manually calling `meson install` before running the tests.
+- Running integration tests requires the glycin loaders to be installed. By default, `meson test` creates a separate installation against which the tests are run. This behavior can be changed by setting `-Dtest_skip_install=true`, requiring to manually calling `meson install` before running the tests.
 - The `glycin` crate has an example, `glycin-render` that will load the image passed as a parameter and render it as a PNG into `output.png` in the current directory.
 
 ## Packaging Status
