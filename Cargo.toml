@@ -6,7 +6,7 @@ license = "MPL-2.0 OR LGPL-2.1-or-later"
 homepage = "https://gnome.pages.gitlab.gnome.org/glycin/"
 repository = "https://gitlab.gnome.org/GNOME/glycin"
 edition = "2021"
-rust-version = "1.89"
+rust-version = "1.92"
 
 [profile.release]
 lto = true
@@ -56,7 +56,7 @@ async-lock = "3.3.0"
 async-task = "4.0.0"
 bitflags = "2.9.0"
 blocking = "1.6.1"
-cairo-rs = "0.21"
+cairo-rs = "0.22.0-alpha.1"
 env_logger = { version = "0.11.0", default-features = false, features = [
     "humantime",
 ] }
@@ -65,11 +65,15 @@ futures-lite = { version = "2.1.0" }
 futures-task = "0.3.30"
 futures-timer = "3.0.3"
 futures-util = "0.3.30"
-gdk = { package = "gdk4", version = ">=0.11.0-alpha.1", features = ["v4_16"] }
+gdk = { package = "gdk4", version = "0.11.0-alpha.1", features = ["v4_16"] }
+gdk-sys = { package = "gdk4-sys", version = "0.11.0-alpha.1", features = ["v4_16"] }
 # Use newer version to fix issues
 gif = "0.13.3"
-gio = { version = ">=0.22.0-alpha.1", features = ["v2_62"] }
-glib = { version = ">=0.22.0-alpha.1", features = ["v2_68"] }
+gio = { version = "0.22.0-alpha.1", features = ["v2_62"] }
+gio-sys = { version = "0.22.0-alpha.1", features = ["v2_62"] }
+glib = { version = "0.22.0-alpha.1", features = ["v2_68"] }
+glib-sys = { version = "0.22.0-alpha.1", features = ["v2_68"] }
+gobject-sys = { version = "0.22.0-alpha.1", features = ["v2_68"] }
 glycin = { path = "glycin/", default-features = false }
 glycin-common = { version = "1.0.0", path = "glycin-common/" }
 glycin-utils = { version = "4.0.3", path = "glycin-utils/", default-features = false }

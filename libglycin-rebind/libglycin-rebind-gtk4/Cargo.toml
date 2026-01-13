@@ -21,17 +21,10 @@ rustc-args = ["--cfg", "docsrs"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-libc = '0.2'
-
-[dependencies.glib]
-version = "0.21"
-
-[dependencies.gio]
-version = "0.21"
-
-[dependencies.gdk]
-package = "gdk4"
-version = "0.10"
+libc.workspace = true
+glib.workspace = true
+gio.workspace = true
+gdk.workspace = true
 
 [dependencies.gly]
 package = "libglycin-rebind"
