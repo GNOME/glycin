@@ -3,8 +3,9 @@
 // from gir-files
 // DO NOT EDIT
 
-use crate::{ffi, Cicp, MemoryFormat};
 use glib::translate::*;
+
+use crate::{ffi, Cicp, MemoryFormat};
 
 glib::wrapper! {
     #[doc(alias = "GlyFrame")]

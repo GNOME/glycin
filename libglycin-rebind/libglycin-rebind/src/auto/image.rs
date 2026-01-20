@@ -3,9 +3,13 @@
 // from gir-files
 // DO NOT EDIT
 
+use std::boxed::Box as Box_;
+use std::pin::Pin;
+
+use glib::prelude::*;
+use glib::translate::*;
+
 use crate::{ffi, Frame, FrameRequest};
-use glib::{prelude::*, translate::*};
-use std::{boxed::Box as Box_, pin::Pin};
 
 glib::wrapper! {
     #[doc(alias = "GlyImage")]

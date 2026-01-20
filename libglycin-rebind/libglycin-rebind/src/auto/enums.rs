@@ -3,8 +3,10 @@
 // from gir-files
 // DO NOT EDIT
 
+use glib::prelude::*;
+use glib::translate::*;
+
 use crate::ffi;
-use glib::{prelude::*, translate::*};
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Clone, Copy)]
 #[non_exhaustive]

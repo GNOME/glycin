@@ -3,13 +3,13 @@
 // from gir-files
 // DO NOT EDIT
 
-use crate::ffi;
-use glib::{
-    prelude::*,
-    signal::{connect_raw, SignalHandlerId},
-    translate::*,
-};
 use std::boxed::Box as Box_;
+
+use glib::prelude::*;
+use glib::signal::{connect_raw, SignalHandlerId};
+use glib::translate::*;
+
+use crate::ffi;
 
 glib::wrapper! {
     #[doc(alias = "GlyFrameRequest")]
@@ -28,9 +28,12 @@ impl FrameRequest {
     }
 
     // rustdoc-stripper-ignore-next
-    /// Creates a new builder-pattern struct instance to construct [`FrameRequest`] objects.
+    /// Creates a new builder-pattern struct instance to construct
+    /// [`FrameRequest`] objects.
     ///
-    /// This method returns an instance of [`FrameRequestBuilder`](crate::builders::FrameRequestBuilder) which can be used to create [`FrameRequest`] objects.
+    /// This method returns an instance of
+    /// [`FrameRequestBuilder`](crate::builders::FrameRequestBuilder) which can
+    /// be used to create [`FrameRequest`] objects.
     pub fn builder() -> FrameRequestBuilder {
         FrameRequestBuilder::new()
     }

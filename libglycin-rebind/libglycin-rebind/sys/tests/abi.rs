@@ -5,14 +5,14 @@
 
 #![cfg(unix)]
 
-use libglycin_rebind_sys::*;
-use std::env;
 use std::error::Error;
 use std::ffi::OsString;
 use std::mem::{align_of, size_of};
 use std::path::Path;
 use std::process::{Command, Stdio};
-use std::str;
+use std::{env, str};
+
+use libglycin_rebind_sys::*;
 use tempfile::Builder;
 
 static PACKAGES: &[&str] = &["glycin-2"];

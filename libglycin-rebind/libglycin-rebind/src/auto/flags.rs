@@ -3,8 +3,11 @@
 // from gir-files
 // DO NOT EDIT
 
+use glib::bitflags::bitflags;
+use glib::prelude::*;
+use glib::translate::*;
+
 use crate::ffi;
-use glib::{bitflags::bitflags, prelude::*, translate::*};
 
 bitflags! {
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]

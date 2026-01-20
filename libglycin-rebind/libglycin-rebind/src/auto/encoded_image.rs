@@ -3,13 +3,13 @@
 // from gir-files
 // DO NOT EDIT
 
-use crate::ffi;
-use glib::{
-    prelude::*,
-    signal::{connect_raw, SignalHandlerId},
-    translate::*,
-};
 use std::boxed::Box as Box_;
+
+use glib::prelude::*;
+use glib::signal::{connect_raw, SignalHandlerId};
+use glib::translate::*;
+
+use crate::ffi;
 
 glib::wrapper! {
     #[doc(alias = "GlyEncodedImage")]

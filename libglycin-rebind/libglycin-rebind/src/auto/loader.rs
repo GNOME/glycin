@@ -3,13 +3,14 @@
 // from gir-files
 // DO NOT EDIT
 
+use std::boxed::Box as Box_;
+use std::pin::Pin;
+
+use glib::prelude::*;
+use glib::signal::{connect_raw, SignalHandlerId};
+use glib::translate::*;
+
 use crate::{ffi, Image, MemoryFormatSelection, SandboxSelector};
-use glib::{
-    prelude::*,
-    signal::{connect_raw, SignalHandlerId},
-    translate::*,
-};
-use std::{boxed::Box as Box_, pin::Pin};
 
 glib::wrapper! {
     #[doc(alias = "GlyLoader")]
@@ -46,9 +47,12 @@ impl Loader {
     }
 
     // rustdoc-stripper-ignore-next
-    /// Creates a new builder-pattern struct instance to construct [`Loader`] objects.
+    /// Creates a new builder-pattern struct instance to construct [`Loader`]
+    /// objects.
     ///
-    /// This method returns an instance of [`LoaderBuilder`](crate::builders::LoaderBuilder) which can be used to create [`Loader`] objects.
+    /// This method returns an instance of
+    /// [`LoaderBuilder`](crate::builders::LoaderBuilder) which can be used to
+    /// create [`Loader`] objects.
     pub fn builder() -> LoaderBuilder {
         LoaderBuilder::new()
     }

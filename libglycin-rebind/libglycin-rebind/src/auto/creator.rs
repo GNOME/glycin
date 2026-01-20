@@ -3,13 +3,14 @@
 // from gir-files
 // DO NOT EDIT
 
+use std::boxed::Box as Box_;
+use std::pin::Pin;
+
+use glib::prelude::*;
+use glib::signal::{connect_raw, SignalHandlerId};
+use glib::translate::*;
+
 use crate::{ffi, EncodedImage, MemoryFormat, NewFrame, SandboxSelector};
-use glib::{
-    prelude::*,
-    signal::{connect_raw, SignalHandlerId},
-    translate::*,
-};
-use std::{boxed::Box as Box_, pin::Pin};
 
 glib::wrapper! {
     #[doc(alias = "GlyCreator")]
@@ -36,9 +37,12 @@ impl Creator {
     }
 
     // rustdoc-stripper-ignore-next
-    /// Creates a new builder-pattern struct instance to construct [`Creator`] objects.
+    /// Creates a new builder-pattern struct instance to construct [`Creator`]
+    /// objects.
     ///
-    /// This method returns an instance of [`CreatorBuilder`](crate::builders::CreatorBuilder) which can be used to create [`Creator`] objects.
+    /// This method returns an instance of
+    /// [`CreatorBuilder`](crate::builders::CreatorBuilder) which can be used to
+    /// create [`Creator`] objects.
     pub fn builder() -> CreatorBuilder {
         CreatorBuilder::new()
     }
