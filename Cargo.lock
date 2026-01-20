@@ -1000,7 +1000,7 @@ dependencies = [
 
 [[package]]
 name = "glycin"
-version = "3.1.0-alpha"
+version = "3.1.0-alpha.1"
 dependencies = [
  "async-fs",
  "async-global-executor",
@@ -1056,7 +1056,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-dev-tools"
-version = "2.1.0-alpha"
+version = "2.1.0-alpha.1"
 dependencies = [
  "async-io",
  "gdk4",
@@ -1068,7 +1068,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-heif"
-version = "2.1.0-alpha"
+version = "2.1.0-alpha.1"
 dependencies = [
  "four-cc",
  "glycin-utils",
@@ -1079,7 +1079,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-image-rs"
-version = "2.1.0-alpha"
+version = "2.1.0-alpha.1"
 dependencies = [
  "glycin-utils",
  "gufo",
@@ -1095,7 +1095,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-jpeg2000"
-version = "2.1.0-alpha"
+version = "2.1.0-alpha.1"
 dependencies = [
  "glycin-utils",
  "image",
@@ -1104,7 +1104,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-jxl"
-version = "2.1.0-alpha"
+version = "2.1.0-alpha.1"
 dependencies = [
  "glycin-common",
  "glycin-utils",
@@ -1116,7 +1116,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-raw"
-version = "2.1.0-alpha"
+version = "2.1.0-alpha.1"
 dependencies = [
  "glycin-utils",
  "gufo-common",
@@ -1125,7 +1125,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-svg"
-version = "2.1.0-alpha"
+version = "2.1.0-alpha.1"
 dependencies = [
  "cairo-rs",
  "gio",
@@ -1136,7 +1136,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-thumbnailer"
-version = "2.1.0-alpha"
+version = "2.1.0-alpha.1"
 dependencies = [
  "gio",
  "glycin",
@@ -1550,7 +1550,7 @@ checksum = "37c93d8daa9d8a012fd8ab92f088405fb202ea0b6ab73ee2482ae66af4f42091"
 
 [[package]]
 name = "libglycin"
-version = "2.1.0-alpha"
+version = "2.1.0-alpha.1"
 dependencies = [
  "async-global-executor",
  "futures-task",
@@ -1563,7 +1563,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4"
-version = "2.1.0-alpha"
+version = "2.1.0-alpha.1"
 dependencies = [
  "gdk4",
  "glycin",
@@ -1572,7 +1572,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4-rebind"
-version = "0.0.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "gdk4",
  "gio",
@@ -1584,7 +1584,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4-rebind-sys"
-version = "0.0.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "gdk4-sys",
  "glib-sys",
@@ -1597,7 +1597,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-rebind"
-version = "0.0.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "gio",
  "glib",
@@ -1607,7 +1607,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-rebind-sys"
-version = "0.0.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "gio-sys",
  "glib-sys",
@@ -2481,7 +2481,7 @@ dependencies = [
 
 [[package]]
 name = "tests"
-version = "2.1.0-alpha"
+version = "2.1.0-alpha.1"
 dependencies = [
  "async-io",
  "blocking",

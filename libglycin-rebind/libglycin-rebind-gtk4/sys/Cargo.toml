@@ -1,6 +1,6 @@
 [package]
 name = "libglycin-gtk4-rebind-sys"
-version = "0.0.1"
+version = "0.1.0-alpha.1"
 links = "glycin-gtk4-2"
 categories = ["api-bindings", "gui"]
 keywords = ["gtk4-rs", "gnome", "glycin", "GUI"]
@@ -49,7 +49,7 @@ workspace = true
 [dependencies.gly-sys]
 package = "libglycin-rebind-sys"
 path = "../../libglycin-rebind/sys"
-version = "0.0.1"
+version = "0.1.0-alpha.1"
 
 [dev-dependencies]
 shell-words = "1.0.0"

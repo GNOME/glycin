@@ -1,5 +1,5 @@
 [workspace.package]
-version = "2.1.0-alpha"
+version = "2.1.0-alpha.1"
 authors = ["Sophie Herold"]
 description = "Sandboxed image decoding"
 license = "MPL-2.0 OR LGPL-2.1-or-later"
@@ -66,7 +66,9 @@ futures-task = "0.3.30"
 futures-timer = "3.0.3"
 futures-util = "0.3.30"
 gdk = { package = "gdk4", version = "0.11.0-alpha.1", features = ["v4_16"] }
-gdk-sys = { package = "gdk4-sys", version = "0.11.0-alpha.1", features = ["v4_16"] }
+gdk-sys = { package = "gdk4-sys", version = "0.11.0-alpha.1", features = [
+    "v4_16",
+] }
 # Use newer version to fix issues
 gif = "0.13.3"
 gio = { version = "0.22.0-alpha.1", features = ["v2_62"] }

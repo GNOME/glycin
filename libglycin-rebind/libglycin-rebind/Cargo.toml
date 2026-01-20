@@ -1,6 +1,6 @@
 [package]
 name = "libglycin-rebind"
-version = "0.0.1"
+version = "0.1.0-alpha.1"
 authors = ["Maximiliano Sandoval <msandova@gnome.org>"]
 edition.workspace = true
 rust-version.workspace = true
@@ -28,4 +28,4 @@ gio.workspace = true
 [dependencies.ffi]
 package = "libglycin-rebind-sys"
 path = './sys'
-version = "0.0.1"
+version = "0.1.0-alpha.1"
