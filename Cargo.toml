@@ -80,10 +80,10 @@ gobject-sys = { version = "0.22.0-alpha.1", features = ["v2_68"] }
 glycin = { path = "glycin/", default-features = false }
 glycin-common = { version = "1.0.0", path = "glycin-common/" }
 glycin-utils = { version = "4.0.3", path = "glycin-utils/", default-features = false }
-gufo = { version = "0.3.0", features = ["all-image-formats"] }
-gufo-common = { version = "1.0.1", features = ["serde"] }
-gufo-exif = { version = "0.3.0" }
-gufo-jpeg = { version = "0.3.0" }
+gufo = { version = "0.4.0-alpha", features = ["all-image-formats"] }
+gufo-common = { version = "1.1.0-alpha", features = ["serde"] }
+gufo-exif = { version = "0.4.0-alpha" }
+gufo-jpeg = { version = "0.4.0-alpha" }
 half = "2.4.1"
 image = { version = "0.25.9", default-features = false }
 image-extras = { version = "0.1.0", default-features = false, features = [

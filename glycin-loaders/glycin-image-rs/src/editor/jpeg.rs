@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::io::{Cursor, Read};
 
 use editing::EditingFrame;
 use glycin_utils::*;
@@ -69,13 +69,13 @@ fn apply_non_sparse(
 ) -> Result<CompleteEditorOutput, glycin_utils::ProcessError> {
     let mut out_buf = Vec::new();
     let encoder = jpeg.encoder(&mut out_buf).expected_error()?;
-    let buf = jpeg.into_inner();
+    let mut buf = Cursor::new(jpeg.into_inner());
 
     let decoder_options = DecoderOptions::new_fast()
         .jpeg_set_out_colorspace(zune_jpeg::zune_core::colorspace::ColorSpace::YCbCr)
         .set_max_height(u32::MAX as usize)
         .set_max_width(u32::MAX as usize);
-    let mut decoder = zune_jpeg::JpegDecoder::new_with_options(&buf, decoder_options);
+    let mut decoder = zune_jpeg::JpegDecoder::new_with_options(&mut buf, decoder_options);
     let mut pixels = decoder.decode().expected_error()?;
     let info: zune_jpeg::ImageInfo = decoder.info().expected_error()?;
     let mut simple_frame = EditingFrame {
@@ -96,7 +96,7 @@ fn apply_non_sparse(
         )
         .expected_error()?;
 
-    let mut jpeg = gufo::jpeg::Jpeg::new(buf).expected_error()?;
+    let mut jpeg = gufo::jpeg::Jpeg::new(buf.into_inner()).expected_error()?;
     let new_jpeg = Jpeg::new(out_buf).expected_error()?;
 
     jpeg.replace_image_data(&new_jpeg).expected_error()?;

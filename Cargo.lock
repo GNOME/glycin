@@ -626,7 +626,7 @@ dependencies = [
  "bit_field",
  "half",
  "lebe",
- "miniz_oxide",
+ "miniz_oxide 0.8.9",
  "smallvec",
  "zune-inflate",
 ]
@@ -688,7 +688,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b375d6465b98090a5f25b1c7703f3859783755aa9a80433b36e0379a3ec2f369"
 dependencies = [
  "crc32fast",
- "miniz_oxide",
+ "miniz_oxide 0.8.9",
 ]
 
 [[package]]
@@ -1088,7 +1088,7 @@ dependencies = [
  "gufo-jpeg",
  "image",
  "image-extras",
- "jpeg-encoder 0.7.0",
+ "jpeg-encoder",
  "log",
  "zune-jpeg 0.5.11",
 ]
@@ -1186,9 +1186,9 @@ dependencies = [
 
 [[package]]
 name = "gufo"
-version = "0.3.0"
+version = "0.4.0-alpha"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fbd1a9cdb84d3166fa067fa352651f9212567af36701230e7dd7044919e1ce78"
+checksum = "ade0696d48fa3000f01aa0e98b440afa0354c0e06245140f654fa02dc83596a5"
 dependencies = [
  "gufo-common",
  "gufo-exif",
@@ -1203,9 +1203,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-common"
-version = "1.0.1"
+version = "1.1.0-alpha"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "98bebe9ba4be92d3932246ecfbe261106e3013266604f8cbf0ca9ee9df7edf99"
+checksum = "4847cdf6a7b3ad3e4a21e050241c473ea3693558fbcedc8895343305da4b2c6d"
 dependencies = [
  "paste",
  "serde",
@@ -1215,9 +1215,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-exif"
-version = "0.3.1"
+version = "0.4.0-alpha"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e611ff8dfb0816bdadf498bb05f43868fff9ea5d71b7a0f2dc7c782b62a7bc1f"
+checksum = "a113e6d0bc82a44f0e0b4418ddc06f380d6d83eadb76bac576718a184c3c5b92"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.18",
@@ -1226,36 +1226,36 @@ dependencies = [
 
 [[package]]
 name = "gufo-jpeg"
-version = "0.3.0"
+version = "0.4.0-alpha"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ddb8a93bbd671390189f8dee0209731200bdfe403606c6abf6a2aaec5a935f5"
+checksum = "0e1620f6ed5ebde5926e048ec443b0d1ccc1d954d15e82a8916cfcbea0870655"
 dependencies = [
  "gufo-common",
  "indexmap",
- "jpeg-encoder 0.6.1",
+ "jpeg-encoder",
  "thiserror 2.0.18",
  "tracing",
 ]
 
 [[package]]
 name = "gufo-png"
-version = "0.3.0"
+version = "0.4.0-alpha"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6efe26f06316c479656b897b7374fa97a44a89de91dcf427178901937d8afaba"
+checksum = "dba967c68312a33730687e9eb1bdc0af8a47ac80c86356d701bffebb9e474e48"
 dependencies = [
  "crc32fast",
  "encoding_rs",
  "gufo-common",
  "hex",
- "miniz_oxide",
+ "miniz_oxide 0.9.0",
  "thiserror 2.0.18",
 ]
 
 [[package]]
 name = "gufo-tiff"
-version = "0.3.0"
+version = "0.4.0-alpha"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ebb22afeeb3c8733cc65bce0116489da9fc8649f3c7b4bcc61b5ee31416cf9af"
+checksum = "8b2999088226ae3753b96ec4f39aa5fc19d630845e59b7de9b1fcfdf1bb2b120"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.18",
@@ -1263,9 +1263,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-webp"
-version = "0.3.0"
+version = "0.4.0-alpha"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78b5ff49ef9a4b4163cf846534e13b2e8b867d404e7c540facda6e3e7f210224"
+checksum = "787b26a70aed0fcb714f1cd9b82e9f50cbfb44d5f1258963a69e2786a51e8de1"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.18",
@@ -1273,9 +1273,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-xmp"
-version = "0.3.0"
+version = "0.4.0-alpha"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86844cef8838b44b8750f95d3de02d5a17999ca61afc00026b058b3d18dec4c4"
+checksum = "b124aaf67973d53ecc4078adae281300c90d26a4519db46ce747f234e3fac64b"
 dependencies = [
  "gufo-common",
  "thiserror 2.0.18",
@@ -1455,12 +1455,6 @@ checksum = "00810f1d8b74be64b13dbf3db89ac67740615d6c891f0e7b6179326533011a07"
 dependencies = [
  "rayon",
 ]
-
-[[package]]
-name = "jpeg-encoder"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b454d911ac55068f53495488d8ccd0646eaa540c033a28ee15b07838afafb01f"
 
 [[package]]
 name = "jpeg-encoder"
@@ -1808,6 +1802,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "miniz_oxide"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5faa9f23e86bd5768d76def086192ff5f869fb088da12a976ea21e9796b975f6"
+dependencies = [
+ "adler2",
+]
+
+[[package]]
 name = "mio"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2072,7 +2075,7 @@ dependencies = [
  "crc32fast",
  "fdeflate",
  "flate2",
- "miniz_oxide",
+ "miniz_oxide 0.8.9",
 ]
 
 [[package]]
