@@ -85,7 +85,7 @@ gufo-common = { version = "1.0.1", features = ["serde"] }
 gufo-exif = { version = "0.3.0" }
 gufo-jpeg = { version = "0.3.0" }
 half = "2.4.1"
-image = { version = "0.25.7", default-features = false }
+image = { version = "0.25.9", default-features = false }
 image-extras = { version = "0.1.0", default-features = false, features = [
     "xbm",
     "xpm",
