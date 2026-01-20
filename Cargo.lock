@@ -1000,7 +1000,7 @@ dependencies = [
 
 [[package]]
 name = "glycin"
-version = "3.1.0-alpha.2"
+version = "3.1.0-alpha.3"
 dependencies = [
  "async-fs",
  "async-global-executor",
@@ -1038,7 +1038,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-common"
-version = "1.0.4-alpha.2"
+version = "1.0.4-alpha.3"
 dependencies = [
  "bitflags 2.10.0",
  "glib",
@@ -1056,7 +1056,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-dev-tools"
-version = "2.1.0-alpha.2"
+version = "2.1.0-alpha.3"
 dependencies = [
  "async-io",
  "gdk4",
@@ -1068,7 +1068,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-heif"
-version = "2.1.0-alpha.2"
+version = "2.1.0-alpha.3"
 dependencies = [
  "four-cc",
  "glycin-utils",
@@ -1079,7 +1079,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-image-rs"
-version = "2.1.0-alpha.2"
+version = "2.1.0-alpha.3"
 dependencies = [
  "glycin-utils",
  "gufo",
@@ -1095,7 +1095,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-jpeg2000"
-version = "2.1.0-alpha.2"
+version = "2.1.0-alpha.3"
 dependencies = [
  "glycin-utils",
  "image",
@@ -1104,7 +1104,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-jxl"
-version = "2.1.0-alpha.2"
+version = "2.1.0-alpha.3"
 dependencies = [
  "glycin-common",
  "glycin-utils",
@@ -1116,7 +1116,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-raw"
-version = "2.1.0-alpha.2"
+version = "2.1.0-alpha.3"
 dependencies = [
  "glycin-utils",
  "gufo-common",
@@ -1125,7 +1125,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-svg"
-version = "2.1.0-alpha.2"
+version = "2.1.0-alpha.3"
 dependencies = [
  "cairo-rs",
  "gio",
@@ -1136,7 +1136,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-thumbnailer"
-version = "2.1.0-alpha.2"
+version = "2.1.0-alpha.3"
 dependencies = [
  "gio",
  "glycin",
@@ -1146,7 +1146,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-utils"
-version = "4.1.0-alpha.2"
+version = "4.1.0-alpha.3"
 dependencies = [
  "async-lock",
  "bitflags 2.10.0",
@@ -1550,7 +1550,7 @@ checksum = "bcc35a38544a891a5f7c865aca548a982ccb3b8650a5b06d0fd33a10283c56fc"
 
 [[package]]
 name = "libglycin"
-version = "2.1.0-alpha.2"
+version = "2.1.0-alpha.3"
 dependencies = [
  "async-global-executor",
  "futures-task",
@@ -1563,7 +1563,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4"
-version = "2.1.0-alpha.2"
+version = "2.1.0-alpha.3"
 dependencies = [
  "gdk4",
  "glycin",
@@ -1572,7 +1572,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4-rebind"
-version = "0.1.0-alpha.2"
+version = "0.1.0-alpha.3"
 dependencies = [
  "gdk4",
  "gio",
@@ -1584,7 +1584,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4-rebind-sys"
-version = "0.1.0-alpha.2"
+version = "0.1.0-alpha.3"
 dependencies = [
  "gdk4-sys",
  "glib-sys",
@@ -1597,7 +1597,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-rebind"
-version = "0.1.0-alpha.2"
+version = "0.1.0-alpha.3"
 dependencies = [
  "gio",
  "glib",
@@ -1607,7 +1607,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-rebind-sys"
-version = "0.1.0-alpha.2"
+version = "0.1.0-alpha.3"
 dependencies = [
  "gio-sys",
  "glib-sys",
@@ -2489,7 +2489,7 @@ dependencies = [
 
 [[package]]
 name = "tests"
-version = "2.1.0-alpha.2"
+version = "2.1.0-alpha.3"
 dependencies = [
  "async-io",
  "blocking",

@@ -27,9 +27,10 @@ build-release-tarball:
   image: rust:1.92-trixie
   extends: .install_dependencies
   script:
+    - meson setup builddir
+    - meson install -C builddir
     - apt-get install -y gawk
     - ./build-aux/publish-crates-io.py
-    - meson setup builddir
     - meson dist -C builddir
   artifacts:
     name: "${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"

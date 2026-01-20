@@ -1,6 +1,6 @@
 [package]
 name = "libglycin-rebind-sys"
-version = "0.1.0-alpha.2"
+version = "0.1.0-alpha.3"
 links = "glycin-2"
 categories = ["api-bindings"]
 keywords = ["gnome", "glycin"]
