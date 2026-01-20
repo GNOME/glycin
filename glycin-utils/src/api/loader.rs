@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use glycin_common::{ColorProfilePreference, MemoryFormat, MemoryFormatInfo};
 use gufo_common::orientation::Orientation;
+use gufo_common::physical_dimension;
 #[cfg(feature = "external")]
 use zbus::zvariant::as_value::{self, optional};
 #[cfg(feature = "external")]
@@ -301,6 +302,7 @@ impl<B: ByteData> Default for FrameDetails<B> {
             info_alpha_channel: None,
             info_grayscale: None,
             n_frame: None,
+            pixel_density: None,
         }
     }
 }
@@ -509,6 +511,15 @@ pub struct FrameDetails<B: ByteData> {
         )
     )]
     pub n_frame: Option<u64>,
+    #[cfg_attr(
+        feature = "external",
+        serde(
+            with = "as_value::optional",
+            skip_serializing_if = "Option::is_none",
+            default
+        )
+    )]
+    pub pixel_density: Option<physical_dimension::PixelDensity>,
 }
 
 impl<B: ByteData> FrameDetails<B> {
@@ -521,6 +532,7 @@ impl<B: ByteData> FrameDetails<B> {
             info_alpha_channel: self.info_alpha_channel,
             info_grayscale: self.info_grayscale,
             n_frame: self.n_frame,
+            pixel_density: self.pixel_density,
         }
     }
 
@@ -533,6 +545,7 @@ impl<B: ByteData> FrameDetails<B> {
             info_alpha_channel: self.info_alpha_channel,
             info_grayscale: self.info_grayscale,
             n_frame: self.n_frame,
+            pixel_density: self.pixel_density,
         })
     }
 

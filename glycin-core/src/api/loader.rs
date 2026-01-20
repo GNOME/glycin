@@ -28,6 +28,7 @@ use crate::pool::{PooledProcess, UsageTracker};
 use crate::source::SourceTransmission;
 use crate::util::spawn_blocking;
 use crate::{Error, ErrorKind, MAX_TEXTURE_SIZE, Pool, config, icc, orientation, util};
+use gufo_common::physical_dimension;
 
 /// Image request builder
 #[derive(Debug)]
@@ -906,6 +907,10 @@ impl FrameDetails {
 
     pub fn n_frame(&self) -> Option<u64> {
         self.inner.n_frame
+    }
+
+    pub fn pixel_density(&self) -> Option<physical_dimension::PixelDensity> {
+        self.inner.pixel_density.clone()
     }
 }
 

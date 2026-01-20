@@ -12,6 +12,7 @@ pub use editor::ImgEditor;
 use glycin_utils::image_rs::Handler;
 use glycin_utils::*;
 use gufo_common::cicp::Cicp;
+use gufo_common::physical_dimension::PixelDensity;
 use image::{AnimationDecoder, ImageDecoder, ImageResult, Limits, codecs};
 
 type Reader = Cursor<Vec<u8>>;
@@ -37,7 +38,7 @@ impl Builtin for BuiltinImageRs {
 pub struct ImgLoader {
     pub decoder: Mutex<Option<Decoder>>,
     pub cicp: Mutex<Option<Cicp>>,
-    pub mime_type: String,
+    pub pixel_density: Option<PixelDensity>,
 }
 
 pub enum Decoder {
@@ -81,6 +82,8 @@ impl LoaderImplementation for ImgLoader {
         // TODO: Unnecessary clone of data
         let metadata = gufo::RawMetadata::for_guessed(data.into_inner());
 
+        let mut pixel_density = None;
+
         let data = match metadata {
             Ok((metadata, data)) => {
                 image_info.metadata_exif = metadata
@@ -97,6 +100,8 @@ impl LoaderImplementation for ImgLoader {
                     .transpose()
                     .expected_error()?;
 
+                pixel_density = metadata.pixel_density();
+
                 image_info.metadata_key_value = Some(metadata.key_value);
 
                 data
@@ -104,7 +109,10 @@ impl LoaderImplementation for ImgLoader {
             Err(err) => err.into_inner(),
         };
 
-        let loader_impelementation = Self::default();
+        let loader_impelementation = ImgLoader {
+            pixel_density,
+            ..Default::default()
+        };
 
         let gufo_image = gufo::Image::new(data);
         let data = Cursor::new(match gufo_image {
@@ -185,6 +193,8 @@ impl LoaderImplementation for ImgLoader {
                 x.video_full_range_flag.into(),
             ]
         });
+
+        frame.details.pixel_density = self.pixel_density.clone();
 
         frame.into_other().expected_error()
     }

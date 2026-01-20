@@ -8,6 +8,13 @@ repository = "https://gitlab.gnome.org/GNOME/glycin"
 edition = "2024"
 rust-version = "1.93"
 
+[patch.crates-io]
+gufo = { version = "0.5.0-alpha.1", git = "https://github.com/gufo-rs/gufo.git" }
+gufo-common = { git = "https://github.com/gufo-rs/gufo.git" }
+gufo-exif = { version = "0.5.0-alpha.1", git = "https://github.com/gufo-rs/gufo.git" }
+gufo-jpeg = { version = "0.5.0-alpha.1", git = "https://github.com/gufo-rs/gufo.git" }
+gufo-svg = { version = "0.5.0-alpha.1", git = "https://github.com/gufo-rs/gufo.git" }
+
 [profile.release]
 lto = true
 codegen-units = 1

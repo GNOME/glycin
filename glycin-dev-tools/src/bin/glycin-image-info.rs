@@ -58,13 +58,6 @@ async fn run() -> Result<(), glycin::Error> {
         "dimensions_text = {}",
         info.info_dimensions_text().as_ref().cloned().unwrap_or("-")
     );
-    println!(
-        "dimensions_inch = {}",
-        info.dimensions_inch()
-            .as_ref()
-            .map(|(x, y)| format!("{:.3}” x {:.3}”", x, y))
-            .unwrap_or("-".into())
-    );
 
     for _ in 0..n_frames {
         let frame = image.next_frame().await.unwrap();
@@ -128,6 +121,15 @@ async fn run() -> Result<(), glycin::Error> {
                 .details()
                 .info_grayscale()
                 .map(|x| x.to_string())
+                .unwrap_or("-".into())
+        );
+        println!(
+            "pixel_density = {}",
+            frame
+                .details()
+                .pixel_density()
+                .as_ref()
+                .map(|dim| format!("{} ({})", dim.display(), dim.dpi().display()))
                 .unwrap_or("-".into())
         );
     }
