@@ -1,3 +1,31 @@
+## 2.1.alpha.1 (2026-01-20)
+
+This release contains the following new component versions:
+
+- glycin-heif 2.1.0-alpha.1
+- glycin-image-rs 2.1.0-alpha.1
+- glycin-jpeg2000 2.1.0-alpha.1
+- glycin-jxl 2.1.0-alpha.1
+- glycin-raw 2.1.0-alpha.1
+- glycin-svg 2.1.0-alpha.1
+- glycin-thumbnailer 2.1.0-alpha.1
+- glycin 3.1.0-alpha.1
+- libglycin-gtk4-rebind 0.1.0-alpha.1
+- libglycin-gtk4-rebind-sys 0.1.0-alpha.1
+- libglycin-rebind 0.1.0-alpha.1
+- libglycin-rebind-sys 0.1.0-alpha.1
+- libglycin 2.1.0-alpha.1
+- libglycin-gtk4 2.1.0-alpha.1
+
+### Fixed
+
+- Fix builds on docs.rs
+
+### Changed
+
+- Update to gtk-rs 0.22/0.11
+- Updated many dependencies
+
 ## 2.1.alpha (2026-01-02)
 
 This release contains the following new component versions:
