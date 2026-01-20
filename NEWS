@@ -1,23 +1,23 @@
-## 2.1.alpha.2 (2026-01-20)
+## 2.1.alpha.3 (2026-01-20)
 
 This release contains the following new component versions:
 
-- glycin-common 1.0.4-alpha.2
-- glycin-heif 2.1.0-alpha.2
-- glycin-image-rs 2.1.0-alpha.2
-- glycin-jpeg2000 2.1.0-alpha.2
-- glycin-jxl 2.1.0-alpha.2
-- glycin-raw 2.1.0-alpha.2
-- glycin-svg 2.1.0-alpha.2
-- glycin-thumbnailer 2.1.0-alpha.2
-- glycin-utils 4.1.0-alpha.2
-- glycin 3.1.0-alpha.2
-- libglycin-gtk4-rebind 0.1.0-alpha.2
-- libglycin-gtk4-rebind-sys 0.1.0-alpha.2
-- libglycin-rebind 0.1.0-alpha.2
-- libglycin-rebind-sys 0.1.0-alpha.2
-- libglycin 2.1.0-alpha.2
-- libglycin-gtk4 2.1.0-alpha.2
+- glycin-common 1.0.4-alpha.3
+- glycin-heif 2.1.0-alpha.3
+- glycin-image-rs 2.1.0-alpha.3
+- glycin-jpeg2000 2.1.0-alpha.3
+- glycin-jxl 2.1.0-alpha.3
+- glycin-raw 2.1.0-alpha.3
+- glycin-svg 2.1.0-alpha.3
+- glycin-thumbnailer 2.1.0-alpha.3
+- glycin-utils 4.1.0-alpha.3
+- glycin 3.1.0-alpha.3
+- libglycin-gtk4-rebind 0.1.0-alpha.3
+- libglycin-gtk4-rebind-sys 0.1.0-alpha.3
+- libglycin-rebind 0.1.0-alpha.3
+- libglycin-rebind-sys 0.1.0-alpha.3
+- libglycin 2.1.0-alpha.3
+- libglycin-gtk4 2.1.0-alpha.3
 
 ### Fixed
 
