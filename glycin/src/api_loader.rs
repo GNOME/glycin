@@ -6,6 +6,7 @@ pub use glycin_common::MemoryFormat;
 use glycin_common::{BinaryData, MemoryFormatSelection};
 #[cfg(feature = "gdk4")]
 use glycin_utils::safe_math::*;
+use glycin_utils::PhysicalDimensions;
 use gufo_common::orientation::{Orientation, Rotation};
 use zbus::zvariant::OwnedObjectPath;
 
@@ -361,7 +362,13 @@ impl ImageDetails {
         self.inner.height
     }
 
+    pub fn physical_dimensions(&self) -> Option<PhysicalDimensions> {
+        self.inner.physical_dimensions.clone()
+    }
+
+    #[deprecated]
     pub fn dimensions_inch(&self) -> Option<(f64, f64)> {
+        #[allow(deprecated)]
         self.inner.dimensions_inch
     }
 

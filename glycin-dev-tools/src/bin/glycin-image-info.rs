@@ -62,7 +62,7 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
         info.info_dimensions_text().as_ref().cloned().unwrap_or("-")
     );
     println!(
-        "dimensions_inch = {}",
+        "physical_dimensions = {}",
         info.dimensions_inch()
             .as_ref()
             .map(|(x, y)| format!("{:.3}” x {:.3}”", x, y))

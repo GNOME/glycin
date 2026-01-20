@@ -76,7 +76,10 @@ pub struct ImageDetails {
     /// information should be used.
     pub width: u32,
     pub height: u32,
+    // Physical dimensions of one pixel
+    pub physical_dimensions: Option<PhysicalDimensions>,
     /// Image dimensions in inch
+    #[deprecated = "Use `physical_dimensions` instead."]
     pub dimensions_inch: Option<(f64, f64)>,
     pub info_format_name: Option<String>,
     /// Textual description of the image dimensions
@@ -94,6 +97,8 @@ impl ImageDetails {
         Self {
             width,
             height,
+            physical_dimensions: None,
+            #[allow(deprecated)]
             dimensions_inch: None,
             info_dimensions_text: None,
             info_format_name: None,
@@ -102,6 +107,57 @@ impl ImageDetails {
             metadata_key_value: None,
             transformation_ignore_exif: false,
             transformation_orientation: None,
+        }
+    }
+}
+
+#[derive(DeserializeDict, SerializeDict, Type, Debug, Clone)]
+#[zvariant(signature = "dict")]
+pub struct PhysicalDimensions {
+    pub x: PhysicalDimension,
+    pub y: PhysicalDimension,
+}
+
+#[derive(Deserialize, Serialize, Type, Debug, Clone, Copy)]
+#[non_exhaustive]
+pub enum PhysicalDimension {
+    Inch(f64),
+    /// 1/6 inch
+    Pica(f64),
+    /// 1/72 inch
+    Point(f64),
+    Meter(f64),
+    Centimeter(f64),
+    Millimeter(f64),
+}
+
+impl PhysicalDimension {
+    ///
+    ///
+    /// ```
+    /// # use glycin_utils::PhysicalDimension;
+    /// assert_eq!(PhysicalDimension::Inch(1.).centimeters(), 2.54);
+    /// assert_eq!(PhysicalDimension::Meter(1.).centimeters(), 100.);
+    /// ```
+    pub fn centimeters(self) -> f64 {
+        match self {
+            Self::Inch(v) => v * 2.54,
+            Self::Pica(v) => v * 2.54 / 6.,
+            Self::Point(v) => v * 2.54 / 72.,
+            Self::Meter(v) => v * 100.,
+            Self::Centimeter(v) => v,
+            Self::Millimeter(v) => v / 10.,
+        }
+    }
+
+    pub fn shorthand(self) -> &'static str {
+        match self {
+            PhysicalDimension::Inch(_) => "in",
+            PhysicalDimension::Pica(_) => "pc",
+            PhysicalDimension::Point(_) => "pt",
+            PhysicalDimension::Meter(_) => "m",
+            PhysicalDimension::Centimeter(_) => "cm",
+            PhysicalDimension::Millimeter(_) => "mm",
         }
     }
 }
