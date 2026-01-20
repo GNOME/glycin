@@ -43,5 +43,4 @@ loader-utils = ["dep:futures-lite"]
 gobject = ["glib"]
 
 [package.metadata.docs.rs]
-all-features = true
-rustdoc-args = ["--cfg", "docsrs"]
+features = ["image-rs", "loader-utils"]

@@ -4,8 +4,6 @@
 
 //! Utilities for building glycin decoders
 
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
-
 #[cfg(all(not(feature = "async-io"), not(feature = "tokio")))]
 mod error_message {
     compile_error!(

@@ -17,8 +17,6 @@ exclude = ["Gir.toml"]
 
 [package.metadata.docs.rs]
 all-features = true
-rustc-args = ["--cfg", "docsrs"]
-rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 libc.workspace = true

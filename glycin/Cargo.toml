@@ -68,7 +68,4 @@ yeslogic-fontconfig-sys.workspace = true
 zbus = { workspace = true, features = ["p2p"] }
 
 [package.metadata.docs.rs]
-all-features = true
-rustc-args = ["--cfg", "docsrs"]
-rustdoc-args = ["--cfg", "docsrs", "--generate-link-to-definition"]
-features = []
+features = ["gdk4"]
