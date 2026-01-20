@@ -1146,7 +1146,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-utils"
-version = "4.0.4"
+version = "4.1.0-alpha.1"
 dependencies = [
  "async-lock",
  "bitflags 2.10.0",

@@ -23,3 +23,7 @@ def release_crate(package_name):
 release_crate('glycin-common')
 release_crate('glycin-utils')
 release_crate('glycin')
+release_crate('libglycin-rebind-sys')
+release_crate('libglycin-rebind')
+release_crate('libglycin-gtk4-rebind-sys')
+release_crate('libglycin-gtk4-rebind')
