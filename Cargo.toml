@@ -97,7 +97,7 @@ image-extras = { version = "0.1.0", default-features = false, features = [
 lcms2 = "6.0.3"
 lcms2-sys = "4.0.4"
 libc = "0.2.152"
-gly = { package = "libglycin-rebind", version = "0.1.0-alpha.3", path = 'libglycin-rebind/libglycin-rebind' }
+gly = { package = "libglycin-rebind", version = "0.1.0-alpha.3", path = "libglycin-rebind/libglycin-rebind/" }
 libseccomp = "0.4.0"
 log = "0.4.0"
 memfd = "0.6.3"
