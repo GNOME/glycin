@@ -18,12 +18,12 @@ use std::ffi::{
 };
 
 #[allow(unused_imports)]
-use glib::{gboolean, gconstpointer, gpointer, GType};
+use glib::{GType, gboolean, gconstpointer, gpointer};
+#[allow(unused_imports)]
+use libc::{FILE, intptr_t, off_t, size_t, ssize_t, time_t, uintptr_t};
 #[cfg(unix)]
 #[allow(unused_imports)]
 use libc::{dev_t, gid_t, pid_t, socklen_t, uid_t};
-#[allow(unused_imports)]
-use libc::{intptr_t, off_t, size_t, ssize_t, time_t, uintptr_t, FILE};
 use {gdk_sys as gdk, glib_sys as glib, gly_sys as gly};
 
 unsafe extern "C" {

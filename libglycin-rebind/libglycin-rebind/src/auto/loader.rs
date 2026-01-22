@@ -7,10 +7,10 @@ use std::boxed::Box as Box_;
 use std::pin::Pin;
 
 use glib::prelude::*;
-use glib::signal::{connect_raw, SignalHandlerId};
+use glib::signal::{SignalHandlerId, connect_raw};
 use glib::translate::*;
 
-use crate::{ffi, Image, MemoryFormatSelection, SandboxSelector};
+use crate::{Image, MemoryFormatSelection, SandboxSelector, ffi};
 
 glib::wrapper! {
     #[doc(alias = "GlyLoader")]

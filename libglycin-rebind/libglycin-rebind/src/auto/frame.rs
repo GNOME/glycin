@@ -5,7 +5,7 @@
 
 use glib::translate::*;
 
-use crate::{ffi, Cicp, MemoryFormat};
+use crate::{Cicp, MemoryFormat, ffi};
 
 glib::wrapper! {
     #[doc(alias = "GlyFrame")]
