@@ -12,12 +12,9 @@ rust-version.workspace = true
 
 [dependencies]
 gio.workspace = true
-png.workspace = true
+gly.workspace = true
 image.workspace = true
-
-[dependencies.glycin]
-package = "libglycin-rebind"
-path = '../libglycin-rebind/libglycin-rebind'
+png.workspace = true
 
 [lints]
 workspace = true

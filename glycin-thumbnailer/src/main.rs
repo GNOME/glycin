@@ -2,7 +2,7 @@ use std::ffi::{OsStr, OsString};
 
 use gio::glib;
 use gio::prelude::*;
-use glycin::MemoryFormatSelection;
+use gly::MemoryFormatSelection;
 use image::imageops;
 
 const SCALE_FILTER1: imageops::FilterType = imageops::FilterType::Nearest;
@@ -74,16 +74,16 @@ fn x(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let input_file = gio::File::for_uri(input_uri);
 
-    let loader = glycin::Loader::new(&input_file);
+    let loader = gly::Loader::new(&input_file);
 
     // Disable sandbox since thumbnailers run in their own sandbox
-    loader.set_sandbox_selector(glycin::SandboxSelector::NotSandboxed);
+    loader.set_sandbox_selector(gly::SandboxSelector::NotSandboxed);
     loader.set_accepted_memory_formats(
         MemoryFormatSelection::R8G8B8 | MemoryFormatSelection::R8G8B8A8,
     );
 
     let image = loader.load()?;
-    let frame_request = glycin::FrameRequest::new();
+    let frame_request = gly::FrameRequest::new();
     frame_request.set_scale(thumbnail_size, thumbnail_size);
     let frame = image.specific_frame(&frame_request)?;
 
@@ -102,11 +102,11 @@ fn x(
     let color;
 
     match frame.memory_format() {
-        glycin::MemoryFormat::R8g8b8 => {
+        gly::MemoryFormat::R8g8b8 => {
             buf = resize::<image::Rgb<u8>>(&frame, thumbnail_width, thumbnail_height);
             color = png::ColorType::Rgb;
         }
-        glycin::MemoryFormat::R8g8b8a8 => {
+        gly::MemoryFormat::R8g8b8a8 => {
             buf = resize::<image::Rgba<u8>>(&frame, thumbnail_width, thumbnail_height);
             color = png::ColorType::Rgba;
         }
@@ -124,7 +124,7 @@ fn x(
 }
 
 fn resize<T: image::Pixel<Subpixel = u8> + 'static>(
-    frame: &glycin::Frame,
+    frame: &gly::Frame,
     thumbnail_width: u32,
     thumbnail_height: u32,
 ) -> Vec<u8> {
