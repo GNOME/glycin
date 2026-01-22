@@ -103,9 +103,8 @@ cargo-semver-checks:
     - meson install -C builddir
     - cargo install cargo-semver-checks --locked
     - cargo semver-checks -p glycin -p glycin-utils
-    # Use the 2.0.1 commit hash since forks might not have tags and therefore
-    # building merge requests might fail.
-    - cargo semver-checks -p libglycin -p libglycin-gtk4 --baseline-rev d992950c
+    # Use the commit where we changed to defining all functions as unsafe
+    - cargo semver-checks -p libglycin -p libglycin-gtk4 --baseline-rev 97b80be3
 
 libglycin-rebind:
   image: rust:1.92-trixie
