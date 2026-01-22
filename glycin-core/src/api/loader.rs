@@ -599,10 +599,6 @@ impl ImageDetails {
         self.inner.height
     }
 
-    pub fn dimensions_inch(&self) -> Option<(f64, f64)> {
-        self.inner.dimensions_inch
-    }
-
     /// A textual representation of the image format
     pub fn info_format_name(&self) -> Option<&str> {
         self.inner.info_format_name.as_deref()
@@ -911,6 +907,10 @@ impl FrameDetails {
 
     pub fn pixel_density(&self) -> Option<physical_dimension::PixelDensity> {
         self.inner.pixel_density.clone()
+    }
+
+    pub fn physical_size(&self) -> Option<physical_dimension::PhysicalSize> {
+        self.inner.physical_size.clone()
     }
 }
 

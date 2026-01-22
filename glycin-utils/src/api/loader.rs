@@ -160,6 +160,7 @@ pub struct ImageDetails<B: ByteData> {
             default
         )
     )]
+    #[deprecated]
     pub dimensions_inch: Option<(f64, f64)>,
     #[cfg_attr(
         feature = "external",
@@ -226,6 +227,7 @@ impl<B: ByteData> ImageDetails<B> {
         Self {
             width,
             height,
+            #[allow(deprecated)]
             dimensions_inch: None,
             info_dimensions_text: None,
             info_format_name: None,
@@ -241,6 +243,7 @@ impl<B: ByteData> ImageDetails<B> {
         ImageDetails {
             width: self.width,
             height: self.height,
+            #[allow(deprecated)]
             dimensions_inch: self.dimensions_inch,
             info_format_name: self.info_format_name,
             info_dimensions_text: self.info_dimensions_text,
@@ -256,6 +259,7 @@ impl<B: ByteData> ImageDetails<B> {
         Ok(ImageDetails {
             width: self.width,
             height: self.height,
+            #[allow(deprecated)]
             dimensions_inch: self.dimensions_inch,
             info_format_name: self.info_format_name,
             info_dimensions_text: self.info_dimensions_text,
@@ -303,6 +307,7 @@ impl<B: ByteData> Default for FrameDetails<B> {
             info_grayscale: None,
             n_frame: None,
             pixel_density: None,
+            physical_size: None,
         }
     }
 }
@@ -520,6 +525,15 @@ pub struct FrameDetails<B: ByteData> {
         )
     )]
     pub pixel_density: Option<physical_dimension::PixelDensity>,
+    #[cfg_attr(
+        feature = "external",
+        serde(
+            with = "as_value::optional",
+            skip_serializing_if = "Option::is_none",
+            default
+        )
+    )]
+    pub physical_size: Option<physical_dimension::PhysicalSize>,
 }
 
 impl<B: ByteData> FrameDetails<B> {
@@ -533,6 +547,7 @@ impl<B: ByteData> FrameDetails<B> {
             info_grayscale: self.info_grayscale,
             n_frame: self.n_frame,
             pixel_density: self.pixel_density,
+            physical_size: self.physical_size,
         }
     }
 
@@ -546,6 +561,7 @@ impl<B: ByteData> FrameDetails<B> {
             info_grayscale: self.info_grayscale,
             n_frame: self.n_frame,
             pixel_density: self.pixel_density,
+            physical_size: self.physical_size,
         })
     }
 

@@ -7,6 +7,7 @@ use gio::prelude::*;
 use glycin_utils::safe_math::*;
 use glycin_utils::*;
 use gufo_common::image::ImageMetadata;
+use gufo_common::physical_dimension::{PhysicalDimension, PhysicalDimensionUnit, PhysicalSize};
 use rsvg::prelude::*;
 
 /// Current librsvg limit on maximum dimensions. See
@@ -64,7 +65,7 @@ pub fn thread<B: ByteData>(
 
     image_info.info_format_name = Some(String::from("SVG"));
     image_info.info_dimensions_text = dimensions_text(intrinsic_dimensions);
-    image_info.dimensions_inch = dimensions_inch(intrinsic_dimensions);
+    let physical_size = physical_size(intrinsic_dimensions);
 
     info_send.send(Ok(image_info)).unwrap();
 
@@ -87,7 +88,11 @@ pub fn thread<B: ByteData>(
             continue;
         }
 
-        let frame = render(&handle, instr);
+        let mut frame = render(&handle, instr);
+
+        if let Ok(frame) = &mut frame {
+            frame.details.physical_size = physical_size.clone();
+        }
 
         frame_send.send(frame).unwrap();
     }
@@ -292,26 +297,28 @@ pub fn dimensions_text(
     }
 }
 
-pub fn dimensions_inch(
+pub fn physical_size(
     intrisic_dimensions: (rsvg::Length, rsvg::Length, Option<rsvg::Rectangle>),
-) -> Option<(f64, f64)> {
+) -> Option<PhysicalSize> {
     let width = intrisic_dimensions.0;
     let height = intrisic_dimensions.1;
 
-    if let (Some(w), Some(h)) = (dimension_inch(width), dimension_inch(height)) {
-        Some((w, h))
+    if let (Some(x), Some(y)) = (physical_dimension(width), physical_dimension(height)) {
+        Some(PhysicalSize::new(x, y))
     } else {
         None
     }
 }
 
-pub fn dimension_inch(length: rsvg::Length) -> Option<f64> {
-    match length.unit() {
-        rsvg::Unit::In => Some(length.length()),
-        rsvg::Unit::Cm => Some(length.length() / 2.54),
-        rsvg::Unit::Mm => Some(length.length() / 25.4),
-        rsvg::Unit::Pt => Some(length.length() * 72.),
-        rsvg::Unit::Pc => Some(length.length() / 12. * 72.),
-        _ => None,
-    }
+pub fn physical_dimension(length: rsvg::Length) -> Option<PhysicalDimension> {
+    let unit = match length.unit() {
+        rsvg::Unit::In => PhysicalDimensionUnit::Inch,
+        rsvg::Unit::Cm => PhysicalDimensionUnit::Centimeter,
+        rsvg::Unit::Mm => PhysicalDimensionUnit::Millimeter,
+        rsvg::Unit::Pt => PhysicalDimensionUnit::Point,
+        rsvg::Unit::Pc => PhysicalDimensionUnit::Pica,
+        _ => return None,
+    };
+
+    Some(PhysicalDimension::new(length.length(), unit))
 }

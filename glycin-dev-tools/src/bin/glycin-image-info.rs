@@ -132,6 +132,16 @@ async fn run() -> Result<(), glycin::Error> {
                 .map(|dim| format!("{} ({})", dim.display(), dim.dpi().display()))
                 .unwrap_or("-".into())
         );
+
+        println!(
+            "physical_size = {}",
+            frame
+                .details()
+                .physical_size()
+                .as_ref()
+                .map(|dim| dim.display().to_string())
+                .unwrap_or("-".into())
+        );
     }
 
     Ok(())
