@@ -383,7 +383,7 @@ impl ImageRsFormat<Reader> {
     }
 }
 
-impl<'a, T: std::io::BufRead + std::io::Seek + 'a> ImageRsFormat<T> {
+impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
     pub fn format_name(mut self, format_name: impl ToString) -> Self {
         self.handler = self.handler.format_name(format_name);
         self
