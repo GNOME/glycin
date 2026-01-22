@@ -2,6 +2,10 @@ if not get_option('glycin-thumbnailer')
     subdir_done()
 endif
 
+if not get_option('libglycin')
+    extra_deps += dependency('glycin-2')
+endif
+
 cargo_build = custom_target(
     'glycin-thumbnailer',
     build_by_default: true,
