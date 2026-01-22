@@ -1,7 +1,6 @@
 [package]
 name = "libglycin-gtk4-rebind-sys"
 version = "0.1.0-alpha.3"
-links = "glycin-gtk4-2"
 categories = ["api-bindings", "gui"]
 keywords = ["gtk4-rs", "gnome", "glycin", "GUI"]
 description = "FFI bindings for libglycin-gtk4"
