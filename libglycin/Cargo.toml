@@ -10,6 +10,9 @@ repository.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 
+[lints.clippy]
+missing_safety_doc = "allow"
+
 [dependencies]
 async-global-executor.workspace = true
 futures-task.workspace = true

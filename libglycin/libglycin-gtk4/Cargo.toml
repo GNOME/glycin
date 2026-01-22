@@ -20,8 +20,8 @@ system-deps.workspace = true
 [package.metadata.system-deps]
 glycin-2 = "2.0"
 
-[lints]
-workspace = true
+[lints.clippy]
+missing_safety_doc = "allow"
 
 [lib]
 name = "glycin_gtk4"

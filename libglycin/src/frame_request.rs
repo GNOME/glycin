@@ -25,8 +25,10 @@ pub unsafe extern "C" fn gly_frame_request_set_scale(
     width: u32,
     height: u32,
 ) {
-    let frame_request = gobject::GlyFrameRequest::from_glib_ptr_borrow(&frame_request);
-    frame_request.set_scale(width, height);
+    unsafe {
+        let frame_request = gobject::GlyFrameRequest::from_glib_ptr_borrow(&frame_request);
+        frame_request.set_scale(width, height);
+    }
 }
 
 #[unsafe(no_mangle)]
@@ -34,6 +36,8 @@ pub unsafe extern "C" fn gly_frame_request_set_loop_animation(
     frame_request: *mut GlyFrameRequest,
     loop_animation: c_int,
 ) {
-    let frame_request = gobject::GlyFrameRequest::from_glib_ptr_borrow(&frame_request);
-    frame_request.set_loop_animation(loop_animation != 0);
+    unsafe {
+        let frame_request = gobject::GlyFrameRequest::from_glib_ptr_borrow(&frame_request);
+        frame_request.set_loop_animation(loop_animation != 0);
+    }
 }

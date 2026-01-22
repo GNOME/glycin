@@ -29,11 +29,13 @@ impl GAsyncReadyCallbackSend {
     where
         O: glib::translate::ToGlibPtr<'a, *mut P> + IsA<glib::Object>,
     {
-        let obj_ptr = obj.as_ptr();
-        (self.callback)(obj_ptr as *mut _, res, self.user_data.0)
+        unsafe {
+            let obj_ptr = obj.as_ptr();
+            (self.callback)(obj_ptr as *mut _, res, self.user_data.0)
+        }
     }
 
     pub unsafe fn call_no_obj(&self, res: *mut gio::ffi::GAsyncResult) {
-        (self.callback)(std::ptr::null_mut(), res, self.user_data.0)
+        unsafe { (self.callback)(std::ptr::null_mut(), res, self.user_data.0) }
     }
 }

@@ -37,14 +37,18 @@ pub unsafe extern "C" fn gly_loader_error_get_type() -> glib::ffi::GType {
 }
 
 pub unsafe fn set_context_error(g_error: *mut *mut GError, err: &glycin::ErrorCtx) {
-    if !g_error.is_null() {
-        *g_error = glib_context_error(err).into_glib_ptr();
+    unsafe {
+        if !g_error.is_null() {
+            *g_error = glib_context_error(err).into_glib_ptr();
+        }
     }
 }
 
 pub unsafe fn set_error(g_error: *mut *mut GError, err: &glycin::Error) {
-    if !g_error.is_null() {
-        *g_error = glib_error(err).into_glib_ptr();
+    unsafe {
+        if !g_error.is_null() {
+            *g_error = glib_error(err).into_glib_ptr();
+        }
     }
 }
 

@@ -16,6 +16,8 @@ pub extern "C" fn gly_encoded_image_get_type() -> GType {
 pub unsafe extern "C" fn gly_encoded_image_get_data(
     encoded_image: *mut GlyEncodedImage,
 ) -> *mut GBytes {
-    let encoded_image = gobject::GlyEncodedImage::from_glib_ptr_borrow(&encoded_image);
-    encoded_image.data().into_glib_ptr()
+    unsafe {
+        let encoded_image = gobject::GlyEncodedImage::from_glib_ptr_borrow(&encoded_image);
+        encoded_image.data().into_glib_ptr()
+    }
 }
