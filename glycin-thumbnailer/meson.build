@@ -3,7 +3,8 @@ if not get_option('glycin-thumbnailer')
 endif
 
 if not get_option('libglycin')
-    extra_deps += dependency('glycin-2')
+    # Use external libglycin if not configured to build it
+    dependency('glycin-2')
 endif
 
 cargo_build = custom_target(
