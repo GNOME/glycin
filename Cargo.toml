@@ -17,7 +17,7 @@ zbus.opt-level = "z"
 zvariant.opt-level = "z"
 
 [workspace]
-resolver = "2"
+resolver = "3"
 members = [
     "glycin",
     "glycin-common",
