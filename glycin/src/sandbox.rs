@@ -160,6 +160,7 @@ const ALLOWED_SYSCALLS: &[&str] = &[
 /// operations.
 const ALLOWED_SYSCALLS_FONTCONFIG: &[&str] = &[
     "chmod",
+    "fchmodat",
     "link",
     "linkat",
     "rename",
