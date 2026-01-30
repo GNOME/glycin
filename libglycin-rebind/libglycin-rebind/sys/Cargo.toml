@@ -1,6 +1,6 @@
 [package]
 name = "libglycin-rebind-sys"
-version = "0.1.0-alpha.3"
+version = "0.1.0-beta"
 categories = ["api-bindings"]
 keywords = ["gnome", "glycin"]
 description = "FFI bindings for libglycin"
