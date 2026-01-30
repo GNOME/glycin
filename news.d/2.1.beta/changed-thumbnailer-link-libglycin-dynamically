@@ -1,0 +1,1 @@
+thumbnailer: Use dynamically linked libglycin instead of glycin crate.

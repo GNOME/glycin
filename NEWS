@@ -1,3 +1,30 @@
+## 2.1.beta (2026-01-30)
+
+This release contains the following new component versions:
+
+- glycin-common 1.0.4-beta
+- glycin-heif 2.1.0-beta
+- glycin-image-rs 2.1.0-beta
+- glycin-jxl 2.1.0-beta
+- glycin-raw 2.1.0-beta
+- glycin-svg 2.1.0-beta
+- glycin-thumbnailer 2.1.0-beta
+- glycin-utils 4.1.0-beta
+- glycin 3.1.0-beta
+- libglycin-gtk4-rebind 0.1.0-beta
+- libglycin-gtk4-rebind-sys 0.1.0-beta
+- libglycin-rebind 0.1.0-beta
+- libglycin-rebind-sys 0.1.0-beta
+- libglycin 2.1.0-beta
+- libglycin-gtk4 2.1.0-beta
+
+### Changed
+
+- Require libjxl 0.11.1
+- Use hayro-jpeg2000 loader instead of jpeg2k and make it part of the glycin-
+  image-rs loader, enabled by default.
+- thumbnailer: Use dynamically linked libglycin instead of glycin crate.
+
 ## 2.1.alpha.3 (2026-01-20)
 
 This release contains the following new component versions:
