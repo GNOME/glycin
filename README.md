@@ -42,7 +42,7 @@ The following formats are supported by the glycin loaders provided in the [loade
 | Windows BMP image  (.bmp) | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
 | GIF image  (.gif) | glycin-image-rs |[gif](https://crates.io/crates/gif) (Rust) |
 | HEIF image  (.heic) | glycin-heif |[libheif](https://github.com/strukturag/libheif) (C++) |
-| JPEG-2000 JP2 image  | glycin-jpeg2000 |[jpeg2k](https://crates.io/crates/jpeg2k) (Rust) |
+| JPEG-2000 JP2 image  | glycin-image-rs |[hayro-jpeg2000](https://crates.io/crates/hayro-jpeg2000) (Rust) |
 | JPEG image  (.jpg) | glycin-image-rs |[zune-jpeg](https://crates.io/crates/zune-jpeg) (Rust) |
 | JPEG XL image  (.jxl) | glycin-jxl |[libjxl](https://github.com/libjxl/libjxl) (C++) |
 | PNG image  (.png) | glycin-image-rs |[png](https://crates.io/crates/png) (Rust) |
@@ -70,6 +70,8 @@ The following formats are supported by the glycin loaders provided in the [loade
 | Sony SRF raw image  | glycin-raw | |
 | TGA image  (.tga) | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust) |
 | Windows cursor  | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust), [bmp](https://crates.io/crates/bmp) (Rust), [png](https://crates.io/crates/png) (Rust) |
+| XBM image  | glycin-image-rs |[image-extras](https://crates.io/crates/image-extras) (Rust) |
+| XPM image  | glycin-image-rs |[image-extras](https://crates.io/crates/image-extras) (Rust) |
 
 ## Image Loader Configuration
 

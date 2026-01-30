@@ -89,6 +89,7 @@ gufo-common = { version = "1.1.0-alpha", features = ["serde"] }
 gufo-exif = { version = "0.4.0-alpha" }
 gufo-jpeg = { version = "0.4.0-alpha" }
 half = "2.4.1"
+hayro-jpeg2000 = "0.3.1"
 image = { version = "0.25.9", default-features = false }
 image-extras = { version = "0.1.0", default-features = false, features = [
     "xbm",

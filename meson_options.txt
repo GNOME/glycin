@@ -29,7 +29,6 @@ option(
   choices: [
     'glycin-heif',
     'glycin-image-rs',
-    'glycin-jpeg2000',
     'glycin-jxl',
     'glycin-raw',
     'glycin-svg',

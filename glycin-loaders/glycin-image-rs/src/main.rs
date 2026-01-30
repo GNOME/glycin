@@ -257,6 +257,7 @@ pub enum ImageRsDecoder<T: std::io::BufRead + std::io::Seek> {
     Gif(codecs::gif::GifDecoder<T>),
     Ico(codecs::ico::IcoDecoder<T>),
     Jpeg(codecs::jpeg::JpegDecoder<T>),
+    Jpeg2000(hayro_jpeg2000::integration::Jp2Decoder),
     OpenExr(codecs::openexr::OpenExrDecoder<T>),
     Png(codecs::png::PngDecoder<T>),
     Pnm(codecs::pnm::PnmDecoder<T>),
@@ -313,6 +314,10 @@ impl ImageRsFormat<Reader> {
             .format_name("JPEG")
             .default_bit_depth(8)
             .supports_two_grayscale_modes(true),
+            "image/jp2" | "image/x-jp2-codestream" => Self::new(ImageRsDecoder::Jpeg2000(
+                hayro_jpeg2000::integration::Jp2Decoder::new(data).expected_error()?,
+            ))
+            .format_name("ICO"),
             "image/x-exr" => Self::new(ImageRsDecoder::OpenExr(
                 codecs::openexr::OpenExrDecoder::new(data).expected_error()?,
             ))
@@ -423,6 +428,7 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Gif(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Ico(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Jpeg(ref mut d) => self.handler.info(d),
+            ImageRsDecoder::Jpeg2000(ref mut d) => self.handler.info(d),
             ImageRsDecoder::OpenExr(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Png(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Pnm(ref mut d) => self.handler.info(d),
@@ -443,6 +449,7 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Gif(d) => self.handler.frame(d),
             ImageRsDecoder::Ico(d) => self.handler.frame(d),
             ImageRsDecoder::Jpeg(d) => self.handler.frame(d),
+            ImageRsDecoder::Jpeg2000(d) => self.handler.frame(d),
             ImageRsDecoder::OpenExr(d) => self.handler.frame(d),
             ImageRsDecoder::Png(d) => self.handler.frame(d),
             ImageRsDecoder::Pnm(d) => self.handler.frame(d),
@@ -463,6 +470,7 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Gif(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Ico(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Jpeg(ref mut d) => self.handler.frame_details(d),
+            ImageRsDecoder::Jpeg2000(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::OpenExr(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Png(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Pnm(ref mut d) => self.handler.frame_details(d),
@@ -485,6 +493,7 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Gif(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Ico(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Jpeg(ref mut d) => d.set_limits(limits),
+            ImageRsDecoder::Jpeg2000(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::OpenExr(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Png(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Pnm(ref mut d) => d.set_limits(limits),

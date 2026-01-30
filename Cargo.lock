@@ -45,12 +45,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "anyhow"
-version = "1.0.100"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
-
-[[package]]
 name = "approx"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -235,12 +229,6 @@ checksum = "1e4b40c7323adcfc0a41c4b88143ed58346ff65a288fc144329c5c45e05d70c6"
 
 [[package]]
 name = "bitflags"
-version = "1.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
-
-[[package]]
-name = "bitflags"
 version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "812e12b5285cc515a9c72a5c1d3b6d46a19dac5acfef5265968c166106e31dd3"
@@ -303,7 +291,7 @@ version = "0.22.0-alpha.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97eb9a7228fb94c488d04daf9f9033ebbe78aae99cfe9d5730467a0e2c511107"
 dependencies = [
- "bitflags 2.10.0",
+ "bitflags",
  "cairo-sys-rs",
  "glib",
  "libc",
@@ -676,6 +664,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "fearless_simd"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8fb2907d1f08b2b316b9223ced5b0e89d87028ba8deae9764741dba8ff7f3903"
+dependencies = [
+ "bytemuck",
+]
+
+[[package]]
 name = "find-msvc-tools"
 version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -961,7 +958,7 @@ version = "0.22.0-alpha.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6d97df62440eff82e6c4dd9874b5ac268eecff9395ea34eeec12364ab948bee8"
 dependencies = [
- "bitflags 2.10.0",
+ "bitflags",
  "futures-channel",
  "futures-core",
  "futures-executor",
@@ -1027,7 +1024,7 @@ dependencies = [
  "memmap2",
  "nix",
  "static_assertions",
- "thiserror 2.0.18",
+ "thiserror",
  "tokio",
  "tokio-stream",
  "tracing",
@@ -1040,7 +1037,7 @@ dependencies = [
 name = "glycin-common"
 version = "1.0.4-alpha.3"
 dependencies = [
- "bitflags 2.10.0",
+ "bitflags",
  "glib",
  "gufo-common",
  "half",
@@ -1049,7 +1046,7 @@ dependencies = [
  "paste",
  "rmp-serde",
  "serde",
- "thiserror 2.0.18",
+ "thiserror",
  "zerocopy",
  "zvariant",
 ]
@@ -1086,20 +1083,12 @@ dependencies = [
  "gufo-common",
  "gufo-exif",
  "gufo-jpeg",
+ "hayro-jpeg2000",
  "image",
  "image-extras",
  "jpeg-encoder",
  "log",
  "zune-jpeg 0.5.11",
-]
-
-[[package]]
-name = "glycin-jpeg2000"
-version = "2.1.0-alpha.3"
-dependencies = [
- "glycin-utils",
- "image",
- "jpeg2k",
 ]
 
 [[package]]
@@ -1149,7 +1138,7 @@ name = "glycin-utils"
 version = "4.1.0-alpha.3"
 dependencies = [
  "async-lock",
- "bitflags 2.10.0",
+ "bitflags",
  "blocking",
  "env_logger",
  "futures-lite",
@@ -1167,7 +1156,7 @@ dependencies = [
  "paste",
  "rayon",
  "serde",
- "thiserror 2.0.18",
+ "thiserror",
  "tokio",
  "zbus",
  "zerocopy",
@@ -1198,7 +1187,7 @@ dependencies = [
  "gufo-webp",
  "gufo-xmp",
  "static_assertions",
- "thiserror 2.0.18",
+ "thiserror",
 ]
 
 [[package]]
@@ -1209,7 +1198,7 @@ checksum = "4847cdf6a7b3ad3e4a21e050241c473ea3693558fbcedc8895343305da4b2c6d"
 dependencies = [
  "paste",
  "serde",
- "thiserror 2.0.18",
+ "thiserror",
  "zvariant",
 ]
 
@@ -1220,7 +1209,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a113e6d0bc82a44f0e0b4418ddc06f380d6d83eadb76bac576718a184c3c5b92"
 dependencies = [
  "gufo-common",
- "thiserror 2.0.18",
+ "thiserror",
  "tracing",
 ]
 
@@ -1233,7 +1222,7 @@ dependencies = [
  "gufo-common",
  "indexmap",
  "jpeg-encoder",
- "thiserror 2.0.18",
+ "thiserror",
  "tracing",
 ]
 
@@ -1248,7 +1237,7 @@ dependencies = [
  "gufo-common",
  "hex",
  "miniz_oxide 0.9.0",
- "thiserror 2.0.18",
+ "thiserror",
 ]
 
 [[package]]
@@ -1258,7 +1247,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b2999088226ae3753b96ec4f39aa5fc19d630845e59b7de9b1fcfdf1bb2b120"
 dependencies = [
  "gufo-common",
- "thiserror 2.0.18",
+ "thiserror",
 ]
 
 [[package]]
@@ -1268,7 +1257,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "787b26a70aed0fcb714f1cd9b82e9f50cbfb44d5f1258963a69e2786a51e8de1"
 dependencies = [
  "gufo-common",
- "thiserror 2.0.18",
+ "thiserror",
 ]
 
 [[package]]
@@ -1278,7 +1267,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b124aaf67973d53ecc4078adae281300c90d26a4519db46ce747f234e3fac64b"
 dependencies = [
  "gufo-common",
- "thiserror 2.0.18",
+ "thiserror",
  "xml-rs",
 ]
 
@@ -1308,6 +1297,17 @@ name = "hashbrown"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "841d1cc9bed7f9236f321df977030373f4a4163ae1a7dbfe1a51a2c1a51d9100"
+
+[[package]]
+name = "hayro-jpeg2000"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e94b34463cd6309fdfe9a541f07e8343ffe5738534cbca6845960ec41cc077a"
+dependencies = [
+ "fearless_simd",
+ "image",
+ "moxcms",
+]
 
 [[package]]
 name = "heck"
@@ -1463,19 +1463,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b0b36cbb4e6704f12f5b5d7b01dac593982c6550859ebd5a66fb15c9ea27fd5"
 
 [[package]]
-name = "jpeg2k"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be2982db6b9f254c9df44d89bcfdc758924d538f576d9649f5b10008150f2a60"
-dependencies = [
- "anyhow",
- "image",
- "log",
- "openjp2",
- "thiserror 1.0.69",
-]
-
-[[package]]
 name = "jpegxl-rs"
 version = "0.11.2+libjxl-0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1485,7 +1472,7 @@ dependencies = [
  "derive_builder",
  "half",
  "jpegxl-sys",
- "thiserror 2.0.18",
+ "thiserror",
 ]
 
 [[package]]
@@ -1677,7 +1664,7 @@ dependencies = [
  "rayon",
  "simple_logger",
  "static_assertions",
- "thiserror 2.0.18",
+ "thiserror",
 ]
 
 [[package]]
@@ -1686,7 +1673,7 @@ version = "0.3.0-beta.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f648fd17121a0e4490125e534a966fcebec7bae706c3e2e23e4f468054edc825"
 dependencies = [
- "bitflags 2.10.0",
+ "bitflags",
  "cairo-rs",
  "gio",
  "glib",
@@ -1715,7 +1702,7 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0e5310a2c5b6ffbc094b5f70a2ca7b79ed36ad90e6f90994b166489a1bce3fcc"
 dependencies = [
- "bitflags 2.10.0",
+ "bitflags",
  "libc",
  "libseccomp-sys",
  "pkg-config",
@@ -1886,7 +1873,7 @@ version = "0.30.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "74523f3a35e05aba87a1d978330aef40f67b0304ac79c1c00b294c9830543db6"
 dependencies = [
- "bitflags 2.10.0",
+ "bitflags",
  "cfg-if",
  "cfg_aliases",
  "libc",
@@ -1978,19 +1965,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 
 [[package]]
-name = "openjp2"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8940f4ff209130c7b374730e83cc7e31062706520e3960001e7eedc982bc554"
-dependencies = [
- "bitflags 1.3.2",
- "byteorder",
- "log",
- "smallvec",
- "sprintf",
-]
-
-[[package]]
 name = "ordered-stream"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2071,7 +2045,7 @@ version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97baced388464909d42d89643fe4361939af9b7ce7a31ee32a168f832a70f2a0"
 dependencies = [
- "bitflags 2.10.0",
+ "bitflags",
  "crc32fast",
  "fdeflate",
  "flate2",
@@ -2232,7 +2206,7 @@ version = "1.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "146c9e247ccc180c1f61615433868c99f3de3ae256a30a43b49f67c2d9171f34"
 dependencies = [
- "bitflags 2.10.0",
+ "bitflags",
  "errno",
  "libc",
  "linux-raw-sys",
@@ -2421,12 +2395,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sprintf"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c0cdea5a20a06e7c57f627094e7b1618e5665592cd88f2d45fa4014e348db58"
-
-[[package]]
 name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2506,31 +2474,11 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.69"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6aaf5339b578ea85b50e080feb250a3e8ae8cfcdff9a461c9ec2904bc923f52"
-dependencies = [
- "thiserror-impl 1.0.69",
-]
-
-[[package]]
-name = "thiserror"
 version = "2.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4288b5bcbc7920c07a1149a35cf9590a2aa808e0bc1eafaade0b80947865fbc4"
 dependencies = [
- "thiserror-impl 2.0.18",
-]
-
-[[package]]
-name = "thiserror-impl"
-version = "1.0.69"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
+ "thiserror-impl",
 ]
 
 [[package]]

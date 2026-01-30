@@ -125,14 +125,6 @@ image/x-qoi:
   animation: unsupported
   loader-codec: qoi
 
-image/jp2:
-  icc: false
-  cicp: unsupported
-  exif: false
-  xmp: false
-  animation: unsupported
-  loader-codec: jpeg2k
-
 image/x-tga:
   icc: unsupported
   cicp: unsupported
@@ -220,3 +212,14 @@ image/x-xpixmap:
   xmp: unsupported
   animation: unsupported
   loader-codec: image-extras
+
+image/jp2:
+  icc: false
+  cicp: unsupported
+  exif: false
+  xmp: false
+  animation: unsupported
+  loader-codec: hayro-jpeg2000
+
+image/x-jp2-codestream:
+  hidden: true

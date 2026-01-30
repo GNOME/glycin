@@ -37,3 +37,4 @@ jpeg-encoder = "0.7.0"
 # Force newer version for bugfixes
 zune-jpeg = "0.5.11"
 image-extras.workspace = true
+hayro-jpeg2000 = { workspace = true, features = ["image"] }

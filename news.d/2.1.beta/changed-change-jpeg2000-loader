@@ -1,0 +1,1 @@
+Use hayro-jpeg2000 loader instead of jpeg2k and make it part of the glycin-image-rs loader, enabled by default.

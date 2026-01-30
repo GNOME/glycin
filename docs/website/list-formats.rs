@@ -41,6 +41,8 @@ struct Format {
 #[derive(Debug, Default, Clone, serde::Deserialize)]
 #[serde(rename_all = "kebab-case")]
 struct Details {
+    #[serde(default)]
+    hidden: bool,
     exif: Option<String>,
     icc: Option<String>,
     cicp: Option<String>,
@@ -213,6 +215,10 @@ fn html(info: BTreeMap<String, Format>) -> String {
     let mut html = String::new();
     let s = &mut html;
     for (mime_type, info) in info {
+        if info.details.hidden {
+            continue;
+        }
+
         let ext = if let Some(ext) = glycin::MimeType::new(mime_type.clone()).extension() {
             format!(" (.{ext})")
         } else {
@@ -262,6 +268,10 @@ fn markdown(info: BTreeMap<String, Format>) -> String {
     s.push_str("|-|-|-|\n");
 
     for (mime_type, info) in info {
+        if info.details.hidden {
+            continue;
+        }
+
         let ext = if let Some(ext) = glycin::MimeType::new(mime_type.clone()).extension() {
             format!(" (.{ext})")
         } else {
