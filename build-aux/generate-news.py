@@ -25,6 +25,9 @@ def main():
     components.write()
     this_release.load_components()
 
+    print("Unchanged packages:")
+    print(this_release.components.format("unchanged"))
+
     with open(OUT_FILE, "w") as f:
         f.write(changelog.format())
 
@@ -230,10 +233,10 @@ class Components:
         ) as f:
             json.dump(self.components, f, indent=4)
 
-    def format(self):
+    def format(self, state="changed"):
         s = ""
         for component_name, component in self.components.items():
-            if component["state"] == "changed":
+            if component["state"] == state:
                 s += f"- {component_name} {component['version']}\n"
 
         return s
