@@ -743,6 +743,7 @@ impl Sandbox {
                 "No permissions to creating new namespace",
                 // Wording of an old Debian patch
                 "No permissions to create new namespace",
+                "bwrap: setting up uid map: Permission denied",
             ]
             .iter()
             .any(|y| x.contains(y))

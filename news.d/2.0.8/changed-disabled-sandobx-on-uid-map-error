@@ -1,0 +1,1 @@
+Disable sandbox on "bwrap: setting up uid map: Permission denied" error. This error appeared when starting LibreOffice under Debian.
