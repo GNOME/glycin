@@ -141,6 +141,7 @@ const ALLOWED_SYSCALLS: &[&str] = &[
     "statx",
     "sysinfo",
     "tgkill",
+    "time",
     "timerfd_create",
     "timerfd_settime",
     "timerfd_settime64",
