@@ -50,11 +50,11 @@ The following formats are supported by the glycin loaders provided in the [loade
 | SVG image  | glycin-svg |[librsvg](https://gitlab.gnome.org/GNOME/librsvg) (C/Rust) |
 | Compressed SVG image  | glycin-svg |[librsvg](https://gitlab.gnome.org/GNOME/librsvg) (C/Rust) |
 | TIFF image  (.tiff) | glycin-image-rs |[tiff](https://crates.io/crates/tiff) (Rust) |
-| Windows icon  (.ico) | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust), [bmp](https://crates.io/crates/bmp) (Rust), [png](https://crates.io/crates/png) (Rust) |
+| Windows icon  (.ico) | glycin-image-rs |[image](https://crates.io/crates/image) (Rust), [bmp](https://crates.io/crates/bmp) (Rust), [png](https://crates.io/crates/png) (Rust) |
 | WebP image  (.webp) | glycin-image-rs |[image-webp](https://crates.io/crates/image-webp) (Rust) |
 | Adobe DNG negative  | glycin-raw | |
 | Canon CR2 raw image  | glycin-raw | |
-| DirectDraw surface  (.dds) | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust) |
+| DirectDraw surface  (.dds) | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
 | image/x-epson-erf type  | glycin-raw | |
 | EXR image  (.exr) | glycin-image-rs |[exr](https://crates.io/crates/exr) (Rust) |
 | Minolta MRW raw image  | glycin-raw | |
@@ -62,14 +62,14 @@ The following formats are supported by the glycin loaders provided in the [loade
 | Panasonic raw image  | glycin-raw | |
 | Panasonic raw image  | glycin-raw | |
 | Pentax PEF raw image  | glycin-raw | |
-| PNM image  | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust) |
-| PBM image  | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust) |
-| PGM image  | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust) |
-| PPM image  | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust) |
+| PNM image  | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
+| PBM image  | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
+| PGM image  | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
+| PPM image  | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
 | image/x-qoi type  | glycin-image-rs |[qoi](https://crates.io/crates/qoi) (Rust) |
 | Sony SRF raw image  | glycin-raw | |
-| TGA image  (.tga) | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust) |
-| Windows cursor  | glycin-image-rs |[image-rs](https://crates.io/crates/image-rs) (Rust), [bmp](https://crates.io/crates/bmp) (Rust), [png](https://crates.io/crates/png) (Rust) |
+| TGA image  (.tga) | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
+| Windows cursor  | glycin-image-rs |[image](https://crates.io/crates/image) (Rust), [bmp](https://crates.io/crates/bmp) (Rust), [png](https://crates.io/crates/png) (Rust) |
 | XBM image  | glycin-image-rs |[image-extras](https://crates.io/crates/image-extras) (Rust) |
 | XPM image  | glycin-image-rs |[image-extras](https://crates.io/crates/image-extras) (Rust) |
 
