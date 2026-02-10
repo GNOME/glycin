@@ -43,6 +43,18 @@ audit-as-crates-io = true
 [policy.glycin-utils]
 audit-as-crates-io = true
 
+[policy.libglycin-gtk4-rebind]
+audit-as-crates-io = true
+
+[policy.libglycin-gtk4-rebind-sys]
+audit-as-crates-io = true
+
+[policy.libglycin-rebind]
+audit-as-crates-io = true
+
+[policy.libglycin-rebind-sys]
+audit-as-crates-io = true
+
 [[exemptions.byteorder-lite]]
 version = "0.1.0"
 criteria = "safe-to-deploy"
