@@ -103,5 +103,7 @@ tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.0", features = ["env-filter", "fmt"] }
 yeslogic-fontconfig-sys = "6.0.0"
 zbus = { version = "5.10.0", default-features = false, features = ["p2p"] }
-zvariant = { version = "5.4.0", default-features = false }
+# Require latest zvariant due to SIGPIPE bugfix
+# <https://github.com/z-galaxy/zbus/commit/82533888fe1780581bf1d0c3025f2fd37eac65b5>
+zvariant = { version = "5.9.2", default-features = false }
 zerocopy = "0.8.12"
