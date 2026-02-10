@@ -1,3 +1,23 @@
+## 2.0.8 (2026-02-10)
+
+This release contains the following new component versions:
+
+- glycin 3.0.8
+- libglycin 2.0.8
+- libglycin-gtk4 2.0.8
+
+### Fixed
+
+- Allow fchmodat since it seems to be needed on aarch64/apple silicon at times.
+- Output log messages to stderr instead of stdout.
+- Require zvariant 5.9.2 to fix SIGPIPE emissions #250
+
+### Changed
+
+- Allow time syscall for `rr record`.
+- Disable sandbox on "bwrap: setting up uid map: Permission denied" error. This
+  error appeared when starting LibreOffice under Debian.
+
 ## 2.0.7 (2025-11-11)
 
 This release contains the following new component versions:

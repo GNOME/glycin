@@ -1,7 +1,7 @@
 [package]
 name = "glycin"
 readme = "../README.md"
-version = "3.0.7"
+version = "3.0.8"
 authors.workspace = true
 description.workspace = true
 license.workspace = true
