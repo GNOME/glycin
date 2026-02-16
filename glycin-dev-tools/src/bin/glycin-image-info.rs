@@ -1,5 +1,6 @@
 use gdk::prelude::*;
 use gio::glib;
+use glycin_common::MemoryFormatInfo;
 use tracing_subscriber::prelude::*;
 
 fn main() {
@@ -74,7 +75,16 @@ async fn run() -> Result<(), glycin::ErrorCtx> {
         let texture = frame.texture();
         println!("[[frame]]");
         println!("dimensions = {} x {}", frame.width(), frame.height());
-        println!("format = {:?}", texture.format());
+        println!(
+            "stride = {} ({} px)",
+            frame.stride(),
+            frame.stride() as f32 / frame.memory_format().n_bytes().u8() as f32
+        );
+        println!(
+            "format = {:?} ({:?})",
+            texture.format(),
+            frame.memory_format()
+        );
         println!(
             "delay = {}",
             frame

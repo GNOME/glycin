@@ -17,3 +17,4 @@ gio.workspace = true
 async-io.workspace = true
 gufo-common.workspace = true
 tracing-subscriber.workspace = true
+glycin-common.workspace = true

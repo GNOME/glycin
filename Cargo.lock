@@ -1046,6 +1046,7 @@ dependencies = [
  "gdk4",
  "gio",
  "glycin",
+ "glycin-common",
  "gufo-common",
  "tracing-subscriber",
 ]
