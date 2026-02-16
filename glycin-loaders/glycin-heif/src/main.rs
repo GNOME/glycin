@@ -6,16 +6,24 @@ use glycin_utils::safe_math::*;
 use glycin_utils::*;
 use gufo_common::cicp::Cicp;
 use libheif_rs::{
-    ColorProfile, ColorProfileNCLX, ColorProfileRaw, ColorSpace, HeifContext, ImageHandle, LibHeif,
-    RgbChroma, StreamReader,
+    ColorProfile, ColorProfileNCLX, ColorProfileRaw, ColorSpace, HeifContext, HeifError,
+    HeifErrorCode, ImageHandle, LibHeif, RgbChroma, StreamReader,
 };
 
 use crate::editing::ImgEditor;
 
+use std::sync::Mutex;
+use std::sync::mpsc::{Receiver, Sender, channel};
+
 init_main_loader_editor!(ImgDecoder, ImgEditor);
 
+type FrameReceiver = Receiver<Result<(Frame<SharedMemory>, bool), ProcessError>>;
+type FrameSender = Sender<Result<(Frame<SharedMemory>, bool), ProcessError>>;
+
+#[derive(Default)]
 pub struct ImgDecoder {
     pub decoder: Option<HeifContext<'static>>,
+    pub thread: Mutex<Option<(std::thread::JoinHandle<()>, FrameReceiver)>>,
     pub mime_type: String,
 }
 
@@ -95,6 +103,130 @@ fn scale_image_to_16bit(image: &mut libheif_rs::Image) {
     }
 }
 
+fn animated_worker(data: Vec<u8>, mime_type: String, send: FrameSender) {
+    std::thread::park();
+
+    // Is the sequence being currently repeated?
+    let mut looped = false;
+
+    let mut current_frame_num: u64 = 0;
+
+    // Repeat the image sequence
+    loop {
+        let stream_reader = StreamReader::new(Cursor::new(&data), data.len() as u64);
+        let context = match HeifContext::read_from_reader(Box::new(stream_reader)) {
+            Ok(c) => c,
+            Err(e) => {
+                send.send(Err(ProcessError::expected(&e.to_string())))
+                    .unwrap();
+                return;
+            }
+        };
+
+        let track = match context.track(0) {
+            Some(t) => t,
+            None => {
+                send.send(Err(ProcessError::expected(&"HEIF file has no tracks")))
+                    .unwrap();
+                return;
+            }
+        };
+
+        let handle = match context.primary_image_handle() {
+            Ok(h) => h,
+            Err(e) => {
+                send.send(Err(ProcessError::expected(&e.to_string())))
+                    .unwrap();
+                return;
+            }
+        };
+
+        let rgb_chroma = rgb_chroma(&handle);
+        let memory_format = memory_format(&handle, rgb_chroma);
+
+        // Iterate the sequence
+        loop {
+            match track.decode_next_image(ColorSpace::Rgb(rgb_chroma), None) {
+                Ok(mut image) => {
+                    // Scale HDR pixels to 16bit (they are usually 10bit or 12bit)
+                    if is_rgb_chroma_hdr(rgb_chroma) {
+                        scale_image_to_16bit(&mut image);
+                    }
+
+                    let icc_profile = get_icc_profile(image.color_profile_raw())
+                        .or_else(|| get_icc_profile(handle.color_profile_raw()));
+
+                    let cicp = if icc_profile.is_none() {
+                        get_cicp(image.color_profile_nclx())
+                            .or_else(|| get_cicp(handle.color_profile_nclx()))
+                    } else {
+                        None
+                    };
+
+                    let plane = image.planes().interleaved.unwrap();
+
+                    let mut memory = SharedMemory::new(
+                        plane.stride.try_u64().unwrap() * u64::from(plane.height),
+                    )
+                    .unwrap();
+
+                    Cursor::new(plane.data).read_exact(&mut memory).unwrap();
+                    let texture = memory;
+
+                    let mut frame =
+                        Frame::new(plane.width, plane.height, memory_format, texture).unwrap();
+                    frame.stride = plane.stride.try_u32().unwrap();
+                    frame.details.color_icc_profile = icc_profile
+                        .map(SharedMemory::try_from_vec)
+                        .transpose()
+                        .unwrap();
+                    frame.details.color_cicp = cicp.map(|x| x.to_bytes());
+                    if plane.bits_per_pixel > 8 {
+                        frame.details.info_bit_depth = Some(plane.bits_per_pixel);
+                    }
+                    frame.details.info_alpha_channel =
+                        Some(image.has_channel(libheif_rs::Channel::Alpha));
+
+                    let duration_ms = (image.duration() as u64) * 1000 / (track.timescale() as u64);
+                    frame.delay = Some(std::time::Duration::from_millis(duration_ms)).into();
+
+                    frame.details.n_frame = Some(current_frame_num);
+
+                    current_frame_num += 1;
+
+                    send.send(Ok((frame, looped))).unwrap();
+
+                    std::thread::park();
+                }
+                Err(HeifError {
+                    code: HeifErrorCode::EndOfSequence,
+                    ..
+                }) => {
+                    log::trace!("Sequence ended, all frames decoded.");
+                    break;
+                }
+                Err(HeifError {
+                    sub_code: libheif_rs::HeifErrorSubCode::UnsupportedCodec,
+                    ..
+                }) => {
+                    send.send(Err(ProcessError::UnsupportedImageFormat(
+                        mime_type.to_string(),
+                    )))
+                    .unwrap();
+                    return;
+                }
+                Err(err) => {
+                    send.send(Err(ProcessError::expected(&err.to_string())))
+                        .unwrap();
+                    return;
+                }
+            }
+
+            looped = true;
+        }
+    }
+}
+
 impl LoaderImplementation for ImgDecoder {
     fn load<B: ByteData, S: Read>(
         mut stream: S,
@@ -104,7 +236,7 @@ impl LoaderImplementation for ImgDecoder {
         let mut data = Vec::new();
         let total_size = stream.read_to_end(&mut data).internal_error()?;
 
-        let stream_reader = StreamReader::new(Cursor::new(data), total_size.try_u64()?);
+        let stream_reader = StreamReader::new(Cursor::new(data.clone()), total_size.try_u64()?);
         let context = HeifContext::read_from_reader(Box::new(stream_reader)).expected_error()?;
 
         let handle = context.primary_image_handle().expected_error()?;
@@ -125,19 +257,43 @@ impl LoaderImplementation for ImgDecoder {
         // TODO: Later use libheif 1.16 to get info if there is a transformation
         image_info.transformation_ignore_exif = true;
 
-        let decoder = ImgDecoder {
-            decoder: Some(context),
-            mime_type,
-        };
+        let mut decoder = Self::default();
+        if context.has_sequence() {
+            let (send, recv) = channel();
+            let thread = std::thread::spawn(move || animated_worker(data, mime_type, send));
+            *decoder.thread.lock().unwrap() = Some((thread, recv));
+        } else {
+            decoder.decoder = Some(context);
+            decoder.mime_type = mime_type;
+        }
 
         Ok((decoder, image_info))
     }
 
     fn specific_frame<B: ByteData>(
         &mut self,
-        _frame_request: FrameRequest,
+        frame_request: FrameRequest,
     ) -> Result<Frame<B>, ProcessError> {
-        decode(self.decoder.take().unwrap(), &self.mime_type)
+        if let Some(decoder) = self.decoder.take() {
+            // Static image
+            decode(decoder, &self.mime_type)
+        } else {
+            // Playing sequence
+            if let Some((ref thread, ref recv)) = *self.thread.lock().unwrap() {
+                thread.thread().unpark();
+
+                let (frame, looped) = recv.recv().internal_error()??;
+                if !frame_request.loop_animation
+                    && matches!(frame.details.n_frame, Some(0))
+                    && looped
+                {
+                    return Err(ProcessError::NoMoreFrames);
+                }
+                Ok(frame.into_other().expected_error()?)
+            } else {
+                Err(ProcessError::NoMoreFrames)
+            }
+        }
     }
 }
 
