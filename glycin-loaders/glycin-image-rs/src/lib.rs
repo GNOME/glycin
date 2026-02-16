@@ -96,8 +96,9 @@ impl LoaderImplementation for ImgDecoder {
 
         if format.decoder.is_animated() {
             let (send, recv) = channel();
-            let thead = std::thread::spawn(move || animated::worker(format, data, mime_type, send));
-            *loader_impelementation.thread.lock().unwrap() = Some((thead, recv));
+            let thread =
+                std::thread::spawn(move || animated::worker(format, data, mime_type, send));
+            *loader_impelementation.thread.lock().unwrap() = Some((thread, recv));
         } else {
             *loader_impelementation.format.lock().unwrap() = Some(format);
         }
