@@ -890,7 +890,7 @@ GBytes *gly_encoded_image_get_data(GlyEncodedImage *encoded_image);
  * guint8 data[] = {255, 0, 0};
  * gsize length = sizeof(data);
  * GBytes *texture = g_bytes_new(data, length);
- * GlyNewFrame *new_frame = gly_creator_add_frame(creator, 1, 1, GLY_MEMORY_R8G8B8, texture);
+ * GlyNewFrame *new_frame = gly_creator_add_frame(creator, 1, 1, GLY_MEMORY_R8G8B8, texture, NULL);
  *
  * // Create JPEG
  * GlyEncodedImage *encoded_image = gly_creator_create(creator, NULL);
