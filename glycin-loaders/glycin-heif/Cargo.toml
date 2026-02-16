@@ -17,8 +17,9 @@ glycin-utils = { workspace = true, features = [
     "loader-utils",
     "external",
 ] }
-libheif-rs = { version = "2.2.0", default-features = false, features = [
-    "v1_17",
+libheif-rs = { version = "2.7.0", default-features = false, features = [
+    "v1_20",
 ] }
 safe-transmute.workspace = true
 gufo-common.workspace = true
+log.workspace = true
