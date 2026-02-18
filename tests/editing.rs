@@ -17,6 +17,11 @@ fn editing_crop() {
 }
 
 #[test]
+fn editing_crop_grayscale() {
+    run_test("crop-grayscale");
+}
+
+#[test]
 fn editing_crop_too_large_value() {
     run_test("crop-too-large-value");
 }
