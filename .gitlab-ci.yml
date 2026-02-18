@@ -89,7 +89,7 @@ test-fedora43-loaders:
   script:
     - dnf install --assumeyes glycin-loaders cargo glib2-devel gtk4-devel lcms2-devel libseccomp-devel fontconfig-devel
     - GLYCIN_TEST_SKIP_EXT=exr cargo test -p tests -- --nocapture --test-threads 1 \
-      color color_exif_orientation color_iccp_pro gray_iccp icon exif fonts editing_
+      color color_exif_orientation color_iccp_pro gray_iccp icon exif fonts editing_crop_too_large_value editing_rotation_90
 
 cargo-semver-checks:
   image: rust
