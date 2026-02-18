@@ -4,7 +4,7 @@ use editing::EditingFrame;
 use glycin_utils::*;
 use gufo_common::orientation::Orientation;
 use gufo_jpeg::Jpeg;
-use zune_jpeg::zune_core::options::DecoderOptions;
+use zune_jpeg::zune_core::{self, options::DecoderOptions};
 
 pub struct EditJpeg {
     buf: Vec<u8>,
@@ -69,20 +69,48 @@ fn apply_non_sparse(
 ) -> Result<CompleteEditorOutput, glycin_utils::ProcessError> {
     let mut out_buf = Vec::new();
     let encoder = jpeg.encoder(&mut out_buf).expected_error()?;
-    let mut buf = Cursor::new(jpeg.into_inner());
+    let mut buf = jpeg.into_inner();
+
+    // Find out what the used color encoding/model is
+    let mut decoder = zune_jpeg::JpegDecoder::new(Cursor::new(&mut buf));
+    decoder.decode_headers().expected_error()?;
+    let colorspace = decoder.input_colorspace().expected_error()?;
+    drop(decoder);
 
     let decoder_options = DecoderOptions::new_fast()
-        .jpeg_set_out_colorspace(zune_jpeg::zune_core::colorspace::ColorSpace::YCbCr)
+        .jpeg_set_out_colorspace(colorspace)
         .set_max_height(u32::MAX as usize)
         .set_max_width(u32::MAX as usize);
-    let mut decoder = zune_jpeg::JpegDecoder::new_with_options(&mut buf, decoder_options);
+    let mut decoder =
+        zune_jpeg::JpegDecoder::new_with_options(Cursor::new(&mut buf), decoder_options);
     let mut pixels = decoder.decode().expected_error()?;
     let info: zune_jpeg::ImageInfo = decoder.info().expected_error()?;
+
+    let (encoder_memory_format, glycin_memory_format) = match colorspace {
+        zune_core::colorspace::ColorSpace::YCbCr => (
+            jpeg_encoder::ColorType::Ycbcr,
+            ExtendedMemoryFormat::Y8Cb8Cr8,
+        ),
+        zune_core::colorspace::ColorSpace::Luma => (
+            jpeg_encoder::ColorType::Luma,
+            ExtendedMemoryFormat::Basic(MemoryFormat::G8),
+        ),
+        zune_core::colorspace::ColorSpace::YCCK => (
+            jpeg_encoder::ColorType::Ycck,
+            ExtendedMemoryFormat::Y8Cb8Cr8K8,
+        ),
+        c => {
+            return Err(ProcessError::expected(&format!(
+                "Unsupported colorspace: {c:?}"
+            )));
+        }
+    };
+
     let mut simple_frame = EditingFrame {
         width: info.width as u32,
         height: info.height as u32,
-        stride: info.width as u32 * 3,
-        memory_format: ExtendedMemoryFormat::Y8Cb8Cr8,
+        stride: info.width as u32 * glycin_memory_format.n_bytes().u32(),
+        memory_format: glycin_memory_format,
     };
 
     pixels = editing::apply_operations(pixels, &mut simple_frame, &operations).expected_error()?;
@@ -92,11 +120,11 @@ fn apply_non_sparse(
             &pixels,
             simple_frame.width as u16,
             simple_frame.height as u16,
-            jpeg_encoder::ColorType::Ycbcr,
+            encoder_memory_format,
         )
         .expected_error()?;
 
-    let mut jpeg = gufo::jpeg::Jpeg::new(buf.into_inner()).expected_error()?;
+    let mut jpeg = gufo::jpeg::Jpeg::new(buf).expected_error()?;
     let new_jpeg = Jpeg::new(out_buf).expected_error()?;
 
     jpeg.replace_image_data(&new_jpeg).expected_error()?;

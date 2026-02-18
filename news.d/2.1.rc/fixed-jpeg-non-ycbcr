@@ -1,0 +1,1 @@
+image-rs: Don't assume that JPEGs are in YCbCr encoded. Support grayscale and YCCK as well.

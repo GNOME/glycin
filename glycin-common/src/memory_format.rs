@@ -363,6 +363,7 @@ impl MemoryFormat {
 pub enum ExtendedMemoryFormat {
     Basic(MemoryFormat),
     Y8Cb8Cr8,
+    Y8Cb8Cr8K8,
 }
 
 impl MemoryFormatInfo for ExtendedMemoryFormat {
@@ -370,6 +371,7 @@ impl MemoryFormatInfo for ExtendedMemoryFormat {
         match self {
             Self::Basic(basic) => basic.n_bytes(),
             Self::Y8Cb8Cr8 => MemoryFormatBytes::B3,
+            Self::Y8Cb8Cr8K8 => MemoryFormatBytes::B4,
         }
     }
 
@@ -377,6 +379,7 @@ impl MemoryFormatInfo for ExtendedMemoryFormat {
         match self {
             Self::Basic(basic) => basic.n_channels(),
             Self::Y8Cb8Cr8 => 3,
+            Self::Y8Cb8Cr8K8 => 4,
         }
     }
 }
