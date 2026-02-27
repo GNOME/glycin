@@ -1,5 +1,5 @@
 [workspace.package]
-version = "2.1.0-beta"
+version = "2.1.0-rc"
 authors = ["Sophie Herold"]
 description = "Sandboxed image decoding"
 license = "MPL-2.0 OR LGPL-2.1-or-later"
@@ -60,7 +60,7 @@ async-lock = "3.3.0"
 async-task = "4.0.0"
 bitflags = "2.9.0"
 blocking = "1.6.1"
-cairo-rs = "0.22.0-alpha.1"
+cairo-rs = "0.22.0"
 env_logger = { version = "0.11.0", default-features = false, features = [
     "humantime",
 ] }
@@ -69,25 +69,23 @@ futures-lite = { version = "2.1.0" }
 futures-task = "0.3.30"
 futures-timer = "3.0.3"
 futures-util = "0.3.30"
-gdk = { package = "gdk4", version = "0.11.0-alpha.1", features = ["v4_16"] }
-gdk-sys = { package = "gdk4-sys", version = "0.11.0-alpha.1", features = [
-    "v4_16",
-] }
+gdk = { package = "gdk4", version = "0.11.0", features = ["v4_16"] }
+gdk-sys = { package = "gdk4-sys", version = "0.11.0", features = ["v4_16"] }
 # Use newer version to fix issues
 gif = "0.13.3"
-gio = { version = "0.22.0-alpha.1", features = ["v2_62"] }
-gio-sys = { version = "0.22.0-alpha.1", features = ["v2_62"] }
-gio-unix = "0.22.0-alpha.1"
-glib = { version = "0.22.0-alpha.1", features = ["v2_68"] }
-glib-sys = { version = "0.22.0-alpha.1", features = ["v2_68"] }
-gobject-sys = { version = "0.22.0-alpha.1", features = ["v2_68"] }
+gio = { version = "0.22.0", features = ["v2_62"] }
+gio-sys = { version = "0.22.0", features = ["v2_62"] }
+gio-unix = "0.22.0"
+glib = { version = "0.22.0", features = ["v2_68"] }
+glib-sys = { version = "0.22.0", features = ["v2_68"] }
+gobject-sys = { version = "0.22.0", features = ["v2_68"] }
 glycin = { path = "glycin/", default-features = false }
-glycin-common = { version = "1.0.4-alpha.2", path = "glycin-common/" }
-glycin-utils = { version = "4.1.0-alpha.1", path = "glycin-utils/", default-features = false }
-gufo = { version = "0.4.0-alpha.1", features = ["all-image-formats"] }
-gufo-common = { version = "1.1.0-alpha.1", features = ["serde"] }
-gufo-exif = { version = "0.4.0-alpha.1" }
-gufo-jpeg = { version = "0.4.0-alpha.1" }
+glycin-common = { version = "1.0.4-rc", path = "glycin-common/" }
+glycin-utils = { version = "4.1.0-rc", path = "glycin-utils/", default-features = false }
+gufo = { version = "0.4.0", features = ["all-image-formats"] }
+gufo-common = { version = "1.1.0", features = ["serde"] }
+gufo-exif = { version = "0.4.0" }
+gufo-jpeg = { version = "0.4.0" }
 half = "2.4.1"
 hayro-jpeg2000 = "0.3.2"
 image = { version = "0.25.9", default-features = false }
@@ -98,7 +96,7 @@ image-extras = { version = "0.1.0", default-features = false, features = [
 lcms2 = "6.0.3"
 lcms2-sys = "4.0.4"
 libc = "0.2.152"
-gly = { package = "libglycin-rebind", version = "0.1.0-alpha.3", path = "libglycin-rebind/libglycin-rebind/" }
+gly = { package = "libglycin-rebind", version = "0.1.0-rc", path = "libglycin-rebind/libglycin-rebind/" }
 libseccomp = "0.4.0"
 log = "0.4.0"
 memfd = "0.6.3"

@@ -1,6 +1,6 @@
 [package]
 name = "glycin-common"
-version = "1.0.4-beta"
+version = "1.0.4-rc"
 authors.workspace = true
 description.workspace = true
 license.workspace = true

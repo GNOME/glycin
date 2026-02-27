@@ -1,6 +1,6 @@
 [package]
 name = "libglycin-gtk4-rebind"
-version = "0.1.0-beta"
+version = "0.1.0-rc"
 authors = ["Maximiliano Sandoval <msandova@gnome.org>"]
 edition.workspace = true
 rust-version.workspace = true
