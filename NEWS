@@ -1,3 +1,28 @@
+## 2.1.rc (2026-02-27)
+
+This release contains the following new component versions:
+
+- glycin-common 1.0.4-rc
+- glycin-heif 2.1.0-rc
+- glycin-image-rs 2.1.0-rc
+- glycin-jxl 2.1.0-rc
+- glycin-raw 2.1.0-rc
+- glycin-svg 2.1.0-rc
+- glycin-thumbnailer 2.1.0-rc
+- glycin-utils 4.1.0-rc
+- glycin 3.1.0-rc
+- libglycin-gtk4-rebind 0.1.0-rc
+- libglycin-gtk4-rebind-sys 0.1.0-rc
+- libglycin-rebind 0.1.0-rc
+- libglycin-rebind-sys 0.1.0-rc
+- libglycin 2.1.0-rc
+- libglycin-gtk4 2.1.0-rc
+
+### Fixed
+
+- image-rs: Don't assume that JPEGs are in YCbCr encoded. Support grayscale and
+  YCCK as well.
+
 ## 2.1.beta (2026-01-30)
 
 This release contains the following new component versions:
@@ -79,6 +104,20 @@ This release contains the following new component versions:
 - Add a specific error for when glycin fails to load the image from it's
   file/stream.
 - image-rs: Add XBM and XPM support
+
+## 2.0.8 (2026-02-10)
+
+### Fixed
+
+- Allow fchmodat since it seems to be needed on aarch64/apple silicon at times.
+- Output log messages to stderr instead of stdout.
+- Require zvariant 5.9.2 to fix SIGPIPE emissions #250
+
+### Changed
+
+- Allow time syscall for  rr record.
+- Disable sandbox on "bwrap: setting up uid map: Permission denied" error. This
+  error appeared when starting LibreOffice under Debian.
 
 ## 2.0.7 (2025-11-11)
 
