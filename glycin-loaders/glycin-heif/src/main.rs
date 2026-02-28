@@ -236,33 +236,42 @@ impl LoaderImplementation for ImgDecoder {
         let mut data = Vec::new();
         let total_size = stream.read_to_end(&mut data).internal_error()?;
 
-        let stream_reader = StreamReader::new(Cursor::new(data.clone()), total_size.try_u64()?);
-        let context = HeifContext::read_from_reader(Box::new(stream_reader)).expected_error()?;
+        // Read image info and sequence
+        let (has_sequence, image_info) = {
+            let stream_reader = StreamReader::new(Cursor::new(&data), total_size.try_u64()?);
+            let context =
+                HeifContext::read_from_reader(Box::new(stream_reader)).expected_error()?;
 
-        let handle = context.primary_image_handle().expected_error()?;
+            let handle = context.primary_image_handle().expected_error()?;
 
-        let format_name = match mime_type.as_str() {
-            "image/heif" => "HEIC",
-            "image/avif" => "AVIF",
-            _ => "HEIF (Unknown)",
+            let format_name = match mime_type.as_str() {
+                "image/heif" => "HEIC",
+                "image/avif" => "AVIF",
+                _ => "HEIF (Unknown)",
+            };
+
+            let mut image_info = ImageDetails::new(handle.width(), handle.height());
+            image_info.metadata_exif = exif(&handle)
+                .map(B::try_from_vec)
+                .transpose()
+                .expected_error()?;
+            image_info.info_format_name = Some(format_name.to_string());
+
+            // TODO: Later use libheif 1.16 to get info if there is a transformation
+            image_info.transformation_ignore_exif = true;
+
+            (context.has_sequence(), image_info)
         };
 
-        let mut image_info = ImageDetails::new(handle.width(), handle.height());
-        image_info.metadata_exif = exif(&handle)
-            .map(B::try_from_vec)
-            .transpose()
-            .expected_error()?;
-        image_info.info_format_name = Some(format_name.to_string());
-
-        // TODO: Later use libheif 1.16 to get info if there is a transformation
-        image_info.transformation_ignore_exif = true;
-
         let mut decoder = Self::default();
-        if context.has_sequence() {
+        if has_sequence {
             let (send, recv) = channel();
             let thread = std::thread::spawn(move || animated_worker(data, mime_type, send));
             *decoder.thread.lock().unwrap() = Some((thread, recv));
         } else {
+            let stream_reader = StreamReader::new(Cursor::new(data), total_size.try_u64()?);
+            let context =
+                HeifContext::read_from_reader(Box::new(stream_reader)).expected_error()?;
             decoder.decoder = Some(context);
             decoder.mime_type = mime_type;
         }
