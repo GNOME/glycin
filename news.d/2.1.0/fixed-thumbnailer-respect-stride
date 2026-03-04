@@ -1,0 +1,1 @@
+thumbnailer: Remove padding if stride is longer than row data, avoiding broken scaling. This manly affects AVIF and HEIC. #259

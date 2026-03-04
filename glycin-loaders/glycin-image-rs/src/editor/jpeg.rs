@@ -4,7 +4,8 @@ use editing::EditingFrame;
 use glycin_utils::*;
 use gufo_common::orientation::Orientation;
 use gufo_jpeg::Jpeg;
-use zune_jpeg::zune_core::{self, options::DecoderOptions};
+use zune_jpeg::zune_core::options::DecoderOptions;
+use zune_jpeg::zune_core::{self};
 
 pub struct EditJpeg {
     buf: Vec<u8>,

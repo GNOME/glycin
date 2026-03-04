@@ -128,10 +128,30 @@ fn resize<T: image::Pixel<Subpixel = u8> + 'static>(
     thumbnail_width: u32,
     thumbnail_height: u32,
 ) -> Vec<u8> {
-    let frame_bytes = frame.buf_bytes();
+    let minimal_stride = frame.width() * T::CHANNEL_COUNT as u32;
+    let frame_buf = frame.buf_bytes();
+    let mut buf;
+
+    let frame_bytes = if frame.stride() != minimal_stride {
+        let new_stride = minimal_stride as usize;
+        let stride = frame.stride() as usize;
+        buf = vec![0; frame.height() as usize * new_stride];
+
+        // Get rid of padding after stride
+        for (out_line, in_line) in Iterator::zip(
+            buf.chunks_exact_mut(new_stride),
+            frame_buf.chunks_exact(stride),
+        ) {
+            out_line.copy_from_slice(&in_line[0..new_stride]);
+        }
+
+        buf.as_slice()
+    } else {
+        frame_buf.as_ref()
+    };
+
     let img =
-        image::ImageBuffer::<T, _>::from_raw(frame.width(), frame.height(), frame_bytes.as_ref())
-            .unwrap();
+        image::ImageBuffer::<T, _>::from_raw(frame.width(), frame.height(), frame_bytes).unwrap();
 
     let rought_scaled = imageops::resize(
         &img,
