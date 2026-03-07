@@ -281,17 +281,22 @@ impl RemoteProcess<LoaderProxy<'static>> {
     ) -> Result<RemoteImage, Error> {
         let init_request = self.init_request(&gfile_worker, mime_type)?;
 
-        let image_info = self.proxy.init(init_request).shared();
+        let image_info = self.proxy.init(init_request).fuse();
 
-        let reader_error = gfile_worker.error();
+        let reader_error = gfile_worker.error().fuse();
         futures_util::pin_mut!(reader_error);
+        futures_util::pin_mut!(image_info);
 
-        futures_util::select! {
-            _result = image_info.clone().fuse() => Ok(()),
-            result = reader_error.fuse() => result,
-        }?;
-
-        let image_info = image_info.await?;
+        let image_info = loop {
+            futures_util::select! {
+                info = image_info => {
+                    break info?;
+                }
+                read_result = reader_error => {
+                    read_result?;
+                }
+            }
+        };
 
         // Seal all memfds
         if let Some(exif) = &image_info.details.metadata_exif {
