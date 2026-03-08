@@ -88,6 +88,12 @@ pub(crate) struct RemoteProcessContext<P: ZbusProxy<'static> + 'static> {
     pub usage_tracker: Arc<UsageTracker>,
 }
 
+impl<P: ZbusProxy<'static> + 'static> RemoteProcessContext<P> {
+    pub fn use_process(&self) -> Arc<crate::dbus::RemoteProcess<P>> {
+        self.process.use_()
+    }
+}
+
 /// A version of an input stream that can be sent.
 ///
 /// Using the stream from multiple threads is UB. Therefore the `new` function
@@ -190,7 +196,10 @@ impl GetConfig for ImageEditorConfig {
     }
 }
 
-pub(crate) async fn spin_up<T: GetConfig + Clone>(
+/// Determines mime-type, relevant config entry, and sandboxing mode
+///
+/// Also spawns the file worker since we need to read from the file for detecting the mime type
+pub(crate) async fn detect_process_basics<T: GetConfig + Clone>(
     source: Source,
     use_expose_base_dir: bool,
     cancellable: &gio::Cancellable,
@@ -228,7 +237,8 @@ pub(crate) async fn spin_up_editor<'a>(
     sandbox_selector: &SandboxSelector,
 ) -> Result<RemoteProcessContext<EditorProxy<'static>>, Error> {
     let process_basics =
-        spin_up::<ImageEditorConfig>(source, false, cancellable, sandbox_selector).await?;
+        detect_process_basics::<ImageEditorConfig>(source, false, cancellable, sandbox_selector)
+            .await?;
 
     let (process, usage_tracker) = pool
         .get_editor(
@@ -278,7 +288,7 @@ pub(crate) async fn spin_up_loader<'a>(
     sandbox_selector: &SandboxSelector,
 ) -> Result<RemoteProcessContext<LoaderProxy<'static>>, Error> {
     let process_basics =
-        spin_up(source, use_expose_base_dir, cancellable, sandbox_selector).await?;
+        detect_process_basics(source, use_expose_base_dir, cancellable, sandbox_selector).await?;
 
     let (process, usage_tracker) = pool
         .clone()

@@ -7,6 +7,8 @@ mod error_message {
     );
 }
 
+#[cfg(feature = "builtin")]
+mod builtin;
 mod dbus_editor_api;
 mod dbus_loader_api;
 mod dbus_types;
@@ -23,6 +25,8 @@ pub mod safe_math;
 #[doc(no_inline)]
 pub use std::os::unix::net::UnixStream;
 
+#[cfg(feature = "builtin")]
+pub use builtin::Builtin;
 pub use dbus_editor_api::*;
 pub use dbus_loader_api::*;
 pub use dbus_types::*;

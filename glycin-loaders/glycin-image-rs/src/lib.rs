@@ -19,6 +19,19 @@ type Reader = Cursor<Vec<u8>>;
 type FrameReceiver = Receiver<Result<(Frame, bool), ProcessError>>;
 type FrameSender = Sender<Result<(Frame, bool), ProcessError>>;
 
+#[derive(Debug)]
+pub struct BuiltinImageRs;
+
+impl Builtin for BuiltinImageRs {
+    fn config(&self) -> &'static str {
+        include_str!("../glycin-image-rs.conf")
+    }
+
+    fn name(&self) -> &'static str {
+        "image-rs"
+    }
+}
+
 #[derive(Default)]
 pub struct ImgDecoder {
     pub format: Mutex<Option<ImageRsFormat<Reader>>>,

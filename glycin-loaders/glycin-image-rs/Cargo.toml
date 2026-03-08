@@ -10,6 +10,9 @@ repository.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 
+[features]
+builtin = ["glycin-utils/builtin"]
+
 [dependencies]
 glycin-utils = { workspace = true, features = ["async-io", "image-rs"] }
 gufo-common.workspace = true

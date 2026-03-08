@@ -145,7 +145,7 @@ impl Creator {
         .await
         .err_no_context(&self.cancellable)?;
 
-        let process = process_context.process.use_();
+        let process = process_context.use_process();
 
         let mut new_image = self.new_image;
 

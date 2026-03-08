@@ -17,7 +17,7 @@ use memfd::{Memfd, MemfdOptions};
 use nix::libc::siginfo_t;
 use nix::sys::resource;
 
-use crate::config::{ConfigEntry, ImageLoaderConfig};
+use crate::config::{ConfigEntry, ImageLoaderConfig, Processor};
 use crate::util::{self, AsyncMutex, new_async_mutex, spawn_blocking};
 use crate::{Error, SandboxMechanism};
 
@@ -175,6 +175,7 @@ const INHERITED_ENVIRONMENT_VARIABLES: &[&str] = &["RUST_BACKTRACE", "RUST_LOG",
 pub struct Sandbox {
     sandbox_mechanism: SandboxMechanism,
     config_entry: ConfigEntry,
+    exec: PathBuf,
     dbus_socket: UnixStream,
     ro_bind_extra: Vec<PathBuf>,
 }
@@ -195,17 +196,21 @@ impl Sandbox {
         sandbox_mechanism: SandboxMechanism,
         config_entry: ConfigEntry,
         dbus_socket: UnixStream,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, Error> {
+        Ok(Self {
             sandbox_mechanism,
+            exec: config_entry
+                .exec()
+                .map(|x| x.to_path_buf())
+                .ok_or(Error::ExpectedBinaryProcessor)?,
             config_entry,
             dbus_socket,
             ro_bind_extra: Vec::new(),
-        }
+        })
     }
 
     fn exec(&self) -> &Path {
-        self.config_entry.exec()
+        self.exec.as_path()
     }
 
     pub fn add_ro_bind(&mut self, path: PathBuf) {
@@ -702,13 +707,13 @@ impl Sandbox {
         let config_entry = ConfigEntry::Loader(ImageLoaderConfig {
             // The binary is not really relevant, since sandbox is also assumed to work, if the
             // binary does not exist.
-            exec: PathBuf::from("/usr/bin/true"),
+            processor: Processor::Binary(PathBuf::from("/usr/bin/true")),
             expose_base_dir: false,
             fontconfig: false,
         });
 
         let (dbus_socket, _) = UnixStream::pair()?;
-        let sandbox = Self::new(SandboxMechanism::Bwrap, config_entry, dbus_socket);
+        let sandbox = Self::new(SandboxMechanism::Bwrap, config_entry, dbus_socket)?;
 
         let seccomp_memfd = Self::seccomp_export_bpf(&sandbox.seccomp_filter()?)?;
         let mut command = sandbox.bwrap_command(&seccomp_memfd).await?;

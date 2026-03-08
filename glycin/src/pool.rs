@@ -143,6 +143,7 @@ impl Pool {
         Ok(pp)
     }
 
+    /// Spawns loader if not available yet
     pub(crate) async fn get_editor(
         self: Arc<Self>,
         editor_config: config::ImageEditorConfig,
@@ -172,6 +173,7 @@ impl Pool {
         Ok(pp)
     }
 
+    /// Spawns process if not available yet
     pub(crate) async fn get_process<P: ZbusProxy<'static> + 'static>(
         self: Arc<Self>,
         pooled_processes: &AsyncMutex<BTreeMap<ConfigEntryHash, Vec<Arc<PooledProcess<P>>>>>,

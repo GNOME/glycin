@@ -198,6 +198,8 @@ pub enum Error {
     MathError(#[from] gufo_common::math::MathError),
     #[error("Glycin common error: {0}")]
     CommonError(#[from] glycin_common::Error),
+    #[error("Tried to use builtin processor in binary context")]
+    ExpectedBinaryProcessor,
 }
 
 impl Error {

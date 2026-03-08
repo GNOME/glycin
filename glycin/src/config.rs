@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 use std::ffi::OsStr;
+use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::Arc;
@@ -127,29 +128,74 @@ pub enum ConfigEntry {
 
 #[derive(Debug, Clone)]
 pub struct ImageLoaderConfig {
-    pub exec: PathBuf,
+    pub processor: Processor,
     pub expose_base_dir: bool,
     pub fontconfig: bool,
+}
+
+#[derive(Debug, Clone)]
+pub enum Processor {
+    Binary(PathBuf),
+    #[cfg(feature = "builtin")]
+    Builtin(Arc<Box<dyn glycin_utils::Builtin>>),
+}
+
+impl PartialEq for Processor {
+    fn eq(&self, other: &Self) -> bool {
+        self.hash().eq(other.hash())
+    }
+}
+
+impl Eq for Processor {}
+
+impl PartialOrd for Processor {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.hash().cmp(other.hash()))
+    }
+}
+
+impl Ord for Processor {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.hash().cmp(other.hash())
+    }
+}
+
+impl Processor {
+    pub fn exec(&self) -> Option<&Path> {
+        match self {
+            Self::Binary(path) => Some(path.as_path()),
+            #[cfg(feature = "builtin")]
+            Self::Builtin(_) => None,
+        }
+    }
+
+    pub fn hash(&self) -> &[u8] {
+        match self {
+            Self::Binary(path) => path.as_os_str().as_bytes(),
+            #[cfg(feature = "builtin")]
+            Self::Builtin(builtin) => builtin.name().as_bytes(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ConfigEntryHash {
     fontconfig: bool,
-    exec: PathBuf,
+    processor: Processor,
     expose_base_dir: bool,
     base_dir: Option<PathBuf>,
     sandbox_mechanism: SandboxMechanism,
 }
 
 impl ConfigEntryHash {
-    pub fn exec(&self) -> &Path {
-        &self.exec
+    pub fn exec(&self) -> Option<&Path> {
+        self.processor.exec()
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct ImageEditorConfig {
-    pub exec: PathBuf,
+    pub processor: Processor,
     pub expose_base_dir: bool,
     pub fontconfig: bool,
     pub operations: Vec<OperationId>,
@@ -168,7 +214,7 @@ impl ConfigEntry {
     ) -> ConfigEntryHash {
         ConfigEntryHash {
             fontconfig: self.fontconfig(),
-            exec: self.exec().to_owned(),
+            processor: self.processor().clone(),
             expose_base_dir: self.expose_base_dir(),
             base_dir,
             sandbox_mechanism,
@@ -182,10 +228,17 @@ impl ConfigEntry {
         }
     }
 
-    pub fn exec(&self) -> &Path {
+    pub fn exec(&self) -> Option<&Path> {
         match self {
-            Self::Editor(e) => &e.exec,
-            Self::Loader(l) => &l.exec,
+            Self::Editor(e) => e.processor.exec(),
+            Self::Loader(l) => l.processor.exec(),
+        }
+    }
+
+    pub fn processor(&self) -> &Processor {
+        match self {
+            Self::Editor(e) => &e.processor,
+            Self::Loader(l) => &l.processor,
         }
     }
 
@@ -230,6 +283,9 @@ impl Config {
     async fn load() -> Self {
         let mut config = Config::default();
 
+        #[cfg(feature = "builtin-image-rs")]
+        Self::load_builtin_config(glycin_image_rs::BuiltinImageRs, &mut config).await;
+
         for mut data_dir in Self::data_dirs() {
             data_dir.push("glycin-loaders");
             data_dir.push(format!("{COMPAT_VERSION}+"));
@@ -239,9 +295,10 @@ impl Config {
                 while let Some(result) = config_files.next().await {
                     if let Ok(path) = result
                         && path.extension() == Some(OsStr::new(CONFIG_FILE_EXT))
-                        && let Err(err) = Self::load_file(&path, &mut config).await
+                        && let Err(err) =
+                            Self::load_config(ConfigLoader::File(path.clone()), &mut config).await
                     {
-                        tracing::error!("Failed to load config file: {err}");
+                        tracing::error!("Failed to load config file {path:?}: {err}");
                     }
                 }
             }
@@ -250,17 +307,41 @@ impl Config {
         config
     }
 
-    pub async fn load_file(
-        path: &Path,
+    #[cfg(feature = "builtin")]
+    pub async fn load_builtin_config<T: glycin_utils::Builtin + 'static>(
+        builtin: T,
+        config: &mut Config,
+    ) {
+        let name = builtin.name();
+        if let Err(err) = Self::load_config(ConfigLoader::Builtin(Box::new(builtin)), config).await
+        {
+            tracing::error!("Failed to load builtin config for '{name}': {err}");
+        }
+    }
+
+    pub async fn load_config(
+        loader: ConfigLoader,
         config: &mut Config,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        tracing::trace!("Loading config file {path:?}");
+        let data = match &loader {
+            ConfigLoader::File(path) => {
+                tracing::trace!("Loading config file {path:?}");
+                read(path).await?
+            }
+            #[cfg(feature = "builtin")]
+            ConfigLoader::Builtin(builtin) => builtin.config().as_bytes().to_vec(),
+        };
 
-        let data = read(path).await?;
         let bytes = glib::Bytes::from_owned(data);
 
         let keyfile = glib::KeyFile::new();
         keyfile.load_from_bytes(&bytes, glib::KeyFileFlags::NONE)?;
+
+        let processor = match loader {
+            ConfigLoader::File(_) => Processor::Binary(PathBuf::new()),
+            #[cfg(feature = "builtin")]
+            ConfigLoader::Builtin(builtin) => Processor::Builtin(Arc::new(builtin)),
+        };
 
         for group in keyfile.groups() {
             let mut elements = group.trim().split(':');
@@ -277,13 +358,19 @@ impl Config {
                         }
 
                         if let Ok(exec) = keyfile.string(group, "Exec") {
+                            let mut processor = processor.clone();
+                            #[allow(irrefutable_let_patterns)]
+                            if let Processor::Binary(path) = &mut processor {
+                                *path = exec.into();
+                            }
+
                             let expose_base_dir =
                                 keyfile.boolean(group, "ExposeBaseDir").unwrap_or_default();
                             let fontconfig =
                                 keyfile.boolean(group, "Fontconfig").unwrap_or_default();
 
                             let cfg = ImageLoaderConfig {
-                                exec: exec.into(),
+                                processor,
                                 expose_base_dir,
                                 fontconfig,
                             };
@@ -297,6 +384,12 @@ impl Config {
                         }
 
                         if let Ok(exec) = keyfile.string(group, "Exec") {
+                            let mut processor = processor.clone();
+                            #[allow(irrefutable_let_patterns)]
+                            if let Processor::Binary(path) = &mut processor {
+                                *path = exec.into();
+                            }
+
                             let expose_base_dir =
                                 keyfile.boolean(group, "ExposeBaseDir").unwrap_or_default();
                             let fontconfig =
@@ -328,7 +421,7 @@ impl Config {
                                 .unwrap_or_default();
 
                             let cfg = ImageEditorConfig {
-                                exec: exec.into(),
+                                processor,
                                 expose_base_dir,
                                 fontconfig,
                                 operations,
@@ -360,4 +453,10 @@ impl Config {
             data_dirs
         }
     }
+}
+
+pub enum ConfigLoader {
+    File(PathBuf),
+    #[cfg(feature = "builtin")]
+    Builtin(Box<dyn glycin_utils::Builtin>),
 }

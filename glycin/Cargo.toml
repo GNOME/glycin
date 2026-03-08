@@ -32,6 +32,8 @@ gobject = [
 ]
 gdk4 = ["dep:gdk"]
 unstable-config = []
+builtin-image-rs = ["dep:glycin-image-rs", "builtin"]
+builtin = ["glycin-utils/builtin"]
 
 [dependencies]
 async-fs = { workspace = true, optional = true }
@@ -51,6 +53,7 @@ glycin-common.workspace = true
 glycin-utils = { workspace = true }
 gufo-common.workspace = true
 gufo-exif.workspace = true
+glycin-image-rs = { workspace = true, optional = true }
 lcms2-sys.workspace = true
 lcms2.workspace = true
 libc.workspace = true

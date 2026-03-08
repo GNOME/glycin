@@ -91,7 +91,7 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
         unix_stream.set_nonblocking(true)?;
         loader_stdin.set_nonblocking(true)?;
 
-        let mut sandbox = Sandbox::new(sandbox_mechanism, config_entry.clone(), loader_stdin);
+        let mut sandbox = Sandbox::new(sandbox_mechanism, config_entry.clone(), loader_stdin)?;
         // Mount dir that contains the file as read only for formats like SVG
         if let Some(base_dir) = &base_dir {
             sandbox.add_ro_bind(base_dir.clone());

@@ -136,7 +136,7 @@ impl Loader {
         .await
         .err_no_context(&self.cancellable)?;
 
-        let process = process_basics.process.use_();
+        let process = process_basics.use_process();
         let mut remote_image = process
             .init(
                 process_basics.g_file_worker.unwrap(),

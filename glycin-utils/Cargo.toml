@@ -41,6 +41,7 @@ tokio = ["dep:tokio", "zbus/tokio"]
 image-rs = ["dep:image", "loader-utils"]
 loader-utils = ["dep:futures-lite"]
 gobject = ["glib"]
+builtin = []
 
 [package.metadata.docs.rs]
 features = ["image-rs", "loader-utils"]

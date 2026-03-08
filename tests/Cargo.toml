@@ -11,6 +11,7 @@ rust-version.workspace = true
 default = ["async-io"]
 async-io = ["glycin/async-io", "glycin-utils/async-io"]
 tokio = ["glycin/tokio", "glycin-utils/tokio"]
+builtin-loaders = ["glycin/builtin-image-rs"]
 
 [dev-dependencies]
 async-io.workspace = true

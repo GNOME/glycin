@@ -1024,6 +1024,7 @@ dependencies = [
  "gio",
  "glib",
  "glycin-common",
+ "glycin-image-rs",
  "glycin-utils",
  "gufo-common",
  "gufo-exif",
