@@ -19,7 +19,7 @@ pub struct ImgDecoder {
 }
 
 pub struct ImgDecoderDetails {
-    frame_recv: Receiver<Result<Frame, ProcessError>>,
+    frame_recv: Receiver<Result<RemoteFrame, ProcessError>>,
     instr_send: Sender<Instruction>,
     image_info: ImageDetails,
 }
@@ -33,7 +33,7 @@ pub fn thread(
     stream: UnixStream,
     base_file: Option<gio::File>,
     info_send: Sender<Result<ImageDetails, ProcessError>>,
-    frame_send: Sender<Result<Frame, ProcessError>>,
+    frame_send: Sender<Result<RemoteFrame, ProcessError>>,
     instr_recv: Receiver<Instruction>,
 ) {
     let input_stream = gio_unix::InputStream::take_fd(stream.into());
@@ -91,7 +91,7 @@ pub fn thread(
     }
 }
 
-pub fn render(renderer: &rsvg::Handle, instr: Instruction) -> Result<Frame, ProcessError> {
+pub fn render(renderer: &rsvg::Handle, instr: Instruction) -> Result<RemoteFrame, ProcessError> {
     let (total_width, total_height) = instr.total_size;
     let area = instr
         .area
@@ -131,7 +131,7 @@ pub fn render(renderer: &rsvg::Handle, instr: Instruction) -> Result<Frame, Proc
     Cursor::new(data).read_exact(&mut memory).expected_error()?;
     let texture = memory.into_binary_data();
 
-    let mut frame = Frame::new(
+    let mut frame = RemoteFrame::new(
         width.try_u32()?,
         height.try_u32()?,
         memory_format(),
@@ -172,7 +172,7 @@ impl LoaderImplementation for ImgDecoder {
         Ok((decoder, image_info))
     }
 
-    fn frame(&mut self, frame_request: FrameRequest) -> Result<Frame, ProcessError> {
+    fn frame(&mut self, frame_request: FrameRequest) -> Result<RemoteFrame, ProcessError> {
         let lock = self.thread.lock().unwrap();
         let thread = lock.as_ref().internal_error()?;
 

@@ -55,7 +55,7 @@ impl LoaderImplementation for ImgDecoder {
         Ok((loader_implementation, image_info))
     }
 
-    fn frame(&mut self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
+    fn frame(&mut self, _frame_request: FrameRequest) -> Result<RemoteFrame, ProcessError> {
         let runner = jpegxl_rs::parallel::resizable_runner::ResizableRunner::new(None).unwrap();
         let decoder = jpegxl_rs::decoder_builder()
             .parallel_runner(&runner)
@@ -134,7 +134,7 @@ impl LoaderImplementation for ImgDecoder {
             .internal_error()?;
         let texture = memory.into_binary_data();
 
-        let mut frame = Frame::new(width, height, memory_format, texture).expected_error()?;
+        let mut frame = RemoteFrame::new(width, height, memory_format, texture).expected_error()?;
 
         frame.details.color_icc_profile = self
             .icc_profile

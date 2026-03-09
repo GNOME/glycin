@@ -1,8 +1,8 @@
-use glycin_utils::{Frame, ImgBuf};
+use glycin_utils::{ImgBuf, RemoteFrame};
 
 use crate::Image;
 
-pub fn apply_exif_orientation(img_buf: ImgBuf, frame: &mut Frame, image: &Image) -> ImgBuf {
+pub fn apply_exif_orientation(img_buf: ImgBuf, frame: &mut RemoteFrame, image: &Image) -> ImgBuf {
     if image.details().transformation_ignore_exif() {
         img_buf
     } else {

@@ -5,12 +5,12 @@ use gufo_common::math::Checked;
 use rayon::iter::IntoParallelIterator;
 use rayon::prelude::*;
 
-use crate::{Frame, ImgBuf, MemoryFormat, editing};
+use crate::{ImgBuf, MemoryFormat, RemoteFrame, editing};
 pub fn change_memory_format(
     mut img_buf: ImgBuf,
-    mut frame: Frame,
+    mut frame: RemoteFrame,
     target_format: MemoryFormat,
-) -> Result<(Frame, ImgBuf), editing::Error> {
+) -> Result<(RemoteFrame, ImgBuf), editing::Error> {
     let src_format = frame.memory_format;
 
     if src_format == target_format {
@@ -171,7 +171,7 @@ mod test {
                 255, 255,
             ]
         });
-        let frame = Frame::new(2, 2, crate::MemoryFormat::R16g16b16, texture).unwrap();
+        let frame = RemoteFrame::new(2, 2, crate::MemoryFormat::R16g16b16, texture).unwrap();
         let x = change_memory_format(img_buf, frame, MemoryFormat::R8g8b8)
             .unwrap()
             .1;
@@ -183,7 +183,7 @@ mod test {
         let (a, _) = std::os::unix::net::UnixStream::pair().unwrap();
         let texture = BinaryData::from(unsafe { OwnedFd::from_raw_fd(a.into_raw_fd()) });
         let img_buf = ImgBuf::Vec(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
-        let frame = Frame::new(2, 2, crate::MemoryFormat::R8g8b8a8, texture).unwrap();
+        let frame = RemoteFrame::new(2, 2, crate::MemoryFormat::R8g8b8a8, texture).unwrap();
         let x = change_memory_format(img_buf, frame, MemoryFormat::B8g8r8)
             .unwrap()
             .1;
@@ -195,7 +195,8 @@ mod test {
         let (a, _) = std::os::unix::net::UnixStream::pair().unwrap();
         let texture = BinaryData::from(unsafe { OwnedFd::from_raw_fd(a.into_raw_fd()) });
         let img_buf = ImgBuf::Vec(vec![127, 63, 0, 127, 127, 63, 0, 255]);
-        let frame = Frame::new(1, 2, crate::MemoryFormat::R8g8b8a8Premultiplied, texture).unwrap();
+        let frame =
+            RemoteFrame::new(1, 2, crate::MemoryFormat::R8g8b8a8Premultiplied, texture).unwrap();
         let x = change_memory_format(img_buf, frame, MemoryFormat::R8g8b8a8)
             .unwrap()
             .1;

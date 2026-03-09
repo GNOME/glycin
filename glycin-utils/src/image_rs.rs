@@ -1,7 +1,7 @@
 use glycin_common::shared_memory::SharedMemory;
 use glycin_common::{BinaryData, ExtendedMemoryFormat, MemoryFormat, MemoryFormatInfo};
 
-use super::Frame;
+use super::RemoteFrame;
 use crate::editing::EditingFrame;
 use crate::{DimensionTooLargerError, FrameDetails, GenericContexts, ImageDetails, ProcessError};
 
@@ -46,7 +46,10 @@ impl Handler {
         info
     }
 
-    pub fn frame(&self, mut decoder: impl image::ImageDecoder) -> Result<Frame, ProcessError> {
+    pub fn frame(
+        &self,
+        mut decoder: impl image::ImageDecoder,
+    ) -> Result<RemoteFrame, ProcessError> {
         let simple_frame = self.editing_frame(&decoder)?;
 
         let width = simple_frame.width;
@@ -60,7 +63,7 @@ impl Handler {
         decoder.read_image(&mut memory).expected_error()?;
         let texture = memory.into_binary_data();
 
-        let mut frame = Frame::new(width, height, memory_format, texture)?;
+        let mut frame = RemoteFrame::new(width, height, memory_format, texture)?;
         frame.details = details.expected_error()?;
 
         Ok(frame)

@@ -278,10 +278,10 @@ impl NewFrame {
         Ok(())
     }
 
-    fn frame(&self) -> Result<glycin_utils::Frame, Error> {
+    fn frame(&self) -> Result<glycin_utils::RemoteFrame, Error> {
         let texture = BinaryData::from_data(&self.texture)?;
         let mut frame =
-            glycin_utils::Frame::new(self.width, self.height, self.memory_format, texture)?;
+            glycin_utils::RemoteFrame::new(self.width, self.height, self.memory_format, texture)?;
 
         frame.details = self.details.clone();
 

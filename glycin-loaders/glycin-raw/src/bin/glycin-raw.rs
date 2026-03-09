@@ -13,7 +13,7 @@ pub struct ImgDecoder {
     rawimage: RawImage,
 }
 
-pub fn render(rawdata: &libopenraw::RawImage) -> Result<Frame, ProcessError> {
+pub fn render(rawdata: &libopenraw::RawImage) -> Result<RemoteFrame, ProcessError> {
     let rawimage = rawdata
         .rendered_image(&libopenraw::RenderingOptions::default())
         .expected_error()?;
@@ -33,7 +33,7 @@ pub fn render(rawdata: &libopenraw::RawImage) -> Result<Frame, ProcessError> {
         .internal_error()?;
     let texture = memory.into_binary_data();
 
-    Frame::new(
+    RemoteFrame::new(
         width.try_u32()?,
         height.try_u32()?,
         MemoryFormat::R16g16b16,
@@ -80,7 +80,7 @@ impl LoaderImplementation for ImgDecoder {
         Ok((decoder, image_info))
     }
 
-    fn frame(&mut self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
+    fn frame(&mut self, _frame_request: FrameRequest) -> Result<RemoteFrame, ProcessError> {
         render(&self.rawimage).expected_error()
     }
 }

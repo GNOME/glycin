@@ -3,36 +3,29 @@
 //! Internal DBus API
 
 use std::io::{Read, Write};
-use std::mem;
-use std::os::fd::{AsRawFd, OwnedFd, RawFd};
+use std::os::fd::OwnedFd;
 use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::time::{Duration, Instant};
+use std::sync::{Arc, Mutex};
 
 use futures_channel::oneshot;
 use futures_util::{FutureExt, future};
 use gio::glib;
 use gio::prelude::*;
-use glycin_common::{MemoryFormatInfo, Operations};
-use glycin_utils::safe_math::{SafeConversion, SafeMath};
+use glycin_common::Operations;
 use glycin_utils::{
-    CompleteEditorOutput, EditRequest, EncodedImage, EncodingOptions, Frame, FrameRequest, ImgBuf,
-    InitRequest, InitializationDetails, NewImage, RemoteEditableImage, RemoteError, RemoteImage,
+    CompleteEditorOutput, EditRequest, EncodedImage, EncodingOptions, FrameRequest, InitRequest,
+    InitializationDetails, NewImage, RemoteEditableImage, RemoteError, RemoteFrame, RemoteImage,
     SparseEditorOutput,
 };
-use gufo_common::cicp::Cicp;
-use gufo_common::math::ToI64;
 use nix::sys::signal;
 use zbus::zvariant::{self, OwnedObjectPath};
 
+use crate::remote_utils::seal_fd;
 use crate::sandbox::Sandbox;
-use crate::util::{self, Task, block_on, spawn, spawn_blocking, spawn_blocking_detached};
-use crate::{
-    ColorState, EditableImage, Error, Image, MimeType, SandboxMechanism, Source, api_loader,
-    config, icc, orientation,
-};
+use crate::util::{self, Task, block_on, spawn, spawn_blocking_detached};
+use crate::{EditableImage, Error, Image, MimeType, SandboxMechanism, Source, api_loader, config};
 
 /// Max texture size 8 GB in bytes
 pub(crate) const MAX_TEXTURE_SIZE: u64 = 8 * 10u64.pow(9);
@@ -254,9 +247,7 @@ impl<P: ZbusProxy<'static>> RemoteProcess<P> {
         gfile_worker: &GFileWorker,
         mime_type: &MimeType,
     ) -> Result<InitRequest, Error> {
-        let (remote_reader, writer) = std::os::unix::net::UnixStream::pair()?;
-
-        gfile_worker.write_to(writer)?;
+        let remote_reader = gfile_worker.unix_stream_reader()?;
 
         let fd = zvariant::OwnedFd::from(OwnedFd::from(remote_reader));
 
@@ -327,93 +318,9 @@ impl RemoteProcess<LoaderProxy<'static>> {
             .build()
             .await?;
 
-        let mut frame = loader_proxy.frame(frame_request).await?;
+        let frame = loader_proxy.frame(frame_request).await?;
 
-        // Seal all constant data
-        if let Some(icc_profile) = &frame.details.color_icc_profile {
-            seal_fd(icc_profile).await?;
-        }
-
-        let raw_fd = frame.texture.as_raw_fd();
-        let img_buf = unsafe { ImgBuf::from_raw_fd(raw_fd)? };
-
-        validate_frame(&frame, &img_buf)?;
-
-        let img_buf = if image.loader.apply_transformations {
-            orientation::apply_exif_orientation(img_buf, &mut frame, image)
-        } else {
-            img_buf
-        };
-
-        let mut color_state = ColorState::Srgb;
-
-        let img_buf = if let Some(cicp) = frame
-            .details
-            .color_cicp
-            .and_then(|x| x.try_into().ok())
-            .and_then(|x| Cicp::from_bytes(&x).ok())
-        {
-            color_state = ColorState::Cicp(cicp);
-            img_buf
-        } else if let Some(Ok(icc_profile)) =
-            frame.details.color_icc_profile.as_ref().map(|x| x.get())
-        {
-            // Align stride with pixel size if necessary
-            let mut img_buf = remove_stride_if_needed(img_buf, &mut frame)?;
-
-            let memory_format = frame.memory_format;
-            let (icc_mmap, icc_result) = spawn_blocking(move || {
-                let result = icc::apply_transformation(&icc_profile, memory_format, &mut img_buf);
-                (img_buf, result)
-            })
-            .await;
-
-            match icc_result {
-                Err(err) => {
-                    tracing::warn!("Failed to apply ICC profile: {err}");
-                }
-                Ok(new_color_state) => {
-                    color_state = new_color_state;
-                }
-            }
-
-            icc_mmap
-        } else {
-            img_buf
-        };
-
-        let (frame, img_buf) = if let Some(target_format) = image
-            .loader
-            .memory_format_selection
-            .best_format_for(frame.memory_format)
-        {
-            util::spawn_blocking(move || {
-                glycin_utils::editing::change_memory_format(img_buf, frame, target_format)
-            })
-            .await?
-        } else {
-            (frame, img_buf)
-        };
-
-        let bytes = match img_buf {
-            ImgBuf::MMap { mmap, raw_fd } => {
-                drop(mmap);
-                seal_fd(raw_fd).await?;
-                unsafe { gbytes_from_mmap(raw_fd)? }
-            }
-            ImgBuf::Vec(vec) => glib::Bytes::from_owned(vec),
-        };
-
-        Ok(api_loader::Frame {
-            buffer: bytes,
-            width: frame.width,
-            height: frame.height,
-            stride: frame.stride,
-            memory_format: frame.memory_format,
-            delay: frame.delay.into(),
-            details: Arc::new(frame.details),
-            color_state,
-        })
+        api_loader::Frame::from_loader(frame, image).await
     }
 }
 
@@ -505,7 +412,7 @@ pub trait Loader {
 
 #[zbus::proxy(name = "org.gnome.glycin.Image")]
 pub trait LoaderState {
-    async fn frame(&self, frame_request: FrameRequest) -> Result<Frame, RemoteError>;
+    async fn frame(&self, frame_request: FrameRequest) -> Result<RemoteFrame, RemoteError>;
     async fn done(&self) -> Result<(), RemoteError>;
 }
 
@@ -546,7 +453,7 @@ pub struct GFileWorker {
     first_bytes_recv: future::Shared<oneshot::Receiver<Arc<Vec<u8>>>>,
     error_recv: future::Shared<oneshot::Receiver<Result<(), Error>>>,
 }
-use std::sync::Mutex;
+
 impl GFileWorker {
     pub fn spawn(source: Source, cancellable: gio::Cancellable) -> GFileWorker {
         let file = source.file();
@@ -635,108 +542,14 @@ impl GFileWorker {
             Ok(bytes) => Ok(bytes),
         }
     }
-}
 
-async fn seal_fd(fd: impl AsRawFd) -> Result<(), memfd::Error> {
-    let raw_fd = fd.as_raw_fd();
+    pub fn unix_stream_reader(&self) -> Result<UnixStream, Error> {
+        let (remote_reader, writer) = std::os::unix::net::UnixStream::pair()?;
 
-    let start = Instant::now();
+        self.write_to(writer)?;
 
-    let mfd = memfd::Memfd::try_from_fd(raw_fd).unwrap();
-    // In rare circumstances the sealing returns a ResourceBusy
-    loop {
-        // 🦭
-        let seal = mfd.add_seals(&[
-            memfd::FileSeal::SealShrink,
-            memfd::FileSeal::SealGrow,
-            memfd::FileSeal::SealWrite,
-            memfd::FileSeal::SealSeal,
-        ]);
-
-        match seal {
-            Ok(_) => break,
-            Err(err) if start.elapsed() > Duration::from_secs(10) => {
-                // Give up after some time and return the error
-                return Err(err);
-            }
-            Err(_) => {
-                // Try again after short waiting time
-                util::sleep(Duration::from_millis(1)).await;
-            }
-        }
+        Ok(remote_reader)
     }
-    mem::forget(mfd);
-
-    Ok(())
-}
-
-fn validate_frame(frame: &Frame, img_buf: &ImgBuf) -> Result<(), Error> {
-    if img_buf.len() < frame.n_bytes()? {
-        return Err(Error::TextureWrongSize {
-            texture_size: img_buf.len(),
-            frame: format!("{:?}", frame),
-        });
-    }
-
-    if frame.stride < frame.width.smul(frame.memory_format.n_bytes().u32())? {
-        return Err(Error::StrideTooSmall(format!("{:?}", frame)));
-    }
-
-    if frame.width < 1 || frame.height < 1 {
-        return Err(Error::WidgthOrHeightZero(format!("{:?}", frame)));
-    }
-
-    if (frame.stride as u64).smul(frame.height as u64)? > MAX_TEXTURE_SIZE {
-        return Err(Error::TextureTooLarge);
-    }
-
-    // Ensure
-    frame.width.try_i32()?;
-    frame.height.try_i32()?;
-    frame.stride.try_usize()?;
-
-    Ok(())
-}
-
-unsafe fn gbytes_from_mmap(raw_fd: RawFd) -> Result<glib::Bytes, Error> {
-    unsafe {
-        let mut error = std::ptr::null_mut();
-
-        let mapped_file =
-            glib::ffi::g_mapped_file_new_from_fd(raw_fd, glib::ffi::GFALSE, &mut error);
-
-        if !error.is_null() {
-            let err: glib::Error = glib::translate::from_glib_full(error);
-            return Err(err.into());
-        };
-
-        let bytes =
-            glib::translate::from_glib_full(glib::ffi::g_mapped_file_get_bytes(mapped_file));
-
-        glib::ffi::g_mapped_file_unref(mapped_file);
-
-        Ok(bytes)
-    }
-}
-
-fn remove_stride_if_needed(mut img_buf: ImgBuf, frame: &mut Frame) -> Result<ImgBuf, Error> {
-    if frame.stride.srem(frame.memory_format.n_bytes().u32())? == 0 {
-        return Ok(img_buf);
-    }
-
-    let width = frame
-        .width
-        .try_usize()?
-        .smul(frame.memory_format.n_bytes().usize())?;
-    let stride = frame.stride.try_usize()?;
-    let mut source = vec![0; width];
-    for row in 1..frame.height.try_usize()? {
-        source.copy_from_slice(&img_buf[row.smul(stride)?..row.smul(stride)?.sadd(width)?]);
-        img_buf[row.smul(width)?..row.sadd(1)?.smul(width)?].copy_from_slice(&source);
-    }
-    frame.stride = width.try_u32()?;
-
-    Ok(img_buf.resize(frame.n_bytes()?.i64()?)?)
 }
 
 #[cfg(not(feature = "tokio"))]

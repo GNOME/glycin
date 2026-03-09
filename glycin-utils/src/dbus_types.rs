@@ -106,14 +106,16 @@ impl ImageDetails {
     }
 }
 
+pub type RemoteFrame = Frame<BinaryData>;
+
 #[derive(Deserialize, Serialize, Type, Debug)]
-pub struct Frame {
+pub struct Frame<D: zvariant::Type> {
     pub width: u32,
     pub height: u32,
     /// Line stride
     pub stride: u32,
     pub memory_format: MemoryFormat,
-    pub texture: BinaryData,
+    pub texture: D,
     /// Duration to show frame for animations.
     ///
     /// If the value is not set, the image is not animated.
@@ -121,7 +123,7 @@ pub struct Frame {
     pub details: FrameDetails,
 }
 
-impl Frame {
+impl Frame<BinaryData> {
     pub fn n_bytes(&self) -> Result<usize, DimensionTooLargerError> {
         self.stride.try_usize()?.smul(self.height.try_usize()?)
     }
@@ -151,7 +153,7 @@ pub struct FrameDetails {
     pub n_frame: Option<u64>,
 }
 
-impl Frame {
+impl RemoteFrame {
     pub fn new(
         width: u32,
         height: u32,
@@ -176,7 +178,7 @@ impl Frame {
     }
 }
 
-impl Frame {
+impl RemoteFrame {
     pub fn as_img_buf(&self) -> std::io::Result<ImgBuf> {
         let raw_fd = self.texture.as_raw_fd();
         let original_mmap = unsafe { MmapMut::map_mut(raw_fd) }?;
@@ -207,11 +209,11 @@ impl RemoteEditableImage {
 #[non_exhaustive]
 pub struct NewImage {
     pub image_info: ImageDetails,
-    pub frames: Vec<Frame>,
+    pub frames: Vec<RemoteFrame>,
 }
 
 impl NewImage {
-    pub fn new(image_info: ImageDetails, frames: Vec<Frame>) -> Self {
+    pub fn new(image_info: ImageDetails, frames: Vec<RemoteFrame>) -> Self {
         Self { image_info, frames }
     }
 }

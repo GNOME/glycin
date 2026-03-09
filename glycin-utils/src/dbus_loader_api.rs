@@ -18,7 +18,7 @@ pub trait LoaderImplementation: Send + Sync + Sized + 'static {
         details: InitializationDetails,
     ) -> Result<(Self, ImageDetails), ProcessError>;
 
-    fn frame(&mut self, frame_request: FrameRequest) -> Result<Frame, ProcessError>;
+    fn frame(&mut self, frame_request: FrameRequest) -> Result<RemoteFrame, ProcessError>;
 }
 
 pub struct Loader<T: LoaderImplementation> {
@@ -93,7 +93,7 @@ impl<T: LoaderImplementation> Image<T> {
 
 #[zbus::interface(name = "org.gnome.glycin.Image")]
 impl<T: LoaderImplementation> Image<T> {
-    async fn frame(&self, frame_request: FrameRequest) -> Result<Frame, RemoteError> {
+    async fn frame(&self, frame_request: FrameRequest) -> Result<RemoteFrame, RemoteError> {
         let loader_implementation = self.loader_implementation.clone();
         let mut frame_request = blocking::unblock(move || {
             let mut loader_implementation = loader_implementation.lock().map_err(|err| {

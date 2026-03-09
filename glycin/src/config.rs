@@ -137,7 +137,7 @@ pub struct ImageLoaderConfig {
 pub enum Processor {
     Binary(PathBuf),
     #[cfg(feature = "builtin")]
-    Builtin(Arc<Box<dyn glycin_utils::Builtin>>),
+    Builtin(BuiltinProcessor),
 }
 
 impl PartialEq for Processor {
@@ -173,7 +173,7 @@ impl Processor {
         match self {
             Self::Binary(path) => path.as_os_str().as_bytes(),
             #[cfg(feature = "builtin")]
-            Self::Builtin(builtin) => builtin.name().as_bytes(),
+            Self::Builtin(builtin) => builtin.common().name().as_bytes(),
         }
     }
 }
@@ -284,7 +284,11 @@ impl Config {
         let mut config = Config::default();
 
         #[cfg(feature = "builtin-image-rs")]
-        Self::load_builtin_config(glycin_image_rs::BuiltinImageRs, &mut config).await;
+        Self::load_builtin_config(
+            BuiltinProcessor::ImageRs(glycin_image_rs::BuiltinImageRs),
+            &mut config,
+        )
+        .await;
 
         for mut data_dir in Self::data_dirs() {
             data_dir.push("glycin-loaders");
@@ -308,13 +312,9 @@ impl Config {
     }
 
     #[cfg(feature = "builtin")]
-    pub async fn load_builtin_config<T: glycin_utils::Builtin + 'static>(
-        builtin: T,
-        config: &mut Config,
-    ) {
-        let name = builtin.name();
-        if let Err(err) = Self::load_config(ConfigLoader::Builtin(Box::new(builtin)), config).await
-        {
+    pub async fn load_builtin_config(builtin: BuiltinProcessor, config: &mut Config) {
+        let name = builtin.common().name();
+        if let Err(err) = Self::load_config(ConfigLoader::Builtin(builtin), config).await {
             tracing::error!("Failed to load builtin config for '{name}': {err}");
         }
     }
@@ -329,19 +329,13 @@ impl Config {
                 read(path).await?
             }
             #[cfg(feature = "builtin")]
-            ConfigLoader::Builtin(builtin) => builtin.config().as_bytes().to_vec(),
+            ConfigLoader::Builtin(builtin) => builtin.common().config().as_bytes().to_vec(),
         };
 
         let bytes = glib::Bytes::from_owned(data);
 
         let keyfile = glib::KeyFile::new();
         keyfile.load_from_bytes(&bytes, glib::KeyFileFlags::NONE)?;
-
-        let processor = match loader {
-            ConfigLoader::File(_) => Processor::Binary(PathBuf::new()),
-            #[cfg(feature = "builtin")]
-            ConfigLoader::Builtin(builtin) => Processor::Builtin(Arc::new(builtin)),
-        };
 
         for group in keyfile.groups() {
             let mut elements = group.trim().split(':');
@@ -358,11 +352,13 @@ impl Config {
                         }
 
                         if let Ok(exec) = keyfile.string(group, "Exec") {
-                            let mut processor = processor.clone();
-                            #[allow(irrefutable_let_patterns)]
-                            if let Processor::Binary(path) = &mut processor {
-                                *path = exec.into();
-                            }
+                            let processor = match loader {
+                                ConfigLoader::File(_) => Processor::Binary(exec.into()),
+                                #[cfg(feature = "builtin")]
+                                ConfigLoader::Builtin(ref builtin) => {
+                                    Processor::Builtin(builtin.clone())
+                                }
+                            };
 
                             let expose_base_dir =
                                 keyfile.boolean(group, "ExposeBaseDir").unwrap_or_default();
@@ -384,11 +380,13 @@ impl Config {
                         }
 
                         if let Ok(exec) = keyfile.string(group, "Exec") {
-                            let mut processor = processor.clone();
-                            #[allow(irrefutable_let_patterns)]
-                            if let Processor::Binary(path) = &mut processor {
-                                *path = exec.into();
-                            }
+                            let processor = match loader {
+                                ConfigLoader::File(_) => Processor::Binary(exec.into()),
+                                #[cfg(feature = "builtin")]
+                                ConfigLoader::Builtin(ref builtin) => {
+                                    Processor::Builtin(builtin.clone())
+                                }
+                            };
 
                             let expose_base_dir =
                                 keyfile.boolean(group, "ExposeBaseDir").unwrap_or_default();
@@ -458,5 +456,22 @@ impl Config {
 pub enum ConfigLoader {
     File(PathBuf),
     #[cfg(feature = "builtin")]
-    Builtin(Box<dyn glycin_utils::Builtin>),
+    Builtin(BuiltinProcessor),
+}
+
+#[cfg(feature = "builtin")]
+#[derive(Debug, Clone)]
+pub enum BuiltinProcessor {
+    #[cfg(feature = "builtin-image-rs")]
+    ImageRs(glycin_image_rs::BuiltinImageRs),
+}
+
+#[cfg(feature = "builtin")]
+impl BuiltinProcessor {
+    fn common(&self) -> &dyn glycin_utils::Builtin {
+        match self {
+            #[cfg(feature = "builtin-image-rs")]
+            Self::ImageRs(processor) => processor,
+        }
+    }
 }

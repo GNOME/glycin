@@ -83,7 +83,7 @@ impl glycin_utils::LoaderImplementation for MockLoader {
     fn frame(
         &mut self,
         _frame_request: glycin_utils::FrameRequest,
-    ) -> Result<glycin_utils::Frame, glycin_utils::ProcessError> {
+    ) -> Result<glycin_utils::RemoteFrame, glycin_utils::ProcessError> {
         unimplemented!()
     }
 

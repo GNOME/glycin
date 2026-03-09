@@ -59,12 +59,12 @@ impl LoaderImplementation for ImgDecoder {
         Ok((decoder, image_info))
     }
 
-    fn frame(&mut self, _frame_request: FrameRequest) -> Result<Frame, ProcessError> {
+    fn frame(&mut self, _frame_request: FrameRequest) -> Result<RemoteFrame, ProcessError> {
         decode(self.decoder.take().unwrap(), &self.mime_type)
     }
 }
 
-fn decode(context: HeifContext, mime_type: &str) -> Result<Frame, ProcessError> {
+fn decode(context: HeifContext, mime_type: &str) -> Result<RemoteFrame, ProcessError> {
     let handle = context.primary_image_handle().expected_error()?;
 
     let rgb_chroma = if handle.luma_bits_per_pixel() > 8 {
@@ -154,7 +154,7 @@ fn decode(context: HeifContext, mime_type: &str) -> Result<Frame, ProcessError> 
     Cursor::new(plane.data).read_exact(&mut memory).unwrap();
     let texture = memory.into_binary_data();
 
-    let mut frame = Frame::new(plane.width, plane.height, memory_format, texture)?;
+    let mut frame = RemoteFrame::new(plane.width, plane.height, memory_format, texture)?;
     frame.stride = plane.stride.try_u32()?;
     frame.details.color_icc_profile = icc_profile
         .map(BinaryData::from_data)

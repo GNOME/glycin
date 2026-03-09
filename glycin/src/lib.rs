@@ -73,6 +73,7 @@ mod fontconfig;
 mod icc;
 mod orientation;
 mod pool;
+mod remote_utils;
 mod sandbox;
 mod util;
 

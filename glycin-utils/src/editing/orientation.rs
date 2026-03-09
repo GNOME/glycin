@@ -2,7 +2,7 @@ use glycin_common::{ExtendedMemoryFormat, MemoryFormatInfo};
 use gufo_common::orientation::{Orientation, Rotation};
 
 use super::EditingFrame;
-use crate::{Frame, ImgBuf};
+use crate::{ImgBuf, RemoteFrame};
 
 pub trait FrameDimensions {
     fn width(&self) -> u32;
@@ -44,7 +44,7 @@ impl FrameDimensions for EditingFrame {
     }
 }
 
-impl FrameDimensions for Frame {
+impl FrameDimensions for RemoteFrame {
     fn width(&self) -> u32 {
         self.width
     }

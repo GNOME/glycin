@@ -85,7 +85,7 @@ pub fn animated_get_frame(
     (n_frame, frame): (usize, Result<image::Frame, image::ImageError>),
     frame_details: Option<FrameDetails>,
     is_animated: bool,
-) -> Result<Frame, ProcessError> {
+) -> Result<RemoteFrame, ProcessError> {
     log::trace!("animated: Treating decoded frame {n_frame}");
     let frame = frame.expected_error()?;
 
@@ -116,7 +116,7 @@ pub fn animated_get_frame(
         .unwrap();
     let texture = memory.into_binary_data();
 
-    let mut out_frame = Frame::new(width, height, memory_format, texture).unwrap();
+    let mut out_frame = RemoteFrame::new(width, height, memory_format, texture).unwrap();
     out_frame.delay = delay.into();
 
     // Set frame info for still pictures

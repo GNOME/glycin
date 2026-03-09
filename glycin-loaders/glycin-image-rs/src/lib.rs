@@ -16,10 +16,10 @@ use image::{AnimationDecoder, ImageDecoder, ImageResult, Limits, codecs};
 init_main_loader_editor!(ImgDecoder, ImgEditor);
 
 type Reader = Cursor<Vec<u8>>;
-type FrameReceiver = Receiver<Result<(Frame, bool), ProcessError>>;
-type FrameSender = Sender<Result<(Frame, bool), ProcessError>>;
+type FrameReceiver = Receiver<Result<(RemoteFrame, bool), ProcessError>>;
+type FrameSender = Sender<Result<(RemoteFrame, bool), ProcessError>>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BuiltinImageRs;
 
 impl Builtin for BuiltinImageRs {
@@ -106,7 +106,7 @@ impl LoaderImplementation for ImgDecoder {
         Ok((loader_impelementation, image_info))
     }
 
-    fn frame(&mut self, frame_request: FrameRequest) -> Result<Frame, ProcessError> {
+    fn frame(&mut self, frame_request: FrameRequest) -> Result<RemoteFrame, ProcessError> {
         let mut frame = if let Some(decoder) = std::mem::take(&mut *self.format.lock().unwrap()) {
             decoder.frame().expected_error()?
         } else if let Some((ref thread, ref recv)) = *self.thread.lock().unwrap() {
@@ -324,7 +324,7 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
         }
     }
 
-    fn frame(self) -> Result<Frame, ProcessError> {
+    fn frame(self) -> Result<RemoteFrame, ProcessError> {
         match self.decoder {
             ImageRsDecoder::Bmp(d) => self.handler.frame(d),
             ImageRsDecoder::Dds(d) => self.handler.frame(d),

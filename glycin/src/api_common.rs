@@ -80,20 +80,6 @@ pub enum ColorState {
     Cicp(crate::Cicp),
 }
 
-pub(crate) struct RemoteProcessContext<P: ZbusProxy<'static> + 'static> {
-    pub process: Arc<PooledProcess<P>>,
-    pub g_file_worker: Option<GFileWorker>,
-    pub mime_type: MimeType,
-    pub sandbox_mechanism: SandboxMechanism,
-    pub usage_tracker: Arc<UsageTracker>,
-}
-
-impl<P: ZbusProxy<'static> + 'static> RemoteProcessContext<P> {
-    pub fn use_process(&self) -> Arc<crate::dbus::RemoteProcess<P>> {
-        self.process.use_()
-    }
-}
-
 /// A version of an input stream that can be sent.
 ///
 /// Using the stream from multiple threads is UB. Therefore the `new` function
@@ -157,7 +143,7 @@ impl Source {
 }
 
 #[derive(Debug)]
-pub(crate) struct ProcessBasics<T> {
+pub(crate) struct ProcessorContext<T: GetConfig> {
     pub mime_type: MimeType,
     pub sandbox_mechanism: SandboxMechanism,
     pub config_entry: T,
@@ -196,38 +182,113 @@ impl GetConfig for ImageEditorConfig {
     }
 }
 
-/// Determines mime-type, relevant config entry, and sandboxing mode
-///
-/// Also spawns the file worker since we need to read from the file for detecting the mime type
-pub(crate) async fn detect_process_basics<T: GetConfig + Clone>(
-    source: Source,
-    use_expose_base_dir: bool,
-    cancellable: &gio::Cancellable,
-    sandbox_selector: &SandboxSelector,
-) -> Result<ProcessBasics<T>, Error> {
-    let file = source.file();
+impl<T: GetConfig + Clone> ProcessorContext<T> {
+    /// Determines mime-type, relevant config entry, and sandboxing mode
+    ///
+    /// Also spawns the file worker since we need to read from the file for
+    /// detecting the mime type
+    pub(crate) async fn new(
+        source: Source,
+        use_expose_base_dir: bool,
+        cancellable: &gio::Cancellable,
+        sandbox_selector: &SandboxSelector,
+    ) -> Result<ProcessorContext<T>, Error> {
+        let file = source.file();
 
-    let g_file_worker: GFileWorker = GFileWorker::spawn(source, cancellable.clone());
-    let mime_type = guess_mime_type(&g_file_worker).await?;
+        let g_file_worker: GFileWorker = GFileWorker::spawn(source, cancellable.clone());
+        let mime_type = guess_mime_type(&g_file_worker).await?;
 
-    let config = config::Config::cached().await;
-    let config_entry = T::config_entry(&config, &mime_type)?.clone().clone();
+        let config = config::Config::cached().await;
+        let config_entry = T::config_entry(&config, &mime_type)?.clone().clone();
 
-    let base_dir = if use_expose_base_dir && config_entry.expose_base_dir() {
-        file.and_then(|x| x.parent()).and_then(|x| x.path())
-    } else {
-        None
-    };
+        let base_dir = if use_expose_base_dir && config_entry.expose_base_dir() {
+            file.and_then(|x| x.parent()).and_then(|x| x.path())
+        } else {
+            None
+        };
 
-    let sandbox_mechanism = sandbox_selector.determine_sandbox_mechanism().await;
+        let sandbox_mechanism = sandbox_selector.determine_sandbox_mechanism().await;
 
-    Ok(ProcessBasics {
-        config_entry,
-        base_dir,
-        mime_type,
-        sandbox_mechanism,
-        g_file_worker: Some(g_file_worker),
-    })
+        Ok(ProcessorContext {
+            config_entry,
+            base_dir,
+            mime_type,
+            sandbox_mechanism,
+            g_file_worker: Some(g_file_worker),
+        })
+    }
+}
+
+impl ProcessorContext<ImageLoaderConfig> {
+    pub async fn loader(
+        self,
+        pool: Arc<Pool>,
+        cancellable: &gio::Cancellable,
+    ) -> Result<Processor<LoaderProxy<'static>>, Error> {
+        match self.config_entry.processor {
+            config::Processor::Binary(_) => self
+                .spin_up_loader(pool, cancellable)
+                .await
+                .map(Processor::Binary),
+            #[cfg(feature = "builtin")]
+            config::Processor::Builtin(builtin) => Ok(Processor::Builtin(BuiltinProcessor {
+                builtin,
+                g_file_worker: self.g_file_worker,
+                mime_type: self.mime_type,
+            })),
+        }
+    }
+
+    async fn spin_up_loader<'a>(
+        self,
+        pool: Arc<Pool>,
+        cancellable: &gio::Cancellable,
+    ) -> Result<BinaryProcessor<LoaderProxy<'static>>, Error> {
+        let (process, usage_tracker) = pool
+            .clone()
+            .get_loader(
+                self.config_entry,
+                self.sandbox_mechanism,
+                self.base_dir,
+                cancellable,
+            )
+            .await?;
+
+        Ok(BinaryProcessor {
+            process,
+            usage_tracker,
+            g_file_worker: self.g_file_worker,
+            mime_type: self.mime_type,
+            sandbox_mechanism: self.sandbox_mechanism,
+        })
+    }
+}
+
+pub(crate) enum Processor<P: ZbusProxy<'static> + 'static> {
+    Binary(BinaryProcessor<P>),
+    #[cfg(feature = "builtin")]
+    Builtin(BuiltinProcessor),
+}
+
+pub(crate) struct BinaryProcessor<P: ZbusProxy<'static> + 'static> {
+    pub process: Arc<PooledProcess<P>>,
+    pub g_file_worker: Option<GFileWorker>,
+    pub mime_type: MimeType,
+    pub sandbox_mechanism: SandboxMechanism,
+    pub usage_tracker: Arc<UsageTracker>,
+}
+
+#[cfg(feature = "builtin")]
+pub(crate) struct BuiltinProcessor {
+    pub builtin: config::BuiltinProcessor,
+    pub mime_type: MimeType,
+    pub g_file_worker: Option<GFileWorker>,
+}
+
+impl<P: ZbusProxy<'static> + 'static> BinaryProcessor<P> {
+    pub fn use_process(&self) -> Arc<crate::dbus::RemoteProcess<P>> {
+        self.process.use_()
+    }
 }
 
 pub(crate) async fn spin_up_editor<'a>(
@@ -235,25 +296,24 @@ pub(crate) async fn spin_up_editor<'a>(
     pool: Arc<Pool>,
     cancellable: &gio::Cancellable,
     sandbox_selector: &SandboxSelector,
-) -> Result<RemoteProcessContext<EditorProxy<'static>>, Error> {
-    let process_basics =
-        detect_process_basics::<ImageEditorConfig>(source, false, cancellable, sandbox_selector)
-            .await?;
+) -> Result<BinaryProcessor<EditorProxy<'static>>, Error> {
+    let processor_context =
+        ProcessorContext::new(source, false, cancellable, sandbox_selector).await?;
 
     let (process, usage_tracker) = pool
         .get_editor(
-            process_basics.config_entry,
-            process_basics.sandbox_mechanism,
-            process_basics.base_dir,
+            processor_context.config_entry,
+            processor_context.sandbox_mechanism,
+            processor_context.base_dir,
             cancellable,
         )
         .await?;
 
-    Ok(RemoteProcessContext {
+    Ok(BinaryProcessor {
         process,
-        g_file_worker: process_basics.g_file_worker,
-        mime_type: process_basics.mime_type,
-        sandbox_mechanism: process_basics.sandbox_mechanism,
+        g_file_worker: processor_context.g_file_worker,
+        mime_type: processor_context.mime_type,
+        sandbox_mechanism: processor_context.sandbox_mechanism,
         usage_tracker,
     })
 }
@@ -263,7 +323,7 @@ pub(crate) async fn spin_up_encoder<'a>(
     pool: Arc<Pool>,
     cancellable: &gio::Cancellable,
     sandbox_selector: &SandboxSelector,
-) -> Result<RemoteProcessContext<EditorProxy<'static>>, Error> {
+) -> Result<BinaryProcessor<EditorProxy<'static>>, Error> {
     let config_entry = Config::cached().await.editor(&mime_type)?.clone();
     let sandbox_mechanism = sandbox_selector.determine_sandbox_mechanism().await;
 
@@ -271,41 +331,12 @@ pub(crate) async fn spin_up_encoder<'a>(
         .get_editor(config_entry, sandbox_mechanism, None, cancellable)
         .await?;
 
-    Ok(RemoteProcessContext {
+    Ok(BinaryProcessor {
         process,
         g_file_worker: None,
         mime_type,
         sandbox_mechanism,
         usage_tracker,
-    })
-}
-
-pub(crate) async fn spin_up_loader<'a>(
-    source: Source,
-    use_expose_base_dir: bool,
-    pool: Arc<Pool>,
-    cancellable: &gio::Cancellable,
-    sandbox_selector: &SandboxSelector,
-) -> Result<RemoteProcessContext<LoaderProxy<'static>>, Error> {
-    let process_basics =
-        detect_process_basics(source, use_expose_base_dir, cancellable, sandbox_selector).await?;
-
-    let (process, usage_tracker) = pool
-        .clone()
-        .get_loader(
-            process_basics.config_entry,
-            process_basics.sandbox_mechanism,
-            process_basics.base_dir,
-            cancellable,
-        )
-        .await?;
-
-    Ok(RemoteProcessContext {
-        process,
-        usage_tracker,
-        g_file_worker: process_basics.g_file_worker,
-        mime_type: process_basics.mime_type,
-        sandbox_mechanism: process_basics.sandbox_mechanism,
     })
 }
 
