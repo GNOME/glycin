@@ -1,6 +1,6 @@
 [package]
 name = "libglycin-gtk4-rebind"
-version = "0.1.0-rc"
+version = "0.1.0"
 authors = ["Maximiliano Sandoval <msandova@gnome.org>"]
 edition.workspace = true
 rust-version.workspace = true
@@ -27,9 +27,9 @@ gdk.workspace = true
 [dependencies.gly]
 package = "libglycin-rebind"
 path = "../libglycin-rebind"
-version = "0.1.0-alpha.1"
+version = "0.1.0"
 
 [dependencies.ffi]
 package = "libglycin-gtk4-rebind-sys"
 path = './sys'
-version = "0.1.0-alpha.1"
+version = "0.1.0"

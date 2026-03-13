@@ -1,3 +1,28 @@
+## 2.1.0 (2026-03-13)
+
+This release contains the following new component versions:
+
+- glycin-common 1.0.4
+- glycin-heif 2.1.0
+- glycin-image-rs 2.1.0
+- glycin-jxl 2.1.0
+- glycin-raw 2.1.0
+- glycin-svg 2.1.0
+- glycin-thumbnailer 2.1.0
+- glycin-utils 4.1.0
+- glycin 3.1.0
+- libglycin-gtk4-rebind 0.1.0
+- libglycin-gtk4-rebind-sys 0.1.0
+- libglycin-rebind 0.1.0
+- libglycin-rebind-sys 0.1.0
+- libglycin 2.1.0
+- libglycin-gtk4 2.1.0
+
+### Fixed
+
+- thumbnailer: Remove padding if stride is longer than row data, avoiding broken
+  scaling. This manly affects AVIF and HEIC. #259
+
 ## 2.1.rc (2026-02-27)
 
 This release contains the following new component versions:
