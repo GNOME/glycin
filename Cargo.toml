@@ -35,6 +35,7 @@ members = [
     "libglycin-rebind/libglycin-rebind/sys",
     "libglycin-rebind/libglycin-rebind-gtk4",
     "libglycin-rebind/libglycin-rebind-gtk4/sys",
+    "benches",
 ]
 exclude = ["libglycin-rebind/gir"]
 default-members = [
@@ -64,6 +65,7 @@ async-task = "4.0.0"
 bitflags = "2.9.0"
 blocking = "1.6.1"
 cairo-rs = "0.22.0"
+criterion = "0.8.0"
 env_logger = { version = "0.11.0", default-features = false, features = [
     "humantime",
 ] }
@@ -73,6 +75,7 @@ futures-task = "0.3.30"
 futures-timer = "3.0.3"
 futures-util = "0.3.30"
 gdk = { package = "gdk4", version = "0.11.0", features = ["v4_16"] }
+gdk-pixbuf = "0.22.0"
 gdk-sys = { package = "gdk4-sys", version = "0.11.0", features = ["v4_16"] }
 # Use newer version to fix issues
 gif = "0.13.3"

@@ -1,0 +1,23 @@
+[package]
+name = "benches"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dev-dependencies]
+glycin = { workspace = true, features = ["async-io"] }
+gio.workspace = true
+glib.workspace = true
+gdk-pixbuf.workspace = true
+criterion.workspace = true
+
+[lints]
+workspace = true
+
+[[bench]]
+name = "loader"
+harness = false
+path = "loader.rs"

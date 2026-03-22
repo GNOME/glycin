@@ -6,3 +6,4 @@ tests/failures
 public/
 libglycin-rebind/gir-rustdoc.py
 libglycin-rebind/_rustdoc-html-before-content.html
+benches/cache
