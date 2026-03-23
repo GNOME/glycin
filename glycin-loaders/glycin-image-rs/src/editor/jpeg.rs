@@ -100,6 +100,10 @@ fn apply_non_sparse(
             jpeg_encoder::ColorType::Ycck,
             ExtendedMemoryFormat::Y8Cb8Cr8K8,
         ),
+        zune_core::colorspace::ColorSpace::RGB => (
+            jpeg_encoder::ColorType::Rgb,
+            ExtendedMemoryFormat::Basic(MemoryFormat::R8g8b8),
+        ),
         c => {
             return Err(ProcessError::expected(&format!(
                 "Unsupported colorspace: {c:?}"

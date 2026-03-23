@@ -1,0 +1,1 @@
+image-rs/jpeg: Support RGB for editing. There are actually images that don't use ycbcr. #274
