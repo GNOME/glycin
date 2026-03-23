@@ -1,3 +1,15 @@
+## 2.1.1 (Unreleased)
+
+This release contains the following new component versions:
+
+- glycin-image-rs 2.1.1
+
+### Fixed
+
+- Bump gufo to 4.0.1. This fixes optaining key-value pairs potentially
+  containing nul-characters, which is not allowed per PNG standard and can't be
+  transmitted as String via D-Bus. Fixes #276
+
 ## 2.1.0 (2026-03-13)
 
 This release contains the following new component versions:
