@@ -82,7 +82,7 @@ gobject-sys = { version = "0.22.0", features = ["v2_68"] }
 glycin = { path = "glycin/", default-features = false }
 glycin-common = { version = "1.0.4-rc", path = "glycin-common/" }
 glycin-utils = { version = "4.1.0-rc", path = "glycin-utils/", default-features = false }
-gufo = { version = "0.4.0", features = ["all-image-formats"] }
+gufo = { version = "0.4.1", features = ["all-image-formats"] }
 gufo-common = { version = "1.1.0", features = ["serde"] }
 gufo-exif = { version = "0.4.0" }
 gufo-jpeg = { version = "0.4.0" }

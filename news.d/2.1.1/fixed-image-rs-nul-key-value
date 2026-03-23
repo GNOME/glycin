@@ -1,0 +1,1 @@
+ Bump gufo to 4.0.1. This fixes optaining key-value pairs potentially containing nul-characters, which is not allowed per PNG standard and can't be transmitted as String via D-Bus. Fixes #276
