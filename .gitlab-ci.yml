@@ -151,6 +151,7 @@ macos:
       curl -L $CI_API_V4_URL/projects/30437/packages/generic/pkgconfig/v0.29.2+10/pkg-config-0.29.2+10_$(uname -m).tar.xz | tar -C .venv -xJ
   script:
     - cargo build -p glycin --features gdk4
+    - GLYCIN_TEST_SKIP_EXT=svg,svgz,avif,heic,jxl cargo test -p tests --no-default-features --features async-io,builtin-loaders
 
 windows:
   image: 'registry.fedoraproject.org/fedora:44'
