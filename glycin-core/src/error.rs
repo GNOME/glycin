@@ -245,6 +245,13 @@ impl Error {
     pub fn is_no_more_frames(&self) -> bool {
         matches!(self, Self::RemoteError(RemoteError::NoMoreFrames))
     }
+
+    pub fn is_panic(&self) -> bool {
+        matches!(
+            self,
+            Self::ThreadPanic | Self::RemoteError(RemoteError::Panic)
+        )
+    }
 }
 
 impl From<std::io::Error> for Error {

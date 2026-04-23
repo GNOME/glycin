@@ -355,6 +355,13 @@ impl Config {
         )
         .await;
 
+        #[cfg(feature = "builtin-test")]
+        Self::load_builtin_config(
+            BuiltinProcessor::Test(glycin_test::BuiltinTest),
+            &mut config,
+        )
+        .await;
+
         #[cfg(feature = "external")]
         for mut data_dir in Self::data_dirs() {
             data_dir.push("glycin-loaders");
@@ -597,6 +604,8 @@ pub enum ConfigProcessor {
 pub enum BuiltinProcessor {
     #[cfg(feature = "builtin-image-rs")]
     ImageRs(glycin_image_rs::BuiltinImageRs),
+    #[cfg(feature = "builtin-test")]
+    Test(glycin_test::BuiltinTest),
 }
 
 #[cfg(feature = "builtin")]
@@ -605,6 +614,8 @@ impl BuiltinProcessor {
         match self {
             #[cfg(feature = "builtin-image-rs")]
             Self::ImageRs(processor) => processor,
+            #[cfg(feature = "builtin-test")]
+            Self::Test(processor) => processor,
         }
     }
 }

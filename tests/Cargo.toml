@@ -13,7 +13,7 @@ async-io = ["glycin-core/async-io", "glycin-utils/async-io", "zbus/async-io"]
 tokio = ["glycin-core/tokio", "glycin-utils/tokio", "zbus/tokio"]
 
 external-loaders = ["glycin-core/external"]
-builtin-loaders = ["glycin-core/builtin-image-rs"]
+builtin-loaders = ["glycin-core/builtin-image-rs", "glycin-core/builtin-test"]
 combined-loaders = ["builtin-loaders", "external-loaders"]
 
 [dev-dependencies]

@@ -87,6 +87,7 @@ glycin-builtin = { version = "4.0.0", path = "glycin/glycin-builtin/", default-f
 glycin-core = { version = "4.0.0", path = "glycin-core/", default-features = false }
 glycin-common = { version = "1.0.4", path = "glycin-common/" }
 glycin-image-rs = { version = "2.1.0", path = "glycin-loaders/glycin-image-rs", default-features = false }
+glycin-test = { version = "2.1.0", path = "glycin-loaders/glycin-test", default-features = false }
 glycin-utils = { version = "5.0.0", path = "glycin-utils/", default-features = false }
 glycin-external = { version = "4.0.0", path = "glycin/glycin-external/", default-features = false }
 gufo = { version = "0.4.1", features = ["all-image-formats"] }

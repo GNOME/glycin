@@ -238,40 +238,64 @@ impl Loader {
     ) -> Result<Image, ErrorCtx> {
         tracing::debug!("Using builtin loader '{}'", builtin.builtin.common().name());
 
+        let init_function: Box<dyn Fn(_, _, _) -> _ + Send>;
+
         match builtin.builtin {
             #[cfg(feature = "builtin-image-rs")]
             config::BuiltinProcessor::ImageRs(_) => {
-                let (source_reader, file_read_future) = builtin.source_transmission.spawn_builtin();
-
-                let mime_type = builtin.mime_type.clone();
-
-                let remote_image_future = gio::spawn_blocking(move || {
-                    glycin_image_rs::ImgDecoder::init(
-                        source_reader,
-                        builtin.mime_type.to_string(),
-                        // TODO: That should be something different?
-                        glycin_utils::InitializationDetails::default(),
+                init_function = Box::new(|stream, mime_type, details| {
+                    glycin_image_rs::ImgDecoder::init(stream, mime_type, details).map(
+                        |(decoder, details)| {
+                            (
+                                ImageBuiltinLoader::ImageRs(Arc::new(Mutex::new(decoder))),
+                                details,
+                            )
+                        },
                     )
-                    .map_err(|e| Error::from(e.into_loader_error()))
-                })
-                .map(|x| x.map_err(|_| Error::ThreadPanic));
-
-                let (img_decoder, image_details) = remote_image_future
-                    .join_abort_on_error(file_read_future)
-                    .await
-                    .flatten()
-                    .err_no_context()?;
-
-                Ok(Image {
-                    image_loader: ImageLoader::Builtin(ImageBuiltinLoader::ImageRs(Arc::new(
-                        Mutex::new(img_decoder),
-                    ))),
-                    details: Arc::new(image_details),
-                    loader: self,
-                    mime_type,
-                })
+                });
+            }
+            #[cfg(feature = "builtin-test")]
+            config::BuiltinProcessor::Test(_) => {
+                init_function = Box::new(|stream, mime_type, details| {
+                    glycin_test::ImgDecoder::init(stream, mime_type, details).map(
+                        |(decoder, details)| {
+                            (
+                                ImageBuiltinLoader::Test(Arc::new(Mutex::new(decoder))),
+                                details,
+                            )
+                        },
+                    )
+                });
             }
         }
+
+        let mime_type = builtin.mime_type.clone();
+
+        let (source_reader, file_read_future) = builtin.source_transmission.spawn_builtin();
+
+        let remote_image_future = gio::spawn_blocking(move || {
+            init_function(
+                source_reader,
+                builtin.mime_type.to_string(),
+                // TODO: That should be something different?
+                glycin_utils::InitializationDetails::default(),
+            )
+            .map_err(|e| Error::from(e.into_loader_error()))
+        })
+        .map(|x| x.map_err(|_| Error::ThreadPanic));
+
+        let (image_loader, image_details) = remote_image_future
+            .join_abort_on_error(file_read_future)
+            .await
+            .flatten()
+            .err_no_context()?;
+
+        Ok(Image {
+            image_loader: ImageLoader::Builtin(image_loader),
+            details: Arc::new(image_details),
+            loader: self,
+            mime_type,
+        })
     }
 
     /// Returns a list of mime types for which loaders are configured
@@ -416,6 +440,10 @@ impl Image {
                         .await
                         .err_no_context_legacy(&self.cancellable())
                 }
+                #[cfg(feature = "builtin-test")]
+                ImageBuiltinLoader::Test(test) => {
+                    todo!()
+                }
             },
         }
     }
@@ -518,6 +546,8 @@ struct ImageExternalLoader {
 enum ImageBuiltinLoader {
     #[cfg(feature = "builtin-image-rs")]
     ImageRs(Arc<Mutex<glycin_image_rs::ImgDecoder>>),
+    #[cfg(feature = "builtin-test")]
+    Test(Arc<Mutex<glycin_test::ImgDecoder>>),
 }
 
 #[cfg(feature = "builtin")]

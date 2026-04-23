@@ -1067,6 +1067,7 @@ dependencies = [
  "glib",
  "glycin-common",
  "glycin-image-rs",
+ "glycin-test",
  "glycin-utils",
  "gufo-common",
  "gufo-exif",

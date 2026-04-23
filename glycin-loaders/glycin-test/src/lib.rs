@@ -1,5 +1,20 @@
 use glycin_utils::*;
 
+#[cfg(feature = "builtin")]
+#[derive(Debug, Clone)]
+pub struct BuiltinTest;
+
+#[cfg(feature = "builtin")]
+impl Builtin for BuiltinTest {
+    fn config(&self) -> &'static str {
+        include_str!("../glycin-test.conf")
+    }
+
+    fn name(&self) -> &'static str {
+        "test"
+    }
+}
+
 pub struct ImgDecoder {
     pub instructions: Vec<String>,
 }

@@ -8,7 +8,6 @@ use glycin_common::MemoryFormatInfo;
 use glycin_utils::{ByteData, DimensionTooLargerError, FungibleMemory, MemoryFormat};
 
 #[cfg(feature = "builtin")]
-#[cfg(feature = "builtin-image-rs")]
 use crate::config;
 use crate::config::{Config, ImageEditorConfig};
 use crate::error::ResultExt;
@@ -201,6 +200,10 @@ impl Creator {
                     .err_no_context()?;
 
                     EncodedImage::new(encoded_image).await.err_no_context()
+                }
+                #[cfg(feature = "builtin-test")]
+                config::BuiltinProcessor::Test(_) => {
+                    todo!()
                 }
             },
         }

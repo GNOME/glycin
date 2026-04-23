@@ -146,6 +146,10 @@ impl Editor {
                             _mime_type: mime_type,
                         })
                     }
+                    #[cfg(feature = "builtin-test")]
+                    config::BuiltinProcessor::Test(_) => {
+                        todo!()
+                    }
                 }
             }
         }
@@ -233,6 +237,10 @@ impl EditableImage {
 
                     SparseEdit::try_from(editor_output).err_no_context()
                 }
+                #[cfg(feature = "builtin-test")]
+                ImageEditorBuiltin::Test(test_editor) => {
+                    todo!()
+                }
             },
         }
     }
@@ -267,6 +275,7 @@ impl EditableImage {
             }
             #[cfg(feature = "builtin")]
             ImageEditor::Builtin(editor) => match editor {
+                #[cfg(feature = "builtin-image-rs")]
                 ImageEditorBuiltin::ImageRs(editor) => {
                     let editor_output = editor
                         .apply_complete(operations)
@@ -276,6 +285,10 @@ impl EditableImage {
                     Ok(Edit {
                         inner: editor_output,
                     })
+                }
+                #[cfg(feature = "builtin-test")]
+                ImageEditorBuiltin::Test(editor) => {
+                    todo!()
                 }
             },
         }
@@ -318,6 +331,8 @@ struct ImageEditorExternal {
 enum ImageEditorBuiltin {
     #[cfg(feature = "builtin-image-rs")]
     ImageRs(Arc<glycin_image_rs::ImgEditor>),
+    #[cfg(feature = "builtin-test")]
+    Test(Arc<glycin_test::ImgEditor>),
 }
 
 #[derive(Debug)]
