@@ -1,0 +1,25 @@
+[package]
+name = "glycin-test"
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[features]
+default = ["external"]
+builtin = ["glycin-utils/builtin"]
+external = ["glycin-utils/external"]
+
+[dependencies]
+glycin-utils = { workspace = true, features = [
+    "async-io",
+    "image-rs",
+    "loader-utils",
+] }

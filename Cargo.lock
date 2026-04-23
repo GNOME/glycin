@@ -1166,6 +1166,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "glycin-test"
+version = "2.1.0"
+dependencies = [
+ "glycin-utils",
+]
+
+[[package]]
 name = "glycin-thumbnailer"
 version = "2.1.0"
 dependencies = [

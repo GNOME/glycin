@@ -55,7 +55,7 @@ impl Identifier {
                 Rule::MagicBytes(mb) => {
                     if !head
                         .get(mb.pos..)
-                        .map_or(false, |s| s[0..20].starts_with(&mb.bytes))
+                        .map_or(false, |s| s.starts_with(&mb.bytes))
                     {
                         return false;
                     }

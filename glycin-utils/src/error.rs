@@ -24,6 +24,7 @@ pub enum RemoteError {
     Aborted,
     NoMoreFrames,
     MemoryAllocationError(String),
+    Panic,
 }
 
 #[cfg(not(feature = "external"))]

@@ -43,6 +43,10 @@ name = "tests"
 path = "tests.rs"
 
 [[test]]
+name = "other"
+path = "other.rs"
+
+[[test]]
 name = "encoding"
 path = "encoding.rs"
 

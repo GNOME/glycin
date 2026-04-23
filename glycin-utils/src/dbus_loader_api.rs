@@ -26,9 +26,14 @@ impl<T: api::LoaderImplementation> Loader<T> {
         let fd = OwnedFd::from(init_request.fd);
         let stream = UnixStream::from(fd);
 
-        let (loader_state, image_info) =
-            T::init(stream, init_request.mime_type, init_request.details)
-                .map_err(|x| x.into_loader_error())?;
+        let (loader_state, image_info) = blocking::unblock(|| {
+            crate::catch_unwind(|| {
+                T::init(stream, init_request.mime_type, init_request.details)
+                    .map_err(|x| x.into_loader_error())
+            })
+        })
+        .await
+        .flatten()?;
 
         let image_id = {
             let lock = self.image_id.lock();

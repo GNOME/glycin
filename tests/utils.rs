@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use std::ffi::{OsStr, OsString};
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
 use gdk::prelude::*;
