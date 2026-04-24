@@ -1,5 +1,4 @@
 #[test]
-#[ignore]
 #[cfg(feature = "external-loaders")]
 fn dbus_api_stability() {
     // TODO: This seems overly complicated

@@ -6,7 +6,7 @@ use glycin_core as glycin;
 use utils::*;
 
 #[test]
-fn roundtrip_all() {
+fn processor_creator_roundtrip_all() {
     block_on(async {
         let reference_path = "test-images/images/color/color.png";
 
@@ -62,7 +62,7 @@ fn roundtrip_all() {
 }
 
 #[test]
-fn write_jpeg() {
+fn processor_creator_jpeg() {
     block_on(async {
         init();
 
@@ -91,7 +91,7 @@ fn write_jpeg() {
 }
 
 #[test]
-fn write_jpeg_stride() {
+fn processor_creator_jpeg_stride() {
     block_on(async {
         init();
 
@@ -122,7 +122,7 @@ fn write_jpeg_stride() {
 }
 
 #[test]
-fn write_jpeg_stride_last_row() {
+fn processor_creator_jpeg_stride_last_row() {
     block_on(async {
         init();
 
@@ -153,7 +153,7 @@ fn write_jpeg_stride_last_row() {
 }
 
 #[test]
-fn write_jpeg_stride_invalid() {
+fn processor_creator_jpeg_stride_invalid() {
     block_on(async {
         init();
 
@@ -171,7 +171,7 @@ fn write_jpeg_stride_invalid() {
 }
 
 #[test]
-fn create_jpeg_quality() {
+fn processor_creator_jpeg_quality() {
     block_on(async {
         init();
 
@@ -209,7 +209,7 @@ fn create_jpeg_quality() {
 }
 
 #[test]
-fn create_png_compression() {
+fn processor_creator_png_compression() {
     block_on(async {
         init();
 
@@ -254,7 +254,7 @@ fn create_png_compression() {
 }
 
 #[test]
-fn write_png() {
+fn processor_creator_png() {
     block_on(async {
         init();
 
@@ -305,7 +305,7 @@ fn write_png() {
 }
 
 #[test]
-fn write_avif() {
+fn processor_creator_avif() {
     if skip_file_ext(MimeType::AVIF.extension().unwrap()) {
         return;
     }

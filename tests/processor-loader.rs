@@ -7,57 +7,57 @@ use utils::*;
 mod utils;
 
 #[test]
-fn color() {
+fn processor_loader_color() {
     test_dir("test-images/images/color");
 }
 
 #[test]
-fn color_exif_orientation() {
+fn processor_loader_color_exif_orientation() {
     test_dir_no_exif("test-images/images/color-exif-orientation");
 }
 
 #[test]
-fn color_iccp_pro() {
+fn processor_loader_color_iccp_pro() {
     test_dir("test-images/images/color-iccp-pro");
 }
 
 #[test]
-fn cicp_p3() {
+fn processor_loader_cicp_p3() {
     test_dir("test-images/images/cicp-p3");
 }
 
 #[test]
-fn gray_iccp() {
+fn processor_loader_gray_iccp() {
     test_dir("test-images/images/gray-iccp");
 }
 
 #[test]
-fn monochrome() {
+fn processor_loader_monochrome() {
     test_dir("test-images/images/monochrome");
 }
 
 #[test]
-fn icon() {
+fn processor_loader_icon() {
     test_dir("test-images/images/icon");
 }
 
 #[test]
-fn exif() {
+fn processor_loader_exif() {
     test_dir("test-images/images/exif");
 }
 
 #[test]
-fn fonts() {
+fn processor_loader_fonts() {
     test_dir("test-images/images/fonts");
 }
 
 #[test]
-fn animated_numbers() {
+fn processor_loader_animated_numbers() {
     block_on(test_dir_animated("test-images/images/animated-numbers"));
 }
 
 #[test]
-fn input_stream() {
+fn processor_loader_input_stream() {
     block_on(test_input_stream());
 }
 

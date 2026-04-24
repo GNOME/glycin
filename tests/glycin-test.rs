@@ -1,3 +1,5 @@
+//! Tests that require the glycin-test loader
+
 mod utils;
 
 use glycin_core::{MimeType, Operation, Operations};
@@ -12,7 +14,7 @@ fn instruction(instructions: &[&[u8]]) -> Vec<u8> {
 }
 
 #[test]
-fn other_panic_load() {
+fn glycin_test_panic_load() {
     init();
 
     block_on(async {
@@ -23,7 +25,7 @@ fn other_panic_load() {
 }
 
 #[test]
-fn other_panic_frame() {
+fn glycin_test_panic_frame() {
     init();
 
     block_on(async {
@@ -35,7 +37,7 @@ fn other_panic_frame() {
 }
 
 #[test]
-fn other_panic_create() {
+fn glycin_test_panic_create() {
     init();
 
     block_on(async {
@@ -56,7 +58,7 @@ fn other_panic_create() {
 }
 
 #[test]
-fn other_panic_edit() {
+fn glycin_test_panic_edit() {
     init();
 
     block_on(async {
@@ -69,7 +71,7 @@ fn other_panic_edit() {
 }
 
 #[test]
-fn other_panic_apply_complete() {
+fn glycin_test_panic_apply_complete() {
     init();
 
     block_on(async {
@@ -87,7 +89,7 @@ fn other_panic_apply_complete() {
 }
 
 #[test]
-fn other_panic_apply_sparse() {
+fn glycin_test_panic_apply_sparse() {
     init();
 
     block_on(async {

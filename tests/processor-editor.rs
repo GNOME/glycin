@@ -9,22 +9,22 @@ use glycin::SparseEdit;
 use utils::*;
 
 #[test]
-fn editing_rotation_90() {
+fn processor_editor_rotation_90() {
     run_test("rotation-90");
 }
 
 #[test]
-fn editing_crop() {
+fn processor_editor_crop() {
     run_test("crop");
 }
 
 #[test]
-fn editing_crop_grayscale() {
+fn processor_editor_crop_grayscale() {
     run_test("crop-grayscale");
 }
 
 #[test]
-fn editing_crop_too_large_value() {
+fn processor_editor_crop_too_large_value() {
     run_test("crop-too-large-value");
 }
 

@@ -91,8 +91,16 @@ test-fedora43-loaders:
   interruptible: true
   script:
     - dnf install --assumeyes glycin-loaders cargo glib2-devel gtk4-devel lcms2-devel libseccomp-devel fontconfig-devel
-    - GLYCIN_TEST_SKIP_EXT=exr cargo test -p tests -- --nocapture --test-threads 1 \
-      color color_exif_orientation color_iccp_pro gray_iccp icon exif fonts editing_crop_too_large_value editing_rotation_90
+    - rm tests/test-images/editing/crop/crop_ycck.jpg
+    - rm tests/test-images/editing/crop-grayscale/crop-grayscale.jpg
+    - GLYCIN_TEST_SKIP_EXT=heic cargo test -p tests -- --nocapture --test-threads 1 processor_
+
+test-fedora44-loaders:
+  image: 'registry.fedoraproject.org/fedora:44'
+  interruptible: true
+  script:
+    - dnf install --assumeyes glycin-loaders cargo glib2-devel gtk4-devel lcms2-devel libseccomp-devel fontconfig-devel
+    - GLYCIN_TEST_SKIP_EXT=heic cargo test -p tests -- --nocapture --test-threads 1 processor_
 
 macos:
   tags:

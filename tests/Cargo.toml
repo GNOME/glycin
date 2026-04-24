@@ -35,24 +35,24 @@ name = "change_memory_format"
 path = "change_memory_format.rs"
 
 [[test]]
-name = "editing"
-path = "editing.rs"
-
-[[test]]
-name = "tests"
-path = "tests.rs"
-
-[[test]]
-name = "other"
-path = "other.rs"
-
-[[test]]
-name = "encoding"
-path = "encoding.rs"
-
-[[test]]
 name = "dbus_api_stability"
 path = "dbus_api_stability.rs"
+
+[[test]]
+name = "glycin-test"
+path = "glycin-test.rs"
+
+[[test]]
+name = "processor-creator"
+path = "processor-creator.rs"
+
+[[test]]
+name = "processor-editor"
+path = "processor-editor.rs"
+
+[[test]]
+name = "processor-loader"
+path = "processor-loader.rs"
 
 [dependencies]
 gufo-common.workspace = true

@@ -140,7 +140,7 @@ if get_option('tests')
 
   if not get_option('test_skip_install')
     test(
-      'install-integration-test',
+      'integration-processor-install',
       find_program('meson'),
       args: [
         'install',
@@ -157,7 +157,7 @@ if get_option('tests')
     )
     foreach loader : get_option('loaders')
       test(
-        'setup-integration-test-' + loader,
+        'integration-processor-setup-' + loader,
         setup_integration_test,
         env: {
           'DESTDIR': destdir,
@@ -179,7 +179,7 @@ if get_option('tests')
   endif
 
   test(
-    'cargo-test',
+    'integration-processor-run-async-io',
     cargo_bin,
     args: [
       'test',
@@ -190,7 +190,7 @@ if get_option('tests')
       cargo_options,
       '--',
       '--test-threads=1',
-      '--nocapture',
+      '--nocapture', 'processor_',
     ],
     env: env,
     is_parallel: false,
@@ -199,7 +199,7 @@ if get_option('tests')
 
   if get_option('test_tokio')
     test(
-      'cargo-test-tokio',
+      'integration-processor-run-tokio',
       cargo_bin,
       args: [
         'test',
@@ -211,7 +211,7 @@ if get_option('tests')
         cargo_options,
         '--',
         '--test-threads=1',
-        '--nocapture',
+        '--nocapture', 'processor_',
       ],
       env: env,
       is_parallel: false,
