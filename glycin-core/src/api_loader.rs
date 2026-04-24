@@ -403,48 +403,57 @@ impl Image {
         &self,
         frame_request: FrameRequest,
     ) -> Result<Frame, ErrorCtx> {
+        let frame_request = frame_request.request;
+
         match &self.image_loader {
             #[cfg(feature = "external")]
             ImageLoader::Binary(image_loader) => {
                 let process = image_loader.process.use_();
 
                 let frame = process
-                    .request_frame(frame_request.request, self)
+                    .request_frame(frame_request, self)
                     .await
                     .err_context(&process, &self.cancellable())?;
 
-                Frame::from_loader(frame, &self)
+                Frame::from_loader(frame, self)
                     .await
                     .err_no_context_legacy(&self.cancellable())
             }
             #[cfg(feature = "builtin")]
-            ImageLoader::Builtin(builtin) => match builtin {
-                #[cfg(feature = "builtin-image-rs")]
-                ImageBuiltinLoader::ImageRs(image_rs) => {
-                    use glycin_utils::LocalMemory;
+            ImageLoader::Builtin(builtin) => {
+                use glycin_utils::LocalMemory;
 
-                    let image_rs = image_rs.to_owned();
+                let editor_function: Box<dyn FnOnce() -> _ + Send>;
 
-                    let frame = gio::spawn_blocking(move || {
-                        image_rs
-                            .lock()
-                            .unwrap()
-                            .frame::<LocalMemory>(frame_request.request)
-                            .map_err(|e| e.into_loader_error())
-                    })
+                match builtin {
+                    #[cfg(feature = "builtin-image-rs")]
+                    ImageBuiltinLoader::ImageRs(loader) => {
+                        let loader: Arc<Mutex<glycin_image_rs::ImgDecoder>> = loader.to_owned();
+                        editor_function = Box::new(move || {
+                            loader.lock().unwrap().frame::<LocalMemory>(frame_request)
+                        });
+                    }
+                    #[cfg(feature = "builtin-test")]
+                    ImageBuiltinLoader::Test(editor) => {
+                        let editor = editor.to_owned();
+                        editor_function = Box::new(move || {
+                            editor.lock().unwrap().frame::<LocalMemory>(frame_request)
+                        });
+                    }
+                }
+
+                let frame = gio::spawn_blocking(|| {
+                    editor_function().map_err(|e| e.into_loader_error().into())
+                })
+                .await
+                .map_err(|_| Error::ThreadPanic)
+                .flatten()
+                .err_no_context_legacy(&self.loader.cancellable)?;
+
+                Frame::from_loader(frame, self)
                     .await
-                    .unwrap()
-                    .err_no_context_legacy(&self.loader.cancellable)?;
-
-                    Frame::from_loader(frame, self)
-                        .await
-                        .err_no_context_legacy(&self.cancellable())
-                }
-                #[cfg(feature = "builtin-test")]
-                ImageBuiltinLoader::Test(test) => {
-                    todo!()
-                }
-            },
+                    .err_no_context_legacy(&self.cancellable())
+            }
         }
     }
 

@@ -59,7 +59,14 @@ impl<E: api::EditorImplementation> Editor<E> {
         encoding_options: api::EncodingOptions,
     ) -> Result<api::EncodedImage<SharedMemory>, RemoteError> {
         new_image.initial_seal().await?;
-        E::create(mime_type, new_image, encoding_options).map_err(|x| x.into_editor_error())
+        blocking::unblock(|| {
+            crate::catch_unwind(|| {
+                E::create(mime_type, new_image, encoding_options)
+                    .map_err(|x| x.into_editor_error().into())
+            })
+            .flatten()
+        })
+        .await
     }
 
     async fn edit(
@@ -70,8 +77,14 @@ impl<E: api::EditorImplementation> Editor<E> {
         let fd = OwnedFd::from(init_request.fd);
         let stream = UnixStream::from(fd);
 
-        let editor_state = E::edit(stream, init_request.mime_type, init_request.details)
-            .map_err(|x| x.into_loader_error())?;
+        let editor_state = blocking::unblock(|| {
+            crate::catch_unwind(|| {
+                E::edit(stream, init_request.mime_type, init_request.details)
+                    .map_err(|x| x.into_loader_error())
+            })
+        })
+        .await
+        .flatten()?;
 
         let image_id = {
             let lock = self.image_id.lock();
@@ -126,9 +139,12 @@ impl<E: api::EditorImplementation> EditableImage<E> {
 
         let editor_implementation = self.editor_implementation.clone();
         let mut editor_output = blocking::unblock(move || {
-            editor_implementation
-                .apply_sparse(operations)
-                .map_err(|x| x.into_loader_error())
+            crate::catch_unwind(|| {
+                editor_implementation
+                    .apply_sparse(operations)
+                    .map_err(|x| x.into_loader_error().into())
+            })
+            .flatten()
         })
         .fuse();
 
@@ -148,9 +164,12 @@ impl<E: api::EditorImplementation> EditableImage<E> {
 
         let editor_implementation = self.editor_implementation.clone();
         let mut editor_output = blocking::unblock(move || {
-            editor_implementation
-                .apply_complete(operations)
-                .map_err(|x| x.into_loader_error())
+            crate::catch_unwind(move || {
+                editor_implementation
+                    .apply_complete(operations)
+                    .map_err(|x| x.into_loader_error())
+            })
+            .flatten()
         })
         .fuse();
 

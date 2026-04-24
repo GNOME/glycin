@@ -475,7 +475,8 @@ impl Config {
                 Ok(x) => x.into(),
                 Err(err) => {
                     if err.matches(glib::KeyFileError::KeyNotFound) {
-                        // Try to use previously defined loader Exec, otherwise, return editor's original error
+                        // Try to use previously defined loader Exec, otherwise, return editor's
+                        // original error
                         equiv_loader
                             .and_then(|x| x.processor.exec().map(|x| x.to_path_buf()))
                             .ok_or(err)?
@@ -492,7 +493,8 @@ impl Config {
                 ConfigProcessor::Builtin(ref builtin) => Processor::Builtin(builtin.clone()),
             };
 
-            // Use identifiers previously defined in a loader with the same mime type, if not defined in editor
+            // Use identifiers previously defined in a loader with the same mime type, if
+            // not defined in editor
             let identifiers = Self::load_identifiers(&keyfile, &group)?
                 .or_else(|| equiv_loader.and_then(|x| Some(x.identifiers.clone())))
                 .unwrap_or_default();

@@ -181,31 +181,43 @@ impl Creator {
                 .err_no_context()
             }
             #[cfg(feature = "builtin")]
-            Processor::Builtin(builtin) => match builtin.builtin {
-                #[cfg(feature = "builtin-image-rs")]
-                config::BuiltinProcessor::ImageRs(_) => {
-                    use glycin_utils::EditorImplementation;
+            Processor::Builtin(builtin) => {
+                use glycin_utils::EditorImplementation;
 
-                    let encoded_image = gio::spawn_blocking(move || {
-                        glycin_image_rs::ImgEditor::create(
-                            builtin.mime_type.to_string(),
-                            new_image,
-                            self.encoding_options,
-                        )
-                        .map_err(|e| e.into_editor_error().into())
-                    })
-                    .await
-                    .map_err(|_| Error::ThreadPanic)
-                    .flatten()
-                    .err_no_context()?;
+                let mime_type = builtin.mime_type.to_string();
+                let encoding_options = self.encoding_options;
 
-                    EncodedImage::new(encoded_image).await.err_no_context()
+                let editor_function: Box<dyn FnOnce() -> _ + Send>;
+
+                match builtin.builtin {
+                    #[cfg(feature = "builtin-image-rs")]
+                    config::BuiltinProcessor::ImageRs(_) => {
+                        editor_function = Box::new(move || {
+                            glycin_image_rs::ImgEditor::create(
+                                mime_type,
+                                new_image,
+                                encoding_options,
+                            )
+                        });
+                    }
+                    #[cfg(feature = "builtin-test")]
+                    config::BuiltinProcessor::Test(_) => {
+                        editor_function = Box::new(move || {
+                            glycin_test::ImgEditor::create(mime_type, new_image, encoding_options)
+                        });
+                    }
                 }
-                #[cfg(feature = "builtin-test")]
-                config::BuiltinProcessor::Test(_) => {
-                    todo!()
-                }
-            },
+
+                let encoded_image = gio::spawn_blocking(|| {
+                    editor_function().map_err(|e| e.into_editor_error().into())
+                })
+                .await
+                .map_err(|_| Error::ThreadPanic)
+                .flatten()
+                .err_no_context()?;
+
+                EncodedImage::new(encoded_image).await.err_no_context()
+            }
         }
     }
 

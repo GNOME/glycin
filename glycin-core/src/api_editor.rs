@@ -25,6 +25,7 @@ use crate::util::{self, CancellableFuture, ShortcutErrorFuture};
 use crate::{Error, ErrorCtx, MimeType, Pool, config};
 
 /// Image edit builder
+///
 #[derive(Debug)]
 pub struct Editor {
     source: Source,
@@ -36,10 +37,31 @@ pub struct Editor {
 static_assertions::assert_impl_all!(Editor: Send, Sync);
 
 impl Editor {
-    /// Create an editor.
+    /// Create an editor with a [`gio::File`] as source
     pub fn new(file: gio::File) -> Self {
+        Self::new_source(Source::File(file))
+    }
+
+    /// Create an editor with a [`gio::InputStream`] as source
+    pub unsafe fn new_stream(stream: impl IsA<gio::InputStream>) -> Self {
+        unsafe { Self::new_source(Source::Stream(GInputStreamSend::new(stream.upcast()))) }
+    }
+
+    /// Create an editor with [`glib::Bytes`] as source
+    pub fn new_bytes(bytes: glib::Bytes) -> Self {
+        let stream = gio::MemoryInputStream::from_bytes(&bytes);
+        unsafe { Self::new_stream(stream) }
+    }
+
+    /// Create an editor with [`Vec<u8>`] as source
+    pub fn new_vec(buf: Vec<u8>) -> Self {
+        let bytes = glib::Bytes::from_owned(buf);
+        Self::new_bytes(bytes)
+    }
+
+    pub(crate) fn new_source(source: Source) -> Self {
         Self {
-            source: Source::File(file),
+            source,
             pool: Pool::global(),
             cancellable: gio::Cancellable::new(),
             sandbox_selector: SandboxSelector::default(),
@@ -114,43 +136,45 @@ impl Editor {
             }
             #[cfg(feature = "builtin")]
             Processor::Builtin(builtin) => {
-                let mime_type = builtin.mime_type.clone();
+                let mime_type = builtin.mime_type.to_string();
+                let details = glycin_utils::InitializationDetails::default();
+                let edit_function: Box<dyn FnOnce() -> _ + Send>;
+
+                let (reader, read_data_future) = builtin.source_transmission.spawn_builtin();
 
                 match builtin.builtin {
                     #[cfg(feature = "builtin-image-rs")]
                     config::BuiltinProcessor::ImageRs(_) => {
-                        let (builtin_reader, read_data_future) =
-                            builtin.source_transmission.spawn_builtin();
-
-                        let editor_future = gio::spawn_blocking(move || {
-                            glycin_image_rs::ImgEditor::edit(
-                                builtin_reader,
-                                builtin.mime_type.to_string(),
-                                glycin_utils::InitializationDetails::default(),
-                            )
-                            .map_err(|err| Error::from(err.into_editor_error()))
-                        })
-                        .map(|x| x.map_err(|_| Error::ThreadPanic));
-
-                        let editor = editor_future
-                            .join_abort_on_error(read_data_future)
-                            .await
-                            .flatten()
-                            .err_no_context()?;
-
-                        Ok(EditableImage {
-                            editor: self,
-                            image_editor: ImageEditor::Builtin(ImageEditorBuiltin::ImageRs(
-                                Arc::new(editor),
-                            )),
-                            _mime_type: mime_type,
-                        })
+                        edit_function = Box::new(move || {
+                            glycin_image_rs::ImgEditor::edit(reader, mime_type, details)
+                                .map(|e| ImageEditorBuiltin::ImageRs(Arc::new(e)))
+                        });
                     }
                     #[cfg(feature = "builtin-test")]
                     config::BuiltinProcessor::Test(_) => {
-                        todo!()
+                        edit_function = Box::new(move || {
+                            glycin_test::ImgEditor::edit(reader, mime_type, details)
+                                .map(|e| ImageEditorBuiltin::Test(Arc::new(e)))
+                        });
                     }
                 }
+
+                let editor_future = gio::spawn_blocking(move || {
+                    edit_function().map_err(|err| Error::from(err.into_editor_error()))
+                })
+                .map(|x| x.map_err(|_| Error::ThreadPanic));
+
+                let editor = editor_future
+                    .join_abort_on_error(read_data_future)
+                    .await
+                    .flatten()
+                    .err_no_context()?;
+
+                Ok(EditableImage {
+                    editor: self,
+                    image_editor: ImageEditor::Builtin(editor),
+                    _mime_type: builtin.mime_type,
+                })
             }
         }
     }
@@ -170,6 +194,7 @@ impl Editor {
     }
 }
 
+#[derive(Debug)]
 pub struct EditableImage {
     pub(crate) editor: Editor,
     image_editor: ImageEditor,
@@ -220,49 +245,53 @@ impl EditableImage {
                     .err_no_context_legacy(&self.editor.cancellable)
             }
             #[cfg(feature = "builtin")]
-            ImageEditor::Builtin(editor) => match editor {
-                #[cfg(feature = "builtin-image-rs")]
-                ImageEditorBuiltin::ImageRs(image_rs_editor) => {
-                    let image_rs_editor = image_rs_editor.to_owned();
+            ImageEditor::Builtin(editor) => {
+                let editor_function: Box<dyn FnOnce() -> _ + Send>;
 
-                    let editor_output = gio::spawn_blocking(move || {
-                        image_rs_editor
-                            .apply_sparse(operations)
-                            .map_err(|e| e.into_editor_error().into())
-                    })
-                    .await
-                    .map_err(|_| Error::ThreadPanic)
-                    .flatten()
-                    .err_no_context()?;
+                match editor {
+                    #[cfg(feature = "builtin-image-rs")]
+                    ImageEditorBuiltin::ImageRs(editor) => {
+                        let editor = editor.clone();
+                        editor_function = Box::new(move || editor.apply_sparse(operations));
+                    }
+                    #[cfg(feature = "builtin-test")]
+                    ImageEditorBuiltin::Test(editor) => {
+                        let editor = editor.clone();
+                        editor_function = Box::new(move || editor.apply_sparse(operations));
+                    }
+                }
 
-                    SparseEdit::try_from(editor_output).err_no_context()
-                }
-                #[cfg(feature = "builtin-test")]
-                ImageEditorBuiltin::Test(test_editor) => {
-                    todo!()
-                }
-            },
+                let editor_output = gio::spawn_blocking(|| {
+                    editor_function().map_err(|e| e.into_editor_error().into())
+                })
+                .await
+                .map_err(|_| Error::ThreadPanic)
+                .flatten()
+                .err_no_context()?;
+
+                SparseEdit::try_from(editor_output).err_no_context()
+            }
         }
     }
 
     /// Apply operations to the image
     pub fn apply_complete(
-        self,
+        &self,
         operations: &Operations,
-    ) -> Pin<Box<dyn Future<Output = Result<Edit, ErrorCtx>> + Send>> {
+    ) -> Pin<Box<dyn Future<Output = Result<Edit, ErrorCtx>> + Send + '_>> {
         let operations = operations.to_owned();
 
         Box::pin(self.apply_complete_internal(operations))
     }
 
-    async fn apply_complete_internal(self, operations: Operations) -> Result<Edit, ErrorCtx> {
+    async fn apply_complete_internal(&self, operations: Operations) -> Result<Edit, ErrorCtx> {
         match &self.image_editor {
             #[cfg(feature = "external")]
             ImageEditor::External(editor) => {
                 let process = editor.process.use_();
 
                 let mut editor_output = process
-                    .editor_apply_complete(&operations, &self)
+                    .editor_apply_complete(&operations, self)
                     .await
                     .err_context(&process, &self.editor.cancellable)?
                     .into_fungible();
@@ -274,23 +303,34 @@ impl EditableImage {
                 })
             }
             #[cfg(feature = "builtin")]
-            ImageEditor::Builtin(editor) => match editor {
-                #[cfg(feature = "builtin-image-rs")]
-                ImageEditorBuiltin::ImageRs(editor) => {
-                    let editor_output = editor
-                        .apply_complete(operations)
-                        .map_err(|e| e.into_editor_error())
-                        .err_no_context_legacy(&self.editor.cancellable)?;
+            ImageEditor::Builtin(editor) => {
+                let apply_function: Box<dyn FnOnce() -> _ + Send + 'static>;
 
-                    Ok(Edit {
-                        inner: editor_output,
-                    })
+                match editor {
+                    #[cfg(feature = "builtin-image-rs")]
+                    ImageEditorBuiltin::ImageRs(editor) => {
+                        let editor = editor.clone();
+                        apply_function = Box::new(move || editor.apply_complete(operations));
+                    }
+                    #[cfg(feature = "builtin-test")]
+                    ImageEditorBuiltin::Test(editor) => {
+                        let editor = editor.clone();
+                        apply_function = Box::new(move || editor.apply_complete(operations));
+                    }
                 }
-                #[cfg(feature = "builtin-test")]
-                ImageEditorBuiltin::Test(editor) => {
-                    todo!()
-                }
-            },
+
+                let editor_output = gio::spawn_blocking(|| {
+                    apply_function().map_err(|e| e.into_editor_error().into())
+                })
+                .await
+                .map_err(|_| Error::ThreadPanic)
+                .flatten()
+                .err_no_context()?;
+
+                Ok(Edit {
+                    inner: editor_output,
+                })
+            }
         }
     }
 
@@ -311,6 +351,7 @@ impl EditableImage {
     }
 }
 
+#[derive(Debug)]
 enum ImageEditor {
     #[cfg(feature = "external")]
     External(ImageEditorExternal),
@@ -319,6 +360,7 @@ enum ImageEditor {
 }
 
 #[cfg(feature = "external")]
+#[derive(Debug)]
 struct ImageEditorExternal {
     pub(crate) process: Arc<PooledProcess<EditorProxy<'static>>>,
     edit_request: OwnedObjectPath,
@@ -333,6 +375,13 @@ enum ImageEditorBuiltin {
     ImageRs(Arc<glycin_image_rs::ImgEditor>),
     #[cfg(feature = "builtin-test")]
     Test(Arc<glycin_test::ImgEditor>),
+}
+
+#[cfg(feature = "builtin")]
+impl std::fmt::Debug for ImageEditorBuiltin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("ImageEditorBuiltin")
+    }
 }
 
 #[derive(Debug)]

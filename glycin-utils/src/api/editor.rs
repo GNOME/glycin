@@ -1,5 +1,6 @@
 use std::any::Any;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
+use std::panic::RefUnwindSafe;
 
 use glycin_common::Operations;
 #[cfg(feature = "external")]
@@ -11,7 +12,7 @@ use crate::{
 };
 
 /// Implement this trait to create an image editor
-pub trait EditorImplementation: Send + Sync + Sized + 'static {
+pub trait EditorImplementation: Send + Sync + Sized + RefUnwindSafe + 'static {
     const USEABLE: bool = true;
 
     fn edit<S: Read + Any>(

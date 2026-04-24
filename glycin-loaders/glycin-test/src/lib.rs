@@ -1,3 +1,5 @@
+use std::io::Cursor;
+
 use glycin_utils::*;
 
 #[cfg(feature = "builtin")]
@@ -20,66 +22,85 @@ pub struct ImgDecoder {
 }
 
 pub struct ImgEditor {
-    pub mime_type: String,
+    pub instructions: Vec<String>,
+}
+
+fn handle_instructions<B: ByteData>(
+    mut stream: impl std::io::Read,
+) -> Result<Vec<String>, ProcessError> {
+    let mut data = String::new();
+    stream.read_to_string(&mut data).unwrap();
+
+    let (_, instruction) = data.split_once('\0').unwrap();
+
+    let instructions = instruction
+        .split(':')
+        .map(|x| x.to_string())
+        .collect::<Vec<_>>();
+
+    match instructions[0].as_str() {
+        "panic" => panic!("Ordered to panic"),
+        "infinte-loop" => loop {},
+        "alloc" => {
+            B::new(instructions[1].parse().unwrap()).expected_error()?;
+        }
+        "panic-next-step" => (),
+        other => panic!("unknwon instruction {other}"),
+    }
+
+    Ok(instructions)
 }
 
 impl LoaderImplementation for ImgDecoder {
     fn init<B: ByteData, R: std::io::Read + Send + 'static>(
-        mut stream: R,
-        mime_type: String,
-        details: InitializationDetails,
+        stream: R,
+        _mime_type: String,
+        _details: InitializationDetails,
     ) -> Result<(Self, ImageDetails<B>), ProcessError> {
-        let mut data = String::new();
-        stream.read_to_string(&mut data).unwrap();
-
-        let (_, instruction) = data.split_once('\0').unwrap();
-
-        let instructions = instruction
-            .split(':')
-            .map(|x| x.to_string())
-            .collect::<Vec<_>>();
-
-        match instructions[0].as_str() {
-            "panic" => panic!("Ordered to panic"),
-            "infinte-loop" => loop {},
-            "alloc" => {
-                B::new(instructions[1].parse().unwrap()).expected_error()?;
-            }
-            other => panic!("unknwon instruction {other}"),
-        }
+        let instructions = handle_instructions::<B>(stream)?;
 
         Ok((ImgDecoder { instructions }, ImageDetails::new(1, 1)))
     }
 
     fn frame<T: ByteData>(
         &mut self,
-        frame_request: FrameRequest,
+        _frame_request: FrameRequest,
     ) -> Result<Frame<T>, ProcessError> {
-        unimplemented!()
+        match self.instructions[0].as_str() {
+            "panic-next-step" => panic!("Requested frame panic"),
+            other => panic!("unknwon instruction {other}"),
+        }
     }
 }
 
 impl EditorImplementation for ImgEditor {
-    fn apply_complete<B: ByteData>(
-        &self,
-        operations: Operations,
-    ) -> Result<CompleteEditorOutput<B>, ProcessError> {
-        unimplemented!()
-    }
-
     fn create<B: ByteData>(
-        mime_type: String,
+        _mime_type: String,
         new_image: NewImage<B>,
-        encoding_options: EncodingOptions,
+        _encoding_options: EncodingOptions,
     ) -> Result<EncodedImage<B>, ProcessError> {
-        unimplemented!()
+        handle_instructions::<B>(Cursor::new(new_image.frames[0].texture.to_vec()))?;
+
+        Ok(EncodedImage::new(B::new(1).unwrap()))
     }
 
     fn edit<S: std::io::Read + std::any::Any>(
         stream: S,
-        mime_type: String,
-        details: InitializationDetails,
+        _mime_type: String,
+        _details: InitializationDetails,
     ) -> Result<Self, ProcessError> {
-        unimplemented!()
+        let instructions = handle_instructions::<LocalMemory>(stream)?;
+
+        Ok(ImgEditor { instructions })
+    }
+
+    fn apply_complete<B: ByteData>(
+        &self,
+        _operations: Operations,
+    ) -> Result<CompleteEditorOutput<B>, ProcessError> {
+        match self.instructions[0].as_str() {
+            "panic-next-step" => panic!("Requested frame panic"),
+            other => panic!("unknwon instruction {other}"),
+        }
     }
 }

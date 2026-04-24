@@ -100,9 +100,12 @@ impl<T: api::LoaderImplementation> Image<T> {
                 ))
             })?;
 
-            loader_implementation
-                .frame(frame_request)
-                .map_err(|x| x.into_loader_error())
+            crate::catch_unwind(move || {
+                loader_implementation
+                    .frame(frame_request)
+                    .map_err(|x| x.into_loader_error().into())
+            })
+            .flatten()
         })
         .fuse();
 

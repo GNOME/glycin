@@ -5,7 +5,6 @@ use std::path::PathBuf;
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, LazyLock, Mutex};
 use std::time::{Duration, Instant};
-use std::usize;
 
 use gio::glib;
 use gio::prelude::*;
