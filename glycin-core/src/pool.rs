@@ -104,10 +104,10 @@ impl PoolConfig {
 
 impl Pool {
     pub fn new(config: PoolConfig) -> Arc<Self> {
-        let mut pool = Self::default();
-        pool.config = config;
-
-        Arc::new(pool)
+        Arc::new(Self {
+            config,
+            ..Default::default()
+        })
     }
 
     pub fn global() -> Arc<Self> {

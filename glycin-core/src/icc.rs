@@ -31,13 +31,10 @@ fn transformation<P: lcms2::Pod>(
     let icc_pixel_format = lcms_pixel_format(memory_format);
     let src_profile = lcms2::Profile::new_icc(icc_profile)?;
 
-    let target_profile;
-
-    if memory_format.n_channels() > 2 {
-        target_profile = lcms2::Profile::new_srgb();
+    let target_profile = if memory_format.n_channels() > 2 {
+        lcms2::Profile::new_srgb()
     } else {
-        target_profile =
-            lcms2::Profile::new_gray(lcms2_sys::ffi::CIExyY::d50(), &lcms2::ToneCurve::new(2.2))?;
+        lcms2::Profile::new_gray(lcms2_sys::ffi::CIExyY::d50(), &lcms2::ToneCurve::new(2.2))?
     };
 
     lcms2::Transform::new(

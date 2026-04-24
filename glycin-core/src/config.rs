@@ -145,13 +145,12 @@ impl Config {
         };
 
         let mut complexities = config
-            .map(|(_, x)| {
+            .flat_map(|(_, x)| {
                 x.identifiers()
                     .iter()
                     .map(|x| x.complexity())
                     .collect::<Vec<_>>()
             })
-            .flatten()
             .collect::<Vec<_>>();
 
         complexities.sort();
@@ -160,8 +159,7 @@ impl Config {
             let find = self.image_loader.iter().find(|(_, x)| {
                 x.identifiers
                     .iter()
-                    .find(|x| x.complexity() == complexity && x.matches(path, head))
-                    .is_some()
+                    .any(|x| x.complexity() == complexity && x.matches(path, head))
             });
 
             if let Some((mime_type, _)) = find {
@@ -496,7 +494,7 @@ impl Config {
             // Use identifiers previously defined in a loader with the same mime type, if
             // not defined in editor
             let identifiers = Self::load_identifiers(&keyfile, &group)?
-                .or_else(|| equiv_loader.and_then(|x| Some(x.identifiers.clone())))
+                .or_else(|| equiv_loader.map(|x| x.identifiers.clone()))
                 .unwrap_or_default();
 
             let expose_base_dir = keyfile.boolean(&group, "ExposeBaseDir").unwrap_or_default();
@@ -575,7 +573,7 @@ impl Config {
         keyfile: &glib::KeyFile,
         group: &str,
     ) -> Result<Option<Vec<Identifier>>, glib::Error> {
-        let Some(itentifiers) = Self::handle(keyfile.string_list(&group, "Identifiers"))? else {
+        let Some(itentifiers) = Self::handle(keyfile.string_list(group, "Identifiers"))? else {
             return Ok(None);
         };
 

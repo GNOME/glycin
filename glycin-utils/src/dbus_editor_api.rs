@@ -61,8 +61,7 @@ impl<E: api::EditorImplementation> Editor<E> {
         new_image.initial_seal().await?;
         blocking::unblock(|| {
             crate::catch_unwind(|| {
-                E::create(mime_type, new_image, encoding_options)
-                    .map_err(|x| x.into_editor_error().into())
+                E::create(mime_type, new_image, encoding_options).map_err(|x| x.into_editor_error())
             })
             .flatten()
         })
@@ -142,7 +141,7 @@ impl<E: api::EditorImplementation> EditableImage<E> {
             crate::catch_unwind(|| {
                 editor_implementation
                     .apply_sparse(operations)
-                    .map_err(|x| x.into_loader_error().into())
+                    .map_err(|x| x.into_loader_error())
             })
             .flatten()
         })

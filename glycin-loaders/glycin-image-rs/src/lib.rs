@@ -131,7 +131,7 @@ impl LoaderImplementation for ImgDecoder {
             ]
         });
 
-        Ok(frame.into_other().expected_error()?)
+        frame.into_other().expected_error()
     }
 }
 

@@ -85,7 +85,7 @@ impl Operations {
     }
 
     pub fn from_slice(slice: &[u8]) -> Result<Self, rmp_serde::decode::Error> {
-        rmp_serde::decode::from_slice(slice.as_ref())
+        rmp_serde::decode::from_slice(slice)
     }
 
     pub fn to_message_pack(&self) -> Result<Vec<u8>, rmp_serde::encode::Error> {

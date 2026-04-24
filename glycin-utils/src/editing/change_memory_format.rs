@@ -138,7 +138,7 @@ pub fn change_memory_format(
 
     frame.stride = new_stride;
     frame.memory_format = target_format;
-    frame.texture = FungibleMemory::try_from(new_data).unwrap();
+    frame.texture = FungibleMemory::from_vec(new_data);
 
     log::debug!(
         "Transformation completed after {:?}",

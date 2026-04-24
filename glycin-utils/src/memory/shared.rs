@@ -61,10 +61,7 @@ impl<'de> Deserialize<'de> for SharedMemory {
     {
         let memfd = zvariant::OwnedFd::deserialize(deserializer)?.into();
 
-        Ok(Self {
-            memfd: memfd,
-            mmap: None,
-        })
+        Ok(Self { memfd, mmap: None })
     }
 }
 

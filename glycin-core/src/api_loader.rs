@@ -716,7 +716,6 @@ impl Frame {
         let frame = if let Some(cicp) = frame
             .details
             .color_cicp
-            .and_then(|x| x.try_into().ok())
             .and_then(|x| Cicp::from_bytes(&x).ok())
         {
             color_state = ColorState::Cicp(cicp);

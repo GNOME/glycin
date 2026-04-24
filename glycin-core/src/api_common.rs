@@ -161,11 +161,7 @@ pub(crate) struct ProcessorContext<T: GetConfig, S> {
 pub trait GetConfig {
     fn config_entry<'a>(config: &'a Config, mime_type: &'a MimeType) -> Result<&'a Self, Error>;
     fn expose_base_dir(&self) -> bool;
-    fn guess_mime_type<'a>(
-        config: &'a Config,
-        path: Option<&Path>,
-        head: &[u8],
-    ) -> Option<MimeType>;
+    fn guess_mime_type(config: &Config, path: Option<&Path>, head: &[u8]) -> Option<MimeType>;
 }
 
 impl GetConfig for ImageLoaderConfig {
@@ -180,11 +176,7 @@ impl GetConfig for ImageLoaderConfig {
         self.expose_base_dir
     }
 
-    fn guess_mime_type<'a>(
-        config: &'a Config,
-        path: Option<&Path>,
-        head: &[u8],
-    ) -> Option<MimeType> {
+    fn guess_mime_type(config: &Config, path: Option<&Path>, head: &[u8]) -> Option<MimeType> {
         Config::guess_mime_type(config, path, head, false)
     }
 }
@@ -201,11 +193,7 @@ impl GetConfig for ImageEditorConfig {
         self.expose_base_dir
     }
 
-    fn guess_mime_type<'a>(
-        config: &'a Config,
-        path: Option<&Path>,
-        head: &[u8],
-    ) -> Option<MimeType> {
+    fn guess_mime_type(config: &Config, path: Option<&Path>, head: &[u8]) -> Option<MimeType> {
         Config::guess_mime_type(config, path, head, true)
     }
 }
@@ -351,7 +339,7 @@ impl<S> ProcessorContext<ImageEditorConfig, S> {
     }
 
     #[cfg(feature = "external")]
-    async fn spin_up_editor<'a>(
+    async fn spin_up_editor(
         self,
         pool: Arc<Pool>,
         cancellable: &gio::Cancellable,

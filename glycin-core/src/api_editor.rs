@@ -25,7 +25,6 @@ use crate::util::{self, CancellableFuture, ShortcutErrorFuture};
 use crate::{Error, ErrorCtx, MimeType, Pool, config};
 
 /// Image edit builder
-///
 #[derive(Debug)]
 pub struct Editor {
     source: Source,

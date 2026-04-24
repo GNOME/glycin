@@ -53,10 +53,7 @@ impl Identifier {
                     }
                 }
                 Rule::MagicBytes(mb) => {
-                    if !head
-                        .get(mb.pos..)
-                        .map_or(false, |s| s.starts_with(&mb.bytes))
-                    {
+                    if !head.get(mb.pos..).is_some_and(|s| s.starts_with(&mb.bytes)) {
                         return false;
                     }
                 }
