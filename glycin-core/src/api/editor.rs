@@ -15,7 +15,7 @@ use glycin_utils::{
 #[cfg(feature = "external")]
 use zbus::zvariant::OwnedObjectPath;
 
-use crate::api_common::*;
+use crate::api::*;
 #[cfg(feature = "external")]
 use crate::dbus::EditorProxy;
 use crate::error::ResultExt;

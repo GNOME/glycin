@@ -17,7 +17,7 @@ use util::{CancellableFuture, ShortcutErrorFuture};
 #[cfg(feature = "external")]
 use zbus::zvariant::OwnedObjectPath;
 
-use crate::api_common::*;
+use crate::api::*;
 pub use crate::config::MimeType;
 #[cfg(feature = "external")]
 use crate::dbus::*;
