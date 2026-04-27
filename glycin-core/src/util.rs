@@ -1,5 +1,6 @@
 use std::future::Future;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 use futures_util::{Stream, StreamExt};
 use gio::glib;
@@ -51,6 +52,22 @@ pub trait CancellableFuture<T>: Future<Output = Result<T, crate::ErrorCtx>> + Si
 }
 
 impl<T, F: Future<Output = Result<T, crate::ErrorCtx>>> CancellableFuture<T> for F {}
+
+pub trait TimeoutFuture<T>: Future<Output = Result<T, crate::ErrorCtx>> + Sized {
+    async fn enforce_timeout(self, timeout: Duration) -> <Self as Future>::Output {
+        let self_ = std::pin::pin!(self);
+        let timeout_ = glib::timeout_future(timeout);
+        let either = futures_util::future::select(timeout_, self_).await;
+        match either {
+            futures_util::future::Either::Left(_) => {
+                Err(ErrorCtx::from_error(crate::Error::Timeout(timeout)))
+            }
+            futures_util::future::Either::Right((res, _)) => res,
+        }
+    }
+}
+
+impl<T, F: Future<Output = Result<T, crate::ErrorCtx>>> TimeoutFuture<T> for F {}
 
 #[cfg(feature = "gdk4")]
 pub const fn gdk_memory_format(format: MemoryFormat) -> gdk::MemoryFormat {

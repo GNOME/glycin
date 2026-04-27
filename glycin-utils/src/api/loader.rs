@@ -2,12 +2,13 @@ use std::collections::BTreeMap;
 use std::io::Read;
 use std::time::Duration;
 
+use crate::Limits;
 use glycin_common::{MemoryFormat, MemoryFormatInfo};
 use gufo_common::orientation::Orientation;
 #[cfg(feature = "external")]
 use zbus::zvariant::as_value::{self, optional};
 #[cfg(feature = "external")]
-use zbus::zvariant::{self, DeserializeDict, Optional, SerializeDict, Type};
+use zbus::zvariant::{self, Optional, Type};
 
 use crate::error::DimensionTooLargerError;
 use crate::safe_math::{SafeConversion, SafeMath};
@@ -34,11 +35,21 @@ pub struct InitRequest {
 }
 
 #[derive(Debug, Default)]
-#[cfg_attr(feature = "external", derive(DeserializeDict, SerializeDict, Type))]
-#[cfg_attr(feature = "external", zvariant(signature = "dict"))]
+#[cfg_attr(
+    feature = "external",
+    derive(serde::Deserialize, serde::Serialize, Type)
+)]
+#[cfg_attr(feature = "external", zvariant(signature = "a{sv}"))]
+#[cfg_attr(feature = "external", serde(default))]
 #[non_exhaustive]
 pub struct InitializationDetails {
+    #[cfg_attr(
+        feature = "external",
+        serde(with = "optional", skip_serializing_if = "Option::is_none")
+    )]
     pub base_dir: Option<std::path::PathBuf>,
+    #[cfg_attr(feature = "external", serde(with = "as_value"))]
+    pub limits: Limits,
 }
 
 #[cfg(feature = "external")]

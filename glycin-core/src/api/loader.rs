@@ -13,7 +13,7 @@ use glycin_utils::safe_math::*;
 use glycin_utils::{ByteData, FungibleMemory};
 use gufo_common::cicp::Cicp;
 use gufo_common::orientation::{Orientation, Rotation};
-use util::{CancellableFuture, ShortcutErrorFuture};
+use util::{CancellableFuture, ShortcutErrorFuture, TimeoutFuture};
 #[cfg(feature = "external")]
 use zbus::zvariant::OwnedObjectPath;
 
@@ -38,6 +38,7 @@ pub struct Loader {
     pub(crate) apply_transformations: bool,
     pub(crate) sandbox_selector: SandboxSelector,
     pub(crate) memory_format_selection: MemoryFormatSelection,
+    pub(crate) limits: Limits,
 }
 
 static_assertions::assert_impl_all!(Loader: Send, Sync);
@@ -74,6 +75,7 @@ impl Loader {
             use_expose_base_dir: false,
             sandbox_selector: SandboxSelector::default(),
             memory_format_selection: MemoryFormatSelection::all(),
+            limits: Limits::default(),
         }
     }
 
@@ -133,15 +135,24 @@ impl Loader {
         self
     }
 
+    pub fn limits(&mut self, limits: Limits) -> &mut Self {
+        self.limits = limits;
+        self
+    }
+
     /// Load basic image information and enable further operations
     pub fn load(mut self) -> Pin<Box<dyn Future<Output = Result<Image, ErrorCtx>> + Send>> {
         Box::pin(async {
             let source = self.source.send();
             let main_context = self.main_context();
             let cancellable = self.cancellable.clone();
+            let timeout = self.limits.inner.timeout;
 
-            let f =
-                || async move { self.load_internal(source).await }.make_cancellable(cancellable);
+            let f = move || {
+                async move { self.load_internal(source).await }
+                    .make_cancellable(cancellable)
+                    .enforce_timeout(timeout)
+            };
 
             main_context
                 .spawn_from_within(f)
@@ -703,7 +714,7 @@ impl Frame {
     ) -> Result<Self, Error> {
         frame.initial_seal().await?;
 
-        validate_frame(&frame)?;
+        validate_frame(&frame, &image.loader.limits)?;
 
         let frame = if image.loader.apply_transformations {
             orientation::apply_exif_orientation(frame.into_fungible(), image)
@@ -782,7 +793,10 @@ impl Default for FrameRequest {
     }
 }
 
-fn validate_frame<B: ByteData>(frame: &glycin_utils::Frame<B>) -> Result<(), Error> {
+fn validate_frame<B: ByteData>(
+    frame: &glycin_utils::Frame<B>,
+    limits: &Limits,
+) -> Result<(), Error> {
     let img_buf = &frame.texture;
 
     if img_buf.len() < frame.n_bytes()? {
@@ -801,6 +815,14 @@ fn validate_frame<B: ByteData>(frame: &glycin_utils::Frame<B>) -> Result<(), Err
     }
 
     if (frame.stride as u64).smul(frame.height as u64)? > MAX_TEXTURE_SIZE {
+        return Err(Error::TextureTooLarge);
+    }
+
+    if frame.width > limits.inner.max_dimensions.0 {
+        return Err(Error::TextureTooLarge);
+    }
+
+    if frame.height > limits.inner.max_dimensions.1 {
         return Err(Error::TextureTooLarge);
     }
 

@@ -1,6 +1,6 @@
-use std::ops::Deref;
 use std::process::ExitStatus;
 use std::sync::Arc;
+use std::{ops::Deref, time::Duration};
 
 use futures_channel::oneshot;
 use gio::glib;
@@ -223,6 +223,8 @@ pub enum Error {
     ThreadPanic,
     #[error("Feature not supported: {0}")]
     FeatureNotSupported(#[from] FeatureNotSupported),
+    #[error("Operation did not complete in supplied limit of {0:?}")]
+    Timeout(Duration),
 }
 
 impl Error {
@@ -251,6 +253,10 @@ impl Error {
             self,
             Self::ThreadPanic | Self::RemoteError(RemoteError::Panic)
         )
+    }
+
+    pub fn is_timeout(&self) -> bool {
+        matches!(self, Self::Timeout(_))
     }
 }
 

@@ -2,7 +2,9 @@
 
 mod utils;
 
-use glycin_core::{MimeType, Operation, Operations};
+use std::time::Duration;
+
+use glycin_core::{Limits, MimeType, Operation, Operations};
 use utils::*;
 
 fn instruction(instructions: &[&[u8]]) -> Vec<u8> {
@@ -103,5 +105,18 @@ fn glycin_test_panic_apply_sparse() {
             .unwrap_err();
 
         assert!(err.is_panic(), "Error: {err}");
+    });
+}
+
+#[test]
+fn glycin_test_timeout_load() {
+    init();
+
+    block_on(async {
+        let mut loader = glycin_core::Loader::new_vec(instruction(&[b"infinte-loop"]));
+        loader.limits(Limits::default().timeout(Duration::from_millis(10)));
+
+        let err = loader.load().await.unwrap_err();
+        assert!(err.is_timeout(), "Error: {err}");
     });
 }
