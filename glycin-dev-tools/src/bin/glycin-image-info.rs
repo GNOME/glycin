@@ -7,7 +7,7 @@ fn main() {
     glib::MainContext::default().block_on(run()).unwrap();
 }
 
-async fn run() -> Result<(), glycin::ErrorCtx> {
+async fn run() -> Result<(), glycin::Error> {
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::builder().from_env_lossy())
         .with(tracing_subscriber::fmt::Layer::default().compact())

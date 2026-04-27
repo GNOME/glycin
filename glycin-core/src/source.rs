@@ -5,7 +5,7 @@ use std::os::fd::OwnedFd;
 use futures_util::SinkExt;
 use gio::prelude::*;
 
-use crate::{Error, Source};
+use crate::{Error, ErrorKind, Source};
 
 const BUF_SIZE: usize = u16::MAX as usize;
 
@@ -28,7 +28,7 @@ impl SourceTransmission {
         let (buf, n) = input_stream
             .read_future(buf, glib::Priority::DEFAULT)
             .await
-            .map_err(|(_, err)| Error::ImageSource(err))?;
+            .map_err(|(_, err)| ErrorKind::ImageSource(err).err())?;
 
         let first_bytes = buf[..n].to_vec();
 
@@ -52,13 +52,15 @@ impl SourceTransmission {
         }
 
         loop {
+            use crate::ErrorKind;
+
             let buf = vec![0; BUF_SIZE];
 
             let (buf, n) = self
                 .input_stream
                 .read_future(buf, glib::Priority::DEFAULT)
                 .await
-                .map_err(|(_, err)| Error::ImageSource(err))?;
+                .map_err(|(_, err)| ErrorKind::ImageSource(err).err())?;
             if n == 0 {
                 return Ok(());
             }
@@ -100,13 +102,15 @@ impl SourceTransmission {
         }
 
         loop {
+            use crate::ErrorKind;
+
             let buf = vec![0; BUF_SIZE];
 
             let (buf, n) = self
                 .input_stream
                 .read_future(buf, glib::Priority::DEFAULT)
                 .await
-                .map_err(|(_, err)| Error::ImageSource(err))?;
+                .map_err(|(_, err)| ErrorKind::ImageSource(err).err())?;
             if n == 0 {
                 return Ok(());
             }

@@ -12,6 +12,7 @@ rust-version.workspace = true
 
 [features]
 default = ["async-io"]
+# Async runtime
 async-io = [
     "dep:async-fs",
     "dep:async-global-executor",
@@ -25,12 +26,14 @@ async-io = [
     "zbus?/async-io",
 ]
 tokio = ["dep:tokio", "dep:tokio-stream", "glycin-utils/tokio", "zbus?/tokio"]
+
 gobject = [
     "glycin-common/gobject",
     "glycin-utils/gobject",
     "dep:tracing-subscriber",
 ]
 gdk4 = ["dep:gdk"]
+unstable = []
 
 builtin-image-rs = ["dep:glycin-image-rs", "builtin"]
 builtin-test = ["dep:glycin-test", "builtin"]

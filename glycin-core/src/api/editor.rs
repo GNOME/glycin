@@ -22,7 +22,7 @@ use crate::error::ResultExt;
 #[cfg(feature = "external")]
 use crate::pool::PooledProcess;
 use crate::util::{self, CancellableFuture, ShortcutErrorFuture};
-use crate::{Error, ErrorCtx, MimeType, Pool, config};
+use crate::{Error, ErrorKind, MimeType, Pool, config};
 
 /// Image edit builder
 #[derive(Debug)]
@@ -67,49 +67,40 @@ impl Editor {
         }
     }
 
-    pub fn edit(self) -> Pin<Box<dyn Future<Output = Result<EditableImage, ErrorCtx>> + Send>> {
+    pub fn edit(self) -> Pin<Box<dyn Future<Output = Result<EditableImage, Error>> + Send>> {
         Box::pin(async move {
             let main_context = self.main_context();
             let cancellable = self.cancellable.clone();
 
             let f = || async move { self.edit_internal().await }.make_cancellable(cancellable);
 
-            main_context
-                .spawn_from_within(f)
-                .await
-                .err_no_context()
-                .flatten()
+            main_context.spawn_from_within(f).await?
         })
     }
 
-    async fn edit_internal(mut self) -> Result<EditableImage, ErrorCtx> {
+    async fn edit_internal(mut self) -> Result<EditableImage, Error> {
         let source: Source = self.source.send();
 
-        let editor_context = ProcessorContext::new(source, false, &self.sandbox_selector)
-            .await
-            .err_no_context_legacy(&self.cancellable)?;
+        let editor_context = ProcessorContext::new(source, false, &self.sandbox_selector).await?;
 
         let editor = editor_context
             .editor(self.pool.clone(), &self.cancellable)
-            .await
-            .err_no_context_legacy(&self.cancellable)?;
+            .await?;
 
         match editor {
             #[cfg(feature = "external")]
             Processor::Binary(editor) => {
                 let process = editor.process.use_();
 
-                let (external_reader, load_image_future) = editor
-                    .source_transmission
-                    .spawn_external()
-                    .err_no_context()?;
+                let (external_reader, load_image_future) =
+                    editor.source_transmission.spawn_external()?;
 
                 let editable_image_future = process.edit(external_reader, &editor.mime_type);
 
                 let editable_image = editable_image_future
                     .join_abort_on_error(load_image_future)
                     .await
-                    .err_context(&process, &self.cancellable)?;
+                    .err_context(&process)?;
 
                 self.cancellable.connect_cancelled(glib::clone!(
                     #[strong(rename_to=process)]
@@ -161,13 +152,11 @@ impl Editor {
                 let editor_future = gio::spawn_blocking(move || {
                     edit_function().map_err(|err| Error::from(err.into_editor_error()))
                 })
-                .map(|x| x.map_err(|_| Error::ThreadPanic));
+                .map(|x| x.map_err(|_| ErrorKind::ThreadPanic.into()));
 
                 let editor = editor_future
                     .join_abort_on_error(read_data_future)
-                    .await
-                    .flatten()
-                    .err_no_context()?;
+                    .await??;
 
                 Ok(EditableImage {
                     editor: self,
@@ -222,12 +211,12 @@ impl EditableImage {
     pub fn apply_sparse(
         self,
         operations: &Operations,
-    ) -> Pin<Box<dyn Future<Output = Result<SparseEdit, ErrorCtx>> + Send>> {
+    ) -> Pin<Box<dyn Future<Output = Result<SparseEdit, Error>> + Send>> {
         let operations = operations.to_owned();
         Box::pin(self.apply_sparse_internal(operations))
     }
 
-    async fn apply_sparse_internal(self, operations: Operations) -> Result<SparseEdit, ErrorCtx> {
+    async fn apply_sparse_internal(self, operations: Operations) -> Result<SparseEdit, Error> {
         match &self.image_editor {
             #[cfg(feature = "external")]
             ImageEditor::External(editor) => {
@@ -236,12 +225,11 @@ impl EditableImage {
                 let mut editor_output = process
                     .editor_apply_sparse(&operations, &self)
                     .await
-                    .err_context(&process, &self.editor.cancellable)?;
+                    .err_context(&process)?;
 
-                editor_output.final_seal().await.err_no_context()?;
+                editor_output.final_seal().await?;
 
                 SparseEdit::try_from(editor_output.into_fungible())
-                    .err_no_context_legacy(&self.editor.cancellable)
             }
             #[cfg(feature = "builtin")]
             ImageEditor::Builtin(editor) => {
@@ -261,14 +249,12 @@ impl EditableImage {
                 }
 
                 let editor_output = gio::spawn_blocking(|| {
-                    editor_function().map_err(|e| e.into_editor_error().into())
+                    editor_function().map_err(|e| Error::from(e.into_editor_error()))
                 })
                 .await
-                .map_err(|_| Error::ThreadPanic)
-                .flatten()
-                .err_no_context()?;
+                .map_err(|_| ErrorKind::ThreadPanic)??;
 
-                SparseEdit::try_from(editor_output).err_no_context()
+                SparseEdit::try_from(editor_output)
             }
         }
     }
@@ -277,13 +263,13 @@ impl EditableImage {
     pub fn apply_complete(
         &self,
         operations: &Operations,
-    ) -> Pin<Box<dyn Future<Output = Result<Edit, ErrorCtx>> + Send + '_>> {
+    ) -> Pin<Box<dyn Future<Output = Result<Edit, Error>> + Send + '_>> {
         let operations = operations.to_owned();
 
         Box::pin(self.apply_complete_internal(operations))
     }
 
-    async fn apply_complete_internal(&self, operations: Operations) -> Result<Edit, ErrorCtx> {
+    async fn apply_complete_internal(&self, operations: Operations) -> Result<Edit, Error> {
         match &self.image_editor {
             #[cfg(feature = "external")]
             ImageEditor::External(editor) => {
@@ -292,10 +278,10 @@ impl EditableImage {
                 let mut editor_output = process
                     .editor_apply_complete(&operations, self)
                     .await
-                    .err_context(&process, &self.editor.cancellable)?
+                    .err_context(&process)?
                     .into_fungible();
 
-                editor_output.final_seal().await.err_no_context()?;
+                editor_output.final_seal().await?;
 
                 Ok(Edit {
                     inner: editor_output,
@@ -319,12 +305,10 @@ impl EditableImage {
                 }
 
                 let editor_output = gio::spawn_blocking(|| {
-                    apply_function().map_err(|e| e.into_editor_error().into())
+                    apply_function().map_err(|e| Error::from(e.into_editor_error()))
                 })
                 .await
-                .map_err(|_| Error::ThreadPanic)
-                .flatten()
-                .err_no_context()?;
+                .map_err(|_| ErrorKind::ThreadPanic)??;
 
                 Ok(Edit {
                     inner: editor_output,
@@ -460,21 +444,23 @@ impl TryFrom<SparseEditorOutput<FungibleMemory>> for SparseEdit {
         value: SparseEditorOutput<FungibleMemory>,
     ) -> std::result::Result<Self, Self::Error> {
         if value.byte_changes.is_some() && value.data.is_some() {
-            Err(Error::RemoteError(
-                glycin_utils::RemoteError::InternalLoaderError(
+            Err(
+                ErrorKind::RemoteError(glycin_utils::RemoteError::InternalLoaderError(
                     "Sparse editor output with 'byte_changes' and 'data' returned.".into(),
-                ),
-            ))
+                ))
+                .into(),
+            )
         } else if let Some(bit_changes) = value.byte_changes {
             Ok(Self::Sparse(bit_changes))
         } else if let Some(data) = value.data {
             Ok(Self::Complete(data.into_fungible()))
         } else {
-            Err(Error::RemoteError(
-                glycin_utils::RemoteError::InternalLoaderError(
+            Err(
+                ErrorKind::RemoteError(glycin_utils::RemoteError::InternalLoaderError(
                     "Sparse editor output with neither 'bit_changes' nor 'data' returned.".into(),
-                ),
-            ))
+                ))
+                .into(),
+            )
         }
     }
 }

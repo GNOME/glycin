@@ -43,6 +43,7 @@ pub use glycin_common::{
 pub use instruction_handler::*;
 pub use memory::*;
 
+// TODO: Move to dbus
 fn catch_unwind<R, F: FnOnce() -> R + UnwindSafe>(f: F) -> Result<R, RemoteError> {
     std::panic::catch_unwind(f).map_err(|_| RemoteError::Panic)
 }

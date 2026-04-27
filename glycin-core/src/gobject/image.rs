@@ -4,7 +4,7 @@ use gio::{Cancellable, glib};
 use glib::subclass::prelude::*;
 
 use super::GlyFrame;
-use crate::{ErrorCtx, FrameRequest, Image, ImageDetails};
+use crate::{Error, FrameRequest, Image, ImageDetails};
 
 static_assertions::assert_impl_all!(GlyImage: Send, Sync);
 
@@ -42,11 +42,11 @@ impl GlyImage {
         self.image().details()
     }
 
-    pub async fn next_frame(&self) -> Result<GlyFrame, ErrorCtx> {
+    pub async fn next_frame(&self) -> Result<GlyFrame, Error> {
         Ok(GlyFrame::new(self.image().next_frame().await?))
     }
 
-    pub async fn specific_frame(&self, frame_request: FrameRequest) -> Result<GlyFrame, ErrorCtx> {
+    pub async fn specific_frame(&self, frame_request: FrameRequest) -> Result<GlyFrame, Error> {
         Ok(GlyFrame::new(
             self.image().specific_frame(frame_request).await?,
         ))

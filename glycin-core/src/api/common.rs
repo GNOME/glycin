@@ -15,7 +15,7 @@ use crate::dbus::{EditorProxy, LoaderProxy};
 use crate::pool::{PooledProcess, UsageTracker};
 use crate::source::SourceTransmission;
 use crate::util::RunEnvironment;
-use crate::{Error, MimeType, Pool, config};
+use crate::{Error, ErrorKind, MimeType, Pool, config};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 /// Sandboxing mechanism for image loading and editing
@@ -129,9 +129,9 @@ impl Source {
                 .read_future(glib::Priority::DEFAULT)
                 .await
                 .map(|x| x.upcast())
-                .map_err(Error::ImageSource),
+                .map_err(|e| ErrorKind::ImageSource(e).err()),
             Self::Stream(stream) => Ok(stream.0.clone()),
-            Self::TransferredStream => Err(Error::TransferredStream),
+            Self::TransferredStream => Err(ErrorKind::TransferredStream.into()),
         }
     }
 
@@ -415,7 +415,7 @@ pub(crate) async fn guess_mime_type(
         let (content_type, unsure) = gio::content_type_guess(filename, data);
 
         let mime_type = gio::content_type_get_mime_type(&content_type)
-            .ok_or_else(|| Error::UnknownContentType(content_type.to_string()));
+            .ok_or_else(|| ErrorKind::UnknownContentType(content_type.to_string()).into());
 
         (mime_type, unsure)
     }

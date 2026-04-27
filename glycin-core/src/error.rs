@@ -1,10 +1,10 @@
+use std::fmt::Display;
 use std::process::ExitStatus;
 use std::sync::Arc;
-use std::{ops::Deref, time::Duration};
+use std::time::Duration;
 
 use futures_channel::oneshot;
 use gio::glib;
-use gio::prelude::CancellableExt;
 use glycin_utils::{DimensionTooLargerError, MemoryAllocationError, RemoteError};
 
 #[cfg(feature = "external")]
@@ -37,115 +37,96 @@ impl std::fmt::Display for ErrorContext {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct ErrorCtx {
-    error: Error,
-    context: ErrorContext,
-}
-
-impl Deref for ErrorCtx {
-    type Target = Error;
-
-    fn deref(&self) -> &Self::Target {
-        self.error()
-    }
-}
-
-impl std::error::Error for ErrorCtx {}
-
-impl std::fmt::Display for ErrorCtx {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.error.to_string())?;
-
-        f.write_str(&self.context.to_string())?;
-
-        Ok(())
-    }
-}
-
-impl ErrorCtx {
-    pub fn from_error(kind: Error) -> Self {
-        ErrorCtx {
-            error: kind,
-            context: ErrorContext::default(),
-        }
-    }
-
-    pub fn error(&self) -> &Error {
-        &self.error
-    }
-
-    pub fn context(&self) -> &ErrorContext {
-        &self.context
-    }
-}
-
 pub trait ResultExt<T> {
     #[cfg(feature = "external")]
-    fn err_context<S: DBusProxy>(
-        self,
-        process: &RemoteProcess<S>,
-        cancellable: &gio::Cancellable,
-    ) -> Result<T, ErrorCtx>;
-    fn err_no_context_legacy(self, cancellable: &gio::Cancellable) -> Result<T, ErrorCtx>;
-    fn err_no_context(self) -> Result<T, ErrorCtx>;
+    fn err_context<S: DBusProxy>(self, process: &RemoteProcess<S>) -> Result<T, Error>;
 }
 
 impl<T, E: Into<Error>> ResultExt<T> for Result<T, E> {
     #[cfg(feature = "external")]
-    fn err_context<S: DBusProxy>(
-        self,
-        process: &RemoteProcess<S>,
-        cancellable: &gio::Cancellable,
-    ) -> Result<T, ErrorCtx> {
+    fn err_context<S: DBusProxy>(self, process: &RemoteProcess<S>) -> Result<T, Error> {
         match self {
             Ok(x) => Ok(x),
             Err(err) => {
-                let err = err.into();
+                let mut err = err.into();
 
                 let stderr = process.stderr_content.lock().ok().map(|x| x.clone());
                 let stdout = process.stdout_content.lock().ok().map(|x| x.clone());
 
-                let error = if cancellable.is_cancelled() {
-                    Error::Canceled(Some(err.to_string()))
-                } else {
-                    err
-                };
+                err.context = Some(ErrorContext { stderr, stdout });
 
-                Err(ErrorCtx {
-                    error,
-                    context: ErrorContext { stderr, stdout },
-                })
+                Err(err)
             }
         }
     }
+}
 
-    fn err_no_context_legacy(self, cancellable: &gio::Cancellable) -> Result<T, ErrorCtx> {
-        match self {
-            Ok(x) => Ok(x),
-            Err(err) => {
-                let err = err.into();
+#[derive(Debug, Clone)]
+#[non_exhaustive]
+pub struct Error {
+    kind: ErrorKind,
+    context: Option<ErrorContext>,
+}
 
-                if cancellable.is_cancelled() {
-                    Err(ErrorCtx::from_error(Error::Canceled(Some(err.to_string()))))
-                } else {
-                    Err(ErrorCtx::from_error(err))
-                }
-            }
+impl Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.kind.to_string())
+    }
+}
+
+impl std::error::Error for Error {}
+
+impl Error {
+    fn from_kind(kind: ErrorKind) -> Self {
+        Self {
+            kind,
+            context: None,
         }
     }
 
-    fn err_no_context(self) -> Result<T, ErrorCtx> {
-        match self {
-            Ok(x) => Ok(x),
-            Err(err) => Err(ErrorCtx::from_error(err.into())),
+    #[cfg(feature = "unstable")]
+    pub fn kind(self) -> ErrorKind {
+        self.kind
+    }
+
+    /// Returns if the error is related to unsupported formats.
+    ///
+    /// Return the mime type of the unsupported format or [`None`] if the error
+    /// is unrelated to unsupported formats.
+    pub fn unsupported_format(&self) -> Option<String> {
+        match &self.kind {
+            ErrorKind::UnknownImageFormat(mime_type, _) => Some(mime_type.to_string()),
+            ErrorKind::RemoteError(RemoteError::UnsupportedImageFormat(msg)) => Some(msg.clone()),
+            _ => None,
         }
+    }
+
+    pub fn is_out_of_memory(&self) -> bool {
+        matches!(
+            self.kind,
+            ErrorKind::RemoteError(RemoteError::OutOfMemory(_))
+        )
+    }
+
+    pub fn is_no_more_frames(&self) -> bool {
+        matches!(self.kind, ErrorKind::RemoteError(RemoteError::NoMoreFrames))
+    }
+
+    pub fn is_panic(&self) -> bool {
+        matches!(
+            self.kind,
+            ErrorKind::ThreadPanic | ErrorKind::RemoteError(RemoteError::Panic)
+        )
+    }
+
+    pub fn is_timeout(&self) -> bool {
+        matches!(self.kind, ErrorKind::Timeout(_))
     }
 }
 
 #[derive(Debug, Clone, thiserror::Error)]
 #[non_exhaustive]
-pub enum Error {
+pub enum ErrorKind {
     #[error("Remote error: {0}")]
     RemoteError(#[from] RemoteError),
     #[error("GLib error: {0}")]
@@ -227,40 +208,13 @@ pub enum Error {
     Timeout(Duration),
 }
 
-impl Error {
-    /// Returns if the error is related to unsupported formats.
-    ///
-    /// Return the mime type of the unsupported format or [`None`] if the error
-    /// is unrelated to unsupported formats.
-    pub fn unsupported_format(&self) -> Option<String> {
-        match self {
-            Self::UnknownImageFormat(mime_type, _) => Some(mime_type.to_string()),
-            Self::RemoteError(RemoteError::UnsupportedImageFormat(msg)) => Some(msg.clone()),
-            _ => None,
-        }
-    }
-
-    pub fn is_out_of_memory(&self) -> bool {
-        matches!(self, Self::RemoteError(RemoteError::OutOfMemory(_)))
-    }
-
-    pub fn is_no_more_frames(&self) -> bool {
-        matches!(self, Self::RemoteError(RemoteError::NoMoreFrames))
-    }
-
-    pub fn is_panic(&self) -> bool {
-        matches!(
-            self,
-            Self::ThreadPanic | Self::RemoteError(RemoteError::Panic)
-        )
-    }
-
-    pub fn is_timeout(&self) -> bool {
-        matches!(self, Self::Timeout(_))
+impl ErrorKind {
+    pub fn err(self) -> Error {
+        Error::from_kind(self)
     }
 }
 
-impl From<std::io::Error> for Error {
+impl From<std::io::Error> for ErrorKind {
     fn from(err: std::io::Error) -> Self {
         Self::StdIoError {
             err: Arc::new(err),
@@ -269,7 +223,7 @@ impl From<std::io::Error> for Error {
     }
 }
 
-impl From<Arc<std::io::Error>> for Error {
+impl From<Arc<std::io::Error>> for ErrorKind {
     fn from(err: Arc<std::io::Error>) -> Self {
         Self::StdIoError {
             err,
@@ -279,32 +233,41 @@ impl From<Arc<std::io::Error>> for Error {
 }
 
 #[cfg(feature = "external")]
-impl From<libseccomp::error::SeccompError> for Error {
+impl From<libseccomp::error::SeccompError> for ErrorKind {
     fn from(err: libseccomp::error::SeccompError) -> Self {
         Self::Seccomp(Arc::new(err))
     }
 }
 
-impl From<oneshot::Canceled> for Error {
+impl From<oneshot::Canceled> for ErrorKind {
     fn from(_err: oneshot::Canceled) -> Self {
         Self::InternalCommunicationCanceled
     }
 }
 
-impl From<DimensionTooLargerError> for Error {
+impl From<DimensionTooLargerError> for ErrorKind {
     fn from(_err: DimensionTooLargerError) -> Self {
         Self::ConversionTooLargerError
     }
 }
 
-impl From<MemoryAllocationError> for Error {
+impl From<MemoryAllocationError> for ErrorKind {
     fn from(value: MemoryAllocationError) -> Self {
         Self::MemoryAllocationError(value.to_string())
     }
 }
 
-impl From<glib::JoinError> for Error {
+impl From<glib::JoinError> for ErrorKind {
     fn from(value: glib::JoinError) -> Self {
         Self::JoinError(value.to_string())
+    }
+}
+
+impl<T> From<T> for Error
+where
+    T: Into<ErrorKind>,
+{
+    fn from(t: T) -> Self {
+        Error::from_kind(t.into())
     }
 }

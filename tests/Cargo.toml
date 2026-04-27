@@ -19,7 +19,7 @@ combined-loaders = ["builtin-loaders", "external-loaders"]
 [dev-dependencies]
 async-io.workspace = true
 blocking.workspace = true
-glycin-core = { workspace = true, features = ["gdk4"] }
+glycin-core = { workspace = true, features = ["gdk4", "unstable"] }
 glycin-utils = { workspace = true, features = ["loader-utils"] }
 gio.workspace = true
 tokio.workspace = true

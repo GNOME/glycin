@@ -6,8 +6,7 @@ use glib::subclass::prelude::*;
 use glycin_common::MemoryFormatSelection;
 
 use super::GlyImage;
-use crate::error::ResultExt;
-use crate::{Error, GInputStreamSend, SandboxSelector, Source};
+use crate::{ErrorKind, GInputStreamSend, SandboxSelector, Source};
 
 static_assertions::assert_impl_all!(GlyLoader: Send, Sync);
 use super::init;
@@ -95,7 +94,7 @@ impl GlyLoader {
         glib::Object::builder().property("bytes", bytes).build()
     }
 
-    pub async fn load(&self) -> Result<GlyImage, crate::ErrorCtx> {
+    pub async fn load(&self) -> Result<GlyImage, crate::Error> {
         let mut loader = if let Some(file) = std::mem::take(&mut *self.imp().file.lock().unwrap()) {
             crate::Loader::new(file)
         } else if let Some(stream) = std::mem::take(&mut *self.imp().stream.lock().unwrap()) {
@@ -103,7 +102,7 @@ impl GlyLoader {
         } else if let Some(bytes) = std::mem::take(&mut *self.imp().bytes.lock().unwrap()) {
             crate::Loader::new_bytes(bytes)
         } else {
-            return Err(Error::LoaderUsedTwice).err_no_context_legacy(&self.cancellable());
+            return Err(ErrorKind::LoaderUsedTwice.err());
         };
 
         loader.sandbox_selector = self.sandbox_selector();

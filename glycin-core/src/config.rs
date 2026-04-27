@@ -14,7 +14,7 @@ use glycin_common::OperationId;
 
 use crate::config::indentifier::Identifier;
 use crate::util::{self, AsyncMutex, new_async_mutex, read};
-use crate::{Error, SandboxMechanism};
+use crate::{Error, ErrorKind, SandboxMechanism};
 
 #[derive(Clone, Debug)]
 /// Mime type
@@ -329,18 +329,18 @@ impl Config {
 
     pub fn loader(&self, mime_type: &MimeType) -> Result<&ImageLoaderConfig, Error> {
         if self.image_loader.is_empty() {
-            return Err(Error::NoLoadersConfigured(self.clone()));
+            return Err(ErrorKind::NoLoadersConfigured(self.clone()).err());
         }
 
         self.image_loader
             .get(mime_type)
-            .ok_or_else(|| Error::UnknownImageFormat(mime_type.to_string(), self.clone()))
+            .ok_or_else(|| ErrorKind::UnknownImageFormat(mime_type.to_string(), self.clone()).err())
     }
 
     pub fn editor(&self, mime_type: &MimeType) -> Result<&ImageEditorConfig, Error> {
         self.image_editor
             .get(mime_type)
-            .ok_or_else(|| Error::UnknownImageFormat(mime_type.to_string(), self.clone()))
+            .ok_or_else(|| ErrorKind::UnknownImageFormat(mime_type.to_string(), self.clone()).err())
     }
 
     async fn load() -> Self {

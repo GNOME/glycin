@@ -19,7 +19,7 @@ use nix::unistd;
 
 use crate::config::{ConfigEntry, ImageLoaderConfig, Processor};
 use crate::util::{self, AsyncMutex, new_async_mutex, spawn_blocking};
-use crate::{Error, SandboxMechanism};
+use crate::{Error, ErrorKind, SandboxMechanism};
 
 type SystemSetupStore = Arc<Result<SystemSetup, Arc<io::Error>>>;
 
@@ -202,7 +202,7 @@ impl Sandbox {
             exec: config_entry
                 .exec()
                 .map(|x| x.to_path_buf())
-                .ok_or(Error::ExpectedBinaryProcessor)?,
+                .ok_or(ErrorKind::ExpectedBinaryProcessor.err())?,
             config_entry,
             dbus_socket,
             ro_bind_extra: Vec::new(),

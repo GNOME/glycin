@@ -164,9 +164,14 @@ fn processor_creator_jpeg_stride_invalid() {
         let memory_format = glycin::MemoryFormat::R8g8b8;
         let texture = vec![0; 13];
 
-        let res = encoder.add_frame_with_stride(width, height, 8, memory_format, texture);
+        let res = encoder
+            .add_frame_with_stride(width, height, 8, memory_format, texture)
+            .unwrap_err();
 
-        assert!(matches!(res, Err(glycin::Error::TextureWrongSize { .. })));
+        assert!(matches!(
+            res.kind(),
+            glycin::ErrorKind::TextureWrongSize { .. }
+        ));
     });
 }
 

@@ -36,7 +36,7 @@ pub unsafe extern "C" fn gly_loader_error_get_type() -> glib::ffi::GType {
     GlyLoaderError::static_type().into_glib()
 }
 
-pub unsafe fn set_context_error(g_error: *mut *mut GError, err: &glycin::ErrorCtx) {
+pub unsafe fn set_context_error(g_error: *mut *mut GError, err: &glycin::Error) {
     unsafe {
         if !g_error.is_null() {
             *g_error = glib_context_error(err).into_glib_ptr();
@@ -52,8 +52,8 @@ pub unsafe fn set_error(g_error: *mut *mut GError, err: &glycin::Error) {
     }
 }
 
-pub fn glib_context_error(err: &glycin::ErrorCtx) -> glib::Error {
-    let gly_error: GlyLoaderError = err.error().into();
+pub fn glib_context_error(err: &glycin::Error) -> glib::Error {
+    let gly_error: GlyLoaderError = err.into();
     glib::Error::new(gly_error, &err.to_string())
 }
 

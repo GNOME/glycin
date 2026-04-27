@@ -13,7 +13,7 @@ use gio::prelude::*;
 use crate::DBusProxy;
 use crate::config::{ConfigEntry, ConfigEntryHash};
 use crate::util::{AsyncMutex, TimerHandle, spawn_timeout};
-use crate::{Error, SandboxMechanism, config, dbus};
+use crate::{Error, ErrorKind, SandboxMechanism, config, dbus};
 
 #[derive(Debug)]
 pub struct PooledProcess<P: DBusProxy> {
@@ -212,7 +212,7 @@ impl Pool {
             process_cancellable,
             move |_| process_cancellable.cancel()
         )) else {
-            return Err(Error::Canceled(None));
+            return Err(ErrorKind::Canceled(None).err());
         };
 
         let process = Arc::new(

@@ -117,7 +117,7 @@ pub const COMPAT_VERSION: u8 = 2;
 pub use api::*;
 #[cfg(not(feature = "external"))]
 use dbus_shim as dbus;
-pub use error::{Error, ErrorContext, ErrorCtx};
+pub use error::{Error, ErrorContext, ErrorKind};
 pub use glycin_common::{MemoryFormat, MemoryFormatSelection, Operation, OperationId, Operations};
 pub use gufo_common::cicp::Cicp;
 pub use pool::{Pool, PoolConfig};

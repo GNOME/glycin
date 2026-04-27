@@ -2,7 +2,6 @@ use std::collections::BTreeMap;
 use std::io::Read;
 use std::time::Duration;
 
-use crate::Limits;
 use glycin_common::{MemoryFormat, MemoryFormatInfo};
 use gufo_common::orientation::Orientation;
 #[cfg(feature = "external")]
@@ -12,7 +11,7 @@ use zbus::zvariant::{self, Optional, Type};
 
 use crate::error::DimensionTooLargerError;
 use crate::safe_math::{SafeConversion, SafeMath};
-use crate::{ByteData, FungibleMemory, MemoryAllocationError, ProcessError};
+use crate::{ByteData, FungibleMemory, Limits, MemoryAllocationError, ProcessError};
 
 pub trait LoaderImplementation: Send + Sync + Sized + 'static {
     fn init<B: ByteData, R: Read + Send + 'static>(

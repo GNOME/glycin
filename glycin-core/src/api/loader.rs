@@ -26,7 +26,7 @@ use crate::error::ResultExt;
 use crate::pool::{PooledProcess, UsageTracker};
 use crate::source::SourceTransmission;
 use crate::util::spawn_blocking;
-use crate::{Error, ErrorCtx, MAX_TEXTURE_SIZE, Pool, config, icc, orientation, util};
+use crate::{Error, ErrorKind, MAX_TEXTURE_SIZE, Pool, config, icc, orientation, util};
 
 /// Image request builder
 #[derive(Debug)]
@@ -141,7 +141,7 @@ impl Loader {
     }
 
     /// Load basic image information and enable further operations
-    pub fn load(mut self) -> Pin<Box<dyn Future<Output = Result<Image, ErrorCtx>> + Send>> {
+    pub fn load(mut self) -> Pin<Box<dyn Future<Output = Result<Image, Error>> + Send>> {
         Box::pin(async {
             let source = self.source.send();
             let main_context = self.main_context();
@@ -154,24 +154,17 @@ impl Loader {
                     .enforce_timeout(timeout)
             };
 
-            main_context
-                .spawn_from_within(f)
-                .await
-                .err_no_context()
-                .flatten()
+            main_context.spawn_from_within(f).await?
         })
     }
 
-    async fn load_internal(self, source: Source) -> Result<Image, ErrorCtx> {
+    async fn load_internal(self, source: Source) -> Result<Image, Error> {
         let loader_context =
-            ProcessorContext::new(source, self.use_expose_base_dir, &self.sandbox_selector)
-                .await
-                .err_no_context_legacy(&self.cancellable)?;
+            ProcessorContext::new(source, self.use_expose_base_dir, &self.sandbox_selector).await?;
 
         let loader = loader_context
             .loader(self.pool.clone(), &self.cancellable)
-            .await
-            .err_no_context()?;
+            .await?;
 
         match loader {
             #[cfg(feature = "external")]
@@ -185,14 +178,12 @@ impl Loader {
     async fn load_internal_external(
         self,
         binary_loader: ExternalProcessor<LoaderProxy<'static>, SourceTransmission>,
-    ) -> Result<Image, ErrorCtx> {
+    ) -> Result<Image, Error> {
         tracing::debug!("Using external loader");
 
         let process = binary_loader.use_process();
-        let (remote_reader, file_read_future) = binary_loader
-            .source_transmission
-            .spawn_external()
-            .err_no_context()?;
+        let (remote_reader, file_read_future) =
+            binary_loader.source_transmission.spawn_external()?;
 
         let remote_image_future = process.init(&binary_loader.mime_type, remote_reader);
 
@@ -200,9 +191,9 @@ impl Loader {
         let mut remote_image = remote_image_future
             .join_abort_on_error(file_read_future)
             .await
-            .err_context(&process, &self.cancellable)?;
+            .err_context(&process)?;
 
-        remote_image.final_seal().await.err_no_context()?;
+        remote_image.final_seal().await?;
 
         let mut details = remote_image.details.into_fungible();
 
@@ -246,7 +237,7 @@ impl Loader {
     async fn load_internal_builtin<P: DBusProxy>(
         self,
         builtin: BuiltinProcessor<P, SourceTransmission>,
-    ) -> Result<Image, ErrorCtx> {
+    ) -> Result<Image, Error> {
         tracing::debug!("Using builtin loader '{}'", builtin.builtin.common().name());
 
         let init_function: Box<dyn Fn(_, _, _) -> _ + Send>;
@@ -293,13 +284,11 @@ impl Loader {
             )
             .map_err(|e| Error::from(e.into_loader_error()))
         })
-        .map(|x| x.map_err(|_| Error::ThreadPanic));
+        .map(|x| x.map_err(|_| ErrorKind::ThreadPanic.err()));
 
         let (image_loader, image_details) = remote_image_future
             .join_abort_on_error(file_read_future)
-            .await
-            .flatten()
-            .err_no_context()?;
+            .await??;
 
         Ok(Image {
             image_loader: ImageLoader::Builtin(image_loader),
@@ -389,7 +378,7 @@ impl Image {
     /// function will loop to the first frame, when the last frame is reached.
     pub fn next_frame<'a>(
         &'a self,
-    ) -> Pin<Box<dyn Future<Output = Result<Frame, ErrorCtx>> + 'a + Send>> {
+    ) -> Pin<Box<dyn Future<Output = Result<Frame, Error>> + 'a + Send>> {
         self.specific_frame(FrameRequest::default())
     }
 
@@ -400,7 +389,7 @@ impl Image {
     pub fn specific_frame<'a>(
         &'a self,
         frame_request: FrameRequest,
-    ) -> Pin<Box<dyn Future<Output = Result<Frame, ErrorCtx>> + 'a + Send>> {
+    ) -> Pin<Box<dyn Future<Output = Result<Frame, Error>> + 'a + Send>> {
         Box::pin(async move {
             let cancellable = self.loader.cancellable.clone();
 
@@ -410,10 +399,7 @@ impl Image {
         })
     }
 
-    async fn specific_frame_internal(
-        &self,
-        frame_request: FrameRequest,
-    ) -> Result<Frame, ErrorCtx> {
+    async fn specific_frame_internal(&self, frame_request: FrameRequest) -> Result<Frame, Error> {
         let frame_request = frame_request.request;
 
         match &self.image_loader {
@@ -424,11 +410,9 @@ impl Image {
                 let frame = process
                     .request_frame(frame_request, self)
                     .await
-                    .err_context(&process, &self.cancellable())?;
+                    .err_context(&process)?;
 
-                Frame::from_loader(frame, self)
-                    .await
-                    .err_no_context_legacy(&self.cancellable())
+                Frame::from_loader(frame, self).await
             }
             #[cfg(feature = "builtin")]
             ImageLoader::Builtin(builtin) => {
@@ -454,16 +438,12 @@ impl Image {
                 }
 
                 let frame = gio::spawn_blocking(|| {
-                    editor_function().map_err(|e| e.into_loader_error().into())
+                    editor_function().map_err(|e| Error::from(e.into_loader_error()))
                 })
                 .await
-                .map_err(|_| Error::ThreadPanic)
-                .flatten()
-                .err_no_context_legacy(&self.loader.cancellable)?;
+                .map_err(|_| ErrorKind::ThreadPanic)??;
 
-                Frame::from_loader(frame, self)
-                    .await
-                    .err_no_context_legacy(&self.cancellable())
+                Frame::from_loader(frame, self).await
             }
         }
     }
@@ -800,30 +780,31 @@ fn validate_frame<B: ByteData>(
     let img_buf = &frame.texture;
 
     if img_buf.len() < frame.n_bytes()? {
-        return Err(Error::TextureWrongSize {
+        return Err(ErrorKind::TextureWrongSize {
             texture_size: img_buf.len(),
             frame: format!("{:?}", frame.desc()),
-        });
+        }
+        .err());
     }
 
     if frame.stride < frame.width.smul(frame.memory_format.n_bytes().u32())? {
-        return Err(Error::StrideTooSmall(format!("{:?}", frame.desc())));
+        return Err(ErrorKind::StrideTooSmall(format!("{:?}", frame.desc())).err());
     }
 
     if frame.width < 1 || frame.height < 1 {
-        return Err(Error::WidgthOrHeightZero(format!("{:?}", frame.desc())));
+        return Err(ErrorKind::WidgthOrHeightZero(format!("{:?}", frame.desc())).err());
     }
 
     if (frame.stride as u64).smul(frame.height as u64)? > MAX_TEXTURE_SIZE {
-        return Err(Error::TextureTooLarge);
+        return Err(ErrorKind::TextureTooLarge.err());
     }
 
     if frame.width > limits.inner.max_dimensions.0 {
-        return Err(Error::TextureTooLarge);
+        return Err(ErrorKind::TextureTooLarge.err());
     }
 
     if frame.height > limits.inner.max_dimensions.1 {
-        return Err(Error::TextureTooLarge);
+        return Err(ErrorKind::TextureTooLarge.err());
     }
 
     // Ensure

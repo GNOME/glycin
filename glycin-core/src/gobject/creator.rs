@@ -6,10 +6,9 @@ use glib::prelude::*;
 use glib::subclass::prelude::*;
 use glycin_utils::MemoryFormat;
 
-use crate::error::ResultExt;
 use crate::gobject::GlyNewFrame;
 use crate::util::AsyncMutex;
-use crate::{Creator, Error, MimeType, SandboxSelector, gobject};
+use crate::{Creator, Error, ErrorKind, MimeType, SandboxSelector, gobject};
 
 static_assertions::assert_impl_all!(GlyCreator: Send, Sync);
 use super::init;
@@ -149,17 +148,17 @@ impl GlyCreator {
         Ok(frame)
     }
 
-    pub async fn create(&self) -> Result<gobject::GlyEncodedImage, crate::ErrorCtx> {
+    pub async fn create(&self) -> Result<gobject::GlyEncodedImage, crate::Error> {
         if let Some(mut creator) = std::mem::take(&mut *self.imp().creator.lock_blocking()) {
             for frame in &*self.imp().frames.lock().await {
-                frame.build(&mut creator).await.err_no_context()?;
+                frame.build(&mut creator).await?;
             }
 
             creator.sandbox_selector(self.sandbox_selector());
             let encoded_image: crate::EncodedImage = creator.create().await?;
             Ok(gobject::GlyEncodedImage::new(encoded_image))
         } else {
-            Err(Error::LoaderUsedTwice).err_no_context_legacy(&self.cancellable())
+            Err(ErrorKind::LoaderUsedTwice.err())
         }
     }
 }

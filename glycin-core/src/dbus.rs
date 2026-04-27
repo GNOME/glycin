@@ -23,7 +23,9 @@ use zbus::zvariant::{self, OwnedObjectPath};
 
 use crate::sandbox::Sandbox;
 use crate::util::{self, Task, spawn};
-use crate::{DBusProxy, EditableImage, Error, Image, MimeType, SandboxMechanism, config};
+use crate::{
+    DBusProxy, EditableImage, Error, ErrorKind, Image, MimeType, SandboxMechanism, config,
+};
 
 #[derive(Debug)]
 pub struct RemoteProcess<P: DBusProxy> {
@@ -119,12 +121,12 @@ impl<P: DBusProxy> RemoteProcess<P> {
                         }
                         Err(err) => {
                             let err = if err.kind() == std::io::ErrorKind::NotFound {
-                                Error::SpawnErrorNotFound {
+                                ErrorKind::SpawnErrorNotFound {
                                     cmd: command_dbg.clone(),
                                     err: Arc::new(err),
                                 }
                             } else {
-                                Error::SpawnError {
+                                ErrorKind::SpawnError {
                                     cmd: command_dbg.clone(),
                                     err: Arc::new(err),
                                 }
@@ -194,8 +196,8 @@ impl<P: DBusProxy> RemoteProcess<P> {
             },
             return_status = child_return.fuse() => {
                 match return_status? {
-                    Ok(status) => Err(Error::PrematureExit { status, cmd: command_dbg.clone() }),
-                    Err(err) => Err(Error::StdIoError{ err: Arc::new(err), info: command_dbg.clone() }),
+                    Ok(status) => Err(ErrorKind::PrematureExit { status, cmd: command_dbg.clone() }.err()),
+                    Err(err) => Err(ErrorKind::StdIoError{ err: Arc::new(err), info: command_dbg.clone() }.err()),
                 }
             }
         }?;

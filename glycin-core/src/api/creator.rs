@@ -13,7 +13,7 @@ use crate::config::{Config, ImageEditorConfig};
 use crate::error::ResultExt;
 use crate::pool::Pool;
 use crate::util::CancellableFuture;
-use crate::{Error, ErrorCtx, MimeType, Processor, ProcessorContext, SandboxSelector};
+use crate::{Error, ErrorKind, MimeType, Processor, ProcessorContext, SandboxSelector};
 
 #[derive(Debug)]
 pub struct Creator {
@@ -92,17 +92,19 @@ impl Creator {
             .ok_or(DimensionTooLargerError)?;
 
         if smallest_stride > stride {
-            return Err(Error::StrideTooSmall(format!(
+            return Err(ErrorKind::StrideTooSmall(format!(
                 "Stride is {stride} but must be at least {smallest_stride}"
-            )));
+            ))
+            .into());
         }
 
         // Allow that last row doesn't have the complete stride length
         if texture.len() < stride as usize * (height - 1) as usize + smallest_stride as usize {
-            return Err(Error::TextureWrongSize {
+            return Err(ErrorKind::TextureWrongSize {
                 texture_size: texture.len(),
                 frame: format!("Stride size: {stride} Image size: {width} x {height}"),
-            });
+            }
+            .into());
         }
 
         if smallest_stride != stride {
@@ -134,7 +136,7 @@ impl Creator {
     }
 
     /// Encode an image
-    pub fn create(self) -> Pin<Box<dyn Future<Output = Result<EncodedImage, ErrorCtx>> + Send>> {
+    pub fn create(self) -> Pin<Box<dyn Future<Output = Result<EncodedImage, Error>> + Send>> {
         Box::pin(async move {
             let cancellable = self.cancellable.clone();
 
@@ -142,24 +144,19 @@ impl Creator {
         })
     }
 
-    async fn load_internal(self) -> Result<EncodedImage, ErrorCtx> {
+    async fn load_internal(self) -> Result<EncodedImage, Error> {
         let mut new_image = self.new_image;
 
         for frame in self.new_frames {
-            new_image
-                .frames
-                .push(frame.frame().err_no_context_legacy(&self.cancellable)?);
+            new_image.frames.push(frame.frame()?);
         }
 
         let editor_context =
-            ProcessorContext::new_sourceless(self.mime_type, &self.sandbox_selector)
-                .await
-                .err_no_context_legacy(&self.cancellable)?;
+            ProcessorContext::new_sourceless(self.mime_type, &self.sandbox_selector).await?;
 
         let editor = editor_context
             .editor(self.pool.clone(), &self.cancellable)
-            .await
-            .err_no_context_legacy(&self.cancellable)?;
+            .await?;
 
         match editor {
             #[cfg(feature = "external")]
@@ -170,19 +167,20 @@ impl Creator {
                     process
                         .create(
                             &editor.mime_type,
-                            new_image.into_other().err_no_context()?,
+                            new_image.into_other()?,
                             self.encoding_options,
                         )
                         .await
                         .map(|x| x.into_fungible())
-                        .err_context(&process, &self.cancellable)?,
+                        .err_context(&process)?,
                 )
                 .await
-                .err_no_context()
             }
             #[cfg(feature = "builtin")]
             Processor::Builtin(builtin) => {
                 use glycin_utils::EditorImplementation;
+
+                use crate::ErrorKind;
 
                 let mime_type = builtin.mime_type.to_string();
                 let encoding_options = self.encoding_options;
@@ -209,14 +207,12 @@ impl Creator {
                 }
 
                 let encoded_image = gio::spawn_blocking(|| {
-                    editor_function().map_err(|e| e.into_editor_error().into())
+                    editor_function().map_err(|e| Error::from(e.into_editor_error()))
                 })
                 .await
-                .map_err(|_| Error::ThreadPanic)
-                .flatten()
-                .err_no_context()?;
+                .map_err(|_| ErrorKind::ThreadPanic)??;
 
-                EncodedImage::new(encoded_image).await.err_no_context()
+                EncodedImage::new(encoded_image).await
             }
         }
     }
