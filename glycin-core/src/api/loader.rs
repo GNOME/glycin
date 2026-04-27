@@ -395,6 +395,7 @@ impl Image {
 
             self.specific_frame_internal(frame_request)
                 .make_cancellable(cancellable)
+                .enforce_timeout(self.loader.limits.inner.timeout)
                 .await
         })
     }

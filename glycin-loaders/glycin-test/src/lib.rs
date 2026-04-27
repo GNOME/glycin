@@ -45,6 +45,7 @@ fn handle_instructions<B: ByteData>(
             B::new(instructions[1].parse().unwrap()).expected_error()?;
         }
         "panic-next-step" => (),
+        "infinte-loop-next-step" => (),
         other => panic!("unknwon instruction {other}"),
     }
 
@@ -68,6 +69,10 @@ impl LoaderImplementation for ImgDecoder {
     ) -> Result<Frame<T>, ProcessError> {
         match self.instructions[0].as_str() {
             "panic-next-step" => panic!("Requested frame panic"),
+            "infinte-loop-next-step" => {
+                eprintln!("Entering infinte loop as requested");
+                loop {}
+            }
             other => panic!("unknwon instruction {other}"),
         }
     }

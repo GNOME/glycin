@@ -120,3 +120,18 @@ fn glycin_test_timeout_load() {
         assert!(err.is_timeout(), "Error: {err}");
     });
 }
+
+#[test]
+fn glycin_test_timeout_next_frame() {
+    init();
+
+    block_on(async {
+        let mut loader = glycin_core::Loader::new_vec(instruction(&[b"infinte-loop-next-step"]));
+        loader.limits(Limits::default().timeout(Duration::from_millis(100)));
+
+        let image = loader.load().await.unwrap();
+
+        let err = image.next_frame().await.unwrap_err();
+        assert!(err.is_timeout(), "Error: {err}");
+    });
+}

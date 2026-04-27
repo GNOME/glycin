@@ -53,7 +53,7 @@ impl<T, F: Future<Output = Result<T, crate::Error>>> CancellableFuture<T> for F 
 pub trait TimeoutFuture<T>: Future<Output = Result<T, crate::Error>> + Sized {
     async fn enforce_timeout(self, timeout: Duration) -> <Self as Future>::Output {
         let self_ = std::pin::pin!(self);
-        let timeout_ = glib::timeout_future(timeout);
+        let timeout_ = std::pin::pin!(timeout_future(timeout));
         let either = futures_util::future::select(timeout_, self_).await;
         match either {
             futures_util::future::Either::Left(_) => Err(crate::ErrorKind::Timeout(timeout).err()),
@@ -253,6 +253,10 @@ mod async_io_utils {
             f.await;
         })
     }
+
+    pub async fn timeout_future(duration: std::time::Duration) {
+        async_io::Timer::after(duration).await;
+    }
 }
 
 #[cfg(feature = "tokio")]
@@ -319,5 +323,9 @@ mod tokio_utils {
             tokio::time::sleep(duration).await;
             f.await;
         }))
+    }
+
+    pub async fn timeout_future(duration: std::time::Duration) {
+        tokio::time::sleep(duration).await;
     }
 }
