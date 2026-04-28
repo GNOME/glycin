@@ -27,7 +27,7 @@ pub struct ImgDecoder {
 }
 
 impl LoaderImplementation for ImgDecoder {
-    fn init<B: ByteData, S: Read>(
+    fn load<B: ByteData, S: Read>(
         mut stream: S,
         _mime_type: String,
         _details: InitializationDetails,
@@ -52,7 +52,7 @@ impl LoaderImplementation for ImgDecoder {
         Ok((loader_implementation, image_info))
     }
 
-    fn frame<B: glycin_utils::ByteData>(
+    fn specific_frame<B: glycin_utils::ByteData>(
         &mut self,
         _frame_request: FrameRequest,
     ) -> Result<Frame<B>, ProcessError> {

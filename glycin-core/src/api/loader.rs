@@ -246,7 +246,7 @@ impl Loader {
             #[cfg(feature = "builtin-image-rs")]
             config::BuiltinProcessor::ImageRs(_) => {
                 init_function = Box::new(|stream, mime_type, details| {
-                    glycin_image_rs::ImgDecoder::init(stream, mime_type, details).map(
+                    glycin_image_rs::ImgDecoder::load(stream, mime_type, details).map(
                         |(decoder, details)| {
                             (
                                 ImageBuiltinLoader::ImageRs(Arc::new(Mutex::new(decoder))),
@@ -259,7 +259,7 @@ impl Loader {
             #[cfg(feature = "builtin-test")]
             config::BuiltinProcessor::Test(_) => {
                 init_function = Box::new(|stream, mime_type, details| {
-                    glycin_test::ImgDecoder::init(stream, mime_type, details).map(
+                    glycin_test::ImgDecoder::load(stream, mime_type, details).map(
                         |(decoder, details)| {
                             (
                                 ImageBuiltinLoader::Test(Arc::new(Mutex::new(decoder))),
@@ -426,14 +426,20 @@ impl Image {
                     ImageBuiltinLoader::ImageRs(loader) => {
                         let loader: Arc<Mutex<glycin_image_rs::ImgDecoder>> = loader.to_owned();
                         editor_function = Box::new(move || {
-                            loader.lock().unwrap().frame::<LocalMemory>(frame_request)
+                            loader
+                                .lock()
+                                .unwrap()
+                                .specific_frame::<LocalMemory>(frame_request)
                         });
                     }
                     #[cfg(feature = "builtin-test")]
                     ImageBuiltinLoader::Test(editor) => {
                         let editor = editor.to_owned();
                         editor_function = Box::new(move || {
-                            editor.lock().unwrap().frame::<LocalMemory>(frame_request)
+                            editor
+                                .lock()
+                                .unwrap()
+                                .specific_frame::<LocalMemory>(frame_request)
                         });
                     }
                 }

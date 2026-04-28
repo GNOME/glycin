@@ -28,7 +28,7 @@ impl<T: api::LoaderImplementation> Loader<T> {
 
         let (loader_state, image_info) = blocking::unblock(|| {
             crate::catch_unwind(|| {
-                T::init(stream, init_request.mime_type, init_request.details)
+                T::load(stream, init_request.mime_type, init_request.details)
                     .map_err(|x| x.into_loader_error())
             })
         })
@@ -102,7 +102,7 @@ impl<T: api::LoaderImplementation> Image<T> {
 
             crate::catch_unwind(move || {
                 loader_implementation
-                    .frame(frame_request)
+                    .specific_frame(frame_request)
                     .map_err(|x| x.into_loader_error())
             })
             .flatten()

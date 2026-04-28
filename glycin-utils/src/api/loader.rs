@@ -14,14 +14,16 @@ use crate::safe_math::{SafeConversion, SafeMath};
 use crate::{ByteData, FungibleMemory, Limits, MemoryAllocationError, ProcessError};
 
 pub trait LoaderImplementation: Send + Sync + Sized + 'static {
-    fn init<B: ByteData, R: Read + Send + 'static>(
+    fn load<B: ByteData, R: Read + Send + 'static>(
         stream: R,
         mime_type: String,
         details: InitializationDetails,
     ) -> Result<(Self, ImageDetails<B>), ProcessError>;
 
-    fn frame<T: ByteData>(&mut self, frame_request: FrameRequest)
-    -> Result<Frame<T>, ProcessError>;
+    fn specific_frame<T: ByteData>(
+        &mut self,
+        frame_request: FrameRequest,
+    ) -> Result<Frame<T>, ProcessError>;
 }
 
 #[cfg(feature = "external")]

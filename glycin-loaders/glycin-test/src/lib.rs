@@ -53,7 +53,7 @@ fn handle_instructions<B: ByteData>(
 }
 
 impl LoaderImplementation for ImgDecoder {
-    fn init<B: ByteData, R: std::io::Read + Send + 'static>(
+    fn load<B: ByteData, R: std::io::Read + Send + 'static>(
         stream: R,
         _mime_type: String,
         _details: InitializationDetails,
@@ -63,7 +63,7 @@ impl LoaderImplementation for ImgDecoder {
         Ok((ImgDecoder { instructions }, ImageDetails::new(1, 1)))
     }
 
-    fn frame<T: ByteData>(
+    fn specific_frame<T: ByteData>(
         &mut self,
         _frame_request: FrameRequest,
     ) -> Result<Frame<T>, ProcessError> {

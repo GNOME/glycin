@@ -40,7 +40,7 @@ pub struct ImgDecoder {
 }
 
 impl LoaderImplementation for ImgDecoder {
-    fn init<B: ByteData, R: Read>(
+    fn load<B: ByteData, R: Read>(
         mut stream: R,
         mime_type: String,
         _details: InitializationDetails,
@@ -105,7 +105,7 @@ impl LoaderImplementation for ImgDecoder {
         Ok((loader_impelementation, image_info))
     }
 
-    fn frame<B: ByteData>(
+    fn specific_frame<B: ByteData>(
         &mut self,
         frame_request: FrameRequest,
     ) -> Result<Frame<B>, ProcessError> {

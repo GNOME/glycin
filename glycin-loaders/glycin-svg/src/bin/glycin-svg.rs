@@ -154,7 +154,7 @@ pub fn render<B: ByteData>(
 }
 
 impl LoaderImplementation for ImgDecoder {
-    fn init<B: ByteData, S: Read + Send + 'static>(
+    fn load<B: ByteData, S: Read + Send + 'static>(
         stream: S,
         _mime_type: String,
         details: InitializationDetails,
@@ -183,7 +183,7 @@ impl LoaderImplementation for ImgDecoder {
         Ok((decoder, image_info.into_other().expected_error()?))
     }
 
-    fn frame<B: ByteData>(
+    fn specific_frame<B: ByteData>(
         &mut self,
         frame_request: FrameRequest,
     ) -> Result<Frame<B>, ProcessError> {

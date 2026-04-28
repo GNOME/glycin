@@ -85,14 +85,14 @@ mod abi_stability {
     struct MockLoader {}
 
     impl glycin_utils::LoaderImplementation for MockLoader {
-        fn frame<B: glycin_utils::ByteData>(
+        fn specific_frame<B: glycin_utils::ByteData>(
             &mut self,
             _frame_request: glycin_utils::FrameRequest,
         ) -> Result<glycin_utils::Frame<B>, glycin_utils::ProcessError> {
             unimplemented!()
         }
 
-        fn init<B: glycin_utils::ByteData, R: Read>(
+        fn load<B: glycin_utils::ByteData, R: Read>(
             _stream: R,
             _mime_type: String,
             _details: glycin_utils::InitializationDetails,
