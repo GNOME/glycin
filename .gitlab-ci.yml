@@ -50,7 +50,7 @@ test-x86_64:
   script:
     - export LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu/
     # Skip isolated install for tests to test usual installation scenario
-    - meson setup -Dprofile=dev -Dpython_tests=true -Dtest_skip_install=true -Dcapi_docs=true --prefix=/usr builddir
+    - meson setup -Dprofile=dev -Dpython_tests=true -Dtest_skip_install=true -Dcapi_docs=true --prefix=/usr -Dloaders=glycin-heif,glycin-image-rs,glycin-jxl,glycin-raw,glycin-svg,glycin-test builddir
     - meson install -C builddir
     - meson test -vC builddir
     - mv builddir/libglycin/libglycin-2 libglycin-docs
@@ -70,7 +70,7 @@ test-i386:
   script:
     - export LD_LIBRARY_PATH=/usr/local/lib/i386-linux-gnu/
     - apt-get install -y ninja-build
-    - meson setup -Dprofile=dev  -Dpython_tests=true -Dtest_skip_install=true -Dtest_skip_ext=avif --prefix=/usr builddir
+    - meson setup -Dtest_skip_ext=avif -Dprofile=dev  -Dpython_tests=true -Dtest_skip_install=true --prefix=/usr -Dloaders=glycin-heif,glycin-image-rs,glycin-jxl,glycin-raw,glycin-svg,glycin-test builddir
     - meson install -C builddir
     - meson test -vC builddir
 
@@ -82,7 +82,7 @@ test-aarch64:
   interruptible: true
   script:
     - export LD_LIBRARY_PATH=/usr/local/lib/aarch64-linux-gnu/
-    - meson setup -Dprofile=dev -Dpython_tests=true -Dtest_skip_install=true --prefix=/usr builddir
+    - meson setup -Dprofile=dev -Dpython_tests=true -Dtest_skip_install=true --prefix=/usr -Dloaders=glycin-heif,glycin-image-rs,glycin-jxl,glycin-raw,glycin-svg,glycin-test builddir
     - meson install -C builddir
     - meson test -vC builddir
 

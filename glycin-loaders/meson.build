@@ -178,6 +178,12 @@ if get_option('tests')
     env += {'GLYCIN_DATA_DIR': destdir + datadir}
   endif
 
+  tests = ['processor_']
+
+  if get_option('loaders').contains('glycin-test')
+    tests += 'glycin_test_'
+  endif
+
   test(
     'integration-processor-run-async-io',
     cargo_bin,
@@ -190,7 +196,7 @@ if get_option('tests')
       cargo_options,
       '--',
       '--test-threads=1',
-      '--nocapture', 'processor_',
+      '--nocapture', tests,
     ],
     env: env,
     is_parallel: false,
@@ -211,7 +217,7 @@ if get_option('tests')
         cargo_options,
         '--',
         '--test-threads=1',
-        '--nocapture', 'processor_',
+        '--nocapture', tests,
       ],
       env: env,
       is_parallel: false,
