@@ -2,13 +2,14 @@
 
 use std::ffi::{c_int, c_void};
 use std::fs::{DirEntry, File, canonicalize};
-use std::io::{self, BufRead, BufReader};
+use std::io::{self, BufRead, BufReader, Read};
 use std::os::fd::{AsRawFd, BorrowedFd, OwnedFd};
 use std::os::unix::net::UnixStream;
 use std::os::unix::process::{CommandExt, ExitStatusExt};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::Arc;
+use std::time::Duration;
 
 use gio::glib;
 use libseccomp::error::SeccompError;
@@ -723,36 +724,64 @@ impl Sandbox {
             })
         };
 
+        command.stdout(Stdio::piped());
+        command.stderr(Stdio::piped());
+        command.stdin(Stdio::null());
+
         tracing::debug!("Testing bwrap availability with: {command:?}");
 
-        let output = spawn_blocking(move || command.output()).await?;
+        let mut child = command.spawn()?;
+
+        let mut stdout = child.stdout.take().unwrap();
+        let mut stderr = child.stderr.take().unwrap();
+
+        let process = std::pin::pin!(spawn_blocking(move || child.wait()));
+        let timeout = std::pin::pin!(util::timeout_future(Duration::from_secs(5)));
+
+        let result = futures_util::future::select(timeout, process).await;
+
+        let mut stderr_str = String::new();
+        stderr.read_to_string(&mut stderr_str)?;
+
+        let mut stdout_str = String::new();
+        stdout.read_to_string(&mut stdout_str)?;
+
+        let output = match result {
+            futures_util::future::Either::Left(_) => {
+                tracing::error!(
+                    "Testing bwrap timed out. Output:\nstderr: {stderr_str}\nstdout:{stdout_str}"
+                );
+
+                return Err(ErrorKind::Timeout(Duration::from_secs(5)).err());
+            }
+            futures_util::future::Either::Right((output, _)) => output?,
+        };
 
         tracing::debug!(
             "bwrap availability test returned: {output:?} (Signal: {signal:?}, Code: {code:?})",
-            signal = output.status.signal(),
-            code = output.status.code(),
+            signal = output.signal(),
+            code = output.code(),
         );
 
-        if output.status.success() {
+        if output.success() {
             Ok(false)
-        } else if matches!(output.status.signal(), Some(libc::SIGSYS))
-            || output.status.code() == Some(128 + libc::SIGSYS)
+        } else if matches!(output.signal(), Some(libc::SIGSYS))
+            || output.code() == Some(128 + libc::SIGSYS)
         {
             tracing::debug!("bwrap syscalls not available: Terminated with SIGSYS");
             Ok(true)
-        } else if std::str::from_utf8(&output.stderr).is_ok_and(|x| {
-            [
-                "Creating new namespace failed",
-                "No permissions to create a new namespace",
-                // Wrong grammar in older bwrap versions
-                "No permissions to creating new namespace",
-                // Wording of an old Debian patch
-                "No permissions to create new namespace",
-                "bwrap: setting up uid map: Permission denied",
-            ]
-            .iter()
-            .any(|y| x.contains(y))
-        }) {
+        } else if [
+            "Creating new namespace failed",
+            "No permissions to create a new namespace",
+            // Wrong grammar in older bwrap versions
+            "No permissions to creating new namespace",
+            // Wording of an old Debian patch
+            "No permissions to create new namespace",
+            "bwrap: setting up uid map: Permission denied",
+        ]
+        .iter()
+        .any(|y| stderr_str.contains(y))
+        {
             tracing::debug!("bwrap syscalls not available: STDERR contains known string");
             Ok(true)
         } else {
