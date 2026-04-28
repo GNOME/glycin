@@ -105,6 +105,10 @@ impl GInputStreamSend {
     pub(crate) fn stream(&self) -> gio::InputStream {
         self.0.clone()
     }
+
+    pub(crate) fn display(&self) -> String {
+        self.0.type_().name().to_string()
+    }
 }
 
 /// Image source for a loader/editor
@@ -146,6 +150,22 @@ impl Source {
             .unwrap_or(Self::TransferredStream);
 
         std::mem::replace(self, new)
+    }
+
+    pub fn display(&self) -> String {
+        match self {
+            Self::File(file) => {
+                if let Some(path) = file.path() {
+                    path.display().to_string()
+                } else {
+                    file.uri().to_string()
+                }
+            }
+            Self::Stream(stream) => {
+                format!("Stream({})", stream.display())
+            }
+            Self::TransferredStream => String::from("TransferredStream"),
+        }
     }
 }
 

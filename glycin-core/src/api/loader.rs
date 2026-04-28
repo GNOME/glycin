@@ -143,6 +143,8 @@ impl Loader {
     /// Load basic image information and enable further operations
     pub fn load(mut self) -> Pin<Box<dyn Future<Output = Result<Image, Error>> + Send>> {
         Box::pin(async {
+            tracing::debug!(image = self.source.display(), "Loading image");
+
             let source = self.source.send();
             let main_context = self.main_context();
             let cancellable = self.cancellable.clone();
