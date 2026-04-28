@@ -2546,6 +2546,7 @@ version = "2.1.0"
 dependencies = [
  "async-io",
  "blocking",
+ "futures-util",
  "gdk4",
  "gio",
  "glycin-core",

@@ -61,6 +61,31 @@ fn processor_loader_input_stream() {
     block_on(test_input_stream());
 }
 
+#[test]
+fn processor_loader_color_all_at_once() {
+    init();
+    let mut futures = vec![];
+
+    for entry in std::fs::read_dir("test-images/images/color").unwrap() {
+        let path = entry.unwrap().path();
+        if !skip_file(&path) {
+            let loader = glycin::Loader::new(gio::File::for_path(path));
+            futures.push(async move {
+                let image = loader.load().await?;
+                image.next_frame().await
+            })
+        }
+    }
+
+    let res = block_on(futures_util::future::join_all(futures));
+
+    assert!(
+        res.iter().all(|x| x.is_ok()),
+        "Results: {:?}",
+        res.iter().find(|x| x.is_err())
+    );
+}
+
 fn test_dir(dir: impl AsRef<Path>) {
     block_on(test_dir_options(dir, true));
 }

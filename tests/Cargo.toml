@@ -29,6 +29,7 @@ tracing-subscriber.workspace = true
 # The unmaintained serde_yaml 0.9 crate should work here as well
 # serde_yaml = "0.9.33"
 serde_yaml = { package = "serde_yaml_ng", version = "0.10.0" }
+futures-util.workspace = true
 
 [[test]]
 name = "change_memory_format"
