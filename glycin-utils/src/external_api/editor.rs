@@ -60,7 +60,7 @@ impl<E: api::EditorImplementation> Editor<E> {
     ) -> Result<api::EncodedImage<SharedMemory>, RemoteError> {
         new_image.initial_seal().await?;
         blocking::unblock(|| {
-            crate::catch_unwind(|| {
+            super::catch_unwind(|| {
                 E::create(mime_type, new_image, encoding_options).map_err(|x| x.into_editor_error())
             })
             .flatten()
@@ -77,7 +77,7 @@ impl<E: api::EditorImplementation> Editor<E> {
         let stream = UnixStream::from(fd);
 
         let editor_state = blocking::unblock(|| {
-            crate::catch_unwind(|| {
+            super::catch_unwind(|| {
                 E::edit(stream, init_request.mime_type, init_request.details)
                     .map_err(|x| x.into_loader_error())
             })
@@ -138,7 +138,7 @@ impl<E: api::EditorImplementation> EditableImage<E> {
 
         let editor_implementation = self.editor_implementation.clone();
         let mut editor_output = blocking::unblock(move || {
-            crate::catch_unwind(|| {
+            super::catch_unwind(|| {
                 editor_implementation
                     .apply_sparse(operations)
                     .map_err(|x| x.into_loader_error())
@@ -163,7 +163,7 @@ impl<E: api::EditorImplementation> EditableImage<E> {
 
         let editor_implementation = self.editor_implementation.clone();
         let mut editor_output = blocking::unblock(move || {
-            crate::catch_unwind(move || {
+            super::catch_unwind(move || {
                 editor_implementation
                     .apply_complete(operations)
                     .map_err(|x| x.into_loader_error())

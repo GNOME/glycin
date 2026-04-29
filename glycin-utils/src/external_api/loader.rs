@@ -27,7 +27,7 @@ impl<T: api::LoaderImplementation> Loader<T> {
         let stream = UnixStream::from(fd);
 
         let (loader_state, image_info) = blocking::unblock(|| {
-            crate::catch_unwind(|| {
+            super::catch_unwind(|| {
                 T::load(stream, init_request.mime_type, init_request.details)
                     .map_err(|x| x.into_loader_error())
             })
@@ -100,7 +100,7 @@ impl<T: api::LoaderImplementation> Image<T> {
                 ))
             })?;
 
-            crate::catch_unwind(move || {
+            super::catch_unwind(move || {
                 loader_implementation
                     .specific_frame(frame_request)
                     .map_err(|x| x.into_loader_error())

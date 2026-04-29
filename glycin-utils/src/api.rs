@@ -1,3 +1,5 @@
+//! Fundamental API used by external and builtin processors
+
 mod common;
 mod creator;
 mod editor;
