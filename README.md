@@ -6,7 +6,7 @@ Glycin allows to decode, edit, and create images and read metadata. The decoding
     - [libglycin](https://gnome.pages.gitlab.gnome.org/glycin/libglycin/) – C-Bindings for the library
     - [libglycin-gtk4](https://gnome.pages.gitlab.gnome.org/glycin/libglycin-gtk4/) – C-Bindings to convert glycin frames to GDK Textures
 - [glycin-loaders](glycin-loaders) – Glycin loaders for several formats
-- [glycin-thumbnailers](glycin-thumbnailers) – Glycin thumbnailer using the installed loaders
+- [glycin-thumbnailer](glycin-thumbnailer) – Glycin thumbnailer using the installed loaders
 
 Other rust crates:
 
