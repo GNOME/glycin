@@ -124,6 +124,10 @@ pub struct Config {
 }
 
 impl Config {
+    pub fn loaders(&self) -> &BTreeMap<MimeType, ImageLoaderConfig> {
+        &self.image_loader
+    }
+
     pub(crate) fn guess_mime_type(
         &self,
         path: Option<&Path>,
