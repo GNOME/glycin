@@ -4,7 +4,7 @@ use glycin_common::MemoryFormatInfo;
 use tracing_subscriber::prelude::*;
 
 fn main() {
-    glib::MainContext::default().block_on(run()).unwrap();
+    glib::MainContext::new().block_on(run()).unwrap();
 }
 
 async fn run() -> Result<(), glycin::Error> {

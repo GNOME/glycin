@@ -1,0 +1,9 @@
+*builddir*/
+*install*/
+.git/
+.vscode/
+benches/cache
+libglycin-rebind/gir*/
+public/
+target/
+build-aux/bencher/

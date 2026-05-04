@@ -92,12 +92,17 @@ impl PoolConfig {
         Self::default()
     }
 
-    pub fn max_parallel_operations(&mut self, max_parallel_operations: usize) -> &mut Self {
+    pub fn max_parallel_operations(mut self, max_parallel_operations: usize) -> Self {
         if max_parallel_operations == 0 {
             self.max_parallel_operations = usize::MAX;
         } else {
             self.max_parallel_operations = max_parallel_operations;
         }
+        self
+    }
+
+    pub fn retention_time(mut self, retention_time: Duration) -> Self {
+        self.loader_retention_time = retention_time;
         self
     }
 }

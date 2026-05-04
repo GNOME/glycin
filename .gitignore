@@ -1,9 +1,9 @@
-.vscode
-builddir/
-install/
+*builddir*/
+*install*/
+.vscode/
+benches/cache
+libglycin-rebind/_rustdoc-html-before-content.html
+libglycin-rebind/gir-rustdoc.py
+public/
 target/
 tests/failures
-public/
-libglycin-rebind/gir-rustdoc.py
-libglycin-rebind/_rustdoc-html-before-content.html
-benches/cache

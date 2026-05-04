@@ -1,8 +1,15 @@
 include:
   - component: gitlab.gnome.org/GNOME/citemplates/release-service@master
     inputs:
-      dist-job-name: "build-release-tarball"              # <1.>
-      tarball-artifact-path: "${TARBALL_ARTIFACT_PATH}"   # <2.>
+      dist-job-name: "build-release-tarball"
+      tarball-artifact-path: "${TARBALL_ARTIFACT_PATH}"
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
 
 variables:
   # Clone test-images
@@ -42,6 +49,29 @@ build-release-tarball:
       - "${TARBALL_ARTIFACT_PATH}"
   rules:
     - if: $CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED
+
+benchmark:
+  image: quay.io/podman/stable:v5.8.2
+  variables:
+    STORAGE_DRIVER: vfs
+    IMAGE: registry.bencher.dev/glycin:latest
+  before_script:
+    - dnf install -y which
+    - curl --proto '=https' --tlsv1.2 -sSfL https://bencher.dev/download/install-cli.sh | sh
+    - source $HOME/.cargo/env
+    - bencher --version
+  script:
+    - podman login -u sophieherold@gnome.org -p $BENCHER_TOKEN registry.bencher.dev
+    - podman build -t $IMAGE -f build-aux/bencher/Dockerfile .
+    - podman push $IMAGE
+
+    - bencher run --project glycin --token $BENCHER_TOKEN --image $IMAGE "./loader-bench --bench tiny.png"
+    - bencher run --project glycin --token $BENCHER_TOKEN --image $IMAGE "./filesizes.py"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+      allow_failure: true
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 test-x86_64:
   image: rust:1.92-trixie

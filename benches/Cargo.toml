@@ -13,6 +13,7 @@ gio.workspace = true
 glib.workspace = true
 gdk-pixbuf.workspace = true
 criterion.workspace = true
+async-io.workspace = true
 
 [lints]
 workspace = true
