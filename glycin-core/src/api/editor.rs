@@ -19,6 +19,7 @@ use crate::api::*;
 #[cfg(feature = "external")]
 use crate::dbus::EditorProxy;
 use crate::error::ResultExt;
+use crate::main_context::{MainContextSelector, ProvidesMainContext};
 #[cfg(feature = "external")]
 use crate::pool::PooledProcess;
 use crate::util::{self, CancellableFuture, ShortcutErrorFuture};
@@ -31,6 +32,7 @@ pub struct Editor {
     pool: Arc<Pool>,
     cancellable: gio::Cancellable,
     pub(crate) sandbox_selector: SandboxSelector,
+    pub(crate) main_context_selector: MainContextSelector,
 }
 
 static_assertions::assert_impl_all!(Editor: Send, Sync);
@@ -64,7 +66,13 @@ impl Editor {
             pool: Pool::global(),
             cancellable: gio::Cancellable::new(),
             sandbox_selector: SandboxSelector::default(),
+            main_context_selector: MainContextSelector::Auto,
         }
+    }
+
+    pub fn main_context_selector(&mut self, selector: MainContextSelector) -> &mut Self {
+        self.main_context_selector = selector;
+        self
     }
 
     pub fn edit(self) -> Pin<Box<dyn Future<Output = Result<EditableImage, Error>> + Send>> {

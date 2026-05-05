@@ -22,6 +22,7 @@ pub use crate::config::MimeType;
 #[cfg(feature = "external")]
 use crate::dbus::*;
 use crate::error::ResultExt;
+use crate::main_context::{MainContextSelector, ProvidesMainContext};
 #[cfg(feature = "external")]
 use crate::pool::{PooledProcess, UsageTracker};
 use crate::source::SourceTransmission;
@@ -39,6 +40,7 @@ pub struct Loader {
     pub(crate) sandbox_selector: SandboxSelector,
     pub(crate) memory_format_selection: MemoryFormatSelection,
     pub(crate) limits: Limits,
+    pub(crate) main_context_selector: MainContextSelector,
 }
 
 static_assertions::assert_impl_all!(Loader: Send, Sync);
@@ -76,6 +78,7 @@ impl Loader {
             sandbox_selector: SandboxSelector::default(),
             memory_format_selection: MemoryFormatSelection::all(),
             limits: Limits::default(),
+            main_context_selector: MainContextSelector::Auto,
         }
     }
 
@@ -137,6 +140,11 @@ impl Loader {
 
     pub fn limits(&mut self, limits: Limits) -> &mut Self {
         self.limits = limits;
+        self
+    }
+
+    pub fn main_context_selector(&mut self, selector: MainContextSelector) -> &mut Self {
+        self.main_context_selector = selector;
         self
     }
 

@@ -7,9 +7,7 @@ use std::sync::Mutex;
 
 use nix::libc::{c_uint, siginfo_t};
 
-use crate::Loader;
-use crate::api;
-use crate::{Editor, VoidEditorImplementation};
+use crate::{Editor, Loader, VoidEditorImplementation, api};
 
 pub struct DbusServer {
     _dbus_connection: zbus::Connection,

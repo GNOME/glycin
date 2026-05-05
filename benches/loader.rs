@@ -1,6 +1,6 @@
-use std::path::Path;
+use std::hint::black_box;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
-use std::{hint::black_box, path::PathBuf};
 
 use criterion::{Criterion, SamplingMode, criterion_group, criterion_main};
 use gio::prelude::FileExt;

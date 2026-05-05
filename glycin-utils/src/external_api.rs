@@ -1,6 +1,4 @@
 //! D-Bus API for external processors
-//!
-//!
 
 mod editor;
 mod loader;

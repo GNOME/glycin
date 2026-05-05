@@ -1,7 +1,7 @@
 #[cfg(feature = "builtin")]
 use std::marker::PhantomData;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, LazyLock};
+use std::sync::Arc;
 
 #[cfg(feature = "gobject")]
 use gio::glib;
@@ -467,63 +467,3 @@ pub(crate) async fn guess_mime_type(
 
     Ok(MimeType::new(mime_type.to_string()))
 }
-
-static CHECK_MAIN_CONTEXT: LazyLock<std::sync::Mutex<()>> = LazyLock::new(Default::default);
-pub trait ProvidesMainContext {
-    fn main_context(&self) -> glib::MainContext {
-        let main_context = if let Some(thread_context) = glib::MainContext::thread_default() {
-            tracing::debug!("Using current threads default MainContext.");
-            // Current thread has a default MainContext
-            thread_context
-        } else {
-            let check_main_context_lock = CHECK_MAIN_CONTEXT.lock().unwrap();
-            let default_thread = glib::MainContext::default();
-            let global_default_has_main_loop = default_thread.acquire().is_err();
-            drop(check_main_context_lock);
-
-            if global_default_has_main_loop {
-                tracing::debug!("Using global default MainContext.");
-                // Default thread is running on some other thread
-                default_thread.clone()
-            } else {
-                tracing::debug!("Using global glycin MainContext.");
-                static GLYCIN_MAIN_CONTEXT: LazyLock<glib::MainContext> = LazyLock::new(|| {
-                    tracing::debug!("Creating glycin global MainContext.");
-
-                    let main_context = glib::MainContext::new();
-                    let main_loop = glib::MainLoop::new(Some(&main_context), true);
-
-                    #[cfg(feature = "tokio")]
-                    let hdl = tokio::runtime::Handle::current();
-
-                    std::thread::spawn(glib::clone!(
-                        #[strong]
-                        main_context,
-                        move || {
-                            // Inherit the tokio runtime for our custom thread
-                            #[cfg(feature = "tokio")]
-                            let _hdl = hdl.enter();
-                            main_context.with_thread_default(|| main_loop.run())
-                        }
-                    ));
-
-                    main_context
-                });
-                // Return global glycin MainContext
-                (*GLYCIN_MAIN_CONTEXT).clone()
-            }
-        };
-
-        #[cfg(feature = "tokio")]
-        main_context.spawn_from_within(|| async {
-            if tokio::runtime::Handle::try_current().is_err() {
-                tracing::error!("Using a MainContext which doesn't have a tokio Runtime in it's MainLoop thread. This will most likely fail.");
-            }
-        });
-
-        main_context
-    }
-}
-
-impl ProvidesMainContext for crate::Loader {}
-impl ProvidesMainContext for crate::Editor {}
