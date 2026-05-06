@@ -32,7 +32,7 @@ use crate::{Error, ErrorKind, MAX_TEXTURE_SIZE, Pool, config, icc, orientation, 
 /// Image request builder
 #[derive(Debug)]
 pub struct Loader {
-    source: Source,
+    pub(crate) source: Source,
     pool: Arc<Pool>,
     pub(crate) cancellable: gio::Cancellable,
     use_expose_base_dir: bool,

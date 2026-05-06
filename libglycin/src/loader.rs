@@ -90,7 +90,7 @@ pub unsafe extern "C" fn gly_loader_load(
     unsafe {
         let obj = gobject::GlyLoader::from_glib_ptr_borrow(&loader);
 
-        let result = async_global_executor::block_on(obj.load());
+        let result = obj.load();
 
         match result {
             Ok(image) => image.into_glib_ptr(),
@@ -136,12 +136,15 @@ pub unsafe extern "C" fn gly_loader_load_async(
         };
 
         let task = gio::Task::new(Some(&obj), cancellable_.as_ref(), closure);
+        task.set_name(Some(&format!(
+            "glycin-loader-load-{}",
+            obj.source_display()
+        )));
 
-        async_global_executor::spawn(async move {
-            let res = obj.load().await.map_err(|x| glib_context_error(&x));
+        obj.main_context().spawn(async move {
+            let res = obj.load_future().await.map_err(|x| glib_context_error(&x));
             task.return_result(res);
-        })
-        .detach();
+        });
     }
 }
 

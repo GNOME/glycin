@@ -8,6 +8,7 @@ use glib::subclass::prelude::*;
 use glycin_common::MemoryFormatSelection;
 
 use super::{GlyImage, init};
+use crate::main_context::ProvidesMainContext;
 use crate::{Loader, SandboxSelector};
 
 static_assertions::assert_impl_all!(GlyLoader: Send, Sync);
@@ -121,19 +122,24 @@ pub mod imp {
             });
         }
 
-        fn inspect<T: Default>(&self, f: impl FnOnce(&mut Loader) -> T) -> T {
-            glib::MainContext::new().block_on(async {
-                match self.loader.lock().await.as_mut() {
-                    None => {
-                        g_critical!(
-                            "glycin",
-                            "Loader used after Loader.load() or a similar function has been called."
-                        );
-                        T::default()
-                    }
-                    Some(loader) => f(loader),
-                }
-            })
+        pub(super) fn inspect<T: Default>(&self, f: impl FnOnce(&mut Loader) -> T) -> T {
+            let Some(mut loader_lock) = self.loader.try_lock() else {
+                g_critical!(
+                    "glycin",
+                    "Loader used from more than one thread at the same time."
+                );
+                return T::default();
+            };
+
+            let Some(loader) = loader_lock.as_mut() else {
+                g_critical!(
+                    "glycin",
+                    "Loader used after Loader.load() or a similar function has been called."
+                );
+                return T::default();
+            };
+
+            f(loader)
         }
     }
 }
@@ -155,11 +161,30 @@ impl GlyLoader {
         glib::Object::builder().property("bytes", bytes).build()
     }
 
-    pub async fn load(&self) -> Result<GlyImage, crate::Error> {
+    pub fn load(&self) -> Result<GlyImage, crate::Error> {
+        glib::MainContext::new().block_on(async {
+            let Some(mut loader) = std::mem::take(&mut *self.imp().loader.lock().await) else {
+                return Err(crate::ErrorKind::LoaderUsedTwice.into());
+            };
+
+            loader.main_context_selector(crate::MainContextSelector::Managed);
+            let image = loader.load().await?;
+
+            Ok(GlyImage::new(image))
+        })
+    }
+
+    pub async fn load_future(&self) -> Result<GlyImage, crate::Error> {
         let loader = std::mem::take(&mut *self.imp().loader.lock().await);
-
         let image = loader.unwrap().load().await?;
-
         Ok(GlyImage::new(image))
+    }
+
+    pub fn main_context(&self) -> glib::MainContext {
+        self.imp().inspect(|x| x.main_context())
+    }
+
+    pub fn source_display(&self) -> String {
+        self.imp().inspect(|x: &mut Loader| x.source.display())
     }
 }
