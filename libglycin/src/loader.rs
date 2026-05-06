@@ -21,7 +21,7 @@ pub type GlyLoader = <gobject::loader::imp::GlyLoader as ObjectSubclass>::Instan
 pub unsafe extern "C" fn gly_loader_new(file: *mut gio::ffi::GFile) -> *mut GlyLoader {
     unsafe {
         let file = gio::File::from_glib_ptr_borrow(&file);
-        gobject::GlyLoader::new(file).into_glib_ptr()
+        gobject::GlyLoader::new(file.clone()).into_glib_ptr()
     }
 }
 
@@ -66,7 +66,7 @@ pub unsafe extern "C" fn gly_loader_set_accepted_memory_formats(
             glycin::MemoryFormatSelection::from_bits_truncate(memory_format_selection);
         let obj = gobject::GlyLoader::from_glib_ptr_borrow(&loader);
 
-        obj.set_memory_format_selection(memory_format_selection);
+        obj.set_accepted_memory_formats(memory_format_selection);
     }
 }
 
@@ -78,7 +78,7 @@ pub unsafe extern "C" fn gly_loader_set_apply_transformations(
     unsafe {
         let obj = gobject::GlyLoader::from_glib_ptr_borrow(&loader);
 
-        obj.set_apply_transformation(apply_tansformations != 0);
+        obj.set_apply_transformations(apply_tansformations != 0);
     }
 }
 

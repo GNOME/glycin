@@ -101,11 +101,6 @@ impl GInputStreamSend {
         Self(stream)
     }
 
-    #[cfg(feature = "gobject")]
-    pub(crate) fn stream(&self) -> gio::InputStream {
-        self.0.clone()
-    }
-
     pub(crate) fn display(&self) -> String {
         self.0.type_().name().to_string()
     }

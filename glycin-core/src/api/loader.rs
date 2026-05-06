@@ -34,7 +34,7 @@ use crate::{Error, ErrorKind, MAX_TEXTURE_SIZE, Pool, config, icc, orientation, 
 pub struct Loader {
     source: Source,
     pool: Arc<Pool>,
-    cancellable: gio::Cancellable,
+    pub(crate) cancellable: gio::Cancellable,
     use_expose_base_dir: bool,
     pub(crate) apply_transformations: bool,
     pub(crate) sandbox_selector: SandboxSelector,

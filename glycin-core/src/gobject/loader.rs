@@ -1,37 +1,41 @@
-use std::sync::Mutex;
+use std::marker::PhantomData;
 
+use futures_util::lock::Mutex;
 use gio::glib;
+use glib::g_critical;
 use glib::prelude::*;
 use glib::subclass::prelude::*;
 use glycin_common::MemoryFormatSelection;
 
-use super::GlyImage;
-use crate::{ErrorKind, GInputStreamSend, SandboxSelector, Source};
+use super::{GlyImage, init};
+use crate::{Loader, SandboxSelector};
 
 static_assertions::assert_impl_all!(GlyLoader: Send, Sync);
-use super::init;
 
 pub mod imp {
+
     use super::*;
 
     #[derive(Default, Debug, glib::Properties)]
     #[properties(wrapper_type = super::GlyLoader)]
     pub struct GlyLoader {
-        #[property(get, construct_only)]
-        pub(super) file: Mutex<Option<gio::File>>,
-        #[property(get=Self::stream, set=Self::set_stream, construct_only, type=Option<gio::InputStream>)]
-        pub(super) stream: Mutex<Option<GInputStreamSend>>,
-        #[property(get, construct_only)]
-        pub(super) bytes: Mutex<Option<glib::Bytes>>,
+        #[property(construct_only, set=Self::set_file)]
+        file: PhantomData<gio::File>,
+        #[property(construct_only, set=Self::set_stream, type=gio::InputStream)]
+        stream: PhantomData<()>,
+        #[property(construct_only, set=Self::set_bytes)]
+        bytes: PhantomData<glib::Bytes>,
 
-        #[property(get, set)]
-        cancellable: Mutex<gio::Cancellable>,
-        #[property(get, set, builder(SandboxSelector::default()))]
-        sandbox_selector: Mutex<SandboxSelector>,
-        #[property(get, set)]
-        memory_format_selection: Mutex<MemoryFormatSelection>,
-        #[property(get, set)]
-        apply_transformation: Mutex<bool>,
+        #[property(get=Self::cancellable, set=Self::set_cancellable)]
+        cancellable: PhantomData<gio::Cancellable>,
+        #[property(set=Self::set_sandbox_selector, builder(SandboxSelector::default()))]
+        sandbox_selector: PhantomData<SandboxSelector>,
+        #[property(set=Self::set_accepted_memory_formats)]
+        accepted_memory_formats: PhantomData<MemoryFormatSelection>,
+        #[property(set=Self::set_apply_transformations)]
+        apply_transformations: PhantomData<bool>,
+
+        pub(super) loader: Mutex<Option<Loader>>,
     }
 
     #[glib::object_subclass]
@@ -47,31 +51,89 @@ pub mod imp {
 
             init();
 
-            let obj = self.obj();
-
-            *self.apply_transformation.lock().unwrap() = true;
-
-            if obj.file().is_some() as u8
-                + obj.stream().is_some() as u8
-                + obj.bytes().is_some() as u8
-                != 1
-            {
-                glib::g_critical!(
+            if self.loader.try_lock().unwrap().is_none() {
+                g_critical!(
                     "glycin",
-                    "A loader needs to be initialized with exactly one of 'file', 'stream', or 'bytes'."
+                    "A loader needs to be initialized with exactly one of the 'file', 'stream', or 'bytes' properties. None specified."
                 );
             }
         }
     }
 
     impl GlyLoader {
-        fn stream(&self) -> Option<gio::InputStream> {
-            self.stream.lock().unwrap().as_ref().map(|x| x.stream())
+        fn set_bytes(&self, bytes: Option<glib::Bytes>) {
+            let Some(bytes) = bytes else { return };
+
+            self.init(Loader::new_bytes(bytes));
         }
 
-        fn set_stream(&self, stream: Option<&gio::InputStream>) {
-            let stream = unsafe { stream.map(|x| GInputStreamSend::new(x.clone())) };
-            *self.stream.lock().unwrap() = stream;
+        fn set_file(&self, file: Option<gio::File>) {
+            let Some(file) = file else { return };
+
+            self.init(Loader::new(file));
+        }
+
+        fn set_stream(&self, stream: Option<gio::InputStream>) {
+            let Some(stream) = stream else { return };
+
+            self.init(unsafe { Loader::new_stream(stream) });
+        }
+
+        fn init(&self, loader: Loader) {
+            glib::MainContext::new().block_on(async {
+                let mut loader_mutex =self.loader.lock().await;
+               if loader_mutex.is_some() {
+                        g_critical!(
+                            "glycin",
+                            "A loader needs to be initialized with exactly one of the 'file', 'stream', or 'bytes' properties. More than one specified."
+                        );
+                } else {
+                  *loader_mutex = Some(loader);
+                }
+            })
+        }
+
+        fn cancellable(&self) -> gio::Cancellable {
+            self.inspect(|x| x.cancellable.clone())
+        }
+
+        fn set_cancellable(&self, cancellable: gio::Cancellable) {
+            self.inspect(|x| {
+                x.cancellable(cancellable);
+            });
+        }
+
+        fn set_sandbox_selector(&self, sandbox_selector: SandboxSelector) {
+            self.inspect(|x| {
+                x.sandbox_selector(sandbox_selector);
+            });
+        }
+
+        fn set_accepted_memory_formats(&self, memory_format_selection: MemoryFormatSelection) {
+            self.inspect(|x| {
+                x.accepted_memory_formats(memory_format_selection);
+            });
+        }
+
+        fn set_apply_transformations(&self, apply_transformations: bool) {
+            self.inspect(|x| {
+                x.apply_transformations(apply_transformations);
+            });
+        }
+
+        fn inspect<T: Default>(&self, f: impl FnOnce(&mut Loader) -> T) -> T {
+            glib::MainContext::new().block_on(async {
+                match self.loader.lock().await.as_mut() {
+                    None => {
+                        g_critical!(
+                            "glycin",
+                            "Loader used after Loader.load() or a similar function has been called."
+                        );
+                        T::default()
+                    }
+                    Some(loader) => f(loader),
+                }
+            })
         }
     }
 }
@@ -82,35 +144,21 @@ glib::wrapper! {
 }
 
 impl GlyLoader {
-    pub fn new(file: &gio::File) -> Self {
+    pub fn new(file: gio::File) -> Self {
         glib::Object::builder().property("file", file).build()
     }
 
     pub fn for_stream(stream: &gio::InputStream) -> Self {
         glib::Object::builder().property("stream", stream).build()
     }
-
     pub fn for_bytes(bytes: &glib::Bytes) -> Self {
         glib::Object::builder().property("bytes", bytes).build()
     }
 
     pub async fn load(&self) -> Result<GlyImage, crate::Error> {
-        let mut loader = if let Some(file) = std::mem::take(&mut *self.imp().file.lock().unwrap()) {
-            crate::Loader::new(file)
-        } else if let Some(stream) = std::mem::take(&mut *self.imp().stream.lock().unwrap()) {
-            crate::Loader::new_source(Source::Stream(stream))
-        } else if let Some(bytes) = std::mem::take(&mut *self.imp().bytes.lock().unwrap()) {
-            crate::Loader::new_bytes(bytes)
-        } else {
-            return Err(ErrorKind::LoaderUsedTwice.err());
-        };
+        let loader = std::mem::take(&mut *self.imp().loader.lock().await);
 
-        loader.sandbox_selector = self.sandbox_selector();
-        loader.memory_format_selection = self.memory_format_selection();
-        loader.apply_transformations = self.apply_transformation();
-        loader.cancellable(self.cancellable());
-
-        let image = loader.load().await?;
+        let image = loader.unwrap().load().await?;
 
         Ok(GlyImage::new(image))
     }
