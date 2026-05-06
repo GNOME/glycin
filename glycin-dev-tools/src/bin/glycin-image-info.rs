@@ -22,7 +22,7 @@ async fn run() -> Result<(), glycin::Error> {
     let n_frames = args.next().and_then(|x| x.parse().ok()).unwrap_or(1);
 
     let file = gio::File::for_path(path);
-    let image = glycin::Loader::new(file).load().await?;
+    let mut image = glycin::Loader::new(file).load().await?;
 
     let info = image.details();
 

@@ -71,7 +71,7 @@ fn processor_loader_color_all_at_once() {
         if !skip_file(&path) {
             let loader = glycin::Loader::new(gio::File::for_path(path));
             futures.push(async move {
-                let image = loader.load().await?;
+                let mut image = loader.load().await?;
                 image.next_frame().await
             })
         }
@@ -111,7 +111,7 @@ async fn test_dir_animated(dir: impl AsRef<Path>) {
         let file = gio::File::for_path(&path);
         let mut image_request = glycin::Loader::new(file);
         image_request.use_expose_base_dir(true);
-        let image = image_request.load().await.unwrap();
+        let mut image = image_request.load().await.unwrap();
 
         for n_frame in [0, 1, 2, 3, 0, 1, 2, 3] {
             let reference_path = reference_image_path(&dir, Some(n_frame));

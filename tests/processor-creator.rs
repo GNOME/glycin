@@ -11,7 +11,7 @@ fn processor_creator_roundtrip_all() {
         let reference_path = "test-images/images/color/color.png";
 
         let loader = Loader::new(gio::File::for_path(reference_path));
-        let image = loader.load().await.unwrap();
+        let mut image = loader.load().await.unwrap();
         let frame = image.next_frame().await.unwrap();
         let width = frame.width();
         let height = frame.height();
@@ -80,7 +80,7 @@ fn processor_creator_jpeg() {
         let encoded_image = encoder.create().await.unwrap();
 
         let loader = glycin::Loader::new_vec(encoded_image.data_full());
-        let image = loader.load().await.unwrap();
+        let mut image = loader.load().await.unwrap();
         let frame = image.next_frame().await.unwrap();
 
         assert_eq!(
@@ -112,7 +112,7 @@ fn processor_creator_jpeg_stride() {
         let encoded_image = encoder.create().await.unwrap();
 
         let loader = glycin::Loader::new_vec(encoded_image.data_full());
-        let image = loader.load().await.unwrap();
+        let mut image = loader.load().await.unwrap();
         let frame = image.next_frame().await.unwrap();
 
         assert!(frame.buf_slice()[2 * 3] < 10);
@@ -143,7 +143,7 @@ fn processor_creator_jpeg_stride_last_row() {
         let encoded_image = encoder.create().await.unwrap();
 
         let loader = glycin::Loader::new_vec(encoded_image.data_full());
-        let image = loader.load().await.unwrap();
+        let mut image = loader.load().await.unwrap();
         let frame = image.next_frame().await.unwrap();
 
         assert!(frame.buf_slice()[2 * 3] < 10);
@@ -193,7 +193,7 @@ fn processor_creator_jpeg_quality() {
         let encoded_image = creator.create().await.unwrap();
 
         let loader = glycin::Loader::new_vec(encoded_image.data_full());
-        let image = loader.load().await.unwrap();
+        let mut image = loader.load().await.unwrap();
         let frame = image.next_frame().await.unwrap();
 
         assert!(frame.buf_slice()[3].abs_diff(texture[3]) < 5);
@@ -206,7 +206,7 @@ fn processor_creator_jpeg_quality() {
         let encoded_image = creator.create().await.unwrap();
 
         let loader = glycin::Loader::new_vec(encoded_image.data_full());
-        let image = loader.load().await.unwrap();
+        let mut image = loader.load().await.unwrap();
         let frame = image.next_frame().await.unwrap();
 
         assert!(frame.buf_slice()[3].abs_diff(texture[3]) > 5);
@@ -219,7 +219,7 @@ fn processor_creator_png_compression() {
         init();
 
         let loader = glycin::Loader::new(gio::File::for_path("test-images/images/color.png"));
-        let image = loader.load().await.unwrap();
+        let mut image = loader.load().await.unwrap();
         let frame = image.next_frame().await.unwrap();
         let texture = frame.buf_slice().to_vec();
 
@@ -287,7 +287,7 @@ fn processor_creator_png() {
 
         let mut loader = glycin::Loader::new_vec(encoded_image.data_full());
         loader.accepted_memory_formats(glycin::MemoryFormatSelection::R8g8b8);
-        let image = loader.load().await.unwrap();
+        let mut image = loader.load().await.unwrap();
 
         assert_eq!(
             image
@@ -332,7 +332,7 @@ fn processor_creator_avif() {
         let encoded_image = encoder.create().await.unwrap();
 
         let loader = glycin::Loader::new_vec(encoded_image.data_full());
-        let image = loader.load().await.unwrap();
+        let mut image = loader.load().await.unwrap();
         let frame = image.next_frame().await.unwrap();
 
         assert!(frame.buf_slice()[0] >= 253);

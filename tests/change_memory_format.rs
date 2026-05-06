@@ -24,7 +24,7 @@ async fn change_memory_format_internal() {
             let mut loader = glycin::Loader::new(file.clone());
             loader.accepted_memory_formats(memory_format_selection);
 
-            let image = loader.load().await.unwrap();
+            let mut image = loader.load().await.unwrap();
 
             image.next_frame().await.unwrap();
         }

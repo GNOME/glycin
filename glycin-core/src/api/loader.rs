@@ -387,7 +387,7 @@ impl Image {
     /// images, this can only be called once. For animated images, this
     /// function will loop to the first frame, when the last frame is reached.
     pub fn next_frame<'a>(
-        &'a self,
+        &'a mut self,
     ) -> Pin<Box<dyn Future<Output = Result<Frame, Error>> + 'a + Send>> {
         self.specific_frame(FrameRequest::default())
     }
@@ -397,7 +397,7 @@ impl Image {
     /// Loads a specific frame from the file. Loaders can ignore parts of the
     /// instructions in the `FrameRequest`.
     pub fn specific_frame<'a>(
-        &'a self,
+        &'a mut self,
         frame_request: FrameRequest,
     ) -> Pin<Box<dyn Future<Output = Result<Frame, Error>> + 'a + Send>> {
         Box::pin(async move {
@@ -904,7 +904,7 @@ mod test {
     fn ensure_futures_are_send() {
         gio::glib::spawn_future(async {
             let loader = Loader::new(gio::File::for_uri("invalid"));
-            let image = loader.load().await.unwrap();
+            let mut image = loader.load().await.unwrap();
             image.next_frame().await.unwrap();
         });
     }

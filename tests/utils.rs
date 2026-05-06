@@ -89,7 +89,7 @@ async fn get_texture(path: impl AsRef<Path>) -> gdk::Texture {
     let file = gio::File::for_path(&path);
     let mut loader = glycin::Loader::new(file);
     loader.use_expose_base_dir(true);
-    let image = loader.load().await.unwrap();
+    let mut image = loader.load().await.unwrap();
     let frame = image.next_frame().await.unwrap();
     frame.texture()
 }

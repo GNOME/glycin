@@ -1,7 +1,7 @@
 use std::sync::LazyLock;
 
 /// Specify which [`MainContext`](glib::MainContext) to use
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub enum MainContextSelector {
     /// Automatically detect which main context to use
     ///

@@ -32,7 +32,7 @@ fn glycin_test_panic_frame() {
 
     block_on(async {
         let loader = glycin_core::Loader::new_vec(instruction(&[b"panic-next-step"]));
-        let image = loader.load().await.unwrap();
+        let mut image = loader.load().await.unwrap();
         let err = image.next_frame().await.unwrap_err();
         assert!(err.is_panic(), "Error: {err}");
     });
@@ -129,7 +129,7 @@ fn glycin_test_timeout_next_frame() {
         let mut loader = glycin_core::Loader::new_vec(instruction(&[b"infinte-loop-next-step"]));
         loader.limits(Limits::default().timeout(Duration::from_millis(100)));
 
-        let image = loader.load().await.unwrap();
+        let mut image = loader.load().await.unwrap();
 
         let err = image.next_frame().await.unwrap_err();
         assert!(err.is_timeout(), "Error: {err}");
