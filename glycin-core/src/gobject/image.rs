@@ -36,11 +36,8 @@ glib::wrapper! {
 
 impl GlyImage {
     pub(crate) fn new(image: Image) -> Self {
-        dbg!("new");
         let obj = glib::Object::new::<Self>();
-        dbg!("set");
         *obj.imp().image.try_lock().unwrap() = Some(image);
-        dbg!("done");
         obj
     }
 
