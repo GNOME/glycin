@@ -33,7 +33,7 @@ impl Eq for MimeType {}
 
 impl PartialOrd for MimeType {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.as_str().partial_cmp(other.as_str())
+        Some(self.cmp(other))
     }
 }
 
@@ -207,7 +207,7 @@ impl Eq for Processor {}
 
 impl PartialOrd for Processor {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.hash().cmp(other.hash()))
+        Some(self.cmp(other))
     }
 }
 
