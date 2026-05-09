@@ -306,7 +306,7 @@ impl<S> ProcessorContext<ImageLoaderConfig, S> {
     }
 
     #[cfg(feature = "external")]
-    async fn spin_up_loader<'a>(
+    async fn spin_up_loader(
         self,
         pool: Arc<Pool>,
         cancellable: &gio::Cancellable,
