@@ -88,7 +88,7 @@ gobject-sys = { version = "0.22.0", features = ["v2_68"] }
 glycin = { version = "4.0.0", path = "glycin/", default-features = false }
 glycin-builtin = { version = "4.0.0", path = "glycin/glycin-builtin/", default-features = false }
 glycin-core = { version = "4.0.0", path = "glycin-core/", default-features = false }
-glycin-common = { version = "1.0.4", path = "glycin-common/" }
+glycin-common = { version = "2.0.0", path = "glycin-common/" }
 glycin-image-rs = { version = "2.1.0", path = "glycin-loaders/glycin-image-rs", default-features = false }
 glycin-test = { version = "2.1.0", path = "glycin-loaders/glycin-test", default-features = false }
 glycin-utils = { version = "5.0.0", path = "glycin-utils/", default-features = false }

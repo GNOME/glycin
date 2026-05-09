@@ -68,7 +68,7 @@ pub fn change_memory_format(
                         // target bytes for pixel
                         let k0 = x * target_pixel_n_bytes;
 
-                        for channel_byte in 0..target_format.channel_type().size() {
+                        for channel_byte in 0..target_format.channel_type().size() as usize {
                             for i in 0..target_n_channels as usize {
                                 new_row[k0 + i + channel_byte] =
                                     src_data[i0 + source_target_index_map[i] + channel_byte];
@@ -90,7 +90,7 @@ pub fn change_memory_format(
                 }
 
                 let target_n_channels = target_format.n_channels();
-                let source_channel_size = src_format.channel_type().size();
+                let source_channel_size = src_format.channel_type().size() as usize;
 
                 target_rows.into_par_iter().for_each(|(y, new_row)| {
                     for x in 0..frame.width as usize {

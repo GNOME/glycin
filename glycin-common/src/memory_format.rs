@@ -331,7 +331,7 @@ impl MemoryFormat {
         target_format: Self,
         target: &mut [u8],
     ) {
-        let target_channel_size = target_format.channel_type().size();
+        let target_channel_size = target_format.channel_type().size() as usize;
 
         let premultiply = if target_format.is_premultiplied() {
             channels_f32[3]
@@ -476,7 +476,7 @@ pub enum ChannelType {
 }
 
 impl ChannelType {
-    pub fn size(self) -> usize {
+    pub const fn size(self) -> u8 {
         match self {
             Self::U8 => 1,
             Self::U16 => 2,

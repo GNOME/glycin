@@ -196,9 +196,9 @@ impl MemoryFormatSelection {
                         x.channel_type() == src.channel_type(),
                         x.channel_type().size() >= src.channel_type().size(),
                         // Don't have unnecessary many channels
-                        -(x.n_channels() as i8),
+                        -(x.n_channels() as i16),
                         // Don't have unnecessary large types
-                        -(x.channel_type().size() as i8),
+                        -(x.channel_type().size() as i16),
                     ),
                     x,
                 )

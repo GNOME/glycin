@@ -1157,7 +1157,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-common"
-version = "1.0.4"
+version = "2.0.0"
 dependencies = [
  "bitflags",
  "glib",
