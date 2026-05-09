@@ -47,6 +47,9 @@ external = [
     "glycin-utils/external",
 ]
 
+[lints]
+workspace = true
+
 [dependencies]
 async-fs = { workspace = true, optional = true }
 async-global-executor = { workspace = true, optional = true }
