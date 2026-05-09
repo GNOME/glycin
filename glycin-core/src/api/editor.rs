@@ -44,6 +44,10 @@ impl Editor {
     }
 
     /// Create an editor with a [`gio::InputStream`] as source
+    ///
+    /// # Safety
+    ///
+    /// The provided stream must no longer be used after being passed to glycin.
     pub unsafe fn new_stream(stream: impl IsA<gio::InputStream>) -> Self {
         unsafe { Self::new_source(Source::Stream(GInputStreamSend::new(stream.upcast()))) }
     }
