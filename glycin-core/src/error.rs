@@ -64,7 +64,7 @@ impl<T, E: Into<Error>> ResultExt<T> for Result<T, E> {
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub struct Error {
-    kind: ErrorKind,
+    kind: Box<ErrorKind>,
     context: Option<ErrorContext>,
 }
 
@@ -79,14 +79,14 @@ impl std::error::Error for Error {}
 impl Error {
     fn from_kind(kind: ErrorKind) -> Self {
         Self {
-            kind,
+            kind: Box::new(kind),
             context: None,
         }
     }
 
     #[cfg(feature = "unstable")]
     pub fn kind(self) -> ErrorKind {
-        self.kind
+        *self.kind
     }
 
     /// Returns if the error is related to unsupported formats.
@@ -94,7 +94,7 @@ impl Error {
     /// Return the mime type of the unsupported format or [`None`] if the error
     /// is unrelated to unsupported formats.
     pub fn unsupported_format(&self) -> Option<String> {
-        match &self.kind {
+        match &*self.kind {
             ErrorKind::UnknownImageFormat(mime_type, _) => Some(mime_type.to_string()),
             ErrorKind::RemoteError(RemoteError::UnsupportedImageFormat(msg)) => Some(msg.clone()),
             _ => None,
@@ -103,24 +103,27 @@ impl Error {
 
     pub fn is_out_of_memory(&self) -> bool {
         matches!(
-            self.kind,
+            *self.kind,
             ErrorKind::RemoteError(RemoteError::OutOfMemory(_))
         )
     }
 
     pub fn is_no_more_frames(&self) -> bool {
-        matches!(self.kind, ErrorKind::RemoteError(RemoteError::NoMoreFrames))
+        matches!(
+            *self.kind,
+            ErrorKind::RemoteError(RemoteError::NoMoreFrames)
+        )
     }
 
     pub fn is_panic(&self) -> bool {
         matches!(
-            self.kind,
+            *self.kind,
             ErrorKind::ThreadPanic | ErrorKind::RemoteError(RemoteError::Panic)
         )
     }
 
     pub fn is_timeout(&self) -> bool {
-        matches!(self.kind, ErrorKind::Timeout(_))
+        matches!(*self.kind, ErrorKind::Timeout(_))
     }
 }
 
