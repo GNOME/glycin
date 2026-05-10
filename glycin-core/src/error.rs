@@ -210,6 +210,8 @@ pub enum ErrorKind {
     FeatureNotSupported(#[from] FeatureNotSupported),
     #[error("Operation did not complete in supplied limit of {0:?}")]
     Timeout(Duration),
+    #[error("This state should never have been reached: {0}:{1}")]
+    Unreachable(&'static str, u32),
 }
 
 impl ErrorKind {
@@ -224,6 +226,11 @@ impl ErrorKind {
             .or_else(|| any.downcast_ref::<String>().map(|x| x.to_string()));
 
         ErrorKind::ThreadPanic(s)
+    }
+
+    #[track_caller]
+    pub(crate) fn unreachable() -> ErrorKind {
+        Self::Unreachable(std::file!(), std::line!())
     }
 }
 

@@ -30,7 +30,10 @@ impl SourceTransmission {
             .await
             .map_err(|(_, err)| ErrorKind::ImageSource(err).err())?;
 
-        let first_bytes = buf[..n].to_vec();
+        let first_bytes = buf
+            .get(..n)
+            .ok_or_else(|| ErrorKind::unreachable().err())?
+            .to_vec();
 
         Ok(Self {
             file: source.file(),
@@ -67,7 +70,12 @@ impl SourceTransmission {
 
             // TODO: Avoiding to_vec()
             let res = stream
-                .write_all_future(buf[..n].to_vec(), glib::Priority::DEFAULT)
+                .write_all_future(
+                    buf.get(..n)
+                        .ok_or_else(|| ErrorKind::unreachable().err())?
+                        .to_vec(),
+                    glib::Priority::DEFAULT,
+                )
                 .await;
 
             match res {
