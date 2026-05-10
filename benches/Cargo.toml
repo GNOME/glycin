@@ -8,12 +8,14 @@ rust-version.workspace = true
 publish = false
 
 [dev-dependencies]
-glycin = { workspace = true, features = ["async-io"] }
+async-io.workspace = true
+criterion.workspace = true
+gdk-pixbuf.workspace = true
 gio.workspace = true
 glib.workspace = true
-gdk-pixbuf.workspace = true
-criterion.workspace = true
-async-io.workspace = true
+glycin = { workspace = true, features = ["async-io"] }
+glycin-thumbnailer.workspace = true
+glycin-utils.workspace = true
 
 [lints]
 workspace = true
@@ -21,4 +23,14 @@ workspace = true
 [[bench]]
 name = "loader"
 harness = false
-path = "loader.rs"
+path = "bench-loader.rs"
+
+[[bench]]
+name = "thumbnailer"
+harness = false
+path = "bench-thumbnailer.rs"
+
+[[bench]]
+name = "utils"
+harness = false
+path = "bench-utils.rs"

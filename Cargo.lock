@@ -258,6 +258,8 @@ dependencies = [
  "gio",
  "glib",
  "glycin",
+ "glycin-thumbnailer",
+ "glycin-utils",
 ]
 
 [[package]]
