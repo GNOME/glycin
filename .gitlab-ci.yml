@@ -74,6 +74,14 @@ benchmark:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 test-x86_64:
+  image: rust
+  extends: .install_dependencies
+  interruptible: true
+  allow_failure: true
+  script:
+    - cargo clippy
+
+test-x86_64:
   image: rust:1.92-trixie
   extends: .install_dependencies
   interruptible: true
