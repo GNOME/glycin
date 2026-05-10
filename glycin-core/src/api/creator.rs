@@ -210,7 +210,7 @@ impl Creator {
                     editor_function().map_err(|e| Error::from(e.into_editor_error()))
                 })
                 .await
-                .map_err(|_| ErrorKind::ThreadPanic)??;
+                .map_err(|e| ErrorKind::panic(e))??;
 
                 EncodedImage::new(encoded_image).await
             }

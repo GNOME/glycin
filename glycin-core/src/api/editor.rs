@@ -164,7 +164,7 @@ impl Editor {
                 let editor_future = gio::spawn_blocking(move || {
                     edit_function().map_err(|err| Error::from(err.into_editor_error()))
                 })
-                .map(|x| x.map_err(|_| ErrorKind::ThreadPanic.into()));
+                .map(|x| x.map_err(|e| ErrorKind::panic(e).err()));
 
                 let editor = editor_future
                     .join_abort_on_error(read_data_future)
@@ -264,7 +264,7 @@ impl EditableImage {
                     editor_function().map_err(|e| Error::from(e.into_editor_error()))
                 })
                 .await
-                .map_err(|_| ErrorKind::ThreadPanic)??;
+                .map_err(|e| ErrorKind::panic(e))??;
 
                 SparseEdit::try_from(editor_output)
             }
@@ -320,7 +320,7 @@ impl EditableImage {
                     apply_function().map_err(|e| Error::from(e.into_editor_error()))
                 })
                 .await
-                .map_err(|_| ErrorKind::ThreadPanic)??;
+                .map_err(|e| ErrorKind::panic(e))??;
 
                 Ok(Edit {
                     inner: editor_output,
@@ -442,7 +442,7 @@ impl SparseEdit {
                     }
                     Ok(EditOutcome::Changed)
                 })
-                .await
+                .await?
             }
             Self::Complete(_) => Ok(EditOutcome::Unchanged),
         }

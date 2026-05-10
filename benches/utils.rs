@@ -1,7 +1,5 @@
-use std::{
-    collections::BTreeSet,
-    path::{Path, PathBuf},
-};
+use std::collections::BTreeSet;
+use std::path::{Path, PathBuf};
 
 pub fn bench_name(path: &Path) -> String {
     path.file_name().unwrap().display().to_string()
@@ -16,6 +14,7 @@ pub fn test_images() -> BTreeSet<std::path::PathBuf> {
         PathBuf::from("test-images/images/color/color.png"),
         PathBuf::from("test-images/images/color/color.svg"),
         PathBuf::from("test-images/images/color/color.webp"),
+        PathBuf::from("test-images/images/grayscale/grayscale.jpg"),
         PathBuf::from("test-images/images/tiny/tiny.png"),
     ];
 

@@ -298,7 +298,7 @@ impl Loader {
             )
             .map_err(|e| Error::from(e.into_loader_error()))
         })
-        .map(|x| x.map_err(|_| ErrorKind::ThreadPanic.err()));
+        .map(|x| x.map_err(|e| ErrorKind::panic(e).err()));
 
         let (image_loader, image_details) = remote_image_future
             .join_abort_on_error(file_read_future)
@@ -462,7 +462,7 @@ impl Image {
                     editor_function().map_err(|e| Error::from(e.into_loader_error()))
                 })
                 .await
-                .map_err(|_| ErrorKind::ThreadPanic)??;
+                .map_err(|e| ErrorKind::panic(e))??;
 
                 Frame::from_loader(frame, self).await
             }
@@ -736,7 +736,7 @@ impl Frame {
             frame.details.color_icc_profile.as_ref().map(|x| x.to_vec())
         {
             let (frame, icc_result) =
-                spawn_blocking(move || icc::apply_transformation(&icc_profile, frame)).await;
+                spawn_blocking(move || icc::apply_transformation(&icc_profile, frame)).await?;
 
             match icc_result {
                 Err(err) => {
@@ -761,7 +761,7 @@ impl Frame {
             util::spawn_blocking(move || {
                 glycin_utils::editing::change_memory_format(frame.into_fungible(), target_format)
             })
-            .await?
+            .await??
         } else {
             frame.into_fungible()
         };

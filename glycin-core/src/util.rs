@@ -10,6 +10,7 @@ use glycin_utils::MemoryFormat;
 
 #[cfg(feature = "gdk4")]
 use crate::ColorState;
+use crate::ErrorKind;
 #[cfg(feature = "external")]
 use crate::sandbox::Sandbox;
 
@@ -187,9 +188,12 @@ async fn flatpak_devel() -> Option<bool> {
     Some(flatpak_builder && name.ends_with("Devel"))
 }
 
-pub async fn spawn_blocking<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(f: F) -> T {
-    // TODO: Check if more panic handlings do make sense here
-    gio::spawn_blocking(f).await.unwrap()
+pub async fn spawn_blocking<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(
+    f: F,
+) -> Result<T, crate::Error> {
+    gio::spawn_blocking(f)
+        .await
+        .map_err(|e| ErrorKind::panic(e).err())
 }
 
 #[cfg(feature = "async-io")]

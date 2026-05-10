@@ -1,8 +1,8 @@
 mod utils;
 
-use std::path::Path;
+use std::hint::black_box;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
-use std::{hint::black_box, path::PathBuf};
 
 use criterion::{Criterion, criterion_group, criterion_main};
 use glycin::MemoryFormat;
@@ -11,6 +11,11 @@ fn images() -> Vec<(MemoryFormat, PathBuf)> {
     let mut img = utils::test_images();
 
     vec![
+        (
+            MemoryFormat::G8,
+            img.take(Path::new("test-images/images/grayscale/grayscale.jpg"))
+                .unwrap(),
+        ),
         (
             MemoryFormat::R32g32b32Float,
             img.take(Path::new("test-images/images/color/color.exr"))

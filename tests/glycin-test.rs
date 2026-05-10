@@ -4,7 +4,7 @@ mod utils;
 
 use std::time::Duration;
 
-use glycin_core::{Limits, MimeType, Operation, Operations};
+use glycin_core::{ErrorKind, Limits, MimeType, Operation, Operations};
 use utils::*;
 
 fn instruction(instructions: &[&[u8]]) -> Vec<u8> {
@@ -23,6 +23,7 @@ fn glycin_test_panic_load() {
         let loader = glycin_core::Loader::new_vec(instruction(&[b"panic"]));
         let err = loader.load().await.unwrap_err();
         assert!(err.is_panic(), "Error: {err}");
+        assert!(matches!(err.kind(), ErrorKind::ThreadPanic(Some(_))));
     });
 }
 

@@ -457,7 +457,12 @@ impl Sandbox {
             let fc_cache_dir = PathBuf::from_iter([cache_dir.clone(), "fontconfig".into()]);
 
             // Create cache dir
-            match util::spawn_blocking(move || std::fs::create_dir_all(fc_cache_dir)).await {
+            match util::spawn_blocking(move || {
+                std::fs::create_dir_all(fc_cache_dir).map_err(|x| x.into())
+            })
+            .await
+            .flatten()
+            {
                 Err(err) => tracing::warn!("Failed to create fontconfig cache dir: {err:?}"),
                 Ok(()) => {
                     command.arg("--bind-try");
@@ -725,7 +730,7 @@ impl Sandbox {
 
         tracing::debug!("Testing bwrap availability with: {command:?}");
 
-        let output = spawn_blocking(move || command.output()).await?;
+        let output = spawn_blocking(move || command.output()).await??;
 
         tracing::debug!(
             "bwrap availability test returned: {output:?} (Signal: {signal:?}, Code: {code:?})",

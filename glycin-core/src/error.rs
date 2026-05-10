@@ -1,3 +1,4 @@
+use std::any::Any;
 use std::fmt::Display;
 use std::process::ExitStatus;
 use std::sync::Arc;
@@ -118,7 +119,7 @@ impl Error {
     pub fn is_panic(&self) -> bool {
         matches!(
             *self.kind,
-            ErrorKind::ThreadPanic | ErrorKind::RemoteError(RemoteError::Panic)
+            ErrorKind::ThreadPanic(_) | ErrorKind::RemoteError(RemoteError::Panic)
         )
     }
 
@@ -203,8 +204,8 @@ pub enum ErrorKind {
     MemoryAllocationError(String),
     #[error("GLib thread failed: {0}")]
     JoinError(String),
-    #[error("Thread panic")]
-    ThreadPanic,
+    #[error("Thread panic: {0:?}")]
+    ThreadPanic(Option<String>),
     #[error("Feature not supported: {0}")]
     FeatureNotSupported(#[from] FeatureNotSupported),
     #[error("Operation did not complete in supplied limit of {0:?}")]
@@ -214,6 +215,15 @@ pub enum ErrorKind {
 impl ErrorKind {
     pub fn err(self) -> Error {
         Error::from_kind(self)
+    }
+
+    pub fn panic(any: Box<dyn Any>) -> ErrorKind {
+        let s = any
+            .downcast_ref::<&str>()
+            .map(|x| x.to_string())
+            .or_else(|| any.downcast_ref::<String>().map(|x| x.to_string()));
+
+        ErrorKind::ThreadPanic(s)
     }
 }
 
