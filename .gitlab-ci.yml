@@ -70,8 +70,10 @@ benchmark:
     - podman build -t $IMAGE -f build-aux/bencher/Dockerfile .
     - podman push $IMAGE
 
-    - bencher run --project glycin --token $BENCHER_TOKEN --image $IMAGE "./loader-bench --bench tiny.png"
-    - bencher run --project glycin --token $BENCHER_TOKEN --image $IMAGE "./filesizes.py"
+    - echo "Bencher output:" > bencher.txt
+    - bencher run --project glycin --branch "$CI_COMMIT_REF_NAME" --token $BENCHER_TOKEN --start-point "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --image $IMAGE "./loader-bench --bench tiny.png" >> bencher.txt
+    - bencher run --project glycin --branch "$CI_COMMIT_REF_NAME" --token $BENCHER_TOKEN --start-point "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --image $IMAGE "./filesizes.py" >> bencher.txt
+    - cat bencher.txt
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: manual
