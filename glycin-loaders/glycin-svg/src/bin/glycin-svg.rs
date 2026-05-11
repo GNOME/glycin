@@ -46,7 +46,7 @@ pub fn thread<B: ByteData, S: Read + Any>(
         rsvg::Handle::from_stream_sync(
             &input_stream,
             base_file.as_ref(),
-            rsvg::HandleFlags::FLAGS_NONE,
+            rsvg::HandleFlags::FLAG_UNLIMITED,
             gio::Cancellable::NONE,
         )
         .expected_error()
