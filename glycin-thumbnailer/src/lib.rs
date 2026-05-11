@@ -5,8 +5,7 @@ use gio::prelude::*;
 use gly::MemoryFormatSelection;
 use image::imageops;
 
-const SCALE_FILTER1: imageops::FilterType = imageops::FilterType::Nearest;
-const SCALE_FILTER2: imageops::FilterType = imageops::FilterType::Triangle;
+const SCALE_FILTER: imageops::FilterType = imageops::FilterType::Triangle;
 
 pub fn main(args: Vec<String>) -> glib::ExitCode {
     let app = gio::Application::new(None, gio::ApplicationFlags::HANDLES_COMMAND_LINE);
@@ -153,18 +152,5 @@ fn resize<T: image::Pixel<Subpixel = u8> + 'static>(
     let img =
         image::ImageBuffer::<T, _>::from_raw(frame.width(), frame.height(), frame_bytes).unwrap();
 
-    let rought_scaled = imageops::resize(
-        &img,
-        thumbnail_width * 2,
-        thumbnail_height * 2,
-        SCALE_FILTER1,
-    );
-
-    imageops::resize(
-        &rought_scaled,
-        thumbnail_width,
-        thumbnail_height,
-        SCALE_FILTER2,
-    )
-    .into_raw()
+    imageops::resize(&img, thumbnail_width, thumbnail_height, SCALE_FILTER).into_raw()
 }
