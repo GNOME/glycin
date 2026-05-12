@@ -11,7 +11,7 @@ image/heif:
   cicp: true
   exif: true
   xmp: false
-  animation: false
+  animation: true
   loader-codec:
     name: libheif
     url: https://github.com/strukturag/libheif
@@ -22,7 +22,7 @@ image/avif:
   cicp: true
   exif: true
   xmp: false
-  animation: false
+  animation: true
   loader-codec:
     name: libheif
     url: https://github.com/strukturag/libheif
