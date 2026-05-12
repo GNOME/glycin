@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{path::Path, time::Duration};
 
 use gio::prelude::FileExt;
 use glycin_core as glycin;
@@ -118,6 +118,7 @@ async fn test_dir_animated(dir: impl AsRef<Path>) {
 
             let frame = loop {
                 let frame = image.next_frame().await.unwrap();
+                assert_eq!(frame.delay().unwrap(), Duration::from_millis(200));
                 if frame.details().n_frame().unwrap() == n_frame {
                     break frame;
                 }
