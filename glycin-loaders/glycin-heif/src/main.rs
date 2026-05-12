@@ -109,10 +109,9 @@ fn animated_worker(data: Vec<u8>, mime_type: String, send: FrameSender) {
     // Is the sequence being currently repeated?
     let mut looped = false;
 
-    let mut current_frame_num: u64 = 0;
-
     // Repeat the image sequence
     loop {
+        let mut current_frame_num: u64 = 0;
         let stream_reader = StreamReader::new(Cursor::new(&data), data.len() as u64);
         let context = match HeifContext::read_from_reader(Box::new(stream_reader)) {
             Ok(c) => c,
