@@ -5,7 +5,7 @@ endif
 dependency('libseccomp', version: seccomp_req)
 
 if 'glycin-heif' in get_option('loaders')
-  dependency('libheif', version: '>= 1.17.0')
+  dependency('libheif', version: '>= 1.20.0')
 endif
 
 if 'glycin-jxl' in get_option('loaders')
