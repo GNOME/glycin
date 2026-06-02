@@ -42,41 +42,44 @@ The following formats are supported by the glycin image loaders provided in the 
 
 | Format | Glycin Loader | Decoder |
 |-|-|-|
-| Animated PNG image  | glycin-image-rs |[png](https://crates.io/crates/png) (Rust) |
-| AVIF image  (.avif) | glycin-heif |[libheif](https://github.com/strukturag/libheif) (C++) |
-| Windows BMP image  (.bmp) | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
-| GIF image  (.gif) | glycin-image-rs |[gif](https://crates.io/crates/gif) (Rust) |
-| HEIF image  (.heic) | glycin-heif |[libheif](https://github.com/strukturag/libheif) (C++) |
-| JPEG-2000 JP2 image  | glycin-image-rs |[hayro-jpeg2000](https://crates.io/crates/hayro-jpeg2000) (Rust) |
-| JPEG image  (.jpg) | glycin-image-rs |[zune-jpeg](https://crates.io/crates/zune-jpeg) (Rust) |
-| JPEG XL image  (.jxl) | glycin-jxl |[libjxl](https://github.com/libjxl/libjxl) (C++) |
-| PNG image  (.png) | glycin-image-rs |[png](https://crates.io/crates/png) (Rust) |
-| Quite OK Image Format  (.qoi) | glycin-image-rs |[qoi](https://crates.io/crates/qoi) (Rust) |
-| SVG image  | glycin-svg |[librsvg](https://gitlab.gnome.org/GNOME/librsvg) (C/Rust) |
-| Compressed SVG image  | glycin-svg |[librsvg](https://gitlab.gnome.org/GNOME/librsvg) (C/Rust) |
-| TIFF image  (.tiff) | glycin-image-rs |[tiff](https://crates.io/crates/tiff) (Rust) |
-| Windows icon  (.ico) | glycin-image-rs |[image](https://crates.io/crates/image) (Rust), [bmp](https://crates.io/crates/bmp) (Rust), [png](https://crates.io/crates/png) (Rust) |
-| WebP image  (.webp) | glycin-image-rs |[image-webp](https://crates.io/crates/image-webp) (Rust) |
-| Adobe DNG negative  | glycin-raw | |
-| Canon CR2 raw image  | glycin-raw | |
-| DirectDraw surface  (.dds) | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
-| image/x-epson-erf type  | glycin-raw | |
-| EXR image  (.exr) | glycin-image-rs |[exr](https://crates.io/crates/exr) (Rust) |
-| Minolta MRW raw image  | glycin-raw | |
-| Olympus ORF raw image  | glycin-raw | |
-| Panasonic raw image  | glycin-raw | |
-| Panasonic raw image  | glycin-raw | |
-| Pentax PEF raw image  | glycin-raw | |
-| PNM image  | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
-| PBM image  | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
-| PGM image  | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
-| PPM image  | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
-| image/x-qoi type  | glycin-image-rs |[qoi](https://crates.io/crates/qoi) (Rust) |
-| Sony SRF raw image  | glycin-raw | |
-| TGA image  (.tga) | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
-| Windows cursor  | glycin-image-rs |[image](https://crates.io/crates/image) (Rust), [bmp](https://crates.io/crates/bmp) (Rust), [png](https://crates.io/crates/png) (Rust) |
-| XBM image  | glycin-image-rs |[image-extras](https://crates.io/crates/image-extras) (Rust) |
-| XPM image  | glycin-image-rs |[image-extras](https://crates.io/crates/image-extras) (Rust) |
+| Animated PNG image | glycin-image-rs |[png](https://crates.io/crates/png) (Rust) |
+| AVIF image (.avif) | glycin-heif |[libheif](https://github.com/strukturag/libheif) (C++) |
+| Windows BMP image (.bmp) | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
+| GIF image (.gif) | glycin-image-rs |[gif](https://crates.io/crates/gif) (Rust) |
+| HEIF image (.heic) | glycin-heif |[libheif](https://github.com/strukturag/libheif) (C++) |
+| JPEG-2000 JP2 image | glycin-image-rs |[hayro-jpeg2000](https://crates.io/crates/hayro-jpeg2000) (Rust) |
+| JPEG image (.jpg) | glycin-image-rs |[zune-jpeg](https://crates.io/crates/zune-jpeg) (Rust) |
+| JPEG XL image (.jxl)² | glycin-jxl |[libjxl](https://github.com/libjxl/libjxl) (C++) |
+| PNG image (.png) | glycin-image-rs |[png](https://crates.io/crates/png) (Rust) |
+| Quite OK Image Format (.qoi) | glycin-image-rs |[qoi](https://crates.io/crates/qoi) (Rust) |
+| SVG image | glycin-svg |[librsvg](https://gitlab.gnome.org/GNOME/librsvg) (C/Rust) |
+| Compressed SVG image | glycin-svg |[librsvg](https://gitlab.gnome.org/GNOME/librsvg) (C/Rust) |
+| TIFF image (.tiff) | glycin-image-rs |[tiff](https://crates.io/crates/tiff) (Rust) |
+| Windows icon (.ico) | glycin-image-rs |[image](https://crates.io/crates/image) (Rust), [bmp](https://crates.io/crates/bmp) (Rust), [png](https://crates.io/crates/png) (Rust) |
+| WebP image (.webp) | glycin-image-rs |[image-webp](https://crates.io/crates/image-webp) (Rust) |
+| Adobe DNG negative¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| Canon CR2 raw image¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| DirectDraw surface (.dds) | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
+| image/x-epson-erf type¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| EXR image (.exr) | glycin-image-rs |[exr](https://crates.io/crates/exr) (Rust) |
+| Minolta MRW raw image¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| Olympus ORF raw image¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| Panasonic raw image¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| Panasonic raw image¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| Pentax PEF raw image¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| PNM image | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
+| PBM image | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
+| PGM image | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
+| PPM image | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
+| Sony SRF raw image¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| TGA image (.tga) | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
+| Windows cursor | glycin-image-rs |[image](https://crates.io/crates/image) (Rust), [bmp](https://crates.io/crates/bmp) (Rust), [png](https://crates.io/crates/png) (Rust) |
+| XBM image | glycin-image-rs |[image-extras](https://crates.io/crates/image-extras) (Rust) |
+| XPM image | glycin-image-rs |[image-extras](https://crates.io/crates/image-extras) (Rust) |
+
+1. Support for this format is still experimental the corresponding loader is not built by default
+2. The loader for this format depends on GPL-3.0-or-later licenced software
+3. The loader for this format depends on LGPL-3.0-or-later licenced software
 
 ## Image Loader Configuration
 

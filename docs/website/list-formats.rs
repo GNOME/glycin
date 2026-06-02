@@ -17,6 +17,19 @@ use glycin::OperationId;
 use itertools::Itertools;
 use std::collections::BTreeMap;
 
+#[derive(Debug, serde::Deserialize)]
+struct DetailFile {
+    annotations: BTreeMap<String, String>,
+    formats: BTreeMap<String, Details>,
+}
+
+#[derive(Debug, Default)]
+struct FormatList {
+    /// Footnote symbol mapped to footnote text
+    annotations: Vec<(String, String)>,
+    formats: BTreeMap<String, Format>,
+}
+
 #[derive(Debug)]
 struct Loader {
     name: String,
@@ -36,6 +49,8 @@ struct Format {
     details: Details,
     loader: Option<Loader>,
     editor: Option<Editor>,
+    footnote_symbols: Vec<String>,
+    annotations: Vec<String>,
 }
 
 #[derive(Debug, Default, Clone, serde::Deserialize)]
@@ -50,6 +65,8 @@ struct Details {
     animation: Option<String>,
     #[serde(default)]
     loader_codec: Codecs,
+    #[serde(default)]
+    annotations: Vec<String>,
 }
 
 #[derive(Debug, Clone, serde::Deserialize)]
@@ -134,12 +151,38 @@ fn main() {
     }
 }
 
-fn info() -> BTreeMap<String, Format> {
-    let mut info = BTreeMap::<String, Format>::new();
+fn info() -> FormatList {
+    let mut format_list = FormatList::default();
+    let info = &mut format_list.formats;
 
-    let details: BTreeMap<String, Details> =
+    let details: DetailFile =
         serde_yaml_ng::from_reader(std::fs::File::open("docs/website/format-details.yml").unwrap())
             .unwrap();
+
+    let annotations = details.annotations;
+    let symbol_list = BTreeMap::from_iter([
+        (1, "\u{00B9}"),
+        (2, "\u{00B2}"),
+        (3, "\u{00B3}"),
+        (4, "\u{2074}"),
+        (5, "\u{2075}"),
+    ]);
+    let annotation_symbols = BTreeMap::from_iter(annotations.keys().enumerate().map(|(n, key)| {
+        (
+            key.to_string(),
+            symbol_list.get(&(n + 1)).unwrap().to_string(),
+        )
+    }));
+
+    format_list.annotations = annotations
+        .iter()
+        .map(|(key, annotation)| {
+            (
+                annotation_symbols.get(key).unwrap().to_owned(),
+                annotation.to_owned(),
+            )
+        })
+        .collect();
 
     for entry in std::fs::read_dir("glycin-loaders").unwrap() {
         let entry = entry.unwrap();
@@ -181,15 +224,31 @@ fn info() -> BTreeMap<String, Format> {
                     &mut config,
                 ))
                 .unwrap();
+
                 let entry = info.entry(mime_type.to_string()).or_default();
 
                 entry.mime_type = mime_type.to_string();
                 entry.description =
                     gio::content_type_get_description(&mime_type.to_string()).to_string();
                 entry.details = details
+                    .formats
                     .get(&mime_type.to_string())
                     .map(|x| x.clone())
                     .unwrap_or_default();
+
+                entry.annotations = entry
+                    .details
+                    .annotations
+                    .iter()
+                    .map(|x| annotations.get(x).unwrap().clone())
+                    .collect::<Vec<_>>();
+
+                entry.footnote_symbols = entry
+                    .details
+                    .annotations
+                    .iter()
+                    .map(|x| annotation_symbols.get(x).unwrap().clone())
+                    .collect::<Vec<_>>();
 
                 match type_ {
                     "loader" => {
@@ -212,13 +271,13 @@ fn info() -> BTreeMap<String, Format> {
         }
     }
 
-    info
+    format_list
 }
 
-fn html(info: BTreeMap<String, Format>) -> String {
+fn html(format_list: FormatList) -> String {
     let mut html = String::new();
     let s = &mut html;
-    for (mime_type, info) in info {
+    for (mime_type, info) in format_list.formats {
         if info.details.hidden {
             continue;
         }
@@ -244,6 +303,14 @@ fn html(info: BTreeMap<String, Format>) -> String {
         add_flag(s, "Animation", info.details.animation);
         s.push_str("</ul>");
 
+        if !info.annotations.is_empty() {
+            s.push_str("<ul>");
+            for annotation in info.annotations {
+                s.push_str(&format!("<li>{annotation}</li>"))
+            }
+            s.push_str("</ul>");
+        }
+
         if let Some(editor) = info.editor {
             s.push_str(&format!("<h4>Editor: {}</h4>", &editor.name));
 
@@ -264,14 +331,14 @@ fn html(info: BTreeMap<String, Format>) -> String {
     html
 }
 
-fn markdown(info: BTreeMap<String, Format>) -> String {
+fn markdown(format_list: FormatList) -> String {
     let mut markdown = String::new();
     let s = &mut markdown;
 
     s.push_str("| Format | Glycin Loader | Decoder |\n");
     s.push_str("|-|-|-|\n");
 
-    for (mime_type, info) in info {
+    for (mime_type, info) in format_list.formats {
         if info.details.hidden {
             continue;
         }
@@ -282,9 +349,11 @@ fn markdown(info: BTreeMap<String, Format>) -> String {
             String::new()
         };
 
+        let footnotes = info.footnote_symbols.concat();
+
         s.push_str("| ");
 
-        s.push_str(&format!("{} {ext} |", info.description));
+        s.push_str(&format!("{}{ext}{footnotes} |", info.description));
 
         s.push_str(&format!(" {} |", info.loader.unwrap().name,));
 
@@ -293,11 +362,17 @@ fn markdown(info: BTreeMap<String, Format>) -> String {
         s.push_str("\n");
     }
 
+    s.push_str("\n");
+
+    for (n, (footnote_symbol, footnote)) in format_list.annotations.into_iter().enumerate() {
+        s.push_str(&format!("{}. {footnote}\n", n + 1));
+    }
+
     markdown
 }
 
 fn add_entry(s: &mut String, name: &str, value: &str) {
-    s.push_str(&format!("{name}: {value}\n"))
+    s.push_str(&format!("{name} {value}\n"))
 }
 
 fn add_flag(s: &mut String, name: &str, v: Option<String>) {

@@ -1,225 +1,263 @@
-image/jpeg:
-  icc: true
-  cicp: unsupported
-  exif: true
-  xmp: true
-  animation: unsupported
-  loader-codec: zune-jpeg
+annotations:
+  experimental: Support for this format is still experimental the corresponding loader is not built by default
+  lgpl: The loader for this format depends on LGPL-3.0-or-later licenced software
+  gpl: The loader for this format depends on GPL-3.0-or-later licenced software
 
-image/heif:
-  icc: true
-  cicp: true
-  exif: true
-  xmp: false
-  animation: true
-  loader-codec:
-    name: libheif
-    url: https://github.com/strukturag/libheif
-    lang: C++
+formats:
+  image/jpeg:
+    icc: true
+    cicp: unsupported
+    exif: true
+    xmp: true
+    animation: unsupported
+    loader-codec: zune-jpeg
 
-image/avif:
-  icc: true
-  cicp: true
-  exif: true
-  xmp: false
-  animation: true
-  loader-codec:
-    name: libheif
-    url: https://github.com/strukturag/libheif
-    lang: C++
+  image/heif:
+    icc: true
+    cicp: true
+    exif: true
+    xmp: false
+    animation: true
+    loader-codec:
+      name: libheif
+      url: https://github.com/strukturag/libheif
+      lang: C++
 
-image/jxl:
-  icc: true
-  cicp: true
-  exif: true
-  xmp: false
-  animation: false
-  loader-codec:
-    name: libjxl
-    url: https://github.com/libjxl/libjxl
-    lang: C++
+  image/avif:
+    icc: true
+    cicp: true
+    exif: true
+    xmp: false
+    animation: true
+    loader-codec:
+      name: libheif
+      url: https://github.com/strukturag/libheif
+      lang: C++
 
-image/png:
-  icc: true
-  cicp: true
-  exif: true
-  xmp: true
-  animation: unsupported
-  loader-codec: png
+  image/jxl:
+    icc: true
+    cicp: true
+    exif: true
+    xmp: false
+    animation: false
+    loader-codec:
+      name: libjxl
+      url: https://github.com/libjxl/libjxl
+      lang: C++
+    annotations: [gpl]
 
-image/apng:
-  icc: true
-  cicp: true
-  exif: true
-  xmp: true
-  animation: true
-  loader-codec: png
+  image/png:
+    icc: true
+    cicp: true
+    exif: true
+    xmp: true
+    animation: unsupported
+    loader-codec: png
 
-image/webp:
-  icc: true
-  cicp: true
-  exif: true
-  xmp: false
-  animation: true
-  loader-codec: image-webp
+  image/apng:
+    icc: true
+    cicp: true
+    exif: true
+    xmp: true
+    animation: true
+    loader-codec: png
 
-image/tiff:
-  icc: true
-  exif: true
-  cicp: false
-  xmp: false
-  animation: unsupported
-  loader-codec: tiff
+  image/webp:
+    icc: true
+    cicp: true
+    exif: true
+    xmp: false
+    animation: true
+    loader-codec: image-webp
 
-image/svg+xml:
-  icc: false
-  exif: unsupported
-  cicp: unsupported
-  xmp: false
-  animation: unsupported
-  loader-codec:
-    name: librsvg
-    url: https://gitlab.gnome.org/GNOME/librsvg
-    lang: C/Rust
+  image/tiff:
+    icc: true
+    exif: true
+    cicp: false
+    xmp: false
+    animation: unsupported
+    loader-codec: tiff
 
-image/svg+xml-compressed:
-  icc: false
-  exif: unsupported
-  cicp: unsupported
-  xmp: false
-  animation: unsupported
-  loader-codec:
-    name: librsvg
-    url: https://gitlab.gnome.org/GNOME/librsvg
-    lang: C/Rust
+  image/svg+xml:
+    icc: false
+    exif: unsupported
+    cicp: unsupported
+    xmp: false
+    animation: unsupported
+    loader-codec:
+      name: librsvg
+      url: https://gitlab.gnome.org/GNOME/librsvg
+      lang: C/Rust
 
-image/gif:
-  icc: unsupported
-  cicp: unsupported
-  exif: unsupported
-  xmp: false
-  animation: true
-  loader-codec: gif
+  image/svg+xml-compressed:
+    icc: false
+    exif: unsupported
+    cicp: unsupported
+    xmp: false
+    animation: unsupported
+    loader-codec:
+      name: librsvg
+      url: https://gitlab.gnome.org/GNOME/librsvg
+      lang: C/Rust
 
-image/bmp:
-  icc: false
-  cicp: unsupported
-  exif: unsupported
-  xmp: unsupported
-  animation: unsupported
-  loader-codec: image
+  image/gif:
+    icc: unsupported
+    cicp: unsupported
+    exif: unsupported
+    xmp: false
+    animation: true
+    loader-codec: gif
 
-image/qoi:
-  icc: unsupported
-  cicp: unsupported
-  exif: unsupported
-  xmp: unsupported
-  animation: unsupported
-  loader-codec: qoi
+  image/bmp:
+    icc: false
+    cicp: unsupported
+    exif: unsupported
+    xmp: unsupported
+    animation: unsupported
+    loader-codec: image
 
-image/x-qoi:
-  icc: unsupported
-  cicp: unsupported
-  exif: unsupported
-  xmp: unsupported
-  animation: unsupported
-  loader-codec: qoi
+  image/qoi:
+    icc: unsupported
+    cicp: unsupported
+    exif: unsupported
+    xmp: unsupported
+    animation: unsupported
+    loader-codec: qoi
 
-image/x-tga:
-  icc: unsupported
-  cicp: unsupported
-  exif: unsupported
-  xmp: unsupported
-  animation: unsupported
-  loader-codec: image
+  image/x-qoi:
+    icc: unsupported
+    cicp: unsupported
+    exif: unsupported
+    xmp: unsupported
+    animation: unsupported
+    loader-codec: qoi
 
-image/vnd.microsoft.icon:
-  icc: unsupported
-  cicp: unsupported
-  exif: unsupported
-  xmp: unsupported
-  animation: unsupported
-  loader-codec: [image, bmp, png]
+  image/x-tga:
+    icc: unsupported
+    cicp: unsupported
+    exif: unsupported
+    xmp: unsupported
+    animation: unsupported
+    loader-codec: image
 
-image/x-dds:
-  icc: unsupported
-  cicp: unsupported
-  exif: unsupported
-  xmp: unsupported
-  animation: unsupported
-  loader-codec: image
+  image/vnd.microsoft.icon:
+    icc: unsupported
+    cicp: unsupported
+    exif: unsupported
+    xmp: unsupported
+    animation: unsupported
+    loader-codec: [image, bmp, png]
 
-image/x-portable-anymap:
-  icc: unsupported
-  cicp: unsupported
-  exif: unsupported
-  xmp: unsupported
-  animation: unsupported
-  loader-codec: image
+  image/x-dds:
+    icc: unsupported
+    cicp: unsupported
+    exif: unsupported
+    xmp: unsupported
+    animation: unsupported
+    loader-codec: image
 
-image/x-portable-bitmap:
-  icc: unsupported
-  cicp: unsupported
-  exif: unsupported
-  xmp: unsupported
-  animation: unsupported
-  loader-codec: image
+  image/x-portable-anymap:
+    icc: unsupported
+    cicp: unsupported
+    exif: unsupported
+    xmp: unsupported
+    animation: unsupported
+    loader-codec: image
 
-image/x-portable-graymap:
-  icc: unsupported
-  cicp: unsupported
-  exif: unsupported
-  xmp: unsupported
-  animation: unsupported
-  loader-codec: image
+  image/x-portable-bitmap:
+    icc: unsupported
+    cicp: unsupported
+    exif: unsupported
+    xmp: unsupported
+    animation: unsupported
+    loader-codec: image
 
-image/x-portable-pixmap:
-  icc: unsupported
-  cicp: unsupported
-  exif: unsupported
-  xmp: unsupported
-  animation: unsupported
-  loader-codec: image
+  image/x-portable-graymap:
+    icc: unsupported
+    cicp: unsupported
+    exif: unsupported
+    xmp: unsupported
+    animation: unsupported
+    loader-codec: image
 
-image/x-exr:
-  icc: false
-  cicp: unsupported
-  exif: unsupported
-  xmp: false
-  animation: unsupported
-  loader-codec: exr
+  image/x-portable-pixmap:
+    icc: unsupported
+    cicp: unsupported
+    exif: unsupported
+    xmp: unsupported
+    animation: unsupported
+    loader-codec: image
 
-image/x-win-bitmap:
-  icc: unsupported
-  cicp: unsupported
-  exif: unsupported
-  xmp: unsupported
-  animation: unsupported
-  loader-codec: [image, bmp, png]
+  image/x-exr:
+    icc: false
+    cicp: unsupported
+    exif: unsupported
+    xmp: false
+    animation: unsupported
+    loader-codec: exr
 
-image/x-xbitmap:
-  icc: unsupported
-  cicp: unsupported
-  exif: unsupported
-  xmp: unsupported
-  animation: unsupported
-  loader-codec: image-extras
+  image/x-win-bitmap:
+    icc: unsupported
+    cicp: unsupported
+    exif: unsupported
+    xmp: unsupported
+    animation: unsupported
+    loader-codec: [image, bmp, png]
 
-image/x-xpixmap:
-  icc: unsupported
-  cicp: unsupported
-  exif: unsupported
-  xmp: unsupported
-  animation: unsupported
-  loader-codec: image-extras
+  image/x-xbitmap:
+    icc: unsupported
+    cicp: unsupported
+    exif: unsupported
+    xmp: unsupported
+    animation: unsupported
+    loader-codec: image-extras
 
-image/jp2:
-  icc: false
-  cicp: unsupported
-  exif: false
-  xmp: false
-  animation: unsupported
-  loader-codec: hayro-jpeg2000
+  image/x-xpixmap:
+    icc: unsupported
+    cicp: unsupported
+    exif: unsupported
+    xmp: unsupported
+    animation: unsupported
+    loader-codec: image-extras
 
-image/x-jp2-codestream:
-  hidden: true
+  image/jp2:
+    icc: false
+    cicp: unsupported
+    exif: false
+    xmp: false
+    animation: unsupported
+    loader-codec: hayro-jpeg2000
+
+  image/x-jp2-codestream:
+    hidden: true
+
+  image/x-glycin-test:
+    hidden: true
+
+  image/x-canon-cr2:
+    loader-codec: libopenraw
+    annotations: [experimental ,lgpl]
+  image/x-adobe-dng:
+    loader-codec: libopenraw
+    annotations: [experimental ,lgpl]
+  image/x-epson-erf:
+    loader-codec: libopenraw
+    annotations: [experimental ,lgpl]
+  image/x-minolta-mrw:
+    loader-codec: libopenraw
+    annotations: [experimental ,lgpl]
+  image/x-olympus-orf:
+    loader-codec: libopenraw
+    annotations: [experimental ,lgpl]
+  image/x-panasonic-rw:
+    loader-codec: libopenraw
+    annotations: [experimental ,lgpl]
+  image/x-panasonic-rw2:
+    loader-codec: libopenraw
+    annotations: [experimental ,lgpl]
+  image/x-pentax-pef:
+    loader-codec: libopenraw
+    annotations: [experimental ,lgpl]
+  image/x-sony-srf:
+    loader-codec: libopenraw
+    annotations: [experimental ,lgpl]
