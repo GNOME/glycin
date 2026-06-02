@@ -6,4 +6,3 @@ benches/cache
 libglycin-rebind/gir*/
 public/
 target/
-build-aux/bencher/

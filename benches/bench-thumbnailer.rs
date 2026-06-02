@@ -8,11 +8,11 @@ use gio::prelude::FileExt;
 
 fn thumbnailer(c: &mut Criterion) {
     for image_path in utils::test_images() {
-        let mut group = c.benchmark_group(utils::bench_name(&image_path));
+        let mut group = c.benchmark_group("glycin-thumbnailer");
 
-        let uri = gio::File::for_path(image_path).uri();
+        let uri = gio::File::for_path(&image_path).uri();
 
-        group.bench_function("glycin-thumbnailer", |b| {
+        group.bench_function(utils::bench_name(&image_path), |b| {
             b.iter(|| {
                 glycin_thumbnailer::main(black_box(vec![
                     "glycin-thumbnailer".into(),

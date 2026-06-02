@@ -32,7 +32,9 @@ RUN cargo bench -p benches only-load-images
 
 RUN ls -lh target
 
-RUN cp target/release/deps/$(ls -1 target/release/deps/|grep ^loader-[a-z0-9]*$) loader-bench
+RUN cp target/release/deps/$(ls -1 target/release/deps/|grep ^loader-[a-z0-9]*$) bench-loader
+RUN cp target/release/deps/$(ls -1 target/release/deps/|grep ^thumbnailer-[a-z0-9]*$) bench-thumbnailer
+RUN cp target/release/deps/$(ls -1 target/release/deps/|grep ^utils-[a-z0-9]*$) bench-utils
 
 FROM runtime-deps
 
@@ -40,13 +42,16 @@ WORKDIR /glycin
 
 COPY --from=build /glycin/benches/ benches/
 COPY --from=build /glycin/tests/test-images benches/test-images/
-COPY --from=build /glycin/loader-bench benches/loader-bench
+COPY --from=build /glycin/bench-* benches/
 
 COPY --from=build /usr/share/glycin-loaders/ /usr/share/glycin-loaders/
 COPY --from=build /usr/libexec/glycin-loaders/ /usr/libexec/glycin-loaders/
+
+COPY build-aux/bencher/run-benchmarks.bash benches/
+RUN chmod +x benches/run-benchmarks.bash
 
 ENV RUST_BACKTRACE=1
 
 WORKDIR /glycin/benches
 
-CMD ["./loader-bench", "--bench", "tiny.png"]
+CMD ["./run-benchmarks.bash"]

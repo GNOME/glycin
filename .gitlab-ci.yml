@@ -71,7 +71,8 @@ benchmark:
     - podman push $IMAGE
 
     - echo "Bencher output:" > bencher.txt
-    - bencher run --quiet --format html --project glycin --branch "$CI_COMMIT_REF_NAME" --token $BENCHER_TOKEN --start-point "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --image $IMAGE "./loader-bench --bench tiny.png" >> bencher.txt
+    - set -x
+    - bencher run --quiet --format html --project glycin --branch "$CI_COMMIT_REF_NAME" --token $BENCHER_TOKEN --start-point "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --image $IMAGE "./run-benchmarks.bash" >> bencher.txt
     - bencher run --quiet --format html --project glycin --branch "$CI_COMMIT_REF_NAME" --token $BENCHER_TOKEN --start-point "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --image $IMAGE "./filesizes.py" >> bencher.txt
     - cat bencher.txt
   rules:
