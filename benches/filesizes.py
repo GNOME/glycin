@@ -7,7 +7,7 @@ import json
 def add(d, path):
     binary_name = os.path.basename(path)
     filesize = os.path.getsize(path)
-    d[binary_name] = {"file_size": {"value": float(filesize)}}
+    d[binary_name] = {"file-size": {"value": float(filesize)}}
 
 
 def main():
