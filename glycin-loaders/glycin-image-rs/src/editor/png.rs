@@ -1,10 +1,10 @@
 use std::io::{Cursor, Read};
-use std::sync::Arc;
 
 use glycin_utils::{image_rs, *};
 use gufo::png::NewChunk;
 use gufo_common::error::ErrorWithData;
-use gufo_exif::internal::ExifRaw;
+use gufo_common::{field, orientation};
+use gufo_exif::Exif;
 use image::ImageEncoder;
 
 pub struct EditorPng {
@@ -90,7 +90,7 @@ fn reset_exif_orientation(mut png: gufo::png::Png) -> Result<Vec<u8>, glycin_uti
         let _ = gufo::png::remove_chunk!(png, ornt);
     }
 
-    let mut byte_pos = Vec::new();
+    let mut byte_updates = Vec::new();
 
     let mut chunks = png.chunks().into_iter();
 
@@ -99,60 +99,57 @@ fn reset_exif_orientation(mut png: gufo::png::Png) -> Result<Vec<u8>, glycin_uti
             let exif_data = chunk.chunk_data().to_vec();
             if let Some(tag_position) = exif_orientation_value_position(exif_data) {
                 let chunk_position = chunk.unsafe_raw_chunk().complete_data().start as u64;
-                byte_pos.push(chunk_position + 8 + tag_position as u64);
-            }
-        } else if let Some(exif_data) = chunk.legacy_exif(100 * 1000 * 1000) {
-            let mut exif = ExifRaw::new(exif_data);
-            if let Err(err) = exif.decode() {
-                log::info!("Exif decode failed: {err}");
-            }
-
-            if let Some(orientation_entry) = exif.lookup_entry(gufo_common::field::Orientation)
-                && orientation_entry.u32() != Some(gufo_common::orientation::Orientation::Id as u32)
-            {
-                if let Err(err) = exif.set_existing(
-                    gufo_common::field::Orientation,
-                    gufo_common::orientation::Orientation::Id as u32,
-                ) {
-                    log::info!("Failed to update Exif orientation tag {err}");
+                for (pos, value) in tag_position {
+                    byte_updates.push((pos as u64 + chunk_position as u64 + 8, value));
                 }
-                if let Some(exif_data) =
-                    Arc::into_inner(exif.raw.buffer).and_then(|x| x.into_inner().ok())
-                {
-                    drop(chunks);
-                    if let Err(err) = gufo::png::remove_chunk!(png, chunk) {
-                        log::info!("Failed to remove chunk: {err}");
+            }
+        } else if let Some(mut exif_data) = chunk.legacy_exif(100 * 1000 * 1000) {
+            // This chunk is compressed, so we have to rewrite it
+
+            match Exif::for_mut_slice(&mut exif_data) {
+                Err(err) => {
+                    log::info!("Exif decode failed: {err}");
+                }
+                Ok(mut exif) => {
+                    if let Some(orientation_entry) = exif.orientation()
+                        && orientation_entry != orientation::Orientation::Id
+                    {
+                        if let Err(err) = exif.update_entry_diff(
+                            field::Orientation.into(),
+                            gufo_exif::Typed::Short(vec![orientation::Orientation::Id as u16]),
+                        ) {
+                            log::info!("Failed to update Exif orientation tag {err}");
+                        }
+
+                        if let Err(err) = gufo::png::remove_chunk!(png, chunk) {
+                            log::info!("Failed to remove chunk: {err}");
+                        }
+                        let new_chunk =
+                            gufo::png::NewChunk::new(gufo::png::ChunkType::eXIf, exif_data);
+                        if let Err(err) = png.insert_chunk(new_chunk) {
+                            log::info!("Failed to insert eXIf chunk: {err}");
+                        }
+                        break;
                     }
-                    let new_chunk = gufo::png::NewChunk::new(
-                        gufo::png::ChunkType::eXIf,
-                        exif_data.into_inner(),
-                    );
-                    if let Err(err) = png.insert_chunk(new_chunk) {
-                        log::info!("Failed to insert eXIf chunk: {err}");
-                    }
-                    break;
                 }
             }
         }
     }
 
-    let byte_changes = ByteChanges::from_slice(
-        &byte_pos
-            .into_iter()
-            .map(|x| (x, gufo_common::orientation::Orientation::Id as u8))
-            .collect::<Vec<_>>(),
-    );
+    let byte_changes = ByteChanges::from_slice(&byte_updates);
 
     let mut png_data = png.into_inner();
     byte_changes.apply(&mut png_data).internal_error()?;
     Ok(png_data)
 }
 
-fn exif_orientation_value_position(data: Vec<u8>) -> Option<usize> {
-    let mut exif = gufo_exif::internal::ExifRaw::new(data);
-    exif.decode().ok()?;
-    exif.lookup_entry(gufo_common::field::Orientation)
-        .map(|entry| entry.value_offset_position() as usize)
+fn exif_orientation_value_position(data: Vec<u8>) -> Option<Vec<(usize, u8)>> {
+    let mut exif = gufo_exif::Exif::for_vec(data).ok()?;
+    exif.update_entry_diff(
+        field::Orientation.into(),
+        gufo_exif::Typed::Short(vec![orientation::Orientation::Id as u16]),
+    )
+    .ok()
 }
 
 pub fn add_metadata<B: ByteData, C: ByteData>(

@@ -95,10 +95,10 @@ glycin-test = { version = "2.1.0", path = "glycin-loaders/glycin-test", default-
 glycin-thumbnailer = { version = "2.1.0", path = "glycin-thumbnailer/", default-features = false }
 glycin-utils = { version = "5.0.0", path = "glycin-utils/", default-features = false }
 glycin-external = { version = "4.0.0", path = "glycin/glycin-external/", default-features = false }
-gufo = { version = "0.4.1", features = ["all-image-formats"] }
-gufo-common = { version = "1.1.0", features = ["serde"] }
-gufo-exif = { version = "0.4.0" }
-gufo-jpeg = { version = "0.4.0" }
+gufo = { version = "0.5.0-alpha", features = ["all-image-formats"] }
+gufo-common = { version = "2.0.0-alpha", features = ["serde"] }
+gufo-exif = { version = "0.5.0-alpha" }
+gufo-jpeg = { version = "0.5.0-alpha" }
 half = "2.4.1"
 hayro-jpeg2000 = "0.3.2"
 image = { version = "0.25.9", default-features = false }

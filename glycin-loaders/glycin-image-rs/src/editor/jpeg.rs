@@ -2,6 +2,7 @@ use std::io::{Cursor, Read};
 
 use editing::EditingFrame;
 use glycin_utils::*;
+use gufo_common::field;
 use gufo_common::orientation::Orientation;
 use gufo_jpeg::Jpeg;
 use zune_jpeg::zune_core::options::DecoderOptions;
@@ -163,21 +164,30 @@ fn rotate_sparse(
         .collect::<Vec<_>>();
     let mut exif_segment = exif_segment.iter();
 
-    if let (Some(exif_data), Some(exif_segment_data_pos)) = (exif_data.next(), exif_segment.next())
+    if let (Some(mut exif_data), Some(exif_segment_data_pos)) =
+        (exif_data.next(), exif_segment.next())
     {
-        let mut exif = gufo_exif::internal::ExifRaw::new(exif_data.to_vec());
-        exif.decode().expected_error()?;
+        let mut exif =
+            gufo_exif::ExifMutBorrowed::for_mut_slice(&mut exif_data).expected_error()?;
 
-        if let Some(entry) = exif.lookup_entry(gufo_common::field::Orientation) {
-            let pos = exif_segment_data_pos
-                + entry.value_offset_position() as usize
-                + gufo::jpeg::EXIF_IDENTIFIER_STRING.len();
+        let diff = exif
+            .update_entry_diff(
+                field::Orientation.into(),
+                gufo_exif::Typed::Short(vec![orientation as u16]),
+            )
+            .expected_error()?;
 
-            return Ok(Some(ByteChanges::from_slice(&[(
-                pos as u64,
-                orientation as u8,
-            )])));
+        let mut byte_changes = Vec::new();
+        for (pos, value) in diff {
+            byte_changes.push((
+                gufo::jpeg::EXIF_IDENTIFIER_STRING.len() as u64
+                    + *exif_segment_data_pos as u64
+                    + pos as u64,
+                value,
+            ));
         }
+
+        return Ok(Some(ByteChanges::from_slice(byte_changes.as_slice())));
     }
 
     Ok(None)

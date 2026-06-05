@@ -1,4 +1,5 @@
-use std::{path::Path, time::Duration};
+use std::path::Path;
+use std::time::Duration;
 
 use gio::prelude::FileExt;
 use glycin_core as glycin;

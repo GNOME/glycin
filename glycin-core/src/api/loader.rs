@@ -531,7 +531,7 @@ impl Image {
                 .metadata_exif
                 .as_ref()
                 .map(|x| x.to_vec())
-                .and_then(|x| match gufo_exif::Exif::new(x) {
+                .and_then(|x| match gufo_exif::Exif::for_vec(x) {
                     Err(err) => {
                         tracing::warn!("exif: Failed to parse data: {err:?}");
                         None

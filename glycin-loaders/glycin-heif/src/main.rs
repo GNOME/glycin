@@ -1,6 +1,8 @@
 mod editing;
 
 use std::io::{Cursor, Read};
+use std::sync::Mutex;
+use std::sync::mpsc::{Receiver, Sender, channel};
 
 use glycin_utils::safe_math::*;
 use glycin_utils::*;
@@ -11,9 +13,6 @@ use libheif_rs::{
 };
 
 use crate::editing::ImgEditor;
-
-use std::sync::Mutex;
-use std::sync::mpsc::{Receiver, Sender, channel};
 
 init_main_loader_editor!(ImgDecoder, ImgEditor);
 
