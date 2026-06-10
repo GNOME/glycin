@@ -58,14 +58,21 @@ impl EditorImplementation for ImgEditor {
 
         let image_format = image_format(&mime_type)?;
 
-        let memory_format = (MemoryFormatSelection::G8
-            | MemoryFormatSelection::G8a8
-            | MemoryFormatSelection::R8g8b8
-            | MemoryFormatSelection::R8g8b8a8
-            | MemoryFormatSelection::G16
-            | MemoryFormatSelection::G16a16
-            | MemoryFormatSelection::R16g16b16
-            | MemoryFormatSelection::R16g16b16a16)
+        let memory_format_selection = match image_format {
+            ImageFormat::Jpeg => MemoryFormatSelection::G8 | MemoryFormatSelection::R8g8b8,
+            _ => {
+                MemoryFormatSelection::G8
+                    | MemoryFormatSelection::G8a8
+                    | MemoryFormatSelection::R8g8b8
+                    | MemoryFormatSelection::R8g8b8a8
+                    | MemoryFormatSelection::G16
+                    | MemoryFormatSelection::G16a16
+                    | MemoryFormatSelection::R16g16b16
+                    | MemoryFormatSelection::R16g16b16a16
+            }
+        };
+
+        let memory_format = memory_format_selection
             .best_format_for(frame.memory_format)
             .internal_error()?;
 

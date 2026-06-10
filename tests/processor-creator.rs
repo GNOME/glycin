@@ -340,3 +340,51 @@ fn processor_creator_avif() {
         assert!(frame.buf_slice()[2] <= 2);
     });
 }
+
+#[test]
+fn processor_creator_jpeg_rgba() {
+    block_on(async {
+        init();
+
+        let mut encoder = Creator::new(MimeType::JPEG).await.unwrap();
+        encoder.set_encoding_quality(100).unwrap();
+        let width = 1;
+        let height = 1;
+        let memory_format = glycin::MemoryFormat::R8g8b8a8;
+        let texture = vec![255, 0, 0, 255];
+
+        encoder
+            .add_frame(width, height, memory_format, texture)
+            .unwrap();
+
+        let encoded_image = encoder.create().await.unwrap();
+
+        let mut loader = glycin::Loader::new_vec(encoded_image.data_full());
+        loader.accepted_memory_formats(glycin::MemoryFormatSelection::R8g8b8);
+        let mut image = loader.load().await.unwrap();
+        let _frame = image.next_frame().await.unwrap();
+    });
+}
+
+#[test]
+fn processor_creator_jpeg_grayscale_alpha() {
+    block_on(async {
+        init();
+
+        let mut encoder = Creator::new(MimeType::JPEG).await.unwrap();
+        let width = 1;
+        let height = 1;
+        let memory_format = glycin::MemoryFormat::G8a8;
+        let texture = vec![128, 255];
+
+        encoder
+            .add_frame(width, height, memory_format, texture)
+            .unwrap();
+
+        let encoded_image = encoder.create().await.unwrap();
+
+        let loader = glycin::Loader::new_vec(encoded_image.data_full());
+        let mut image = loader.load().await.unwrap();
+        let _frame = image.next_frame().await.unwrap();
+    });
+}
