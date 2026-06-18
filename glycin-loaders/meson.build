@@ -48,7 +48,7 @@ manifest = meson.project_source_root() / 'Cargo.toml'
 cargo_options = [
   '--profile', cargo_profile,
   '--manifest-path', manifest,
-]
+] + cargo_target_args
 
 git_version = ''
 
@@ -102,7 +102,7 @@ foreach loader : get_option('loaders')
     output: loader,
     command: [
       'cp',
-      cargo_target_dir / rust_target / loader,
+      cargo_artifact_dir / rust_target / loader,
       '@OUTPUT@',
     ],
   )

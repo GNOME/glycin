@@ -21,6 +21,7 @@ cargo_build = custom_target(
         '--profile', cargo_profile,
         '--manifest-path', cargo_manifest,
         '--package=glycin-thumbnailer',
+        cargo_target_args,
     ],
 )
 
@@ -34,7 +35,7 @@ custom_target(
     output: 'glycin-thumbnailer',
     command: [
         'cp',
-        cargo_target_dir / rust_target / 'glycin-thumbnailer',
+        cargo_artifact_dir / rust_target / 'glycin-thumbnailer',
         '@OUTPUT@',
     ],
 )

@@ -24,7 +24,7 @@ cargo_options = [
     '--target-dir', cargo_target_dir,
     '--profile', cargo_profile,
     '--manifest-path', manifest,
-]
+] + cargo_target_args
 
 cargo_env_module = cargo_env
 
