@@ -12,7 +12,7 @@ release_names = []
 BASE_DIR = "news.d"
 OUT_FILE = "NEWS"
 HEADING = ""
-IGNORED_PACKAGES = ["tests", "glycin-dev-tools"]
+IGNORED_PACKAGES = ["benches", "glycin-dev-tools", "tests"]
 
 
 def main():

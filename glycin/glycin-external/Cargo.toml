@@ -1,6 +1,7 @@
 [package]
 name = "glycin-external"
-version = "4.0.0"
+version = "4.0.0-alpha"
+readme = "../README.md"
 authors.workspace = true
 description.workspace = true
 license.workspace = true
