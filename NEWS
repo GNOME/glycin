@@ -1,3 +1,14 @@
+## 2.1.2 (2026-06-25)
+
+This release contains the following new component versions:
+
+- glycin-image-rs 2.1.2
+
+### Fixed
+
+- image-rs/jpeg: Support RGB for editing. There are actually images that don't
+  use ycbcr. #274
+
 ## 2.1.1 (2026-03-23)
 
 This release contains the following new component versions:
