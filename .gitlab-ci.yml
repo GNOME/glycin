@@ -88,6 +88,7 @@ clippy:
   interruptible: true
   allow_failure: true
   script:
+    - rustup component add clippy
     - cargo clippy
 
 test-x86_64:
