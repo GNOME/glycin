@@ -86,7 +86,7 @@ gio-unix = "0.22.0"
 glib = { version = "0.22.0", features = ["v2_68"] }
 glib-sys = { version = "0.22.0", features = ["v2_68"] }
 gobject-sys = { version = "0.22.0", features = ["v2_68"] }
-glycin = { version = "4.0.0-alpha", path = "glycin/", default-features = false }
+glycin = { path = "glycin/", default-features = false }
 glycin-builtin = { version = "4.0.0-alpha", path = "glycin/glycin-builtin/", default-features = false }
 glycin-core = { version = "4.0.0-alpha", path = "glycin-core/", default-features = false }
 glycin-common = { version = "2.0.0-alpha", path = "glycin-common/" }
