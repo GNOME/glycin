@@ -1,3 +1,45 @@
+## 2.2.alpha (2026-06-25)
+
+This release contains the following new component versions:
+
+- glycin-common 2.0.0-alpha
+- glycin-core 4.0.0-alpha
+- glycin-heif 2.2.0-alpha
+- glycin-image-rs 2.2.0-alpha
+- glycin-jxl 2.2.0-alpha
+- glycin-raw 2.2.0-alpha
+- glycin-svg 2.2.0-alpha
+- glycin-test 2.2.0-alpha
+- glycin-thumbnailer 2.2.0-alpha
+- glycin-utils 5.0.0-alpha
+- glycin 4.0.0-alpha
+- glycin-builtin 4.0.0-alpha
+- glycin-external 4.0.0-alpha
+- libglycin 2.2.0-alpha
+- libglycin-gtk4 2.2.0-alpha
+
+### Added
+
+- Added support for specifying in configs how to detect the images of a type
+  instead of relying on global mime-type database. This is faster, more
+  reliable, and works on systems like Windows out of the box.
+- Give proper error messages when processors panic instead of waiting for
+  results forever.
+- Glycin can now be built with compiled-in (builtin) processors. In that case,
+  loaders don't have to be available as separate binaries. While this mode
+  doesn't provide sandboxing and extendability, it supports non-Linux systems
+  like macOS and Windows. This mode will be used automatically when not built on
+  Linux.
+- heif: Add animation support for AVIF and HEIC files
+- image-rs: The loaders and editors now use gufo 0.5. This brings support for
+  more metadata extraction like key-value medata from PNGs and `<metadata>`
+  entries from SVGs. For editing, this now supports changing the orientation of
+  images with a broken Exif orientation tag.
+
+### Changed
+
+- svg: Don't limit the size of elements in the SVG #279
+
 ## 2.1.2 (2026-06-25)
 
 This release contains the following new component versions:
@@ -9,7 +51,7 @@ This release contains the following new component versions:
 - image-rs/jpeg: Support RGB for editing. There are actually images that don't
   use ycbcr. #274
 
-## 2.1.1 (2026-03-23)
+## 2.1.1 (Unreleased)
 
 This release contains the following new component versions:
 
