@@ -39,7 +39,7 @@ variables:
 
 build-release-tarball:
   stage: build
-  image: rust:1.92-trixie
+  image: rust:1.93-trixie
   extends: .install_dependencies
   script:
     - meson setup builddir
@@ -90,7 +90,7 @@ test-x86_64:
     - cargo clippy
 
 test-x86_64:
-  image: rust:1.92-trixie
+  image: rust:1.93-trixie
   extends: .install_dependencies
   interruptible: true
   script:
@@ -108,7 +108,7 @@ test-x86_64:
 
 test-i386:
   # Use hash to force i386, lookup "MANIFEST DIGEST" here <https://hub.docker.com/r/i386/rust/tags>
-  image: rust@sha256:e92287d0a1ba6cfa8ec85b6b660bfd4d6b4dc47e211b511c6cfcf277f330adc0
+  image: rust@sha256:59aafc5941b546a7679e1245faf138f3342c4f6e07cbd607310c50830108c12a
   extends: .install_dependencies
   interruptible: true
   # As long as 32-bit CI is so unstable
@@ -121,7 +121,7 @@ test-i386:
     - meson test -vC builddir
 
 test-aarch64:
-  image: rust:1.92-trixie
+  image: rust:1.93-trixie
   tags:
     - asan-aarch64
   extends: .install_dependencies
@@ -249,7 +249,7 @@ cargo-semver-checks:
     - cargo semver-checks -p libglycin -p libglycin-gtk4 --baseline-rev 97b80be3
 
 libglycin-rebind:
-  image: rust:1.92-trixie
+  image: rust:1.93-trixie
   extends: .install_dependencies
   interruptible: true
   variables:
