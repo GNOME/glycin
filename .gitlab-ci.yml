@@ -45,7 +45,7 @@ build-release-tarball:
   script:
     - meson setup builddir
     - meson install -C builddir
-    - apt-get install -y gawk
+    - apt-get install -y python3-tomlkit
     - ./build-aux/publish-crates-io.py
     - meson dist -C builddir
   artifacts:

@@ -1,14 +1,4 @@
-## 2.2.alpha.2 (2026-06-25)
-
-This release contains the following new component versions:
-
-- glycin-svg 2.2.0-alpha.2
-
-### Added
-
-- svg: Load XMP metadata
-
-## 2.2.alpha (2026-06-25)
+## 2.2.alpha.4 (2026-06-26)
 
 This release contains the following new component versions:
 
@@ -18,7 +8,7 @@ This release contains the following new component versions:
 - glycin-image-rs 2.2.0-alpha
 - glycin-jxl 2.2.0-alpha
 - glycin-raw 2.2.0-alpha
-- glycin-svg 2.2.0-alpha
+- glycin-svg 2.2.0-alpha.2
 - glycin-test 2.2.0-alpha
 - glycin-thumbnailer 2.2.0-alpha
 - glycin-utils 5.0.0-alpha
@@ -45,6 +35,7 @@ This release contains the following new component versions:
   more metadata extraction like key-value medata from PNGs and `<metadata>`
   entries from SVGs. For editing, this now supports changing the orientation of
   images with a broken Exif orientation tag.
+- svg: Load XMP metadata
 
 ### Changed
 
