@@ -1,7 +1,7 @@
 [package]
 name = "glycin-svg"
 publish = false
-version.workspace = true
+version = "2.2.0-alpha.1"
 authors.workspace = true
 description.workspace = true
 license.workspace = true
@@ -20,3 +20,5 @@ glycin-utils = { workspace = true, features = [
     "external",
 ] }
 rsvg = { package = "librsvg-rebind", version = "0.3.0" }
+gufo-svg.workspace = true
+gufo-common.workspace = true

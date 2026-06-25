@@ -5,9 +5,10 @@ use std::os::unix::net::UnixStream;
 use std::sync::Mutex;
 use std::sync::mpsc::{Receiver, Sender, channel};
 
-use gio::prelude::*;
+use gio::{glib, prelude::*};
 use glycin_utils::safe_math::*;
 use glycin_utils::*;
+use gufo_common::image::ImageMetadata;
 use rsvg::prelude::*;
 
 /// Current librsvg limit on maximum dimensions. See
@@ -33,29 +34,21 @@ pub struct Instruction {
     area: Option<rsvg::Rectangle>,
 }
 
-pub fn thread<B: ByteData, S: Read + Any>(
-    mut source: S,
+pub fn thread<B: ByteData>(
+    data: Vec<u8>,
     base_file: Option<gio::File>,
     info_send: Sender<Result<ImageDetails<B>, ProcessError>>,
     frame_send: Sender<Result<Frame<B>, ProcessError>>,
     instr_recv: Receiver<Instruction>,
 ) {
-    let handle = if let Some(unix_stream) = <dyn Any>::downcast_ref::<UnixStream>(&source) {
-        let fd = unix_stream.as_fd().try_clone_to_owned().unwrap();
-        let input_stream = gio_unix::InputStream::take_fd((fd).into());
-        rsvg::Handle::from_stream_sync(
-            &input_stream,
-            base_file.as_ref(),
-            rsvg::HandleFlags::FLAG_UNLIMITED,
-            gio::Cancellable::NONE,
-        )
-        .expected_error()
-    } else {
-        let mut data = Vec::new();
-        source.read_to_end(&mut data).unwrap();
-
-        rsvg::Handle::from_data(&data).expected_error()
-    };
+    let input_stream = gio::MemoryInputStream::from_bytes(&glib::Bytes::from_owned(data));
+    let handle = rsvg::Handle::from_stream_sync(
+        &input_stream,
+        base_file.as_ref(),
+        rsvg::HandleFlags::FLAG_UNLIMITED,
+        gio::Cancellable::NONE,
+    )
+    .expected_error();
 
     let handle = match handle {
         Ok(handle) => handle,
@@ -155,10 +148,20 @@ pub fn render<B: ByteData>(
 
 impl LoaderImplementation for ImgDecoder {
     fn load<B: ByteData, S: Read + Send + 'static>(
-        stream: S,
+        mut stream: S,
         _mime_type: String,
         details: InitializationDetails,
     ) -> Result<(Self, ImageDetails<B>), ProcessError> {
+        let mut data = Vec::new();
+        stream.read_to_end(&mut data).expected_error()?;
+
+        let (xmp, data) = {
+            match gufo_svg::Svg::new(data) {
+                Err(err) => (None, err.into_inner()),
+                Ok(svg) => (svg.xmp().pop(), svg.into_inner()),
+            }
+        };
+
         let (info_send, info_recv) = channel();
         let (frame_send, frame_recv) = channel();
         let (instr_send, instr_recv) = channel();
@@ -168,8 +171,10 @@ impl LoaderImplementation for ImgDecoder {
             .as_ref()
             .map(|x| gio::File::for_path(x).child("placeholder.svg"));
 
-        std::thread::spawn(move || thread(stream, base_file, info_send, frame_send, instr_recv));
-        let image_info = info_recv.recv().unwrap()?;
+        std::thread::spawn(move || thread(data, base_file, info_send, frame_send, instr_recv));
+        let mut image_info = info_recv.recv().unwrap()?;
+
+        image_info.metadata_xmp = xmp.map(LocalMemory::from);
 
         let decoder = ImgDecoder {
             thread: Mutex::new(Some(ImgDecoderDetails {

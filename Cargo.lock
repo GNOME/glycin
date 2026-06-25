@@ -1306,6 +1306,8 @@ dependencies = [
  "gio",
  "gio-unix",
  "glycin-utils",
+ "gufo-common",
+ "gufo-svg",
  "librsvg-rebind",
 ]
 
@@ -1377,7 +1379,6 @@ dependencies = [
  "gufo-exif",
  "gufo-jpeg",
  "gufo-png",
- "gufo-svg",
  "gufo-tiff",
  "gufo-webp",
  "gufo-xmp",

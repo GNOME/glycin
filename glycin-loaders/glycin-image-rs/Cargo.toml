@@ -22,7 +22,7 @@ glycin-utils = { workspace = true, features = [
 ] }
 gufo-common.workspace = true
 gufo-exif.workspace = true
-gufo.workspace = true
+gufo = { workspace = true, features = ["jpeg", "png", "tiff", "webp"] }
 gufo-jpeg = { workspace = true, features = ["encoder"] }
 image = { workspace = true, features = [
     "bmp",
