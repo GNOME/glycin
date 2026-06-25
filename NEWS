@@ -1,3 +1,13 @@
+## 2.2.alpha.2 (2026-06-25)
+
+This release contains the following new component versions:
+
+- glycin-svg 2.2.0-alpha.2
+
+### Added
+
+- svg: Load XMP metadata
+
 ## 2.2.alpha (2026-06-25)
 
 This release contains the following new component versions:
