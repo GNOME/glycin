@@ -27,7 +27,7 @@ glycin_datadir = datadir / 'glycin-loaders' / compat_version
 
 meson.add_devenv({'XDG_DATA_HOME': datadir})
 
-meson.add_dist_script('../build-aux/dist-vendor.sh', meson.project_version())
+meson.add_dist_script('../build-aux/dist-vendor.py', meson.project_version())
 
 i18n = import('i18n')
 

@@ -7,3 +7,4 @@ libglycin-rebind/gir-rustdoc.py
 public/
 target/
 tests/failures
+__pycache__

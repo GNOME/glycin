@@ -44,7 +44,7 @@ default-members = [
     "glycin-dev-tools",
     "glycin-thumbnailer",
     "glycin-utils",
-    "glycin-loaders/glycin-image-rs",
+    "glycin-loaders/*",
 ]
 
 [workspace.lints.clippy]
