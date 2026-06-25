@@ -16,7 +16,7 @@ pub enum GlyLoaderError {
 
 impl From<&glycin::Error> for GlyLoaderError {
     fn from(value: &glycin::Error) -> Self {
-        if value.is_no_more_frames() {
+        if value.has_no_more_frames() {
             Self::NoMoreFrames
         } else if value.unsupported_format().is_some() {
             Self::UnknownImageFormat

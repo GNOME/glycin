@@ -102,6 +102,18 @@ impl Error {
         }
     }
 
+    pub fn failed_image_source(&self) -> Option<glib::Error> {
+        if let ErrorKind::ImageSource(err) = &*self.kind {
+            Some(err.clone())
+        } else {
+            None
+        }
+    }
+
+    pub fn has_no_processor_configured(&self) -> bool {
+        matches!(*self.kind, ErrorKind::NoLoadersConfigured(_))
+    }
+
     pub fn is_out_of_memory(&self) -> bool {
         matches!(
             *self.kind,
@@ -109,7 +121,7 @@ impl Error {
         )
     }
 
-    pub fn is_no_more_frames(&self) -> bool {
+    pub fn has_no_more_frames(&self) -> bool {
         matches!(
             *self.kind,
             ErrorKind::RemoteError(RemoteError::NoMoreFrames)
@@ -121,6 +133,10 @@ impl Error {
             *self.kind,
             ErrorKind::ThreadPanic(_) | ErrorKind::RemoteError(RemoteError::Panic)
         )
+    }
+
+    pub fn is_cancelled(&self) -> bool {
+        matches!(*self.kind, ErrorKind::Canceled(_))
     }
 
     pub fn is_timeout(&self) -> bool {

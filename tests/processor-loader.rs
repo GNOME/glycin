@@ -141,7 +141,7 @@ async fn test_dir_animated(dir: impl AsRef<Path>) {
                 .specific_frame(glycin::FrameRequest::default().loop_animation(false))
                 .await
                 .unwrap_err()
-                .is_no_more_frames()
+                .has_no_more_frames()
         );
     }
 }
