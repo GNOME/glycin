@@ -81,7 +81,7 @@ benchmark:
       allow_failure: true
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-test-x86_64:
+clippy:
   image: rust
   extends: .install_dependencies
   interruptible: true
