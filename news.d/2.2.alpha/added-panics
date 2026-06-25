@@ -1,0 +1,1 @@
+Give proper error messages when processors panic instead of waiting for results forever.

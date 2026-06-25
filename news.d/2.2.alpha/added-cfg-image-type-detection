@@ -1,0 +1,1 @@
+Added support for specifying in configs how to detect the images of a type instead of relying on global mime-type database. This is faster, more reliable, and works on systems like Windows out of the box.
