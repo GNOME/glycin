@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 
 import os
-import sys
-import subprocess
 import tomlkit
 import crates_version
+import shutil
+import subprocess
 
 os.chdir(os.environ["MESON_PROJECT_DIST_ROOT"])
 
 VERSION = crates_version.get_version("glycin", False)
 
 REMOVE_CRATES = [
-    ("glycin", "glycin"),
     ("glycin/glycin-builtin", "glycin-builtin"),
     ("glycin/glycin-external", "glycin-external"),
+    ("glycin", "glycin"),
     ("glycin-common", "glycin-common"),
     ("glycin-core", "glycin-core"),
     ("glycin-utils", "glycin-utils"),
@@ -44,6 +44,11 @@ with open("Cargo.toml", "r") as f:
     for (path, crate) in REMOVE_CRATES:
         if crate is not None:
             del config["workspace"]["dependencies"][crate]["path"]
+            shutil.rmtree(path)
+
 
 with open("Cargo.toml", "w") as f:
     tomlkit.dump(config, f)
+
+# Trigger Cargo.lock update
+subprocess.call(["cargo", "check", "-p", "tests"])
