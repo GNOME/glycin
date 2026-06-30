@@ -1,3 +1,9 @@
+## 2.2.alpha.5 (2026-06-30)
+
+### Fixed
+
+- Let distribution script update the Cargo.lock file.
+
 ## 2.2.alpha.4 (2026-06-26)
 
 This release contains the following new component versions:
@@ -15,8 +21,8 @@ This release contains the following new component versions:
 - glycin 4.0.0-alpha
 - glycin-builtin 4.0.0-alpha
 - glycin-external 4.0.0-alpha
-- libglycin 2.2.0-alpha
-- libglycin-gtk4 2.2.0-alpha
+- libglycin 2.2.0-alpha.4
+- libglycin-gtk4 2.2.0-alpha.4
 
 ### Added
 
