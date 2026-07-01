@@ -289,7 +289,7 @@ impl ImageRsFormat<Reader> {
             ))
             .format_name("BMP")
             .default_bit_depth(8),
-            "image/x-dds" => Self::new(ImageRsDecoder::Dds(
+            "image/x-dds" | "image/vnd.ms-dds" => Self::new(ImageRsDecoder::Dds(
                 codecs::dds::DdsDecoder::new(data).expected_error()?,
             ))
             .format_name("DDS")
