@@ -1253,6 +1253,7 @@ name = "glycin-heif"
 version = "2.2.0-alpha"
 dependencies = [
  "four-cc",
+ "glycin-common",
  "glycin-utils",
  "gufo-common",
  "libheif-rs",

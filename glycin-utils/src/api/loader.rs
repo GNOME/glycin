@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::io::Read;
 use std::time::Duration;
 
-use glycin_common::{MemoryFormat, MemoryFormatInfo};
+use glycin_common::{ColorProfilePreference, MemoryFormat, MemoryFormatInfo};
 use gufo_common::orientation::Orientation;
 #[cfg(feature = "external")]
 use zbus::zvariant::as_value::{self, optional};
@@ -296,6 +296,7 @@ impl<B: ByteData> Default for FrameDetails<B> {
         Self {
             color_icc_profile: None,
             color_cicp: None,
+            color_profile_preference: None,
             info_bit_depth: None,
             info_alpha_channel: None,
             info_grayscale: None,
@@ -453,6 +454,16 @@ pub struct FrameDetails<B: ByteData> {
         )
     )]
     pub color_cicp: Option<[u8; 4]>,
+    /// Which profile to use if ICC profile and CICP are defined
+    #[cfg_attr(
+        feature = "external",
+        serde(
+            with = "as_value::optional",
+            skip_serializing_if = "Option::is_none",
+            default
+        )
+    )]
+    pub color_profile_preference: Option<ColorProfilePreference>,
     /// Bit depth per channel
     ///
     /// Only set if it can differ for the format
@@ -505,6 +516,7 @@ impl<B: ByteData> FrameDetails<B> {
         FrameDetails {
             color_icc_profile: self.color_icc_profile.map(B::into_fungible),
             color_cicp: self.color_cicp,
+            color_profile_preference: self.color_profile_preference,
             info_bit_depth: self.info_bit_depth,
             info_alpha_channel: self.info_alpha_channel,
             info_grayscale: self.info_grayscale,
@@ -516,6 +528,7 @@ impl<B: ByteData> FrameDetails<B> {
         Ok(FrameDetails {
             color_icc_profile: self.color_icc_profile.map(B::into_other).transpose()?,
             color_cicp: self.color_cicp,
+            color_profile_preference: self.color_profile_preference,
             info_bit_depth: self.info_bit_depth,
             info_alpha_channel: self.info_alpha_channel,
             info_grayscale: self.info_grayscale,

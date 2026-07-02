@@ -20,6 +20,7 @@ glycin-utils = { workspace = true, features = [
 libheif-rs = { version = "2.7.0", default-features = false, features = [
     "v1_20",
 ] }
+glycin-common.workspace = true
 safe-transmute.workspace = true
 gufo-common.workspace = true
 log.workspace = true
