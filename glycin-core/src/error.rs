@@ -200,7 +200,9 @@ pub enum ErrorKind {
     #[error("Seccomp: {0}")]
     Seccomp(Arc<libseccomp::error::SeccompError>),
     #[error("ICC profile: {0}")]
-    IccProfile(#[from] lcms2::Error),
+    IccProfile(#[from] moxcms::CmsError),
+    #[error("Memory transformation: {0}")]
+    MemoryTransformation(#[from] bytemuck::PodCastError),
     #[error("Operation was explicitly canceled.\nOriginal error: {0:?}")]
     Canceled(Option<String>),
     #[error("Editing: {0}")]

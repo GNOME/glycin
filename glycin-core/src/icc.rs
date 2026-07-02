@@ -1,4 +1,6 @@
-use glycin_common::{MemoryFormat, MemoryFormatInfo};
+use std::sync::Arc;
+
+use glycin_common::{ChannelType, MemoryFormat, MemoryFormatInfo};
 use glycin_utils::FungibleMemory;
 
 use crate::{ColorState, Error};
@@ -22,28 +24,66 @@ pub fn apply_transformation(
     }
 }
 
-fn transformation<P: lcms2::Pod>(
+type TransformExectuor<T> = Arc<dyn moxcms::InPlaceTransformExecutor<T> + Send + Sync>;
+
+enum Transform {
+    U8(TransformExectuor<u8>),
+    U16(TransformExectuor<u16>),
+    F32(TransformExectuor<f32>),
+}
+
+impl Transform {
+    fn transform(&self, in_out: &mut [u8]) -> Result<(), Error> {
+        match self {
+            Self::U8(executor) => executor.transform(in_out),
+            Self::U16(executor) => {
+                let in_out = bytemuck::try_cast_slice_mut(in_out)?;
+                executor.transform(in_out)
+            }
+            Self::F32(executor) => {
+                let in_out = bytemuck::try_cast_slice_mut(in_out)?;
+                executor.transform(in_out)
+            }
+        }
+        .map_err(Into::into)
+    }
+}
+
+fn transformation(
     icc_profile: &[u8],
     memory_format: MemoryFormat,
-) -> std::result::Result<lcms2::Transform<P, P>, lcms2::Error> {
+) -> std::result::Result<Transform, moxcms::CmsError> {
     tracing::debug!("Converting to sRGB via ICC profile");
 
-    let icc_pixel_format = lcms_pixel_format(memory_format);
-    let src_profile = lcms2::Profile::new_icc(icc_profile)?;
+    let layout = pixel_layout(memory_format);
+    let src_profile = moxcms::ColorProfile::new_from_slice(icc_profile)?;
 
     let target_profile = if memory_format.n_channels() > 2 {
-        lcms2::Profile::new_srgb()
+        moxcms::ColorProfile::new_srgb()
     } else {
-        lcms2::Profile::new_gray(lcms2_sys::ffi::CIExyY::d50(), &lcms2::ToneCurve::new(2.2))?
+        moxcms::ColorProfile::new_gray_with_gamma(2.2)
     };
 
-    lcms2::Transform::new(
-        &src_profile,
-        icc_pixel_format,
-        &target_profile,
-        icc_pixel_format,
-        lcms2::Intent::Perceptual,
-    )
+    match memory_format.channel_type() {
+        ChannelType::U8 => Ok(Transform::U8(src_profile.create_in_place_transform_8bit(
+            layout,
+            &target_profile,
+            moxcms::TransformOptions::default(),
+        )?)),
+        ChannelType::U16 => Ok(Transform::U16(
+            src_profile.create_in_place_transform_16bit(
+                layout,
+                &target_profile,
+                moxcms::TransformOptions::default(),
+            )?,
+        )),
+        ChannelType::F32 => Ok(Transform::F32(src_profile.create_in_place_transform_f32(
+            layout,
+            &target_profile,
+            moxcms::TransformOptions::default(),
+        )?)),
+        c => todo!("{c:?}"),
+    }
 }
 
 fn transform(
@@ -52,21 +92,22 @@ fn transform(
     buf: &mut [u8],
     width: u32,
     stride: u32,
-) -> std::result::Result<ColorState, lcms2::Error> {
+) -> std::result::Result<ColorState, Error> {
     let multiple = std::thread::available_parallelism().map_or(2, |x| x.get());
     tracing::trace!("Applying ICC profiles while using {multiple} threads");
 
     let chunk_size = (buf.len() / stride as usize).div_ceil(multiple) * stride as usize;
     let row_length = width as usize * memory_format.n_bytes().usize();
 
+    let transform = transformation(icc_profile, memory_format)?;
+
     std::thread::scope(|s| {
         for chunk in buf.chunks_mut(chunk_size) {
-            s.spawn(move || {
-                let transform = transformation(icc_profile, memory_format)?;
+            s.spawn(|| {
                 for row in chunk.chunks_mut(stride as usize) {
-                    transform.transform_in_place(&mut row[0..row_length]);
+                    transform.transform(&mut row[0..row_length])?;
                 }
-                Ok::<(), lcms2::Error>(())
+                Ok::<(), Error>(())
             });
         }
     });
@@ -74,42 +115,18 @@ fn transform(
     Ok(ColorState::Srgb)
 }
 
-const fn lcms_pixel_format(format: MemoryFormat) -> lcms2::PixelFormat {
+const fn pixel_layout(format: MemoryFormat) -> moxcms::Layout {
     match format {
-        MemoryFormat::B8g8r8a8Premultiplied => premul(lcms2::PixelFormat::BGRA_8),
-        MemoryFormat::A8r8g8b8Premultiplied => premul(lcms2::PixelFormat::ARGB_8),
-        MemoryFormat::R8g8b8a8Premultiplied => premul(lcms2::PixelFormat::RGBA_8),
-        MemoryFormat::B8g8r8a8 => lcms2::PixelFormat::BGRA_8,
-        MemoryFormat::A8r8g8b8 => lcms2::PixelFormat::ARGB_8,
-        MemoryFormat::R8g8b8a8 => lcms2::PixelFormat::RGBA_8,
-        MemoryFormat::A8b8g8r8 => lcms2::PixelFormat::ABGR_8,
-        MemoryFormat::R8g8b8 => lcms2::PixelFormat::RGB_8,
-        MemoryFormat::B8g8r8 => lcms2::PixelFormat::BGR_8,
-        MemoryFormat::R16g16b16 => lcms2::PixelFormat::RGB_16,
-        MemoryFormat::R16g16b16a16Premultiplied => premul(lcms2::PixelFormat::RGBA_16),
-        MemoryFormat::R16g16b16a16 => lcms2::PixelFormat::RGBA_16,
-        MemoryFormat::R16g16b16Float => lcms2::PixelFormat::RGB_HALF_FLT,
-        MemoryFormat::R16g16b16a16Float => lcms2::PixelFormat::RGBA_HALF_FLT,
-        MemoryFormat::R32g32b32Float => lcms2::PixelFormat::RGB_FLT,
-        MemoryFormat::R32g32b32a32FloatPremultiplied => premul(lcms2::PixelFormat::RGBA_FLT),
-        MemoryFormat::R32g32b32a32Float => lcms2::PixelFormat::RGBA_FLT,
-        MemoryFormat::G8a8Premultiplied => premul(lcms2::PixelFormat::GRAYA_8),
-        MemoryFormat::G8a8 => lcms2::PixelFormat::GRAYA_8,
-        MemoryFormat::G8 => lcms2::PixelFormat::GRAY_8,
-        MemoryFormat::G16a16Premultiplied => premul(lcms2::PixelFormat::GRAYA_16),
-        MemoryFormat::G16a16 => lcms2::PixelFormat::GRAYA_16,
-        MemoryFormat::G16 => lcms2::PixelFormat::GRAY_16,
+        MemoryFormat::R8g8b8
+        | MemoryFormat::R16g16b16
+        | MemoryFormat::R16g16b16Float
+        | MemoryFormat::R32g32b32Float => moxcms::Layout::Rgb,
+        MemoryFormat::R8g8b8a8
+        | MemoryFormat::R16g16b16a16
+        | MemoryFormat::R16g16b16a16Float
+        | MemoryFormat::R32g32b32a32Float => moxcms::Layout::Rgba,
+        MemoryFormat::G8 | MemoryFormat::G16 => moxcms::Layout::Gray,
+        MemoryFormat::G8a8 | MemoryFormat::G16a16 => moxcms::Layout::GrayAlpha,
+        _ => unimplemented!(),
     }
-}
-
-const fn premul(format: lcms2::PixelFormat) -> lcms2::PixelFormat {
-    let mut bytes = format.0;
-    bytes |= 0b1 << 23;
-    lcms2::PixelFormat(bytes)
-}
-
-#[test]
-fn premul_test() {
-    assert!(!lcms2::PixelFormat::RGBA_8.premultiplied());
-    assert!(premul(lcms2::PixelFormat::RGBA_8).premultiplied());
 }

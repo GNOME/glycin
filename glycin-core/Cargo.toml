@@ -57,6 +57,7 @@ async-io = { workspace = true, optional = true }
 async-lock = { workspace = true, optional = true }
 async-task = { workspace = true, optional = true }
 blocking = { workspace = true, optional = true }
+bytemuck.workspace = true
 futures-channel.workspace = true
 futures-lite = { workspace = true, optional = true }
 futures-timer = { workspace = true, optional = true }
@@ -71,8 +72,7 @@ glycin-image-rs = { workspace = true, optional = true, features = ["builtin"] }
 glycin-test = { workspace = true, optional = true, features = ["builtin"] }
 gufo-common.workspace = true
 gufo-exif.workspace = true
-lcms2-sys.workspace = true
-lcms2.workspace = true
+half.workspace = true
 libc.workspace = true
 libseccomp = { workspace = true, optional = true }
 nix = { workspace = true, features = [
@@ -80,6 +80,7 @@ nix = { workspace = true, features = [
     "resource",
     "signal",
 ], optional = true }
+moxcms = { workspace = true, features = ["in_place"] }
 static_assertions = { workspace = true }
 thiserror.workspace = true
 tokio = { workspace = true, optional = true }

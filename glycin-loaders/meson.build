@@ -20,7 +20,6 @@ endif
 if get_option('tests')
   dependency('gio-2.0', version: gio_req)
   dependency('gtk4', version: gtk4_req)
-  dependency('lcms2', version: lcms2_req)
 endif
 
 glycin_datadir = datadir / 'glycin-loaders' / compat_version

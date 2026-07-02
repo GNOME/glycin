@@ -23,7 +23,7 @@
 //!
 //! # External Dependencies
 //!
-//! Glycin requires the libraries *libglib2.0*, *liblcms2*, *libfontconfig*, and
+//! Glycin requires the libraries *libglib2.0*, *libfontconfig*, and
 //! *libseccomp* packages to be installed. For the `gdk4` feature, *libgtk-4* is
 //! required as well. To actually work with images, loaders for the respective
 //! formats have to be installed. Glycin provides [loaders] for many formats
@@ -32,13 +32,13 @@
 //! required dependencies can usually be installed through commands like
 //!
 //! ```sh
-//! $ apt install libgtk-4-dev liblcms2-dev libfontconfig-dev libseccomp-dev glycin-loaders bubblewrap
+//! $ apt install libgtk-4-dev libfontconfig-dev libseccomp-dev glycin-loaders bubblewrap
 //! ```
 //!
 //! on Debian/Ubuntu or
 //!
 //! ```sh
-//! $ dnf install gtk4-devel lcms2-devel fontconfig-devel libseccomp-devel glycin-loaders bubblewrap
+//! $ dnf install gtk4-devel fontconfig-devel libseccomp-devel glycin-loaders bubblewrap
 //! ```
 //!
 //! on Fedora.

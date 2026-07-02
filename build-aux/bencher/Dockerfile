@@ -7,7 +7,7 @@ FROM ubuntu:resolute-20260421 AS runtime-deps
 RUN apt-get update
 
 # Libraries
-RUN apt-get install -y liblcms2-dev gettext libseccomp-dev libfontconfig-dev libglib2.0-dev
+RUN apt-get install -y gettext libseccomp-dev libfontconfig-dev libglib2.0-dev
 
 # Needed to compare with gdk-pixbuf
 RUN apt-get install -y libgdk-pixbuf-2.0-dev

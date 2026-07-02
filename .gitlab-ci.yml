@@ -25,7 +25,7 @@ variables:
 .install_dependencies:
   before_script:
     - apt-get update
-    - apt-get install -y git curl meson pkg-config gobject-introspection gi-docgen valac libgirepository1.0-dev python3-gi build-essential liblcms2-dev gettext clang mold bubblewrap libseccomp-dev libfontconfig-dev
+    - apt-get install -y git curl meson pkg-config gobject-introspection gi-docgen valac libgirepository1.0-dev python3-gi build-essential gettext clang mold bubblewrap libseccomp-dev libfontconfig-dev
     - apt-get install -y libgtk-4-dev libcairo2-dev librsvg2-2 libjxl-dev
     # We need libfheif 1.20
     - echo "deb http://deb.debian.org/debian forky main" > /etc/apt/sources.list.d/forky.list
@@ -138,7 +138,7 @@ test-fedora43-loaders:
   image: 'registry.fedoraproject.org/fedora:43'
   interruptible: true
   script:
-    - dnf install --assumeyes glycin-loaders cargo glib2-devel gtk4-devel lcms2-devel libseccomp-devel fontconfig-devel
+    - dnf install --assumeyes glycin-loaders cargo glib2-devel gtk4-devel libseccomp-devel fontconfig-devel
     - rm tests/test-images/images/animated-numbers/animated-numbers.avif
     - rm tests/test-images/images/animated-numbers/animated-numbers.heic
     - rm tests/test-images/editing/crop/crop_ycck.jpg
@@ -154,7 +154,7 @@ test-fedora44-loaders:
   image: 'registry.fedoraproject.org/fedora:44'
   interruptible: true
   script:
-    - dnf install --assumeyes glycin-loaders cargo glib2-devel gtk4-devel lcms2-devel libseccomp-devel fontconfig-devel
+    - dnf install --assumeyes glycin-loaders cargo glib2-devel gtk4-devel libseccomp-devel fontconfig-devel
     - rm tests/test-images/images/animated-numbers/animated-numbers.avif
     - rm tests/test-images/images/animated-numbers/animated-numbers.heic
     - rm tests/test-images/images/color/color.hdr
@@ -205,15 +205,6 @@ macos:
           gtk.build gtk
       meson compile -C gtk.build
       meson install -C gtk.build
-    - | # Install lcms2.
-      curl -L https://sourceforge.net/projects/lcms/files/lcms/2.18/lcms2-2.18.tar.gz | tar -xz
-      (
-        mkdir lcms2-2.18.build
-        cd lcms2-2.18.build
-        ../lcms2-2.18/configure --prefix ${CI_PROJECT_DIR}/.venv
-        make
-        make install
-      )
     - | # Install pkgconfig.
       curl -L $CI_API_V4_URL/projects/30437/packages/generic/pkgconfig/v0.29.2+10/pkg-config-0.29.2+10_$(uname -m).tar.xz | tar -C .venv -xJ
   script:

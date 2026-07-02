@@ -6,7 +6,6 @@ libglycin_deps = [
     dependency('fontconfig', version: fontconfig_req),
     dependency('gio-2.0', version: gio_req),
     dependency('libseccomp', version: seccomp_req),
-    dependency('lcms2', version: lcms2_req),
 ]
 
 pkg = import('pkgconfig')
