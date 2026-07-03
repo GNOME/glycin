@@ -6,7 +6,7 @@ use futures_util::FutureExt;
 use gio::glib;
 use gio::prelude::*;
 pub use glycin_common::MemoryFormat;
-use glycin_common::{MemoryFormatInfo, MemoryFormatSelection};
+use glycin_common::{ColorProfilePreference, MemoryFormatInfo, MemoryFormatSelection};
 #[cfg(feature = "builtin")]
 use glycin_utils::LoaderImplementation;
 use glycin_utils::safe_math::*;
@@ -725,16 +725,23 @@ impl Frame {
 
         let mut color_state = ColorState::Srgb;
 
-        let frame = if let Some(cicp) = frame
+        let cicp = frame
             .details
             .color_cicp
-            .and_then(|x| Cicp::from_bytes(&x).ok())
+            .and_then(|x| Cicp::from_bytes(&x).ok());
+        let icc_profile = frame.details.color_icc_profile.as_ref().map(|x| x.to_vec());
+        let color_profile_preference = frame.details.color_profile_preference.unwrap_or_default();
+
+        // Use CICP if preferred or no ICC profile is available
+        let use_cicp = matches!(color_profile_preference, ColorProfilePreference::Cicp)
+            || icc_profile.is_none();
+
+        let frame = if let Some(cicp) = cicp
+            && use_cicp
         {
             color_state = ColorState::Cicp(cicp);
             frame
-        } else if let Some(icc_profile) =
-            frame.details.color_icc_profile.as_ref().map(|x| x.to_vec())
-        {
+        } else if let Some(icc_profile) = icc_profile {
             let (frame, icc_result) =
                 spawn_blocking(move || icc::apply_transformation(&icc_profile, frame)).await?;
 
