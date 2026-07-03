@@ -103,7 +103,7 @@ gufo-svg = { version = "0.5.0-alpha" }
 half = "2.4.1"
 hayro-jpeg2000 = "0.3.2"
 image = { version = "0.25.9", default-features = false }
-image-extras = { version = "0.1.0", default-features = false, features = [
+image-extras = { version = "0.1.1", default-features = false, features = [
     "xbm",
     "xpm",
 ] }
