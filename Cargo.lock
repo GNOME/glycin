@@ -1277,6 +1277,7 @@ dependencies = [
  "image-extras",
  "jpeg-encoder",
  "log",
+ "moxcms",
  "zune-jpeg",
 ]
 

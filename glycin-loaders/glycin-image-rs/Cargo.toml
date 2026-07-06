@@ -47,3 +47,4 @@ zune-jpeg = "0.5.11"
 image-extras.workspace = true
 hayro-jpeg2000 = { workspace = true, features = ["image"] }
 exr = "1.74.0"
+moxcms = "0.8.1"

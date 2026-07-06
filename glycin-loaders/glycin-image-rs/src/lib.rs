@@ -37,6 +37,7 @@ impl Builtin for BuiltinImageRs {
 pub struct ImgLoader {
     pub decoder: Mutex<Option<Decoder>>,
     pub cicp: Mutex<Option<Cicp>>,
+    pub mime_type: String,
 }
 
 pub enum Decoder {
@@ -114,6 +115,16 @@ impl LoaderImplementation for ImgLoader {
             Err(err) => err.into_inner(),
         });
 
+        // Radiance HDR returns linear data
+        if mime_type == "image/vnd.radiance" {
+            *loader_impelementation.cicp.lock().unwrap() = Some(Cicp {
+                color_primaries: gufo_common::cicp::ColorPrimaries::Srgb,
+                transfer_characteristics: gufo_common::cicp::TransferCharacteristics::Linear,
+                matrix_coefficients: gufo_common::cicp::MatrixCoefficients::Identity,
+                video_full_range_flag: gufo_common::cicp::VideoRangeFlag::Full,
+            });
+        }
+
         if format.decoder.is_animated() {
             let (send, recv) = channel();
             let thread =
@@ -184,6 +195,7 @@ pub enum ImageRsDecoder<T: std::io::BufRead + std::io::Seek> {
     Dds(codecs::dds::DdsDecoder<T>),
     Farbfeld(codecs::farbfeld::FarbfeldDecoder<T>),
     Gif(codecs::gif::GifDecoder<T>),
+    Hdr(codecs::hdr::HdrDecoder<T>),
     Ico(codecs::ico::IcoDecoder<T>),
     Jpeg(codecs::jpeg::JpegDecoder<T>),
     Jpeg2000(hayro_jpeg2000::integration::Jp2Decoder),
@@ -305,6 +317,10 @@ impl ImageRsFormat<Reader> {
             .format_name("XPM")
             .default_bit_depth(8)
             .supports_two_alpha_modes(false),
+            "image/vnd.radiance" => Self::new(ImageRsDecoder::Hdr(
+                codecs::hdr::HdrDecoder::new_nonstrict(data).expected_error()?,
+            ))
+            .format_name("Radiance HDR"),
             mime_type => return Err(ProcessError::UnsupportedImageFormat(mime_type.to_string())),
         })
     }
@@ -348,6 +364,7 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Dds(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Farbfeld(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Gif(ref mut d) => self.handler.info(d),
+            ImageRsDecoder::Hdr(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Ico(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Jpeg(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Jpeg2000(ref mut d) => self.handler.info(d),
@@ -368,6 +385,7 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Dds(d) => self.handler.frame(d),
             ImageRsDecoder::Farbfeld(d) => self.handler.frame(d),
             ImageRsDecoder::Gif(d) => self.handler.frame(d),
+            ImageRsDecoder::Hdr(d) => self.handler.frame(d),
             ImageRsDecoder::Ico(d) => self.handler.frame(d),
             ImageRsDecoder::Jpeg(d) => self.handler.frame(d),
             ImageRsDecoder::Jpeg2000(d) => self.handler.frame(d),
@@ -388,6 +406,7 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Dds(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Farbfeld(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Gif(ref mut d) => self.handler.frame_details(d),
+            ImageRsDecoder::Hdr(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Ico(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Jpeg(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Jpeg2000(ref mut d) => self.handler.frame_details(d),
@@ -410,6 +429,7 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Dds(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Farbfeld(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Gif(ref mut d) => d.set_limits(limits),
+            ImageRsDecoder::Hdr(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Ico(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Jpeg(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Jpeg2000(ref mut d) => d.set_limits(limits),

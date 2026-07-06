@@ -143,6 +143,7 @@ test-fedora43-loaders:
     - rm tests/test-images/images/animated-numbers/animated-numbers.heic
     - rm tests/test-images/editing/crop/crop_ycck.jpg
     - rm tests/test-images/editing/crop-grayscale/crop-grayscale.jpg
+    - rm tests/test-images/images/color/color.hdr
     - rm tests/test-images/images/color/color.jp2
     - rm tests/test-images/images/color/color.xpm
     - rm tests/test-images/images/monochrome/monochrome.xbm
@@ -156,6 +157,7 @@ test-fedora44-loaders:
     - dnf install --assumeyes glycin-loaders cargo glib2-devel gtk4-devel lcms2-devel libseccomp-devel fontconfig-devel
     - rm tests/test-images/images/animated-numbers/animated-numbers.avif
     - rm tests/test-images/images/animated-numbers/animated-numbers.heic
+    - rm tests/test-images/images/color/color.hdr
     - rm tests/test-images/images/color-variations/color-variations-u32.exr
     - GLYCIN_TEST_SKIP_EXT=heic cargo test -p tests -- --nocapture --test-threads 1 processor_
 
