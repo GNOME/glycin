@@ -260,7 +260,7 @@ impl Loader {
             #[cfg(feature = "builtin-image-rs")]
             config::BuiltinProcessor::ImageRs(_) => {
                 init_function = Box::new(|stream, mime_type, details| {
-                    glycin_image_rs::ImgDecoder::load(stream, mime_type, details).map(
+                    glycin_image_rs::ImgLoader::load(stream, mime_type, details).map(
                         |(decoder, details)| {
                             (
                                 ImageBuiltinLoader::ImageRs(Arc::new(Mutex::new(decoder))),
@@ -438,7 +438,7 @@ impl Image {
                 match builtin {
                     #[cfg(feature = "builtin-image-rs")]
                     ImageBuiltinLoader::ImageRs(loader) => {
-                        let loader: Arc<Mutex<glycin_image_rs::ImgDecoder>> = loader.to_owned();
+                        let loader: Arc<Mutex<glycin_image_rs::ImgLoader>> = loader.to_owned();
                         editor_function = Box::new(move || {
                             loader
                                 .lock()
@@ -566,7 +566,7 @@ struct ImageExternalLoader {
 #[derive(Clone)]
 enum ImageBuiltinLoader {
     #[cfg(feature = "builtin-image-rs")]
-    ImageRs(Arc<Mutex<glycin_image_rs::ImgDecoder>>),
+    ImageRs(Arc<Mutex<glycin_image_rs::ImgLoader>>),
     #[cfg(feature = "builtin-test")]
     Test(Arc<Mutex<glycin_test::ImgDecoder>>),
 }

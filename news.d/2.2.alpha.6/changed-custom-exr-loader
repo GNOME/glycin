@@ -1,0 +1,1 @@
+image-rs: Use custom openexr loader. This allows to load f16 images as half format. It also fixes loading openexr u32 images.

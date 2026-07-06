@@ -2,6 +2,7 @@
 
 mod animated;
 mod editor;
+mod exr;
 
 use std::io::{Cursor, Read};
 use std::sync::Mutex;
@@ -33,13 +34,21 @@ impl Builtin for BuiltinImageRs {
 }
 
 #[derive(Default)]
-pub struct ImgDecoder {
-    pub format: Mutex<Option<ImageRsFormat<Reader>>>,
-    pub thread: Mutex<Option<(std::thread::JoinHandle<()>, FrameReceiver)>>,
+pub struct ImgLoader {
+    pub decoder: Mutex<Option<Decoder>>,
     pub cicp: Mutex<Option<Cicp>>,
 }
 
-impl LoaderImplementation for ImgDecoder {
+pub enum Decoder {
+    ImageRsStatic(ImageRsFormat<Reader>),
+    ImageRsAnimated {
+        join_handle: std::thread::JoinHandle<()>,
+        frame_receiver: FrameReceiver,
+    },
+    Exr(Vec<u8>),
+}
+
+impl LoaderImplementation for ImgLoader {
     fn load<B: ByteData, R: Read>(
         mut stream: R,
         mime_type: String,
@@ -49,8 +58,19 @@ impl LoaderImplementation for ImgDecoder {
 
         let mut buf = Vec::new();
         stream.read_to_end(&mut buf).internal_error()?;
-        let data = Cursor::new(buf);
 
+        if mime_type == "image/x-exr" {
+            let metadata = exr::metadata(&buf)?;
+            return Ok((
+                ImgLoader {
+                    decoder: Mutex::new(Some(Decoder::Exr(buf))),
+                    ..Default::default()
+                },
+                metadata,
+            ));
+        }
+
+        let data = Cursor::new(buf);
         let mut format = ImageRsFormat::create(data.clone(), &mime_type)?;
         if let Err(err) = format.set_no_limits() {
             eprint!("Failed to unset decoder limits: {err}");
@@ -98,9 +118,12 @@ impl LoaderImplementation for ImgDecoder {
             let (send, recv) = channel();
             let thread =
                 std::thread::spawn(move || animated::worker(format, data, mime_type, send));
-            *loader_impelementation.thread.lock().unwrap() = Some((thread, recv));
+            *loader_impelementation.decoder.lock().unwrap() = Some(Decoder::ImageRsAnimated {
+                join_handle: thread,
+                frame_receiver: recv,
+            });
         } else {
-            *loader_impelementation.format.lock().unwrap() = Some(format);
+            *loader_impelementation.decoder.lock().unwrap() = Some(Decoder::ImageRsStatic(format));
         }
 
         Ok((loader_impelementation, image_info))
@@ -110,20 +133,40 @@ impl LoaderImplementation for ImgDecoder {
         &mut self,
         frame_request: FrameRequest,
     ) -> Result<Frame<B>, ProcessError> {
-        let mut frame = if let Some(decoder) = std::mem::take(&mut *self.format.lock().unwrap()) {
-            decoder.frame().expected_error()?
-        } else if let Some((ref thread, ref recv)) = *self.thread.lock().unwrap() {
-            thread.thread().unpark();
-            let (frame, looped) = recv.recv().internal_error()??;
-            if !frame_request.loop_animation && matches!(frame.details.n_frame, Some(0)) && looped {
-                return Err(ProcessError::NoMoreFrames);
-            }
-            frame
-        } else {
+        // Ensure lock on data
+        let cicp = self.cicp.lock().unwrap();
+
+        let Some(x) = std::mem::take(&mut *self.decoder.lock().unwrap()) else {
             return Err(ProcessError::NoMoreFrames);
         };
 
-        frame.details.color_cicp = self.cicp.lock().unwrap().map(|x| {
+        let mut frame = match x {
+            Decoder::ImageRsStatic(decoder) => decoder.frame().expected_error()?,
+            Decoder::ImageRsAnimated {
+                join_handle,
+                frame_receiver,
+            } => {
+                join_handle.thread().unpark();
+                let (frame, looped) = frame_receiver.recv().internal_error()??;
+
+                // Write back decoder since we need it again in the future
+                *self.decoder.lock().unwrap() = Some(Decoder::ImageRsAnimated {
+                    join_handle,
+                    frame_receiver,
+                });
+
+                if !frame_request.loop_animation
+                    && matches!(frame.details.n_frame, Some(0))
+                    && looped
+                {
+                    return Err(ProcessError::NoMoreFrames);
+                }
+                frame
+            }
+            Decoder::Exr(data) => exr::frame(&data)?,
+        };
+
+        frame.details.color_cicp = cicp.map(|x| {
             [
                 x.color_primaries.into(),
                 x.transfer_characteristics.into(),
@@ -144,7 +187,6 @@ pub enum ImageRsDecoder<T: std::io::BufRead + std::io::Seek> {
     Ico(codecs::ico::IcoDecoder<T>),
     Jpeg(codecs::jpeg::JpegDecoder<T>),
     Jpeg2000(hayro_jpeg2000::integration::Jp2Decoder),
-    OpenExr(codecs::openexr::OpenExrDecoder<T>),
     Png(codecs::png::PngDecoder<T>),
     Pnm(codecs::pnm::PnmDecoder<T>),
     Qoi(codecs::qoi::QoiDecoder<T>),
@@ -204,12 +246,6 @@ impl ImageRsFormat<Reader> {
                 hayro_jpeg2000::integration::Jp2Decoder::new(data).expected_error()?,
             ))
             .format_name("ICO"),
-            "image/x-exr" => Self::new(ImageRsDecoder::OpenExr(
-                codecs::openexr::OpenExrDecoder::new(data).expected_error()?,
-            ))
-            .format_name("OpenEXR")
-            .default_bit_depth(32)
-            .supports_two_grayscale_modes(true),
             "image/png" => Self::new(ImageRsDecoder::Png(
                 codecs::png::PngDecoder::new(data).expected_error()?,
             ))
@@ -315,7 +351,6 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Ico(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Jpeg(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Jpeg2000(ref mut d) => self.handler.info(d),
-            ImageRsDecoder::OpenExr(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Png(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Pnm(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Qoi(ref mut d) => self.handler.info(d),
@@ -336,7 +371,6 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Ico(d) => self.handler.frame(d),
             ImageRsDecoder::Jpeg(d) => self.handler.frame(d),
             ImageRsDecoder::Jpeg2000(d) => self.handler.frame(d),
-            ImageRsDecoder::OpenExr(d) => self.handler.frame(d),
             ImageRsDecoder::Png(d) => self.handler.frame(d),
             ImageRsDecoder::Pnm(d) => self.handler.frame(d),
             ImageRsDecoder::Qoi(d) => self.handler.frame(d),
@@ -357,7 +391,6 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Ico(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Jpeg(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Jpeg2000(ref mut d) => self.handler.frame_details(d),
-            ImageRsDecoder::OpenExr(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Png(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Pnm(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Qoi(ref mut d) => self.handler.frame_details(d),
@@ -380,7 +413,6 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Ico(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Jpeg(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Jpeg2000(ref mut d) => d.set_limits(limits),
-            ImageRsDecoder::OpenExr(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Png(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Pnm(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Qoi(ref mut d) => d.set_limits(limits),

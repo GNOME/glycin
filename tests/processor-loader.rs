@@ -13,6 +13,11 @@ fn processor_loader_color() {
 }
 
 #[test]
+fn processor_loader_color_variantions() {
+    test_dir("test-images/images/color-variations");
+}
+
+#[test]
 fn processor_loader_color_exif_orientation() {
     test_dir_no_exif("test-images/images/color-exif-orientation");
 }

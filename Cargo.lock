@@ -781,6 +781,7 @@ dependencies = [
  "half",
  "lebe",
  "miniz_oxide 0.8.9",
+ "rayon-core",
  "smallvec",
  "zune-inflate",
 ]
@@ -1265,6 +1266,7 @@ dependencies = [
 name = "glycin-image-rs"
 version = "2.2.0-alpha"
 dependencies = [
+ "exr",
  "glycin-utils",
  "gufo",
  "gufo-common",
