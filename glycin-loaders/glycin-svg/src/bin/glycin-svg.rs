@@ -2,7 +2,8 @@ use std::io::Read;
 use std::sync::Mutex;
 use std::sync::mpsc::{Receiver, Sender, channel};
 
-use gio::{glib, prelude::*};
+use gio::glib;
+use gio::prelude::*;
 use glycin_utils::safe_math::*;
 use glycin_utils::*;
 use gufo_common::image::ImageMetadata;

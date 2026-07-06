@@ -1,7 +1,5 @@
-use std::{
-    fmt::Debug,
-    ops::{Deref, DerefMut},
-};
+use std::fmt::Debug;
+use std::ops::{Deref, DerefMut};
 
 #[cfg(feature = "external")]
 pub use zbus::zvariant;

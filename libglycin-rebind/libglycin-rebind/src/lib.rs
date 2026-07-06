@@ -5,7 +5,9 @@
 //! This library contains safe Rust bindings for [Glycin](https://gitlab.gnome.org/GNOME/glycin).
 
 // Re-export the -sys bindings
-pub use {ffi, gio, glib};
+pub use ffi;
+pub use gio;
+pub use glib;
 
 macro_rules! assert_initialized_main_thread {
     () => {};
