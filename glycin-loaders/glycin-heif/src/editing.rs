@@ -44,9 +44,8 @@ impl EditorImplementation for ImgEditor {
             .best_format_for(frame.memory_format)
             .internal_error()?;
 
-        let frame =
-            glycin_utils::editing::change_memory_format(frame.into_fungible(), memory_format)
-                .expected_error()?;
+        let mut frame = frame.into_fungible();
+        glycin_utils::editing::change_memory_format(&mut frame, memory_format).expected_error()?;
 
         let width = frame.width;
         let height = frame.height;

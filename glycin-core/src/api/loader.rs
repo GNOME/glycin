@@ -759,19 +759,20 @@ impl Frame {
             frame
         };
 
-        let mut frame = if let Some(target_format) = image
+        let mut frame = frame.into_fungible();
+
+        if let Some(target_format) = image
             .loader
             .memory_format_selection
             .best_format_for(frame.memory_format)
             && frame.memory_format != target_format
         {
-            util::spawn_blocking(move || {
-                glycin_utils::editing::change_memory_format(frame.into_fungible(), target_format)
+            frame = util::spawn_blocking(move || {
+                glycin_utils::editing::change_memory_format(&mut frame, target_format)?;
+                Ok::<_, Error>(frame)
             })
-            .await??
-        } else {
-            frame.into_fungible()
-        };
+            .await??;
+        }
 
         frame.final_seal().await?;
 

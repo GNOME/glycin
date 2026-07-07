@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use glycin_common::{ChannelType, MemoryFormat, MemoryFormatInfo};
-use glycin_utils::FungibleMemory;
+use glycin_utils::{FungibleMemory, MemoryFormatSelection};
 
 use crate::{ColorState, Error};
 
@@ -12,13 +12,7 @@ pub fn apply_transformation(
     glycin_utils::Frame<FungibleMemory>,
     Result<ColorState, Error>,
 ) {
-    match transform(
-        icc_profile,
-        frame.memory_format,
-        &mut frame.texture,
-        frame.width,
-        frame.stride,
-    ) {
+    match transform(icc_profile, &mut frame) {
         Err(err) => (frame, Err(err.into())),
         Ok(color_state) => (frame, Ok(color_state)),
     }
@@ -77,29 +71,50 @@ fn transformation(
                 moxcms::TransformOptions::default(),
             )?,
         )),
+        ChannelType::F16 => unreachable!(),
         ChannelType::F32 => Ok(Transform::F32(src_profile.create_in_place_transform_f32(
             layout,
             &target_profile,
             moxcms::TransformOptions::default(),
         )?)),
-        c => todo!("{c:?}"),
     }
 }
 
 fn transform(
     icc_profile: &[u8],
-    memory_format: MemoryFormat,
-    buf: &mut [u8],
-    width: u32,
-    stride: u32,
+    frame: &mut glycin_utils::Frame<FungibleMemory>,
 ) -> std::result::Result<ColorState, Error> {
     let multiple = std::thread::available_parallelism().map_or(2, |x| x.get());
     tracing::trace!("Applying ICC profiles while using {multiple} threads");
 
-    let chunk_size = (buf.len() / stride as usize).div_ceil(multiple) * stride as usize;
-    let row_length = width as usize * memory_format.n_bytes().usize();
+    let supported_formats = MemoryFormatSelection::R8g8b8
+        | MemoryFormatSelection::R16g16b16
+        | MemoryFormatSelection::R32g32b32Float
+        | MemoryFormatSelection::R8g8b8a8
+        | MemoryFormatSelection::R16g16b16a16
+        | MemoryFormatSelection::R32g32b32a32Float
+        | MemoryFormatSelection::G8
+        | MemoryFormatSelection::G16
+        | MemoryFormatSelection::G8a8
+        | MemoryFormatSelection::G16a16;
+
+    let best_format = supported_formats.best_format_for(frame.memory_format);
+
+    if let Some(best_format) = dbg!(best_format)
+        && best_format != frame.memory_format
+    {
+        glycin_utils::editing::change_memory_format(frame, best_format)?;
+    }
+
+    let stride = frame.stride;
+    let width = frame.width;
+    let buf = &mut frame.texture;
+    let memory_format = dbg!(frame.memory_format);
 
     let transform = transformation(icc_profile, memory_format)?;
+
+    let chunk_size = (buf.len() / stride as usize).div_ceil(multiple) * stride as usize;
+    let row_length = width as usize * memory_format.n_bytes().usize();
 
     std::thread::scope(|s| {
         for chunk in buf.chunks_mut(chunk_size) {
@@ -117,16 +132,14 @@ fn transform(
 
 const fn pixel_layout(format: MemoryFormat) -> moxcms::Layout {
     match format {
-        MemoryFormat::R8g8b8
-        | MemoryFormat::R16g16b16
-        | MemoryFormat::R16g16b16Float
-        | MemoryFormat::R32g32b32Float => moxcms::Layout::Rgb,
-        MemoryFormat::R8g8b8a8
-        | MemoryFormat::R16g16b16a16
-        | MemoryFormat::R16g16b16a16Float
-        | MemoryFormat::R32g32b32a32Float => moxcms::Layout::Rgba,
+        MemoryFormat::R8g8b8 | MemoryFormat::R16g16b16 | MemoryFormat::R32g32b32Float => {
+            moxcms::Layout::Rgb
+        }
+        MemoryFormat::R8g8b8a8 | MemoryFormat::R16g16b16a16 | MemoryFormat::R32g32b32a32Float => {
+            moxcms::Layout::Rgba
+        }
         MemoryFormat::G8 | MemoryFormat::G16 => moxcms::Layout::Gray,
         MemoryFormat::G8a8 | MemoryFormat::G16a16 => moxcms::Layout::GrayAlpha,
-        _ => unimplemented!(),
+        _ => unreachable!(),
     }
 }

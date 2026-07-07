@@ -1274,6 +1274,7 @@ name = "glycin-test"
 version = "2.2.0-alpha"
 dependencies = [
  "glycin-utils",
+ "moxcms",
 ]
 
 [[package]]

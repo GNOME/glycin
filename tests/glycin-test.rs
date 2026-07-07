@@ -140,3 +140,15 @@ fn glycin_test_timeout_next_frame() {
         assert!(err.is_timeout(), "Error: {err}");
     });
 }
+
+#[test]
+fn glycin_test_f16_icc_profile() {
+    init();
+
+    block_on(async {
+        let loader = glycin_core::Loader::new_vec(instruction(&[b"half-with-icc-profile"]));
+        let mut image = loader.load().await.unwrap();
+
+        let frame = image.next_frame().await.unwrap();
+    });
+}
