@@ -68,9 +68,9 @@ fn convert_image_format(c: &mut Criterion) {
                             .unwrap()
                             .into_fungible()
                         },
-                        |frame| {
+                        |mut frame| {
                             glycin_utils::editing::change_memory_format(
-                                black_box(frame),
+                                black_box(&mut frame),
                                 black_box(target_format),
                             )
                             .unwrap();
