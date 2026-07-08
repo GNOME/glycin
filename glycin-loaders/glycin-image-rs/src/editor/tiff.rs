@@ -51,7 +51,7 @@ where
         image_encoder.resolution_unit(unit);
     }
 
-    let data = bytemuck::try_cast_slice(&*frame.texture).unwrap();
+    let data = bytemuck::try_cast_slice(&frame.texture).unwrap();
     image_encoder.write_data(data).expected_error()?;
 
     Ok(buf)

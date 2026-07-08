@@ -10,7 +10,6 @@ use crate::FrameRequest;
 static_assertions::assert_impl_all!(GlyFrameRequest: Send, Sync);
 
 pub mod imp {
-
     use super::*;
 
     #[derive(Default, Debug, glib::Properties)]

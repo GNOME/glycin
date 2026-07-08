@@ -4,6 +4,8 @@ use glib::subclass::prelude::*;
 use glib::translate::*;
 use glycin::gobject::{self, GlyCicp};
 
+use crate::GlyFrameDetails;
+
 pub type GlyFrame = <gobject::frame::imp::GlyFrame as ObjectSubclass>::Instance;
 
 #[unsafe(no_mangle)]
@@ -73,6 +75,14 @@ pub unsafe extern "C" fn gly_frame_get_color_cicp(frame: *mut GlyFrame) -> *cons
             .into_glib_ptr(),
             None => std::ptr::null(),
         }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn gly_frame_get_details(frame: *mut GlyFrame) -> *const GlyFrameDetails {
+    unsafe {
+        let frame = gobject::GlyFrame::from_glib_ptr_borrow(&frame);
+        frame.details().into_glib_ptr()
     }
 }
 

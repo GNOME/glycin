@@ -73,6 +73,16 @@ G_DECLARE_FINAL_TYPE(GlyFrameRequest, gly_frame_request, GLY, FRAME_REQUEST, GOb
 #define GLY_TYPE_FRAME (gly_frame_get_type())
 G_DECLARE_FINAL_TYPE(GlyFrame, gly_frame, GLY, FRAME, GObject)
 
+/**
+ * GlyFrameDetails:
+ *
+ * Detailled information about a frame.
+ *
+ * Since: 2.2
+ */
+#define GLY_TYPE_FRAME_DETAILS (gly_frame_details_get_type())
+G_DECLARE_FINAL_TYPE(GlyFrameDetails, gly_frame_details, GLY, FRAME_DETAILS, GObject)
+
 /**************** GlySandboxSelector ****************/
 
 /**
@@ -771,6 +781,16 @@ GBytes *gly_frame_get_buf_bytes(GlyFrame *frame);
 GlyMemoryFormat gly_frame_get_memory_format(GlyFrame *frame);
 
 /**
+ * gly_frame_get_details:
+ * @frame:
+ *
+ * Returns: (transfer full): More information about the frame
+ *
+ * Since: 2.2
+ */
+GlyFrameDetails *gly_frame_get_details(GlyFrame *frame);
+
+/**
  * GlyCicp: (copy-func gly_cicp_copy) (free-func gly_cicp_free)
  *
  * See ITU-T H.273
@@ -805,6 +825,56 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC(GlyCicp, gly_cicp_free)
  * Since: 2.0
  */
 GlyCicp *gly_frame_get_color_cicp(GlyFrame *frame);
+
+/**************** GlyFrameDetails ****************/
+
+/**
+ * gly_frame_details_get_pixel_density_x:
+ * @frame_details:
+ *
+ * If the value is `0.0`, no density is set.
+ *
+ * Returns: Horizontal pixel density
+ *
+ * Since: 2.2
+ */
+double gly_frame_details_get_pixel_density_x(GlyFrameDetails *frame_details);
+
+/**
+ * gly_frame_details_get_pixel_density_x_unit:
+ * @frame_details:
+ *
+ * If the value for [property@FrameDetails:pixel-density-x] is zero, the value of this property has no meaning.
+ *
+ * Returns: Horizontal pixel density unit
+ *
+ * Since: 2.2
+ */
+GlyPhysicalDimensionUnit gly_frame_details_get_pixel_density_x_unit(GlyFrameDetails *frame_details);
+
+/**
+ * gly_frame_details_get_pixel_density_y:
+ * @frame_details:
+ *
+ * If the value is `0.0`, no density is set.
+ *
+ * Returns: Vertical pixel density
+ *
+ * Since: 2.2
+ */
+double gly_frame_details_get_pixel_density_y(GlyFrameDetails *frame_details);
+
+/**
+ * gly_frame_details_get_pixel_density_y_unit:
+ * @frame_details:
+ *
+ * If the value for [property@FrameDetails:pixel-density-y] is zero, the value of this property has no meaning.
+ *
+ * Returns: Horizontal pixel density unit
+ *
+ * Since: 2.2
+ */
+GlyPhysicalDimensionUnit gly_frame_details_get_pixel_density_y_unit(GlyFrameDetails *frame_details);
 
 /**************** GlyLoaderError ****************/
 

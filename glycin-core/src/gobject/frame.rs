@@ -4,12 +4,12 @@ use gio::glib;
 use glib::subclass::prelude::*;
 
 use crate::Frame;
+use crate::gobject::GlyFrameDetails;
 
 static_assertions::assert_impl_all!(GlyFrame: Send, Sync);
 
-#[derive(Debug, Copy, Clone)]
-#[cfg_attr(feature = "gobject", derive(gio::glib::Enum))]
-#[cfg_attr(feature = "gobject", enum_type(name = "GlyColorMode"))]
+#[derive(Debug, Copy, Clone, gio::glib::Enum)]
+#[enum_type(name = "GlyColorMode")]
 #[repr(i32)]
 #[non_exhaustive]
 pub enum GlyColorMode {
@@ -30,7 +30,8 @@ pub struct GlyCicp {
 pub mod imp {
     use super::*;
 
-    #[derive(Default, Debug)]
+    #[derive(Default, Debug, glib::Properties)]
+    #[properties(wrapper_type = super::GlyFrame)]
     pub struct GlyFrame {
         pub(super) frame: OnceLock<Frame>,
     }
@@ -41,6 +42,7 @@ pub mod imp {
         type Type = super::GlyFrame;
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for GlyFrame {}
 }
 
@@ -73,5 +75,9 @@ impl GlyFrame {
         } else {
             None
         }
+    }
+
+    pub fn details(&self) -> GlyFrameDetails {
+        GlyFrameDetails::new(self.frame().details())
     }
 }

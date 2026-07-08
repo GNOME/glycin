@@ -13,7 +13,7 @@ pub fn apply_transformation(
     Result<ColorState, Error>,
 ) {
     match transform(icc_profile, &mut frame) {
-        Err(err) => (frame, Err(err.into())),
+        Err(err) => (frame, Err(err)),
         Ok(color_state) => (frame, Ok(color_state)),
     }
 }

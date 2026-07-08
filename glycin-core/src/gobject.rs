@@ -1,6 +1,7 @@
 pub mod creator;
 pub mod encoded_image;
 pub mod frame;
+pub mod frame_details;
 pub mod frame_request;
 pub mod image;
 pub mod loader;
@@ -11,10 +12,11 @@ use std::sync::OnceLock;
 pub use creator::GlyCreator;
 pub use encoded_image::GlyEncodedImage;
 pub use frame::{GlyCicp, GlyFrame};
+pub use frame_details::GlyFrameDetails;
 pub use frame_request::GlyFrameRequest;
 pub use image::GlyImage;
 pub use loader::GlyLoader;
-pub use new_frame::GlyNewFrame;
+pub use new_frame::{GlyNewFrame, GlyPhysicalDimensionUnit};
 use tracing_subscriber::layer::*;
 use tracing_subscriber::util::*;
 

@@ -100,7 +100,7 @@ fn reset_exif_orientation(mut png: gufo::png::Png) -> Result<Vec<u8>, glycin_uti
             if let Some(tag_position) = exif_orientation_value_position(exif_data) {
                 let chunk_position = chunk.unsafe_raw_chunk().complete_data().start as u64;
                 for (pos, value) in tag_position {
-                    byte_updates.push((pos as u64 + chunk_position as u64 + 8, value));
+                    byte_updates.push((pos as u64 + chunk_position + 8, value));
                 }
             }
         } else if let Some(mut exif_data) = chunk.legacy_exif(100 * 1000 * 1000) {
