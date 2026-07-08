@@ -169,6 +169,33 @@ typedef enum
 
 GType gly_memory_format_selection_get_type(void);
 
+/**************** GlyPhysicalDimensionUnit ****************/
+
+/**
+ * GlyPhysicalDimensionUnit:
+ * @GLY_PHYSICAL_DIMENSION_UNIT_INCH:
+ * @GLY_PHYSICAL_DIMENSION_UNIT_PICA
+ * @GLY_PHYSICAL_DIMENSION_UNIT_POINT:
+ * @GLY_PHYSICAL_DIMENSION_UNIT_METER:
+ * @GLY_PHYSICAL_DIMENSION_UNIT_CENTIMETER:
+ * @GLY_PHYSICAL_DIMENSION_UNIT_MILLIMETER:
+ *
+ * Sandbox mechanisms
+ *
+ * Since: 2.2
+ */
+typedef enum
+{
+    GLY_PHYSICAL_DIMENSION_UNIT_INCH = 1,
+    GLY_PHYSICAL_DIMENSION_UNIT_PICA = 2,
+    GLY_PHYSICAL_DIMENSION_UNIT_POINT = 3,
+    GLY_PHYSICAL_DIMENSION_UNIT_METER = 4,
+    GLY_PHYSICAL_DIMENSION_UNIT_CENTIMETER = 5,
+    GLY_PHYSICAL_DIMENSION_UNIT_MILLIMETER = 6,
+} GlyPhysicalDimensionUnit;
+
+GType gly_physical_dimension_unit_get_type(void);
+
 /**************** GlyLoader ****************/
 
 /**
@@ -853,6 +880,22 @@ G_DECLARE_FINAL_TYPE(GlyNewFrame, gly_new_frame, GLY, NEW_FRAME, GObject)
  * Since: 2.0
  */
 gboolean gly_new_frame_set_color_icc_profile(GlyNewFrame *new_frame, GBytes *icc_profile);
+
+/**
+ * gly_new_frame_set_pixel_density:
+ * @new_frame:
+ * @x_density:
+ * @x_unit:
+ * @y_density:
+ * @y_unit:
+ *
+ * Since: 2.2
+ */
+void gly_new_frame_set_pixel_density(GlyNewFrame *new_frame,
+                                     float x_density,
+                                     GlyPhysicalDimensionUnit x_unit,
+                                     float y_density,
+                                     GlyPhysicalDimensionUnit y_unit);
 
 /**
  * GlyEncodedImage:

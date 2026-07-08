@@ -1,18 +1,34 @@
-use std::sync::OnceLock;
+use std::sync::{Mutex, OnceLock};
 
 use gio::glib;
 use glib::prelude::*;
 use glib::subclass::prelude::*;
 use glycin_utils::MemoryFormat;
+use gufo_common::physical_dimension::{
+    PhysicalDimensionUnit, PixelDensity, PixelsPerPhysicalDimension,
+};
 
 use super::init;
 
 static_assertions::assert_impl_all!(GlyNewFrame: Send, Sync);
 
+#[derive(Debug, Copy, Clone, gio::glib::Enum, Default)]
+#[enum_type(name = "GlyPhysicalDimensionUnit")]
+#[repr(i32)]
+#[non_exhaustive]
+pub enum GlyPhysicalDimensionUnit {
+    #[default]
+    Inch = 1,
+    /// 1/6 inch
+    Pica = 2,
+    /// 1/72 inch
+    Point = 3,
+    Meter = 4,
+    Centimeter = 5,
+    Millimeter = 6,
+}
+
 pub mod imp {
-
-    use std::sync::Mutex;
-
     use super::*;
 
     #[derive(Debug, Default, glib::Properties)]
@@ -31,6 +47,8 @@ pub mod imp {
 
         #[property(get, set, nullable)]
         color_icc_profile: Mutex<Option<glib::Bytes>>,
+
+        pub(crate) pixel_density: Mutex<Option<PixelDensity>>,
     }
 
     #[glib::object_subclass]
@@ -69,6 +87,29 @@ impl GlyNewFrame {
             .property("memory-format", memory_format)
             .property("texture", texture)
             .build()
+    }
+
+    pub fn set_pixel_density(
+        &self,
+        pixel_density: Option<(f64, GlyPhysicalDimensionUnit, f64, GlyPhysicalDimensionUnit)>,
+    ) {
+        if let Some((x_value, x_unit, y_value, y_unit)) = pixel_density {
+            let (Some(x_unit), Some(y_unit)) = (
+                PhysicalDimensionUnit::try_from(x_unit as i32).ok(),
+                PhysicalDimensionUnit::try_from(y_unit as i32).ok(),
+            ) else {
+                glib::g_critical!("glycin", "Invalid unit passed {y_unit:?} or {x_unit:?}");
+                return;
+            };
+
+            let pixel_density = PixelDensity::new(
+                PixelsPerPhysicalDimension::new(x_value, x_unit),
+                PixelsPerPhysicalDimension::new(y_value, y_unit),
+            );
+            *self.imp().pixel_density.lock().unwrap() = Some(pixel_density);
+        } else {
+            *self.imp().pixel_density.lock().unwrap() = None;
+        }
     }
 
     pub async fn build(&self, creator: &mut crate::Creator) -> Result<(), crate::Error> {

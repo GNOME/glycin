@@ -208,7 +208,6 @@ def main():
     else:
         raise Exception('Failed to raise Error')
 
-
     # Functions
 
     assert len(Gly.Loader.get_mime_types()) > 0
@@ -222,6 +221,9 @@ def main():
     data = GLib.Bytes.new([1, 2, 3, 4])
     frame = creator.add_frame_with_stride(1, 1, 4, Gly.MemoryFormat.R8G8B8, data)
     frame.set_color_icc_profile(data)
+    frame.set_pixel_density(
+        90, Gly.PhysicalDimensionUnit.INCH, 90, Gly.PhysicalDimensionUnit.INCH
+    )
 
     encoded_image = creator.create()
 
