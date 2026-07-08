@@ -100,7 +100,7 @@ fn transform(
 
     let best_format = supported_formats.best_format_for(frame.memory_format);
 
-    if let Some(best_format) = dbg!(best_format)
+    if let Some(best_format) = best_format
         && best_format != frame.memory_format
     {
         glycin_utils::editing::change_memory_format(frame, best_format)?;
@@ -109,7 +109,7 @@ fn transform(
     let stride = frame.stride;
     let width = frame.width;
     let buf = &mut frame.texture;
-    let memory_format = dbg!(frame.memory_format);
+    let memory_format = frame.memory_format;
 
     let transform = transformation(icc_profile, memory_format)?;
 

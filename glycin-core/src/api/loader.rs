@@ -13,6 +13,7 @@ use glycin_utils::safe_math::*;
 use glycin_utils::{ByteData, FungibleMemory};
 use gufo_common::cicp::Cicp;
 use gufo_common::orientation::{Orientation, Rotation};
+use gufo_common::physical_dimension;
 use util::{CancellableFuture, ShortcutErrorFuture, TimeoutFuture};
 #[cfg(feature = "external")]
 use zbus::zvariant::OwnedObjectPath;
@@ -28,7 +29,6 @@ use crate::pool::{PooledProcess, UsageTracker};
 use crate::source::SourceTransmission;
 use crate::util::spawn_blocking;
 use crate::{Error, ErrorKind, MAX_TEXTURE_SIZE, Pool, config, icc, orientation, util};
-use gufo_common::physical_dimension;
 
 /// Image request builder
 #[derive(Debug)]

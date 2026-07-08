@@ -149,6 +149,6 @@ fn glycin_test_f16_icc_profile() {
         let loader = glycin_core::Loader::new_vec(instruction(&[b"half-with-icc-profile"]));
         let mut image = loader.load().await.unwrap();
 
-        let frame = image.next_frame().await.unwrap();
+        image.next_frame().await.unwrap();
     });
 }

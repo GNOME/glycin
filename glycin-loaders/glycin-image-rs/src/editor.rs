@@ -1,5 +1,6 @@
 mod jpeg;
 mod png;
+mod tiff;
 
 use std::io::{Cursor, Read};
 
@@ -127,6 +128,7 @@ impl EditorImplementation for ImgEditor {
 
                 out_buf
             }
+            ImageFormat::Tiff => tiff::create(frame)?,
             _ => {
                 let mut cur = Cursor::new(Vec::new());
                 image::write_buffer_with_format(
