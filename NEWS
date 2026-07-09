@@ -1,3 +1,35 @@
+## 2.2.alpha.6 (2026-07-09)
+
+This release contains the following new component versions:
+
+- glycin-common 2.0.0-alpha.1
+- glycin-core 4.0.0-alpha.1
+- glycin-heif 2.2.0-alpha.6
+- glycin-image-rs 2.2.0-alpha.6
+- glycin-jxl 2.2.0-alpha.6
+- glycin-raw 2.2.0-alpha.6
+- glycin-svg 2.2.0-alpha.6
+- glycin-test 2.2.0-alpha.6
+- glycin-thumbnailer 2.2.0-alpha.6
+- glycin-utils 5.0.0-alpha.1
+- glycin 4.0.0-alpha.1
+- glycin-builtin 4.0.0-alpha.1
+- glycin-external 4.0.0-alpha.1
+- libglycin 2.2.0-alpha.6
+- libglycin-gtk4 2.2.0-alpha.6
+
+### Added
+
+- Glycin now supports pixel density (like DPI) in the internal Frame API. This
+  allows to retrive and set the pixel density for PNG, JPEG, and TIFF images.
+  The feature is also accessible via the libglycin API.
+- image-rs: Support for the Radiance HDR format
+
+### Changed
+
+- image-rs: Use custom openexr loader. This allows to load f16 images as half
+  format. It also fixes loading openexr u32 images.
+
 ## 2.2.alpha.5 (2026-06-30)
 
 ### Fixed
@@ -46,6 +78,17 @@ This release contains the following new component versions:
 ### Changed
 
 - svg: Don't limit the size of elements in the SVG #279
+
+## 2.1.6 (Unreleased)
+
+### Added
+
+- Recognize image/vnd.ms-dds as DDS that is used starting with shared-mime-info
+  2.5.
+
+### Changed
+
+- Require image-extras 0.1.1 to fix xpm loading issue #290
 
 ## 2.1.5 (2026-06-25)
 

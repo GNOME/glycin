@@ -1260,7 +1260,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-svg"
-version = "2.2.0-alpha.2"
+version = "2.2.0-alpha.6"
 dependencies = [
  "cairo-rs",
  "gio",
