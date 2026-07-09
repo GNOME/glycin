@@ -130,7 +130,9 @@ impl GlyNewFrame {
             )?
         };
 
+        // TODO: Errors here should be handled earlier
         frame.set_color_icc_profile(self.color_icc_profile().map(|x| x.into_data().to_vec()))?;
+        frame.set_pixel_density(self.imp().pixel_density.lock().unwrap().clone())?;
 
         Ok(())
     }

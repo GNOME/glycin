@@ -6,6 +6,7 @@ use glib::object::IsA;
 use glib::prelude::*;
 use glycin_common::MemoryFormatInfo;
 use glycin_utils::{ByteData, DimensionTooLargerError, FungibleMemory, MemoryFormat};
+use gufo_common::physical_dimension::PixelDensity;
 
 #[cfg(feature = "builtin")]
 use crate::config;
@@ -329,6 +330,15 @@ impl NewFrame {
         }
 
         self.icc_profile = icc_profile;
+        Ok(())
+    }
+
+    pub fn set_pixel_density(
+        &mut self,
+        pixel_density: Option<PixelDensity>,
+    ) -> Result<(), FeatureNotSupported> {
+        self.details.pixel_density = pixel_density;
+
         Ok(())
     }
 

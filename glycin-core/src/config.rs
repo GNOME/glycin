@@ -264,6 +264,7 @@ pub struct ImageEditorConfig {
     pub creator_encoding_quality: bool,
     pub creator_encoding_compression: bool,
     pub creator_metadata_key_value: bool,
+    pub creator_pixel_density: bool,
 }
 
 impl ConfigEntry {
@@ -526,6 +527,9 @@ impl Config {
             let creator_metadata_key_value =
                 Self::handle_and_default(keyfile.boolean(&group, "CreatorMetadataKeyValue"))?;
 
+            let creator_pixel_density =
+                Self::handle_and_default(keyfile.boolean(&group, "CreatorPixelDensity"))?;
+
             let cfg = ImageEditorConfig {
                 processor,
                 identifiers,
@@ -537,6 +541,7 @@ impl Config {
                 creator_encoding_compression,
                 creator_encoding_quality,
                 creator_metadata_key_value,
+                creator_pixel_density,
             };
 
             config.image_editor.insert(mime_type, cfg);
