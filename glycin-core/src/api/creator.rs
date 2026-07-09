@@ -325,7 +325,7 @@ impl NewFrame {
         &mut self,
         icc_profile: Option<Vec<u8>>,
     ) -> Result<(), FeatureNotSupported> {
-        if !self.config.creator_color_icc_profile {
+        if !self.config.creator_color_icc_profile && icc_profile.is_some() {
             return Err(FeatureNotSupported);
         }
 
@@ -337,6 +337,10 @@ impl NewFrame {
         &mut self,
         pixel_density: Option<PixelDensity>,
     ) -> Result<(), FeatureNotSupported> {
+        if !self.config.creator_pixel_density && pixel_density.is_some() {
+            return Err(FeatureNotSupported);
+        }
+
         self.details.pixel_density = pixel_density;
 
         Ok(())
