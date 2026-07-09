@@ -1,6 +1,6 @@
 [package]
 name = "glycin-builtin"
-version = "4.0.0-alpha"
+version = "4.0.0-alpha.1"
 readme = "../../README.md"
 authors.workspace = true
 description.workspace = true

@@ -1,5 +1,5 @@
 [workspace.package]
-version = "2.2.0-alpha"
+version = "2.2.0-alpha.6"
 authors = ["Sophie Herold"]
 description = "Sandboxed image decoding"
 license = "MPL-2.0 OR LGPL-2.1-or-later"
@@ -95,14 +95,14 @@ glib = { version = "0.22.0", features = ["v2_68"] }
 glib-sys = { version = "0.22.0", features = ["v2_68"] }
 gobject-sys = { version = "0.22.0", features = ["v2_68"] }
 glycin = { path = "glycin/", default-features = false }
-glycin-builtin = { version = "4.0.0-alpha", path = "glycin/glycin-builtin/", default-features = false }
-glycin-core = { version = "4.0.0-alpha", path = "glycin-core/", default-features = false }
-glycin-common = { version = "2.0.0-alpha", path = "glycin-common/" }
-glycin-image-rs = { version = "2.2.0-alpha", path = "glycin-loaders/glycin-image-rs", default-features = false }
-glycin-test = { version = "2.2.0-alpha", path = "glycin-loaders/glycin-test", default-features = false }
-glycin-thumbnailer = { version = "2.2.0-alpha", path = "glycin-thumbnailer/", default-features = false }
-glycin-utils = { version = "5.0.0-alpha", path = "glycin-utils/", default-features = false }
-glycin-external = { version = "4.0.0-alpha", path = "glycin/glycin-external/", default-features = false }
+glycin-builtin = { version = "4.0.0-alpha.1", path = "glycin/glycin-builtin/", default-features = false }
+glycin-core = { version = "4.0.0-alpha.1", path = "glycin-core/", default-features = false }
+glycin-common = { version = "2.0.0-alpha.1", path = "glycin-common/" }
+glycin-image-rs = { version = "2.2.0-alpha.6", path = "glycin-loaders/glycin-image-rs", default-features = false }
+glycin-test = { version = "2.2.0-alpha.6", path = "glycin-loaders/glycin-test", default-features = false }
+glycin-thumbnailer = { version = "2.2.0-alpha.6", path = "glycin-thumbnailer/", default-features = false }
+glycin-utils = { version = "5.0.0-alpha.1", path = "glycin-utils/", default-features = false }
+glycin-external = { version = "4.0.0-alpha.1", path = "glycin/glycin-external/", default-features = false }
 gly = { package = "libglycin-rebind", version = "0.1.0", path = "libglycin-rebind/libglycin-rebind/" }
 gufo = { version = "0.5.0-alpha" }
 gufo-common = { version = "2.0.0-alpha", features = ["serde"] }
