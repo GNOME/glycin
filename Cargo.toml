@@ -8,13 +8,6 @@ repository = "https://gitlab.gnome.org/GNOME/glycin"
 edition = "2024"
 rust-version = "1.93"
 
-[patch.crates-io]
-gufo = { version = "0.5.0-alpha.1", git = "https://github.com/gufo-rs/gufo.git" }
-gufo-common = { git = "https://github.com/gufo-rs/gufo.git" }
-gufo-exif = { version = "0.5.0-alpha.1", git = "https://github.com/gufo-rs/gufo.git" }
-gufo-jpeg = { version = "0.5.0-alpha.1", git = "https://github.com/gufo-rs/gufo.git" }
-gufo-svg = { version = "0.5.0-alpha.1", git = "https://github.com/gufo-rs/gufo.git" }
-
 [profile.release]
 lto = true
 codegen-units = 1
@@ -104,11 +97,11 @@ glycin-thumbnailer = { version = "2.2.0-alpha.6", path = "glycin-thumbnailer/", 
 glycin-utils = { version = "5.0.0-alpha.1", path = "glycin-utils/", default-features = false }
 glycin-external = { version = "4.0.0-alpha.1", path = "glycin/glycin-external/", default-features = false }
 gly = { package = "libglycin-rebind", version = "0.1.0", path = "libglycin-rebind/libglycin-rebind/" }
-gufo = { version = "0.5.0-alpha" }
-gufo-common = { version = "2.0.0-alpha", features = ["serde"] }
-gufo-exif = { version = "0.5.0-alpha" }
-gufo-jpeg = { version = "0.5.0-alpha" }
-gufo-svg = { version = "0.5.0-alpha" }
+gufo = { version = "0.5.0-alpha.2" }
+gufo-common = { version = "2.0.0-alpha.2", features = ["serde"] }
+gufo-exif = { version = "0.5.0-alpha.2" }
+gufo-jpeg = { version = "0.5.0-alpha.2" }
+gufo-svg = { version = "0.5.0-alpha.2" }
 half = "2.4.1"
 hayro-jpeg2000 = "0.3.2"
 image = { version = "0.25.9", default-features = false }
