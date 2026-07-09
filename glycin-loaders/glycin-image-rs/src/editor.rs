@@ -5,7 +5,7 @@ mod tiff;
 use std::io::{Cursor, Read};
 
 use glycin_utils::*;
-use image::{ExtendedColorType, ImageEncoder, ImageFormat};
+use image::{ExtendedColorType, ImageFormat};
 
 pub enum ImgEditor {
     Png(png::EditorPng),

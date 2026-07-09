@@ -1,0 +1,1 @@
+Glycin now supports pixel density (like DPI) in the internal Frame API. This allows to retrive and set the pixel density for PNG, JPEG, and TIFF images. The feature is also accessible via the libglycin API.

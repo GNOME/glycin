@@ -97,9 +97,9 @@ glycin-thumbnailer = { version = "2.2.0-alpha.6", path = "glycin-thumbnailer/", 
 glycin-utils = { version = "5.0.0-alpha.1", path = "glycin-utils/", default-features = false }
 glycin-external = { version = "4.0.0-alpha.1", path = "glycin/glycin-external/", default-features = false }
 gly = { package = "libglycin-rebind", version = "0.1.0", path = "libglycin-rebind/libglycin-rebind/" }
-gufo = { version = "0.5.0-alpha.2" }
+gufo = { version = "0.5.0-alpha.3" }
 gufo-common = { version = "2.0.0-alpha.2", features = ["serde"] }
-gufo-exif = { version = "0.5.0-alpha.2" }
+gufo-exif = { version = "0.5.0-alpha.3" }
 gufo-jpeg = { version = "0.5.0-alpha.2" }
 gufo-svg = { version = "0.5.0-alpha.2" }
 half = "2.4.1"

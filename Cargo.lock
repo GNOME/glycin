@@ -1165,6 +1165,7 @@ dependencies = [
  "glycin-image-rs",
  "glycin-test",
  "glycin-utils",
+ "gufo",
  "gufo-common",
  "gufo-exif",
  "half",
@@ -1331,9 +1332,9 @@ dependencies = [
 
 [[package]]
 name = "gufo"
-version = "0.5.0-alpha.2"
+version = "0.5.0-alpha.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "476bcdf37644a01fbbcda799d6a594ffa462fcbd8f90fcddf8cb519e307b7851"
+checksum = "bdcbdd9ed23667d45bef031faba7d98b174c3209d28816ddfde9c7adbcd3713e"
 dependencies = [
  "gufo-common",
  "gufo-exif",
@@ -1360,9 +1361,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-exif"
-version = "0.5.0-alpha.2"
+version = "0.5.0-alpha.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "365d176116f4f7aa51e47457758366a6859fb852caa2049f128b75618ca6b8b6"
+checksum = "e68d453f54f396ca43664463e3fa93de6ece835e113dd63f694349d669382821"
 dependencies = [
  "gufo-common",
  "indexmap",
@@ -1434,9 +1435,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-xmp"
-version = "0.5.0-alpha.2"
+version = "0.5.0-alpha.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be5aa4a92e421b4f81e8387c76cdb8ebdb8d1be9e8c1dabaef296b632723d1b5"
+checksum = "47dd8069393035e5354aaa66d6301c7c05a413eb390db52d19d53a23ad6248f5"
 dependencies = [
  "gufo-common",
  "thiserror",

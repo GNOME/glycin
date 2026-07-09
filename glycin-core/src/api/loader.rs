@@ -1,5 +1,5 @@
 use std::pin::Pin;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 
 #[cfg(feature = "builtin")]
 use futures_util::FutureExt;
@@ -582,13 +582,17 @@ impl std::fmt::Debug for ImageBuiltinLoader {
 #[derive(Debug, Clone)]
 pub struct ImageDetails {
     inner: Arc<glycin_utils::ImageDetails<FungibleMemory>>,
+    metadata: Arc<OnceLock<gufo::Metadata>>,
 }
 
 static_assertions::assert_impl_all!(ImageDetails: Send, Sync);
 
 impl ImageDetails {
     fn new(inner: Arc<glycin_utils::ImageDetails<FungibleMemory>>) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            metadata: Default::default(),
+        }
     }
 
     pub fn width(&self) -> u32 {
@@ -627,6 +631,32 @@ impl ImageDetails {
     pub fn transformation_ignore_exif(&self) -> bool {
         self.inner.transformation_ignore_exif
     }
+
+    fn metadata(&self) -> &gufo::Metadata {
+        self.metadata.get_or_init(|| {
+            let mut metadata = gufo::Metadata::new();
+
+            if let Some(exif) = &self.inner.metadata_exif
+                && let Err(err) = metadata.add_raw_exif(exif.to_vec())
+            {
+                tracing::info!("Could parse Exif data: {err}");
+            }
+
+            if let Some(xmp) = &self.inner.metadata_xmp
+                && let Err(err) = metadata.add_raw_xmp(xmp.to_vec())
+            {
+                tracing::info!("Could parse XMP data: {err}");
+            }
+
+            if let Some(key_value) = &self.inner.metadata_key_value
+                && let Err(err) = metadata.add_key_value(key_value.to_owned())
+            {
+                tracing::info!("Could parse key-value data: {err}");
+            }
+
+            metadata
+        })
+    }
 }
 
 /// A frame of an image often being the complete image
@@ -640,6 +670,7 @@ pub struct Frame {
     pub(crate) memory_format: MemoryFormat,
     pub(crate) delay: Option<std::time::Duration>,
     pub(crate) details: Arc<glycin_utils::FrameDetails<FungibleMemory>>,
+    pub(crate) image_details: ImageDetails,
     pub(crate) color_state: ColorState,
 }
 
@@ -685,7 +716,7 @@ impl Frame {
     }
 
     pub fn details(&self) -> FrameDetails {
-        FrameDetails::new(self.details.clone())
+        FrameDetails::new(self.details.clone(), self.image_details.clone())
     }
 
     #[cfg(feature = "gdk4")]
@@ -781,6 +812,7 @@ impl Frame {
             memory_format: frame.memory_format,
             delay: frame.delay.into(),
             details: Arc::new(frame.details.into_other()?),
+            image_details: image.details(),
             color_state,
         })
     }
@@ -872,11 +904,18 @@ impl FrameRequest {
 #[derive(Debug, Clone)]
 pub struct FrameDetails {
     inner: Arc<glycin_utils::FrameDetails<FungibleMemory>>,
+    image_details: ImageDetails,
 }
 
 impl FrameDetails {
-    fn new(inner: Arc<glycin_utils::FrameDetails<FungibleMemory>>) -> Self {
-        Self { inner }
+    fn new(
+        inner: Arc<glycin_utils::FrameDetails<FungibleMemory>>,
+        image_details: ImageDetails,
+    ) -> Self {
+        Self {
+            inner,
+            image_details,
+        }
     }
 
     pub fn color_cicp(&self) -> Option<crate::Cicp> {
@@ -906,7 +945,10 @@ impl FrameDetails {
     }
 
     pub fn pixel_density(&self) -> Option<physical_dimension::PixelDensity> {
-        self.inner.pixel_density.clone()
+        self.inner
+            .pixel_density
+            .clone()
+            .or_else(|| self.image_details.metadata().resolution())
     }
 
     pub fn physical_size(&self) -> Option<physical_dimension::PhysicalSize> {

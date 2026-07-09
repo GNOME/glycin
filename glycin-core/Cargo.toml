@@ -72,6 +72,7 @@ glycin-image-rs = { workspace = true, optional = true, features = ["builtin"] }
 glycin-test = { workspace = true, optional = true, features = ["builtin"] }
 gufo-common.workspace = true
 gufo-exif.workspace = true
+gufo.workspace = true
 half.workspace = true
 libc.workspace = true
 libseccomp = { workspace = true, optional = true }
