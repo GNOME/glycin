@@ -222,7 +222,7 @@ def main():
     frame = creator.add_frame_with_stride(1, 1, 4, Gly.MemoryFormat.R8G8B8, data)
     frame.set_color_icc_profile(data)
     frame.set_pixel_density(
-        90, Gly.PhysicalDimensionUnit.INCH, 100, Gly.PhysicalDimensionUnit.METER
+        1000, Gly.PhysicalDimensionUnit.METER, 90, Gly.PhysicalDimensionUnit.INCH
     )
 
     encoded_image = creator.create()
@@ -238,11 +238,10 @@ def main():
     frame = image.next_frame()
     frame_details = frame.get_details()
 
-    # TODO: Test once it's implemented for PNG
-    assert frame_details.get_pixel_density_x() == 0.0
-    assert frame_details.get_pixel_density_x_unit() == Gly.PhysicalDimensionUnit.INCH
-    assert frame_details.get_pixel_density_y() == 0.0
-    assert frame_details.get_pixel_density_y_unit() == Gly.PhysicalDimensionUnit.INCH
+    assert frame_details.get_pixel_density_x() == 1000
+    assert frame_details.get_pixel_density_x_unit() == Gly.PhysicalDimensionUnit.METER
+    assert frame_details.get_pixel_density_y() == 3543
+    assert frame_details.get_pixel_density_y_unit() == Gly.PhysicalDimensionUnit.METER
 
     error_domain = None
     try:

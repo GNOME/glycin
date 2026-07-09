@@ -962,9 +962,9 @@ gboolean gly_new_frame_set_color_icc_profile(GlyNewFrame *new_frame, GBytes *icc
  * Since: 2.2
  */
 void gly_new_frame_set_pixel_density(GlyNewFrame *new_frame,
-                                     float x_density,
+                                     double x_density,
                                      GlyPhysicalDimensionUnit x_unit,
-                                     float y_density,
+                                     double y_density,
                                      GlyPhysicalDimensionUnit y_unit);
 
 /**

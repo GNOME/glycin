@@ -3,6 +3,7 @@ use std::io::{Cursor, Read};
 use glycin_utils::{image_rs, *};
 use gufo::png::NewChunk;
 use gufo_common::error::ErrorWithData;
+use gufo_common::physical_dimension::PhysicalDimensionUnit;
 use gufo_common::{field, orientation};
 use gufo_exif::Exif;
 use image::{ExtendedColorType, ImageEncoder};
@@ -206,15 +207,29 @@ pub fn add_metadata<B: ByteData, C: ByteData>(
 fn add_metadata_internal<B: ByteData, C: ByteData>(
     buf: Vec<u8>,
     image_info: &ImageDetails<B>,
-    _frame_details: &FrameDetails<C>,
+    frame_details: &FrameDetails<C>,
 ) -> Result<Vec<u8>, ErrorWithData<gufo::png::Error>> {
     let mut png = gufo::png::Png::new(buf)?;
 
+    let mut new_chunks = Vec::new();
+
     if let Some(key_value) = &image_info.metadata_key_value {
         for (key, value) in key_value {
-            if let Err(err) = png.insert_chunk(NewChunk::text(key, value)) {
-                return Err(ErrorWithData::new(err, png.into_inner()));
-            }
+            new_chunks.push(NewChunk::text(key, value));
+        }
+    }
+
+    if let Some(pixel_density) = &frame_details.pixel_density {
+        let pixel_density = pixel_density.convert(PhysicalDimensionUnit::Meter);
+        new_chunks.push(NewChunk::phys_meter(
+            pixel_density.x().value().round() as u32,
+            pixel_density.y().value().round() as u32,
+        ));
+    }
+
+    for chunk in new_chunks {
+        if let Err(err) = png.insert_chunk(chunk) {
+            return Err(ErrorWithData::new(err, png.into_inner()));
         }
     }
 
