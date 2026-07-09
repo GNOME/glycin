@@ -4,6 +4,7 @@ use editing::EditingFrame;
 use glycin_utils::*;
 use gufo_common::field;
 use gufo_common::orientation::Orientation;
+use gufo_common::physical_dimension::PhysicalDimensionUnit;
 use gufo_jpeg::Jpeg;
 use zune_jpeg::zune_core::options::DecoderOptions;
 use zune_jpeg::zune_core::{self};
@@ -27,13 +28,40 @@ pub fn create(
     );
 
     let color_type = match frame.memory_format {
-        MemoryFormat::B8g8r8 => jpeg_encoder::ColorType::Rgb,
+        MemoryFormat::R8g8b8 => jpeg_encoder::ColorType::Rgb,
         MemoryFormat::G8 => jpeg_encoder::ColorType::Luma,
-        _ => return Err(todo!()),
+        format => {
+            return Err(ProcessError::expected(&format!(
+                "Unsupported memory format: {format:?}"
+            )));
+        }
     };
 
     if let Some(icc_profile) = icc_profile {
         let _ = encoder.add_icc_profile(&icc_profile);
+    }
+
+    if let Some(pixel_density) = frame.details.pixel_density {
+        let (unit, unit_jpeg) = match pixel_density.x().unit() {
+            PhysicalDimensionUnit::Centimeter => (
+                PhysicalDimensionUnit::Centimeter,
+                jpeg_encoder::PixelDensityUnit::Centimeters,
+            ),
+            _ => (
+                PhysicalDimensionUnit::Inch,
+                jpeg_encoder::PixelDensityUnit::Inches,
+            ),
+        };
+
+        let pixel_density = pixel_density.convert(unit);
+
+        encoder.set_density(jpeg_encoder::PixelDensity {
+            density: (
+                pixel_density.x().value().round() as u16,
+                pixel_density.y().value().round() as u16,
+            ),
+            unit: unit_jpeg,
+        });
     }
 
     encoder
