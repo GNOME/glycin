@@ -5,12 +5,49 @@ use gufo::png::NewChunk;
 use gufo_common::error::ErrorWithData;
 use gufo_common::{field, orientation};
 use gufo_exif::Exif;
-use image::ImageEncoder;
+use image::{ExtendedColorType, ImageEncoder};
 
 pub struct EditorPng {
     png: gufo::png::Png,
     metadata: gufo::Metadata,
     editing_frame: glycin_utils::editing::EditingFrame<LocalMemory>,
+}
+
+pub fn create<B: ByteData>(
+    new_image: NewImage<B>,
+    frame: Frame<FungibleMemory>,
+    encoding_options: EncodingOptions,
+    memory_format: ExtendedColorType,
+    icc_profile: Option<Vec<u8>>,
+) -> Result<Vec<u8>, ProcessError> {
+    let compression = if let Some(compression) = encoding_options.compression {
+        if compression < 30 {
+            image::codecs::png::CompressionType::Fast
+        } else if compression < 80 {
+            image::codecs::png::CompressionType::Default
+        } else {
+            image::codecs::png::CompressionType::Best
+        }
+    } else {
+        image::codecs::png::CompressionType::Default
+    };
+
+    let mut out_buf = Vec::new();
+    let mut encoder = image::codecs::png::PngEncoder::new_with_quality(
+        &mut out_buf,
+        compression,
+        image::codecs::png::FilterType::default(),
+    );
+
+    if let Some(icc_profile) = icc_profile {
+        let _ = encoder.set_icc_profile(icc_profile);
+    }
+
+    encoder
+        .write_image(&frame.texture, frame.width, frame.height, memory_format)
+        .internal_error()?;
+
+    Ok(add_metadata(out_buf, &new_image.image_info, &frame.details))
 }
 
 pub fn load<S: Read>(mut stream: S) -> Result<EditorPng, glycin_utils::ProcessError> {

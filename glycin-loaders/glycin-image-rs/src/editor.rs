@@ -78,36 +78,13 @@ impl EditorImplementation for ImgEditor {
         let icc_profile = frame.details.color_icc_profile.as_ref().map(|x| x.to_vec());
 
         let image_buf = match image_format {
-            ImageFormat::Png => {
-                let compression = if let Some(compression) = encoding_options.compression {
-                    if compression < 30 {
-                        image::codecs::png::CompressionType::Fast
-                    } else if compression < 80 {
-                        image::codecs::png::CompressionType::Default
-                    } else {
-                        image::codecs::png::CompressionType::Best
-                    }
-                } else {
-                    image::codecs::png::CompressionType::Default
-                };
-
-                let mut out_buf = Vec::new();
-                let mut encoder = image::codecs::png::PngEncoder::new_with_quality(
-                    &mut out_buf,
-                    compression,
-                    image::codecs::png::FilterType::default(),
-                );
-
-                if let Some(icc_profile) = icc_profile {
-                    let _ = encoder.set_icc_profile(icc_profile);
-                }
-
-                encoder
-                    .write_image(&frame.texture, frame.width, frame.height, memory_format)
-                    .internal_error()?;
-
-                png::add_metadata(out_buf, &new_image.image_info, &frame.details)
-            }
+            ImageFormat::Png => png::create(
+                new_image,
+                frame,
+                encoding_options,
+                memory_format,
+                icc_profile,
+            )?,
             ImageFormat::Jpeg => {
                 let mut out_buf = Vec::new();
                 let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(
