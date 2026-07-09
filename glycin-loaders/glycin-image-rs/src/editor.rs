@@ -85,26 +85,7 @@ impl EditorImplementation for ImgEditor {
                 memory_format,
                 icc_profile,
             )?,
-            ImageFormat::Jpeg => {
-                let mut out_buf = Vec::new();
-                let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(
-                    &mut out_buf,
-                    encoding_options
-                        .quality
-                        .map(|x| u8::min(x, 100))
-                        .unwrap_or(90),
-                );
-
-                if let Some(icc_profile) = icc_profile {
-                    let _ = encoder.set_icc_profile(icc_profile);
-                }
-
-                encoder
-                    .write_image(&frame.texture, frame.width, frame.height, memory_format)
-                    .internal_error()?;
-
-                out_buf
-            }
+            ImageFormat::Jpeg => jpeg::create(frame, encoding_options, icc_profile)?,
             ImageFormat::Tiff => tiff::create(frame)?,
             _ => {
                 let mut cur = Cursor::new(Vec::new());

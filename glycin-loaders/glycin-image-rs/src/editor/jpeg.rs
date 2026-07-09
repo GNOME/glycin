@@ -12,6 +12,42 @@ pub struct EditJpeg {
     buf: Vec<u8>,
 }
 
+pub fn create(
+    frame: Frame<FungibleMemory>,
+    encoding_options: EncodingOptions,
+    icc_profile: Option<Vec<u8>>,
+) -> Result<Vec<u8>, ProcessError> {
+    let mut out_buf = Vec::new();
+    let mut encoder = jpeg_encoder::Encoder::new(
+        &mut out_buf,
+        encoding_options
+            .quality
+            .map(|x| u8::min(x, 100))
+            .unwrap_or(90),
+    );
+
+    let color_type = match frame.memory_format {
+        MemoryFormat::B8g8r8 => jpeg_encoder::ColorType::Rgb,
+        MemoryFormat::G8 => jpeg_encoder::ColorType::Luma,
+        _ => return Err(todo!()),
+    };
+
+    if let Some(icc_profile) = icc_profile {
+        let _ = encoder.add_icc_profile(&icc_profile);
+    }
+
+    encoder
+        .encode(
+            &frame.texture,
+            frame.width as u16,
+            frame.height as u16,
+            color_type,
+        )
+        .expected_error()?;
+
+    Ok(out_buf)
+}
+
 pub fn load<S: Read>(mut stream: S) -> Result<EditJpeg, glycin_utils::ProcessError> {
     let mut buf: Vec<u8> = Vec::new();
     stream.read_to_end(&mut buf).internal_error()?;
