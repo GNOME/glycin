@@ -17,8 +17,8 @@ fn images() -> Vec<(MemoryFormat, PathBuf)> {
                 .unwrap(),
         ),
         (
-            MemoryFormat::R32g32b32Float,
-            img.take(Path::new("test-images/images/color/color.exr"))
+            MemoryFormat::R16g16b16,
+            img.take(Path::new("test-images/images/color/color-f16.exr"))
                 .unwrap(),
         ),
         (
