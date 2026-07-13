@@ -244,6 +244,13 @@ def main():
     assert pixel_density.get_y_value() == 3543
     assert pixel_density.get_y_unit() == Gly.PhysicalDimensionUnit.METER
 
+    pixel_density = pixel_density.convert(Gly.PhysicalDimensionUnit.INCH)
+
+    assert round(pixel_density.get_x_value()) == 25
+    assert pixel_density.get_x_unit() == Gly.PhysicalDimensionUnit.INCH
+    assert round(pixel_density.get_y_value()) == 90
+    assert pixel_density.get_y_unit() == Gly.PhysicalDimensionUnit.INCH
+
     error_domain = None
     try:
         creator = Gly.Creator.new("unknown/mime")

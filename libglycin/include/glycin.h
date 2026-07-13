@@ -878,6 +878,16 @@ double gly_pixel_density_get_y_value(GlyPixelDensity *pixel_density);
  */
 GlyPhysicalDimensionUnit gly_pixel_density_get_y_unit(GlyPixelDensity *pixel_density);
 
+/**
+ * gly_pixel_density_convert:
+ * @pixel_density:
+ *
+ * Returns: (transfer full): Converted pixel density
+ *
+ * Since: 2.2
+ */
+GlyPixelDensity *gly_pixel_density_convert(GlyPixelDensity *pixel_density, GlyPhysicalDimensionUnit unit);
+
 /**************** GlyFrameDetails ****************/
 
 /**

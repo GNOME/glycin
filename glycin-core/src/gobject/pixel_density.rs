@@ -76,4 +76,9 @@ impl GlyPixelDensity {
         obj.imp().pixel_density.set(pixel_density).unwrap();
         obj
     }
+
+    pub fn convert(&self, unit: GlyPhysicalDimensionUnit) -> Self {
+        let unit = physical_dimension::PhysicalDimensionUnit::try_from(unit as i32).unwrap();
+        Self::new(self.imp().pixel_density.get().unwrap().convert(unit))
+    }
 }

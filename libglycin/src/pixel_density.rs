@@ -47,3 +47,16 @@ pub unsafe extern "C" fn gly_pixel_density_get_y_unit(
         pixel_density.y_unit()
     }
 }
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn gly_pixel_density_convert(
+    pixel_density: *mut GlyPixelDensity,
+    unit: i32,
+) -> *mut GlyPixelDensity {
+    unsafe {
+        let pixel_density = gobject::GlyPixelDensity::from_glib_ptr_borrow(&pixel_density);
+        pixel_density
+            .convert(GlyPhysicalDimensionUnit::from_glib(unit))
+            .into_glib_ptr()
+    }
+}
