@@ -13,6 +13,16 @@ pub extern "C" fn gly_pixel_density_get_type() -> GType {
 }
 
 #[unsafe(no_mangle)]
+pub unsafe extern "C" fn gly_pixel_density_new(
+    x_value: f64,
+    x_unit: GlyPhysicalDimensionUnit,
+    y_value: f64,
+    y_unit: GlyPhysicalDimensionUnit,
+) -> *mut GlyPixelDensity {
+    gobject::GlyPixelDensity::for_values(x_value, x_unit, y_value, y_unit).into_glib_ptr()
+}
+
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_pixel_density_get_x_value(pixel_density: *mut GlyPixelDensity) -> f64 {
     unsafe {
         let pixel_density = gobject::GlyPixelDensity::from_glib_ptr_borrow(&pixel_density);

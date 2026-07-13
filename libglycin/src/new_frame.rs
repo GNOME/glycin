@@ -3,7 +3,9 @@ use glib::ffi::{GBytes, GType};
 use glib::subclass::prelude::*;
 use glib::translate::*;
 use glycin::gobject;
-use glycin::gobject::new_frame::GlyPhysicalDimensionUnit;
+use glycin::gobject::GlyPhysicalDimensionUnit;
+
+use crate::GlyPixelDensity;
 
 pub type GlyNewFrame = <gobject::new_frame::imp::GlyNewFrame as ObjectSubclass>::Instance;
 
@@ -37,22 +39,16 @@ pub unsafe extern "C" fn gly_new_frame_set_color_icc_profile(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_new_frame_set_pixel_density(
     new_frame: *mut GlyNewFrame,
-    x_density: f64,
-    x_unit: i32,
-    y_density: f64,
-    y_unit: i32,
-) {
+    pixel_density: *mut GlyPixelDensity,
+) -> bool {
     unsafe {
         let new_frame = gobject::GlyNewFrame::from_glib_ptr_borrow(&new_frame);
+        let pixel_density =
+            from_glib_borrow::<_, Option<gobject::GlyPixelDensity>>(pixel_density).to_owned();
 
-        if x_unit == 0 || y_unit == 0 {
-            new_frame.set_pixel_density(None);
-        } else {
-            let x_unit = GlyPhysicalDimensionUnit::from_glib(x_unit);
-            let y_unit = GlyPhysicalDimensionUnit::from_glib(y_unit);
+        new_frame.set_pixel_density(pixel_density);
 
-            new_frame.set_pixel_density(Some((x_density, x_unit, y_density, y_unit)));
-        }
+        true
     }
 }
 

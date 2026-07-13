@@ -839,6 +839,22 @@ GlyCicp *gly_frame_get_color_cicp(GlyFrame *frame);
 /**************** GlyFrameDetails ****************/
 
 /**
+ * gly_pixel_density_new:
+ * @x_value:
+ * @x_unit:
+ * @y_value:
+ * @y_unit:
+ *
+ * Returns: Pixel density
+ *
+ * Since: 2.2
+ */
+GlyPixelDensity *gly_pixel_density_new(double x_value,
+                                       GlyPhysicalDimensionUnit x_unit,
+                                       double y_value,
+                                       GlyPhysicalDimensionUnit y_unit);
+
+/**
  * gly_pixel_density_get_x_value:
  * @pixel_density:
  *
@@ -978,18 +994,12 @@ gboolean gly_new_frame_set_color_icc_profile(GlyNewFrame *new_frame, GBytes *icc
 /**
  * gly_new_frame_set_pixel_density:
  * @new_frame:
- * @x_density:
- * @x_unit:
- * @y_density:
- * @y_unit:
+ * @pixel_density:
  *
  * Since: 2.2
  */
 void gly_new_frame_set_pixel_density(GlyNewFrame *new_frame,
-                                     double x_density,
-                                     GlyPhysicalDimensionUnit x_unit,
-                                     double y_density,
-                                     GlyPhysicalDimensionUnit y_unit);
+                                     GlyPixelDensity *pixel_density);
 
 /**
  * GlyEncodedImage:

@@ -4,9 +4,9 @@ use gio::glib;
 use glib::prelude::*;
 use glib::subclass::prelude::*;
 use glycin_utils::MemoryFormat;
-use gufo_common::physical_dimension::{
-    PhysicalDimensionUnit, PixelDensity, PixelsPerPhysicalDimension,
-};
+use gufo_common::physical_dimension::PixelDensity;
+
+use crate::gobject::GlyPixelDensity;
 
 use super::init;
 
@@ -89,27 +89,9 @@ impl GlyNewFrame {
             .build()
     }
 
-    pub fn set_pixel_density(
-        &self,
-        pixel_density: Option<(f64, GlyPhysicalDimensionUnit, f64, GlyPhysicalDimensionUnit)>,
-    ) {
-        if let Some((x_value, x_unit, y_value, y_unit)) = pixel_density {
-            let (Some(x_unit), Some(y_unit)) = (
-                PhysicalDimensionUnit::try_from(x_unit as i32).ok(),
-                PhysicalDimensionUnit::try_from(y_unit as i32).ok(),
-            ) else {
-                glib::g_critical!("glycin", "Invalid unit passed {y_unit:?} or {x_unit:?}");
-                return;
-            };
-
-            let pixel_density = PixelDensity::new(
-                PixelsPerPhysicalDimension::new(x_value, x_unit),
-                PixelsPerPhysicalDimension::new(y_value, y_unit),
-            );
-            *self.imp().pixel_density.lock().unwrap() = Some(pixel_density);
-        } else {
-            *self.imp().pixel_density.lock().unwrap() = None;
-        }
+    pub fn set_pixel_density(&self, pixel_density: Option<GlyPixelDensity>) {
+        *self.imp().pixel_density.lock().unwrap() =
+            pixel_density.map(|x| x.inner().to_owned().unwrap());
     }
 
     pub async fn build(&self, creator: &mut crate::Creator) -> Result<(), crate::Error> {

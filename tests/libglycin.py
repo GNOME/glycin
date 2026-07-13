@@ -222,7 +222,7 @@ def main():
     frame = creator.add_frame_with_stride(1, 1, 4, Gly.MemoryFormat.R8G8B8, data)
     frame.set_color_icc_profile(data)
     frame.set_pixel_density(
-        1000, Gly.PhysicalDimensionUnit.METER, 90, Gly.PhysicalDimensionUnit.INCH
+        Gly.PixelDensity(x_value= 1000, x_unit=Gly.PhysicalDimensionUnit.METER, y_value=90, y_unit=Gly.PhysicalDimensionUnit.INCH)
     )
 
     encoded_image = creator.create()
