@@ -351,6 +351,8 @@ impl Config {
             data_dir.push(format!("{}+", crate::COMPAT_VERSION));
             data_dir.push("conf.d");
 
+            tracing::debug!("Looking for loaders in {:?}", data_dir);
+
             if let Ok(mut config_files) = util::read_dir(data_dir).await {
                 while let Some(result) = config_files.next().await {
                     if let Ok(path) = result

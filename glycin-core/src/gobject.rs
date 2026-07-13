@@ -48,6 +48,7 @@ pub fn init() {
             .init();
 
         tracing::debug!("Initialized logging");
+        tracing::debug!("Glycin {}", env!("CARGO_PKG_VERSION"));
 
         async_global_executor::init_with_config(
             async_global_executor::GlobalExecutorConfig::default()
