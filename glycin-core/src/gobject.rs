@@ -6,6 +6,7 @@ pub mod frame_request;
 pub mod image;
 pub mod loader;
 pub mod new_frame;
+pub mod pixel_density;
 
 use std::sync::OnceLock;
 
@@ -17,6 +18,7 @@ pub use frame_request::GlyFrameRequest;
 pub use image::GlyImage;
 pub use loader::GlyLoader;
 pub use new_frame::{GlyNewFrame, GlyPhysicalDimensionUnit};
+pub use pixel_density::GlyPixelDensity;
 use tracing_subscriber::layer::*;
 use tracing_subscriber::util::*;
 

@@ -14,7 +14,6 @@ static_assertions::assert_impl_all!(GlyCreator: Send, Sync);
 use super::init;
 
 pub mod imp {
-
     use super::*;
 
     #[derive(Default, Debug, glib::Properties)]

@@ -237,11 +237,12 @@ def main():
 
     frame = image.next_frame()
     frame_details = frame.get_details()
+    pixel_density = frame_details.get_pixel_density()
 
-    assert frame_details.get_pixel_density_x() == 1000
-    assert frame_details.get_pixel_density_x_unit() == Gly.PhysicalDimensionUnit.METER
-    assert frame_details.get_pixel_density_y() == 3543
-    assert frame_details.get_pixel_density_y_unit() == Gly.PhysicalDimensionUnit.METER
+    assert pixel_density.get_x_value() == 1000
+    assert pixel_density.get_x_unit() == Gly.PhysicalDimensionUnit.METER
+    assert pixel_density.get_y_value() == 3543
+    assert pixel_density.get_y_unit() == Gly.PhysicalDimensionUnit.METER
 
     error_domain = None
     try:

@@ -6,7 +6,7 @@ use glib::subclass::prelude::*;
 use glib::translate::*;
 
 use crate::FrameDetails;
-use crate::gobject::new_frame::GlyPhysicalDimensionUnit;
+use crate::gobject::pixel_density::GlyPixelDensity;
 
 pub mod imp {
     use super::*;
@@ -16,17 +16,8 @@ pub mod imp {
     pub struct GlyFrameDetails {
         pub(super) frame_details: OnceLock<FrameDetails>,
 
-        #[property(get=Self::get_pixel_density_x)]
-        pixel_density_x: PhantomData<f64>,
-
-        #[property(get=Self::get_pixel_density_x_unit, nullable, builder(GlyPhysicalDimensionUnit::default()))]
-        pixel_density_x_unit: PhantomData<GlyPhysicalDimensionUnit>,
-
-        #[property(get=Self::get_pixel_density_y)]
-        pixel_density_y: PhantomData<f64>,
-
-        #[property(get=Self::get_pixel_density_y_unit, nullable, builder(GlyPhysicalDimensionUnit::default()))]
-        pixel_density_y_unit: PhantomData<GlyPhysicalDimensionUnit>,
+        #[property(get=Self::pixel_density, nullable)]
+        pixel_density: PhantomData<Option<GlyPixelDensity>>,
     }
 
     #[glib::object_subclass]
@@ -39,40 +30,12 @@ pub mod imp {
     impl ObjectImpl for GlyFrameDetails {}
 
     impl GlyFrameDetails {
-        fn get_pixel_density_x(&self) -> f64 {
+        fn pixel_density(&self) -> Option<GlyPixelDensity> {
             self.frame_details
                 .get()
                 .unwrap()
                 .pixel_density()
-                .map(|x| x.x().value())
-                .unwrap_or_default()
-        }
-
-        fn get_pixel_density_x_unit(&self) -> GlyPhysicalDimensionUnit {
-            self.frame_details
-                .get()
-                .unwrap()
-                .pixel_density()
-                .map(|x| unsafe { GlyPhysicalDimensionUnit::from_glib(x.x().unit().into()) })
-                .unwrap_or_default()
-        }
-
-        fn get_pixel_density_y(&self) -> f64 {
-            self.frame_details
-                .get()
-                .unwrap()
-                .pixel_density()
-                .map(|x| x.y().value())
-                .unwrap_or_default()
-        }
-
-        fn get_pixel_density_y_unit(&self) -> GlyPhysicalDimensionUnit {
-            self.frame_details
-                .get()
-                .unwrap()
-                .pixel_density()
-                .map(|x| unsafe { GlyPhysicalDimensionUnit::from_glib(x.y().unit().into()) })
-                .unwrap_or_default()
+                .map(|x| GlyPixelDensity::new(x))
         }
     }
 }

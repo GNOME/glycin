@@ -9,6 +9,7 @@ mod image;
 mod loader;
 mod memory_format;
 mod new_frame;
+mod pixel_density;
 
 pub use creator::*;
 pub use encoded_image::*;
@@ -20,3 +21,4 @@ pub use image::*;
 pub use loader::*;
 pub use memory_format::*;
 pub use new_frame::*;
+pub use pixel_density::*;
