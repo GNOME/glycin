@@ -250,7 +250,7 @@ checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 
 [[package]]
 name = "benches"
-version = "2.2.0-alpha.6"
+version = "2.2.0-alpha.7"
 dependencies = [
  "async-io",
  "criterion",
@@ -1185,7 +1185,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-dev-tools"
-version = "2.2.0-alpha.6"
+version = "2.2.0-alpha.7"
 dependencies = [
  "async-io",
  "gdk4",
@@ -1205,7 +1205,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-heif"
-version = "2.2.0-alpha.6"
+version = "2.2.0-alpha.7"
 dependencies = [
  "four-cc",
  "glycin-common",
@@ -1218,7 +1218,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-image-rs"
-version = "2.2.0-alpha.6"
+version = "2.2.0-alpha.7"
 dependencies = [
  "bytemuck",
  "exr",
@@ -1239,7 +1239,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-jxl"
-version = "2.2.0-alpha.6"
+version = "2.2.0-alpha.7"
 dependencies = [
  "glycin-common",
  "glycin-utils",
@@ -1251,7 +1251,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-raw"
-version = "2.2.0-alpha.6"
+version = "2.2.0-alpha.7"
 dependencies = [
  "glycin-utils",
  "gufo-common",
@@ -1260,7 +1260,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-svg"
-version = "2.2.0-alpha.6"
+version = "2.2.0-alpha.7"
 dependencies = [
  "cairo-rs",
  "gio",
@@ -1273,7 +1273,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-test"
-version = "2.2.0-alpha.6"
+version = "2.2.0-alpha.7"
 dependencies = [
  "glycin-utils",
  "moxcms",
@@ -1281,7 +1281,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-thumbnailer"
-version = "2.2.0-alpha.6"
+version = "2.2.0-alpha.7"
 dependencies = [
  "gio",
  "image",
@@ -1694,7 +1694,7 @@ checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
 
 [[package]]
 name = "libglycin"
-version = "2.2.0-alpha.6"
+version = "2.2.0-alpha.7"
 dependencies = [
  "async-global-executor",
  "futures-task",
@@ -1707,7 +1707,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4"
-version = "2.2.0-alpha.6"
+version = "2.2.0-alpha.7"
 dependencies = [
  "gdk4",
  "glycin",
@@ -2711,7 +2711,7 @@ dependencies = [
 
 [[package]]
 name = "tests"
-version = "2.2.0-alpha.6"
+version = "2.2.0-alpha.7"
 dependencies = [
  "async-io",
  "blocking",
