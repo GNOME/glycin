@@ -8,7 +8,7 @@ pub fn bench_name(path: &Path) -> String {
 pub fn test_images() -> BTreeSet<std::path::PathBuf> {
     let mut paths = vec![
         PathBuf::from("test-images/images/color/color.avif"),
-        PathBuf::from("test-images/images/color/color.exr"),
+        PathBuf::from("test-images/images/color/color-f16.exr"),
         PathBuf::from("test-images/images/color/color.jpg"),
         PathBuf::from("test-images/images/color/color.jxl"),
         PathBuf::from("test-images/images/color/color.png"),
