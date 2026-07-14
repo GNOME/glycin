@@ -1,0 +1,1 @@
+Setting `GLYCIN_DISABLE_SANDBOX=i-know-the-risks` will disable the sandbox if `SandboxSelector::Auto` is used.

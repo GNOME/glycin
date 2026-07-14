@@ -28,6 +28,7 @@ pub enum SandboxMechanism {
 impl SandboxMechanism {
     pub async fn detect() -> Self {
         match RunEnvironment::cached().await {
+            RunEnvironment::SandboxForceDisabled => Self::NotSandboxed,
             RunEnvironment::FlatpakDevel => Self::NotSandboxed,
             RunEnvironment::Flatpak => Self::FlatpakSpawn,
             RunEnvironment::Host => Self::Bwrap,

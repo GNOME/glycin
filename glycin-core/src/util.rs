@@ -122,9 +122,11 @@ pub fn gdk_color_state(format: &ColorState) -> Result<gdk::ColorState, crate::Er
 
 #[derive(Debug, Clone, Copy)]
 pub enum RunEnvironment {
+    /// Sandbox force disabled
+    SandboxForceDisabled,
     /// Not inside Flatpak
     Host,
-
+    /// Not inside Flatpak but bwrap doesn't work
     HostBwrapSyscallsBlocked,
     /// Inside Flatpak
     Flatpak,
@@ -142,13 +144,26 @@ impl RunEnvironment {
         if let Some(result) = *run_environment {
             result
         } else {
-            let run_env = if let Some(devel) = flatpak_devel().await {
+            let run_env = if std::env::var("GLYCIN_DISABLE_SANDBOX").as_deref()
+                == Ok("i-know-the-risks")
+            {
+                eprintln!(
+                    "WARNING: Glycin running without sandbox. Force disabled via environment variable."
+                );
+                Self::SandboxForceDisabled
+            } else if let Some(devel) = flatpak_devel().await {
                 if devel {
+                    eprintln!(
+                        "WARNING: Glycin running without sandbox. Disabled due to Flatpak development environment."
+                    );
                     Self::FlatpakDevel
                 } else {
                     Self::Flatpak
                 }
             } else if Sandbox::check_bwrap_syscalls_blocked().await {
+                eprintln!(
+                    "WARNING: Glycin running without sandbox. Bubblewrap (bwrap) doesn't work in the environment."
+                );
                 Self::HostBwrapSyscallsBlocked
             } else {
                 Self::Host
