@@ -197,7 +197,7 @@ if get_option('tests')
       '--test-threads=1',
       '--nocapture', tests,
     ],
-    env: env,
+    env: env + test_env,
     is_parallel: false,
     timeout: 1800,
   )
@@ -218,7 +218,7 @@ if get_option('tests')
         '--test-threads=1',
         '--nocapture', tests,
       ],
-      env: env,
+      env: env + test_env,
       is_parallel: false,
       timeout: 1800,
     )

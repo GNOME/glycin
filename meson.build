@@ -61,6 +61,12 @@ else
   cargo_profile = 'dev'
 endif
 
+test_env = {}
+
+if get_option('test_disable_sandbox')
+  test_env += {'GLYCIN_DISABLE_SANDBOX': 'i-know-the-risks'}
+endif
+
 introspection = (get_option('introspection') or get_option('vapi') or get_option('capi_docs'))
 
 if get_option('introspection') != introspection

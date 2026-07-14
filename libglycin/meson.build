@@ -228,6 +228,7 @@ foreach package : packages
             build_by_default: true,
             install: true,
             install_dir: datadir / 'doc',
+            env: test_env,
         )
     endif
 

@@ -76,6 +76,13 @@ option(
   description: 'Output log messages of the specified level during tests.',
 )
 
+option(
+  'test_disable_sandbox',
+  type: 'boolean',
+  value: false,
+  description: 'Don\'t use any sandbox mechanism while running tests.',
+)
+
 # libglycin
 
 option(
