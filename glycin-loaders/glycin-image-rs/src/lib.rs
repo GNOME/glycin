@@ -234,40 +234,48 @@ impl ImageRsFormat<Reader> {
             .supports_two_alpha_modes(true)
             .supports_two_grayscale_modes(true)
             .default_bit_depth(8),
+
             "image/bmp" => Self::new(ImageRsDecoder::Bmp(
                 codecs::bmp::BmpDecoder::new(data).expected_error()?,
             ))
             .format_name("BMP")
             .default_bit_depth(8),
+
             "image/vnd.ms-dds" => Self::new(ImageRsDecoder::Dds(
                 codecs::dds::DdsDecoder::new(data).expected_error()?,
             ))
             .format_name("DDS")
             .supports_two_grayscale_modes(true),
+
             "image/x-ff" => Self::new(ImageRsDecoder::Farbfeld(
                 codecs::farbfeld::FarbfeldDecoder::new(data).expected_error()?,
             ))
             .format_name("Farbfeld")
             .default_bit_depth(16),
+
             "image/gif" => Self::new(ImageRsDecoder::Gif(
                 codecs::gif::GifDecoder::new(data).expected_error()?,
             ))
             .format_name("GIF")
             .default_bit_depth(8),
+
             "image/x-win-bitmap" | "image/vnd.microsoft.icon" => Self::new(ImageRsDecoder::Ico(
                 codecs::ico::IcoDecoder::new(data).expected_error()?,
             ))
             .format_name("ICO"),
+
             "image/jpeg" => Self::new(ImageRsDecoder::Jpeg(
                 codecs::jpeg::JpegDecoder::new(data).expected_error()?,
             ))
             .format_name("JPEG")
             .default_bit_depth(8)
             .supports_two_grayscale_modes(true),
+
             "image/jp2" | "image/x-jp2-codestream" => Self::new(ImageRsDecoder::Jpeg2000(
                 hayro_jpeg2000::integration::Jp2Decoder::new(data).expected_error()?,
             ))
-            .format_name("ICO"),
+            .format_name("JPEG 2000"),
+
             "image/png" => Self::new(ImageRsDecoder::Png(
                 codecs::png::PngDecoder::new(data).expected_error()?,
             ))
@@ -275,62 +283,74 @@ impl ImageRsFormat<Reader> {
             .supports_two_alpha_modes(true)
             .supports_two_grayscale_modes(true)
             .default_bit_depth(8),
+
             "image/x-portable-bitmap" => Self::new(ImageRsDecoder::Pnm(
                 codecs::pnm::PnmDecoder::new(data).expected_error()?,
             ))
             .format_name("PBM")
             .default_bit_depth(1),
+
             "image/x-portable-graymap" => Self::new(ImageRsDecoder::Pnm(
                 codecs::pnm::PnmDecoder::new(data).expected_error()?,
             ))
             .format_name("PGM"),
+
             "image/x-portable-pixmap" => Self::new(ImageRsDecoder::Pnm(
                 codecs::pnm::PnmDecoder::new(data).expected_error()?,
             ))
             .format_name("PPM"),
+
             "image/x-portable-anymap" => Self::new(ImageRsDecoder::Pnm(
                 codecs::pnm::PnmDecoder::new(data).expected_error()?,
             ))
             .format_name("PAM"),
+
             "image/x-qoi" | "image/qoi" => Self::new(ImageRsDecoder::Qoi(
                 codecs::qoi::QoiDecoder::new(data).expected_error()?,
             ))
             .format_name("QOI")
             .default_bit_depth(8)
             .supports_two_alpha_modes(true),
+
             "image/x-targa" | "image/x-tga" => Self::new(ImageRsDecoder::Tga(
                 codecs::tga::TgaDecoder::new(data).expected_error()?,
             ))
             .format_name("TGA")
             .supports_two_grayscale_modes(true),
+
             "image/tiff" => Self::new(ImageRsDecoder::Tiff(
                 codecs::tiff::TiffDecoder::new(data).expected_error()?,
             ))
             .format_name("TIFF")
             .supports_two_alpha_modes(true)
             .supports_two_grayscale_modes(true),
+
             "image/webp" => Self::new(ImageRsDecoder::WebP(
                 codecs::webp::WebPDecoder::new(data).expected_error()?,
             ))
             .format_name("WebP")
             .default_bit_depth(8)
             .supports_two_alpha_modes(true),
+
             "image/x-xbitmap" => Self::new(ImageRsDecoder::Xbm(
                 image_extras::xbm::XbmDecoder::new(data).expected_error()?,
             ))
             .format_name("XBM")
             .default_bit_depth(8)
             .supports_two_alpha_modes(false),
+
             "image/x-xpixmap" => Self::new(ImageRsDecoder::Xpm(
                 image_extras::xpm::XpmDecoder::new(data).expected_error()?,
             ))
             .format_name("XPM")
             .default_bit_depth(8)
             .supports_two_alpha_modes(false),
+
             "image/vnd.radiance" => Self::new(ImageRsDecoder::Hdr(
                 codecs::hdr::HdrDecoder::new_nonstrict(data).expected_error()?,
             ))
             .format_name("Radiance HDR"),
+
             mime_type => return Err(ProcessError::UnsupportedImageFormat(mime_type.to_string())),
         })
     }
