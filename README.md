@@ -12,6 +12,7 @@ Glycin allows to decode, edit, and create images and read metadata. On Linux, de
 Bindings for other languages:
 
 - [GJS](https://gjs-docs.gnome.org/gly2~2/)
+- [Python](https://api.pygobject.gnome.org/Gly-2/)
 
 Other rust crates:
 
