@@ -25,7 +25,6 @@ cargo_home = meson.project_build_root() / 'cargo-home'
 cargo_manifest = meson.project_source_root() / 'Cargo.toml'
 
 cargo_bin = find_program('cargo')
-crate_version_bin = find_program(meson.project_source_root() / 'build-aux/crates_version.py')
 
 cargo_env = environment()
 cargo_env.set('CARGO_HOME', cargo_home)
