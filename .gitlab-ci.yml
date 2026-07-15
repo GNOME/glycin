@@ -212,7 +212,7 @@ macos:
   script:
     - cargo build -p glycin --features gdk4
     - meson setup -Dintrospection=false -Dvapi=false builddir
-    - meson compile -C builddir
+    - meson test -vC builddir
 
 windows-gnu:
   image: 'registry.fedoraproject.org/fedora:44'
