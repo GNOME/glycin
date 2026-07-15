@@ -68,9 +68,14 @@ if get_option('test_disable_sandbox')
 endif
 
 introspection = (get_option('introspection') or get_option('vapi') or get_option('capi_docs'))
+glycin_loaders = (get_option('glycin-loaders') and host_machine.system() == 'linux')
 
 if get_option('introspection') != introspection
   summary('introspection', introspection, section: 'Overwritten options')
+endif
+
+if glycin_loaders != get_option('glycin-loaders')
+  summary('glycin-loaders', glycin_loaders, section: 'Overwritten options')
 endif
 
 subdir('glycin-loaders')
