@@ -181,7 +181,7 @@ macos:
     - | # Setup the virtual environment with basic set of tools.
       python3 -m venv .venv
       source .venv/bin/activate
-      pip3 install meson==1.9.0 ninja==1.11.1.1
+      pip3 install meson==1.9.0 ninja==1.11.1.1 cmake
       ln -s /opt/ccache/ccache .venv/bin
       ln -s /opt/rustup/toolchains/1.93.1-aarch64-apple-darwin/bin/* .venv/bin
     - | # Clone GTK early so we can access wrapped GLib version.
@@ -211,7 +211,7 @@ macos:
       curl -L $CI_API_V4_URL/projects/30437/packages/generic/pkgconfig/v0.29.2+10/pkg-config-0.29.2+10_$(uname -m).tar.xz | tar -C .venv -xJ
   script:
     - cargo build -p glycin --features gdk4
-    - meson setup builddir
+    - meson setup -Dintrospection=false -Dvapi=false builddir
     - meson compile -C builddir
 
 windows-gnu:
