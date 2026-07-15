@@ -128,9 +128,9 @@ pub unsafe extern "C" fn gly_loader_load_async(
 
         let cancel_signal = if let Some(cancellable) = &cancellable {
             cancellable.connect_cancelled(glib::clone!(
-                #[weak]
-                obj,
-                move |_| obj.cancellable().cancel()
+                #[weak(rename_to = cancellable)]
+                obj.cancellable(),
+                move |_| cancellable.cancel()
             ))
         } else {
             None

@@ -96,9 +96,9 @@ pub unsafe extern "C" fn gly_image_get_specific_frame_async(
         let callback: GAsyncReadyCallbackSend = GAsyncReadyCallbackSend::new(callback, user_data);
         let cancel_signal = if let Some(cancellable) = &cancellable {
             cancellable.connect_cancelled(glib::clone!(
-                #[weak]
-                obj,
-                move |_| obj.cancellable().cancel()
+                #[weak(rename_to=cancellable)]
+                obj.image().cancellable(),
+                move |_| cancellable.cancel()
             ))
         } else {
             None
