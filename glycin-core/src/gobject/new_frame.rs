@@ -6,9 +6,8 @@ use glib::subclass::prelude::*;
 use glycin_utils::MemoryFormat;
 use gufo_common::physical_dimension::PixelDensity;
 
-use crate::gobject::GlyPixelDensity;
-
 use super::init;
+use crate::gobject::GlyPixelDensity;
 
 static_assertions::assert_impl_all!(GlyNewFrame: Send, Sync);
 
