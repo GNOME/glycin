@@ -195,14 +195,7 @@ foreach package : packages
     )
 
     if suffix == ''
-        version = run_command(crate_version_bin, f'libglycin@suffix@', 'gnome', check: true).stdout()
-    else
-        version = run_command(
-            crate_version_bin,
-            f'libglycin/libglycin@suffix@',
-            'gnome',
-            check: true,
-        ).stdout()
+        version = meson.project_version()
     endif
 
     # Generate .pc file
