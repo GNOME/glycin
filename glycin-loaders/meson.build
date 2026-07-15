@@ -1,4 +1,4 @@
-if not get_option('glycin-loaders')
+if not glycin_loaders
   subdir_done()
 endif
 

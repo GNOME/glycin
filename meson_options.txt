@@ -20,7 +20,7 @@ option(
 option(
   'glycin-loaders',
   type: 'boolean',
-  description: 'Build loaders',
+  description: 'Build loaders. This is will be overwritten with false on non-linux targets. The exact loaders to build is specified via the "loaders" option.',
 )
 
 option(
