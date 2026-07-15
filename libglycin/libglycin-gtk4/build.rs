@@ -24,13 +24,15 @@ fn main() {
                 "cargo:rustc-cdylib-link-arg=/OUT:{}",
                 profile_dir
                     .join(format!("glycin-gtk4-{major}-0.dll"))
-                    .display()
+                    .to_str()
+                    .unwrap()
             );
             println!(
                 "cargo:rustc-cdylib-link-arg=/IMPLIB:{}",
                 profile_dir
                     .join(format!("glycin-gtk4-{major}.lib"))
-                    .display()
+                    .to_str()
+                    .unwrap()
             );
         }
         ("windows", "gnu") => {}

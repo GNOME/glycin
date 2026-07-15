@@ -17,11 +17,17 @@ fn main() {
             let profile_dir = std::path::Path::new(&out_dir).ancestors().nth(3).unwrap();
             println!(
                 "cargo:rustc-cdylib-link-arg=/OUT:{}",
-                profile_dir.join(format!("glycin-{major}-0.dll")).display()
+                profile_dir
+                    .join(format!("glycin-{major}-0.dll"))
+                    .to_str()
+                    .unwrap()
             );
             println!(
                 "cargo:rustc-cdylib-link-arg=/IMPLIB:{}",
-                profile_dir.join(format!("glycin-{major}.lib")).display()
+                profile_dir
+                    .join(format!("glycin-{major}.lib"))
+                    .to_str()
+                    .unwrap()
             );
         }
         ("windows", "gnu") => {}
