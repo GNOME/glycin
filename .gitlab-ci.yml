@@ -82,14 +82,16 @@ benchmark:
       allow_failure: true
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-clippy:
+cargo-clippy:
   image: rust
   extends: .install_dependencies
   interruptible: true
   allow_failure: true
   script:
     - rustup component add clippy
-    - cargo clippy
+    - meson setup -Dprofile=dev -Dglycin-loaders=false -Dglycin-thumbnailer=false --prefix=/usr builddir
+    - meson install -C builddir
+    - cargo clippy --no-deps -- --deny warnings
 
 test-x86_64:
   image: rust:1.93-trixie
@@ -210,7 +212,7 @@ macos:
   script:
     - cargo build -p glycin --features gdk4
 
-windows:
+windows-gnu:
   image: 'registry.fedoraproject.org/fedora:44'
   interruptible: true
   script:
