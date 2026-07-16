@@ -1,0 +1,19 @@
+[binaries]
+c = 'x86_64-w64-mingw32-gcc'
+cpp = 'x86_64-w64-mingw32-g++'
+ar = 'x86_64-w64-mingw32-ar'
+windres = 'x86_64-w64-mingw32-windres'
+strip = 'x86_64-w64-mingw32-strip'
+exe_wrapper = 'wine64'
+rust = ['rustc', '--target', 'x86_64-pc-windows-gnu']
+pkg-config = 'x86_64-w64-mingw32-pkg-config'
+dlltool = 'x86_64-w64-mingw32-dlltool'
+
+[properties]
+rust_target = 'x86_64-pc-windows-gnu'
+
+[host_machine]
+system = 'windows'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
+endian = 'little'

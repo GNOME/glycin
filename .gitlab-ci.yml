@@ -230,6 +230,10 @@ windows-gnu:
     - export CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUNNER=wine
     - export WINEPATH="Z:\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\bin"
     - GLYCIN_TEST_SKIP_EXT=svg,svgz,avif,heic,jxl cargo test -p tests --no-default-features --features async-io,builtin-loaders --target x86_64-pc-windows-gnu
+    # Build libglycin
+    - dnf install -y meson
+    - meson setup --cross-file build-aux/cross/cross-windows.txt -Dintrospection=false -Dvapi=false -Dglycin-thumbnailer=false -Dlibglycin-gtk4=false -Dprofile=dev builddir
+    - meson compile -vvvC builddir
 
 cargo-semver-checks:
   image: rust

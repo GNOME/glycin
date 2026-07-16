@@ -68,7 +68,9 @@ elif host_machine.system() == 'windows'
 else
     lib_ext = 'so'
 endif
-windows_msvc = cc.get_argument_syntax() == 'msvc'
+
+windows_msvc = host_machine.system() == 'windows' and cc.get_argument_syntax() == 'msvc'
+windows_gnu = host_machine.system() == 'windows' and cc.get_argument_syntax() == 'gcc'
 
 foreach package : packages
     suffix = package['suffix']
@@ -91,13 +93,18 @@ foreach package : packages
 
     libglycin_target_name = f'glycin@suffix@-2'
 
+    win_dll_name = f'@libglycin_target_name@-0.dll'
+    message(cargo_artifact_dir / rust_target / win_dll_name)
+
     if windows_msvc
         win_dll_name = f'@libglycin_target_name@-0.dll'
         win_implib_name = f'@libglycin_target_name@.lib'
-        cargo_output = cargo_target_dir / rust_target / win_dll_name
-        cargo_implib_output = cargo_target_dir / rust_target / win_implib_name
+        cargo_output = cargo_artifact_dir / rust_target / win_dll_name
+        cargo_implib_output = cargo_artifact_dir / rust_target / win_implib_name
+    elif windows_gnu
+        cargo_output = cargo_artifact_dir / rust_target / f'glycin@suffix@.dll'
     else
-        cargo_output = cargo_target_dir / rust_target / ('lib' + f'glycin@suffix@'.replace('-', '_') + '.' + lib_ext)
+        cargo_output = cargo_artifact_dir / rust_target / (f'libglycin@suffix@'.replace('-', '_') + '.' + lib_ext)
     endif
 
     # Build library with Rust
@@ -109,7 +116,12 @@ foreach package : packages
         output: f'Meson-does-not-support-sub-dir-output@suffix@',
         console: true,
         env: cargo_env_module,
-        command: [cargo_bin, 'build', cargo_options, '-p', f'libglycin@suffix@'],
+        command: [
+            cargo_bin,
+            'build',
+            cargo_options,
+            '-p', f'libglycin@suffix@',
+        ],
     )
 
     # Make the build result available to meson. We cannot use the "output"

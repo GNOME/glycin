@@ -24,19 +24,20 @@ cargo_target_dir = meson.project_build_root() / 'cargo-target'
 cargo_home = meson.project_build_root() / 'cargo-home'
 cargo_manifest = meson.project_source_root() / 'Cargo.toml'
 
-cargo_build_target = meson.get_external_property('rust_target', '')
-if cargo_build_target != ''
+cargo_env = environment()
+cargo_env.set('CARGO_HOME', cargo_home)
+
+if meson.is_cross_build()
+  cargo_build_target = meson.get_external_property('rust_target')
   cargo_target_args = ['--target', cargo_build_target]
   cargo_artifact_dir = cargo_target_dir / cargo_build_target
+  cargo_env.set('PKG_CONFIG', find_program('pkg-config', required: true).full_path())
 else
   cargo_target_args = []
   cargo_artifact_dir = cargo_target_dir
 endif
 
 cargo_bin = find_program('cargo')
-
-cargo_env = environment()
-cargo_env.set('CARGO_HOME', cargo_home)
 
 if get_option('libglycin') and (get_option('libglycin-gtk4') or get_option('glycin-thumbnailer'))
   # Let the libglycin-gtk4 or glycin-thumbnailer build find the previously
