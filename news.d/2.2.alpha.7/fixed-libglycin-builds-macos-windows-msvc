@@ -1,0 +1,1 @@
+libglycin: Build errors on Windows MSVC and macOS. Builds unter Windows GNU are still not completely working.
