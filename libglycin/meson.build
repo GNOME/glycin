@@ -194,9 +194,7 @@ foreach package : packages
         sources: copy_deps,
     )
 
-    if suffix == ''
-        version = meson.project_version()
-    endif
+    version = meson.project_version()
 
     # Generate .pc file
     pkg.generate(
