@@ -12,7 +12,9 @@ use std::sync::Arc;
 
 use gio::glib;
 use libseccomp::error::SeccompError;
-use libseccomp::{ScmpAction, ScmpFilterContext, ScmpSyscall};
+use libseccomp::{
+    ScmpAction, ScmpArch, ScmpArgCompare, ScmpCompareOp, ScmpFilterContext, ScmpSyscall,
+};
 use nix::libc::siginfo_t;
 use nix::sys::{memfd, resource};
 use nix::unistd;
@@ -25,149 +27,117 @@ type SystemSetupStore = Arc<Result<SystemSetup, Arc<io::Error>>>;
 
 static SYSTEM_SETUP: AsyncMutex<Option<SystemSetupStore>> = new_async_mutex(None);
 
-/// List of allowed syscalls
-///
-/// All syscalls are blocked by default via seccomp. Only the following syscalls
-/// are allowed. The feature is only available for sandboxes using bubblewrap.
-const ALLOWED_SYSCALLS: &[&str] = &[
-    "access",
-    "arch_prctl",
-    "arm_fadvise64_64",
-    "brk",
-    "capget",
-    "capset",
-    "chdir",
-    "clock_getres",
-    "clock_gettime",
-    "clock_gettime64",
-    "clone",
-    "clone3",
-    "close",
-    "connect",
-    "creat",
-    "dup",
-    "epoll_create",
-    "epoll_create1",
-    "epoll_ctl",
-    "epoll_pwait",
-    "epoll_wait",
-    "eventfd",
-    "eventfd2",
-    "execve",
-    "exit",
-    "exit_group",
-    "faccessat",
-    "fadvise64",
-    "fadvise64_64",
-    "fchdir",
-    "fcntl",
-    "fcntl",
-    "fcntl64",
-    "fstat",
-    "fstatfs",
-    "fstatfs64",
-    "ftruncate",
-    "ftruncate64",
-    "futex",
-    "futex_time64",
-    "get_mempolicy",
-    "getcwd",
-    "getdents64",
-    "getegid",
-    "getegid32",
-    "geteuid",
-    "geteuid32",
-    "getgid",
-    "getgid32",
-    "getpid",
-    "getppid",
-    "getpriority",
-    "getrandom",
-    "gettid",
-    "gettimeofday",
-    "getuid",
-    "getuid32",
-    "ioctl",
-    "madvise",
-    "membarrier",
-    "memfd_create",
-    "mmap",
-    "mmap2",
-    "mprotect",
-    "mremap",
-    "munmap",
-    "newfstatat",
-    "open",
-    "openat",
-    "pipe",
-    "pipe2",
-    "pivot_root",
-    "poll",
-    "ppoll",
-    "ppoll_time64",
-    "prctl",
-    "pread64",
-    "prlimit64",
-    "read",
-    "readlink",
-    "readlinkat",
-    "recv",
-    "recvfrom",
-    "recvmsg",
-    "restart_syscall",
-    "riscv_hwprobe",
-    "rseq",
-    "rt_sigaction",
-    "rt_sigprocmask",
-    "rt_sigreturn",
-    "sched_getaffinity",
-    "sched_yield",
-    "sendmsg",
-    "sendto",
-    "set_mempolicy",
-    "set_mempolicy",
-    "set_robust_list",
-    "set_thread_area",
-    "set_tid_address",
-    "set_tls",
-    "setpriority",
-    "sigaltstack",
-    "signalfd4",
-    "socket",
-    "socketcall",
-    "stat",
-    "statfs",
-    "statfs64",
-    "statx",
-    "sysinfo",
-    "tgkill",
-    "time",
-    "timerfd_create",
-    "timerfd_settime",
-    "timerfd_settime64",
-    "ugetrlimit",
-    "uname",
-    "unshare",
-    "wait4",
-    "write",
-    "writev",
-];
-
-/// Extra syscalls only allowed with fontconfig
-///
-/// We are only allowing them for fontconfig since generally we don't want to
-/// allow such filesystem operations. But seccomp needs them for cache
-/// operations.
-const ALLOWED_SYSCALLS_FONTCONFIG: &[&str] = &[
-    "chmod",
-    "fchmodat",
-    "link",
-    "linkat",
-    "rename",
-    "renameat",
-    "renameat2",
-    "unlink",
-    "unlinkat",
+/**** BEGIN NOTE ON CODE SHARING
+ *
+ * This code is copied from Flatpak:
+ *
+ *   https://github.com/flatpak/flatpak/blob/main/common/flatpak-run.c
+ *
+ * It should be routinely updated to account for changes in Flatpak.
+ *
+ * We ought to split this code out of Flatpak into a subproject, to make
+ * make code sharing easier and reduce the need for manual copy/pasting.
+ *
+ * * END NOTE ON CODE SHARING
+ */
+const BLOCKED_SYSCALLS: &[(&str, ScmpAction, &[ScmpArgCompare])] = &[
+    /* Block dmesg */
+    ("syslog", ScmpAction::Errno(libc::EPERM), &[]),
+    /* Useless old syscall */
+    ("uselib", ScmpAction::Errno(libc::EPERM), &[]),
+    /* Don't allow disabling accounting */
+    ("acct", ScmpAction::Errno(libc::EPERM), &[]),
+    /* Don't allow reading current quota use */
+    ("quotactl", ScmpAction::Errno(libc::EPERM), &[]),
+    /* Don't allow access to the kernel keyring */
+    ("add_key", ScmpAction::Errno(libc::EPERM), &[]),
+    ("keyctl", ScmpAction::Errno(libc::EPERM), &[]),
+    ("request_key", ScmpAction::Errno(libc::EPERM), &[]),
+    /* Scary VM/NUMA ops */
+    ("move_pages", ScmpAction::Errno(libc::EPERM), &[]),
+    ("mbind", ScmpAction::Errno(libc::EPERM), &[]),
+    ("get_mempolicy", ScmpAction::Errno(libc::EPERM), &[]),
+    ("set_mempolicy", ScmpAction::Errno(libc::EPERM), &[]),
+    ("migrate_pages", ScmpAction::Errno(libc::EPERM), &[]),
+    /* Don't allow subnamespace setups: */
+    ("unshare", ScmpAction::Errno(libc::EPERM), &[]),
+    ("setns", ScmpAction::Errno(libc::EPERM), &[]),
+    ("mount", ScmpAction::Errno(libc::EPERM), &[]),
+    ("umount", ScmpAction::Errno(libc::EPERM), &[]),
+    ("umount2", ScmpAction::Errno(libc::EPERM), &[]),
+    ("pivot_root", ScmpAction::Errno(libc::EPERM), &[]),
+    ("chroot", ScmpAction::Errno(libc::EPERM), &[]),
+    /* Architectures with CONFIG_CLONE_BACKWARDS2: the child stack
+     * and flags arguments are reversed so the flags come second */
+    #[cfg(target_arch = "s390x")]
+    (
+        "clone",
+        ScmpAction::Errno(libc::EPERM),
+        &[ScmpArgCompare::new(
+            1,
+            ScmpCompareOp::MaskedEqual(libc::CLONE_NEWUSER as u64),
+            libc::CLONE_NEWUSER as u64,
+        )],
+    ),
+    /* Normally the flags come first */
+    #[cfg(not(target_arch = "s390x"))]
+    (
+        "clone",
+        ScmpAction::Errno(libc::EPERM),
+        &[ScmpArgCompare::new(
+            0,
+            ScmpCompareOp::MaskedEqual(libc::CLONE_NEWUSER as u64),
+            libc::CLONE_NEWUSER as u64,
+        )],
+    ),
+    /* Don't allow faking input to the controlling tty (CVE-2017-5226) */
+    (
+        "ioctl",
+        ScmpAction::Errno(libc::EPERM),
+        &[ScmpArgCompare::new(
+            1,
+            ScmpCompareOp::MaskedEqual(0xFFFFFFFF),
+            libc::TIOCSTI,
+        )],
+    ),
+    /* In the unlikely event that the controlling tty is a Linux virtual
+     * console (/dev/tty2 or similar), copy/paste operations have an effect
+     * similar to TIOCSTI (CVE-2023-28100) */
+    (
+        "ioctl",
+        ScmpAction::Errno(libc::EPERM),
+        &[ScmpArgCompare::new(
+            1,
+            ScmpCompareOp::MaskedEqual(0xFFFFFFFF),
+            libc::TIOCLINUX,
+        )],
+    ),
+    /* seccomp can't look into clone3()'s struct clone_args to check whether
+     * the flags are OK, so we have no choice but to block clone3().
+     * Return ENOSYS so user-space will fall back to clone().
+     * (CVE-2021-41133; see also https://github.com/moby/moby/commit/9f6b562d) */
+    ("clone3", ScmpAction::Errno(libc::ENOSYS), &[]),
+    /* New mount manipulation APIs can also change our VFS. There's no
+     * legitimate reason to do these in the sandbox, so block all of them
+     * rather than thinking about which ones might be dangerous.
+     * (CVE-2021-41133) */
+    ("open_tree", ScmpAction::Errno(libc::ENOSYS), &[]),
+    ("move_mount", ScmpAction::Errno(libc::ENOSYS), &[]),
+    ("fsopen", ScmpAction::Errno(libc::ENOSYS), &[]),
+    ("fsconfig", ScmpAction::Errno(libc::ENOSYS), &[]),
+    ("fsmount", ScmpAction::Errno(libc::ENOSYS), &[]),
+    ("fspick", ScmpAction::Errno(libc::ENOSYS), &[]),
+    ("mount_setattr", ScmpAction::Errno(libc::ENOSYS), &[]),
+    /* Profiling operations; we expect these to be done by tools from outside
+     * the sandbox.  In particular perf has been the source of many CVEs.
+     */
+    ("perf_event_open", ScmpAction::Errno(libc::EPERM), &[]),
+    /* Don't allow you to switch to bsd emulation or whatnot */
+    (
+        "personality",
+        ScmpAction::Errno(libc::EPERM),
+        &[ScmpArgCompare::new(0, ScmpCompareOp::NotEqual, 0x0000)],
+    ),
 ];
 
 const INHERITED_ENVIRONMENT_VARIABLES: &[&str] = &["RUST_BACKTRACE", "RUST_LOG", "XDG_RUNTIME_DIR"];
@@ -645,31 +615,21 @@ impl Sandbox {
     }
 
     fn seccomp_filter(&self) -> Result<ScmpFilterContext, SeccompError> {
-        // Using `KillProcess` allows rejected syscalls to be logged by auditd. But it
-        // doesn't work with tools like valgrind. That's why it's not used by default.
-        let mut filter = if std::env::var("GLYCIN_SECCOMP_DEFAULT_ACTION")
-            .ok()
-            .as_deref()
-            == Some("KILL_PROCESS")
-        {
-            ScmpFilterContext::new(ScmpAction::KillProcess)?
-        } else {
-            ScmpFilterContext::new(ScmpAction::Trap)?
-        };
+        let mut filter = ScmpFilterContext::new(ScmpAction::Allow)?;
 
-        let mut syscalls = vec![ALLOWED_SYSCALLS];
-        if self.config_entry.fontconfig() {
-            // Enable some write operations for fontconfig to update its cache
-            syscalls.push(ALLOWED_SYSCALLS_FONTCONFIG);
-        }
+        #[cfg(target_arch = "x86")]
+        filter.add_arch(ScmpArch::X8664)?;
+        #[cfg(target_arch = "x86_64")]
+        filter.add_arch(ScmpArch::X86)?;
+        #[cfg(target_arch = "arm")]
+        filter.add_arch(ScmpArch::Aarch64)?;
+        #[cfg(target_arch = "aarch64")]
+        filter.add_arch(ScmpArch::Arm)?;
 
-        for syscall_name in syscalls.into_iter().flatten() {
-            match ScmpSyscall::from_name(syscall_name) {
-                Ok(syscall) => {
-                    filter.add_rule(ScmpAction::Allow, syscall)?;
-                }
-                Err(err) => tracing::warn!("Failed to allow syscall '{syscall_name}': {err}"),
-            }
+        for (syscall_name, action, conditions) in BLOCKED_SYSCALLS {
+            let syscall = ScmpSyscall::from_name(syscall_name)?;
+            dbg!(&syscall_name);
+            filter.add_rule_conditional(*action, syscall, conditions)?;
         }
 
         Ok(filter)

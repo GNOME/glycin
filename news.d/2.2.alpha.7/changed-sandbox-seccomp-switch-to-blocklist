@@ -1,0 +1,5 @@
+sandbox: Use seccomp blocklist instead of allowlist.
+    
+The allowlist has repeatedly caused issues because it's not clear when new syscalls need to be added. Since seccomp is a second line of defence on top of namespaces anyway, this should be totally fine. Don't block socket calls for now since it's a bit complicated and they were allowed before.
+
+This also fixes issues where multiarch setups would run into a second arch not being properly handled by seccomp. #269

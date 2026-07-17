@@ -15,29 +15,6 @@ $ meson setup -Dprofile=dev builddir
 $ meson test -vC builddir
 ```
 
-## Finding blocked syscalls
-
-Auditd is enabled by default on Fedora. On Debian you need to
-
-```sh
-sudo apt install auditd
-systemctl start auditd.service
-```
-
-After that you have to execute the failing operation again while running the program with `GLYCIN_SECCOMP_DEFAULT_ACTION=KILL_PROCESS`.
-
-On Fedora the logs should be accessible via
-
-```sh
-journalctl -b | grep SECCOMP
-```
-
-On Debian via
-
-```sh
-sudo grep SECCOMP /var/log/audit/audit.log
-```
-
 ## Using the locally built loaders
 
 While `meson test` will ensure to run against the locally built loaders, for other commands, this is not the case. As a first step, you need to install the loaders into a local directory:
