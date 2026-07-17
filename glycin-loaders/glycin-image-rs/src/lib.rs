@@ -109,6 +109,26 @@ impl LoaderImplementation for ImgLoader {
             Err(err) => err.into_inner(),
         };
 
+        if image_info.metadata_exif.is_none() {
+            image_info.metadata_exif = format
+                .exif_metadata()
+                .ok()
+                .flatten()
+                .map(|x| B::try_from_vec(x))
+                .transpose()
+                .expected_error()?;
+        }
+
+        if image_info.metadata_xmp.is_none() {
+            image_info.metadata_xmp = format
+                .xmp_metadata()
+                .ok()
+                .flatten()
+                .map(|x| B::try_from_vec(x))
+                .transpose()
+                .expected_error()?;
+        }
+
         let loader_impelementation = ImgLoader {
             pixel_density,
             ..Default::default()
@@ -386,6 +406,35 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             decoder,
             handler: Handler::default(),
         }
+    }
+
+    fn visit<R, F: Fn(Box<&mut dyn image::ImageDecoder>) -> R>(&mut self, f: F) -> R {
+        match self.decoder {
+            ImageRsDecoder::Bmp(ref mut d) => f(Box::new(d)),
+            ImageRsDecoder::Dds(ref mut d) => f(Box::new(d)),
+            ImageRsDecoder::Farbfeld(ref mut d) => f(Box::new(d)),
+            ImageRsDecoder::Gif(ref mut d) => f(Box::new(d)),
+            ImageRsDecoder::Hdr(ref mut d) => f(Box::new(d)),
+            ImageRsDecoder::Ico(ref mut d) => f(Box::new(d)),
+            ImageRsDecoder::Jpeg(ref mut d) => f(Box::new(d)),
+            ImageRsDecoder::Jpeg2000(ref mut d) => f(Box::new(d)),
+            ImageRsDecoder::Png(ref mut d) => f(Box::new(d)),
+            ImageRsDecoder::Pnm(ref mut d) => f(Box::new(d)),
+            ImageRsDecoder::Qoi(ref mut d) => f(Box::new(d)),
+            ImageRsDecoder::Tga(ref mut d) => f(Box::new(d)),
+            ImageRsDecoder::Tiff(ref mut d) => f(Box::new(d)),
+            ImageRsDecoder::WebP(ref mut d) => f(Box::new(d)),
+            ImageRsDecoder::Xbm(ref mut d) => f(Box::new(d)),
+            ImageRsDecoder::Xpm(ref mut d) => f(Box::new(d)),
+        }
+    }
+
+    fn exif_metadata(&mut self) -> Result<Option<Vec<u8>>, image::ImageError> {
+        self.visit(|x| image::ImageDecoder::exif_metadata(*x))
+    }
+
+    fn xmp_metadata(&mut self) -> Result<Option<Vec<u8>>, image::ImageError> {
+        self.visit(|x| image::ImageDecoder::xmp_metadata(*x))
     }
 
     fn info<B: ByteData>(&mut self) -> ImageDetails<B> {
