@@ -10,10 +10,6 @@ import time
 def release_crate(package_name, features = None):
     args = ["cargo", "metadata", "--format-version=1", "--no-deps"]
 
-    # Some crates don't build without a feature
-    if features is not None:
-        args += ["--features", features]
-
     metadata = subprocess.run(args, capture_output=True, check=True)
     packages = json.loads(metadata.stdout)['packages']
     package = next(p for p in packages if p['name'] == package_name)
@@ -24,7 +20,11 @@ def release_crate(package_name, features = None):
 
     if http_code == b'404':
         print(f"Publishing crate {package_name} version {package_version}:", file=sys.stderr)
-        subprocess.run(['cargo', 'publish', '-p', package_name], check=True)
+        args = ["cargo", "publish", "-p", package_name]
+        # Some crates don't build without a feature
+        if features is not None:
+            args += ["--features", features]
+        subprocess.run(args, check=True)
     elif http_code == b'200':
         print(f"Crate {package_name} with version {package_version} already published. Skipping.")
     else:
