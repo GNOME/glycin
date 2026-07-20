@@ -6,6 +6,9 @@ use zvariant::Type;
 #[cfg_attr(feature = "gobject", derive(glib::Enum))]
 #[cfg_attr(feature = "gobject", enum_type(name = "GlyMemoryFormat"))]
 #[zvariant(signature = "s")]
+/// Some loaders can provide a CICP and ICC profile at the same time. Which
+/// color information should be preferred differs between image formats. This
+/// value determines which kind should be preferred.
 pub enum ColorProfilePreference {
     #[default]
     Cicp,

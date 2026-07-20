@@ -928,6 +928,13 @@ impl FrameDetails {
         self.inner.color_icc_profile.as_deref()
     }
 
+    pub fn color_profile_preference(&self) -> ColorProfilePreference {
+        self.inner
+            .color_profile_preference
+            .clone()
+            .unwrap_or_default()
+    }
+
     pub fn info_alpha_channel(&self) -> Option<bool> {
         self.inner.info_alpha_channel
     }
