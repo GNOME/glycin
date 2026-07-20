@@ -119,7 +119,9 @@ pub use api::*;
 #[cfg(not(feature = "external"))]
 use dbus_shim as dbus;
 pub use error::{Error, ErrorContext, ErrorKind};
-pub use glycin_common::{MemoryFormat, MemoryFormatSelection, Operation, OperationId, Operations};
+pub use glycin_common::{
+    ColorProfilePreference, MemoryFormat, MemoryFormatSelection, Operation, OperationId, Operations,
+};
 pub use gufo_common::cicp::Cicp;
 pub use main_context::MainContextSelector;
 pub use pool::{Pool, PoolConfig};
