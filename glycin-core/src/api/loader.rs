@@ -44,6 +44,12 @@ pub struct Loader {
     pub(crate) main_context_selector: MainContextSelector,
 }
 
+impl Drop for Loader {
+    fn drop(&mut self) {
+        eprintln!("\n\nDROP LOADER\n");
+    }
+}
+
 static_assertions::assert_impl_all!(Loader: Send, Sync);
 
 impl Loader {
@@ -368,17 +374,21 @@ static_assertions::assert_impl_all!(Image: Send, Sync);
 
 impl Drop for Image {
     fn drop(&mut self) {
+        eprintln!("\n\nDROP IMAGE\n");
+
         #[cfg(feature = "external")]
         #[allow(irrefutable_let_patterns)]
         if let ImageLoader::Binary(image_loader) = &self.image_loader {
             let process = image_loader.process.clone();
             let path = self.frame_request_path();
+            dbg!("teardown");
             let loader_alive = std::mem::take(&mut *image_loader.usage_tracker.lock().unwrap());
             util::spawn_detached(async move {
+                dbg!("call Done");
                 if let Err(err) = process.use_().done(path).await {
                     tracing::warn!("Failed to tear down loader: {err}")
                 }
-
+                dbg!("drop alive");
                 drop(loader_alive);
             });
         }
@@ -421,14 +431,15 @@ impl Image {
         match &self.image_loader {
             #[cfg(feature = "external")]
             ImageLoader::Binary(image_loader) => {
+                dbg!("a");
                 let process = image_loader.process.use_();
-
+                dbg!("b");
                 let frame = process
                     .request_frame(frame_request, self)
                     .await
                     .err_context(&process)?;
-
-                Frame::from_loader(frame, self).await
+                dbg!("c");
+                dbg!(Frame::from_loader(frame, self).await)
             }
             #[cfg(feature = "builtin")]
             ImageLoader::Builtin(builtin) => {
@@ -675,6 +686,12 @@ pub struct Frame {
 }
 
 static_assertions::assert_impl_all!(Frame: Send, Sync);
+
+impl Drop for Frame {
+    fn drop(&mut self) {
+        eprintln!("\n\nDROP FRAME\n");
+    }
+}
 
 impl Frame {
     pub fn buf_bytes(&self) -> glib::Bytes {

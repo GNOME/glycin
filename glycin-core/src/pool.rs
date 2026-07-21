@@ -8,6 +8,7 @@ use std::time::{Duration, Instant};
 
 use gio::glib;
 use gio::prelude::*;
+use glib::clone::Downgrade;
 
 #[cfg(feature = "external")]
 use crate::DBusProxy;
@@ -24,6 +25,8 @@ pub struct PooledProcess<P: DBusProxy> {
 }
 
 #[derive(Debug)]
+/// Tracks if any Loader/Editor etc still uses the process. If it gets dropped,
+/// it will trigger a pool cleanup.
 pub struct UsageTracker {
     pool: Arc<Pool>,
     timeout: Arc<Mutex<Option<TimerHandle>>>,
@@ -37,7 +40,7 @@ impl UsageTracker {
 
 impl Drop for UsageTracker {
     fn drop(&mut self) {
-        tracing::trace!("One process occupation dropped");
+        tracing::trace!("\n\n\n\nOne process occupation dropped");
         let pool = self.pool.clone();
 
         *self.timeout.lock().unwrap() = Some(spawn_timeout(
@@ -81,7 +84,7 @@ pub struct PoolConfig {
 impl Default for PoolConfig {
     fn default() -> Self {
         Self {
-            loader_retention_time: Duration::from_secs(30),
+            loader_retention_time: Duration::from_millis(1),
             max_parallel_operations: usize::MAX,
         }
     }
@@ -215,7 +218,10 @@ impl Pool {
         let Some(process_cancellable_tie) = cancellable.connect_cancelled(glib::clone!(
             #[weak]
             process_cancellable,
-            move |_| process_cancellable.cancel()
+            move |_| {
+                dbg!("CALLED FROM HERE");
+                process_cancellable.cancel()
+            }
         )) else {
             return Err(ErrorKind::Canceled(None).err());
         };
@@ -252,6 +258,8 @@ impl Pool {
         tracing::debug!("Cleaning up loaders");
         let mut loader_map = self.loaders.lock().await;
 
+        let mut x = None;
+
         for (cfg, loaders) in loader_map.iter_mut() {
             loaders.retain(|loader| {
                 let n_users = loader.n_users();
@@ -265,6 +273,8 @@ impl Pool {
                     self.config.loader_retention_time
                 );
 
+                x = Some(loader.process.downgrade());
+
                 if drop {
                     tracing::debug!(
                         "Dropping loader {:?} {}",
@@ -274,6 +284,12 @@ impl Pool {
                 }
                 !drop
             });
+        }
+
+        if let Some(x) = x {
+            dbg!(x.strong_count());
+        } else {
+            dbg!("nothing cancelled");
         }
     }
 }

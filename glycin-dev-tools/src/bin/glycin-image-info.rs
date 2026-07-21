@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use gdk::prelude::*;
 use gio::glib;
 use glycin_common::MemoryFormatInfo;
@@ -5,6 +7,7 @@ use tracing_subscriber::prelude::*;
 
 fn main() {
     glib::MainContext::new().block_on(run()).unwrap();
+    std::thread::sleep(Duration::from_secs(1));
 }
 
 async fn run() -> Result<(), glycin::Error> {
