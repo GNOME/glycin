@@ -15,7 +15,7 @@ pub enum Operation {
     Rotate(gufo_common::orientation::Rotation),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, PartialOrd, Ord)]
 #[non_exhaustive]
 pub enum OperationId {
     Clip,

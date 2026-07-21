@@ -1,6 +1,6 @@
 mod indentifier;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::ffi::OsStr;
 #[cfg(feature = "external")]
 use std::os::unix::ffi::OsStrExt;
@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 use futures_util::StreamExt;
 use gio::glib;
-use glycin_common::OperationId;
+use glycin_common::{MemoryFormat, OperationId};
 
 use crate::config::indentifier::Identifier;
 use crate::util::{self, AsyncMutex, new_async_mutex, read};
@@ -126,6 +126,10 @@ pub struct Config {
 impl Config {
     pub fn loaders(&self) -> &BTreeMap<MimeType, ImageLoaderConfig> {
         &self.image_loader
+    }
+
+    pub fn editors(&self) -> &BTreeMap<MimeType, ImageEditorConfig> {
+        &self.image_editor
     }
 
     pub(crate) fn guess_mime_type(
@@ -254,17 +258,34 @@ impl ConfigEntryHash {
 
 #[derive(Debug, Clone)]
 pub struct ImageEditorConfig {
-    pub processor: Processor,
-    pub identifiers: Vec<Identifier>,
-    pub expose_base_dir: bool,
-    pub fontconfig: bool,
-    pub operations: Vec<OperationId>,
-    pub creator: bool,
-    pub creator_color_icc_profile: bool,
-    pub creator_encoding_quality: bool,
-    pub creator_encoding_compression: bool,
-    pub creator_metadata_key_value: bool,
-    pub creator_pixel_density: bool,
+    pub(crate) processor: Processor,
+    pub(crate) identifiers: Vec<Identifier>,
+    pub(crate) expose_base_dir: bool,
+    pub(crate) fontconfig: bool,
+    pub(crate) operations: BTreeSet<OperationId>,
+    pub(crate) creator: bool,
+    pub(crate) creator_color_icc_profile: bool,
+    pub(crate) creator_encoding_quality: bool,
+    pub(crate) creator_encoding_compression: bool,
+    pub(crate) creator_metadata_key_value: bool,
+    pub(crate) creator_pixel_density: bool,
+    pub(crate) creator_memory_formats: BTreeSet<MemoryFormat>,
+}
+
+impl ImageEditorConfig {
+    /// Memory formats which the creator supports for writing
+    pub fn creator_memory_formats(&self) -> &BTreeSet<MemoryFormat> {
+        &self.creator_memory_formats
+    }
+
+    /// Supported editing operations
+    pub fn operations(&self) -> &BTreeSet<OperationId> {
+        &self.operations
+    }
+
+    pub fn is_creator(&self) -> bool {
+        self.creator
+    }
 }
 
 impl ConfigEntry {
@@ -508,10 +529,11 @@ impl Config {
             let operations_str = keyfile
                 .string_list(&group, "Operations")
                 .unwrap_or_default();
-            let operations = operations_str
-                .into_iter()
-                .flat_map(|x| OperationId::from_str(&x))
-                .collect();
+            let operations = BTreeSet::from_iter(
+                operations_str
+                    .into_iter()
+                    .flat_map(|x| OperationId::from_str(&x)),
+            );
 
             let creator = Self::handle_and_default(keyfile.boolean(&group, "Creator"))?;
 
@@ -530,6 +552,20 @@ impl Config {
             let creator_pixel_density =
                 Self::handle_and_default(keyfile.boolean(&group, "CreatorPixelDensity"))?;
 
+            let creator_memory_formats = BTreeSet::from_iter(
+                keyfile
+                    .string_list(&group, "CreatorMemoryFormats")
+                    .unwrap_or_default()
+                    .into_iter()
+                    .flat_map(|x| {
+                        let f = MemoryFormat::from_str(&x);
+                        if f.is_none() {
+                            tracing::warn!("Unknown memory format '{x}' found in {mime_type}")
+                        }
+                        f
+                    }),
+            );
+
             let cfg = ImageEditorConfig {
                 processor,
                 identifiers,
@@ -542,6 +578,7 @@ impl Config {
                 creator_encoding_quality,
                 creator_metadata_key_value,
                 creator_pixel_density,
+                creator_memory_formats,
             };
 
             config.image_editor.insert(mime_type, cfg);

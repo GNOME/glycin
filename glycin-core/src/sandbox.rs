@@ -628,7 +628,6 @@ impl Sandbox {
 
         for (syscall_name, action, conditions) in BLOCKED_SYSCALLS {
             let syscall = ScmpSyscall::from_name(syscall_name)?;
-            dbg!(&syscall_name);
             filter.add_rule_conditional(*action, syscall, conditions)?;
         }
 

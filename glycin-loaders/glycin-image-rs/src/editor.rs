@@ -59,21 +59,9 @@ impl EditorImplementation for ImgEditor {
 
         let image_format = image_format(&mime_type)?;
 
-        let memory_format = (MemoryFormatSelection::G8
-            | MemoryFormatSelection::G8a8
-            | MemoryFormatSelection::R8g8b8
-            | MemoryFormatSelection::R8g8b8a8
-            | MemoryFormatSelection::G16
-            | MemoryFormatSelection::G16a16
-            | MemoryFormatSelection::R16g16b16
-            | MemoryFormatSelection::R16g16b16a16)
-            .best_format_for(frame.memory_format)
-            .internal_error()?;
+        let frame = frame.into_fungible();
 
-        let mut frame = frame.into_fungible();
-        glycin_utils::editing::change_memory_format(&mut frame, memory_format).expected_error()?;
-
-        let memory_format = image_memory_format(memory_format)?;
+        let memory_format = image_memory_format(frame.memory_format)?;
 
         let icc_profile = frame.details.color_icc_profile.as_ref().map(|x| x.to_vec());
 
@@ -135,6 +123,8 @@ fn image_memory_format(memory_format: MemoryFormat) -> Result<ExtendedColorType,
         MemoryFormat::G16a16 => ExtendedColorType::La16,
         MemoryFormat::R16g16b16 => ExtendedColorType::Rgb16,
         MemoryFormat::R16g16b16a16 => ExtendedColorType::Rgba16,
+        MemoryFormat::R32g32b32Float => ExtendedColorType::Rgb32F,
+        MemoryFormat::R32g32b32a32Float => ExtendedColorType::Rgba32F,
         _ => unreachable!(),
     })
 }

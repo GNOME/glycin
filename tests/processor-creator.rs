@@ -2,7 +2,8 @@ mod utils;
 use std::collections::BTreeMap;
 
 use glycin::{Creator, Loader, MimeType};
-use glycin_core as glycin;
+use glycin_core::{self as glycin, MemoryFormat};
+use glycin_utils::MemoryFormatInfo;
 use utils::*;
 
 #[test]
@@ -338,5 +339,34 @@ fn processor_creator_avif() {
         assert!(frame.buf_slice()[0] >= 253);
         assert!(frame.buf_slice()[1] <= 2);
         assert!(frame.buf_slice()[2] <= 2);
+    });
+}
+
+#[test]
+fn processor_creator_supported_memory_formats() {
+    block_on(async {
+        let config = glycin::config::Config::cached().await;
+
+        for (mime_type, c) in config.editors() {
+            for memory_format in MemoryFormat::ALL {
+                let mut creator = glycin::Creator::new(mime_type.clone()).await.unwrap();
+                let texture = vec![0; memory_format.n_bytes().usize()];
+                creator.add_frame(1, 1, *memory_format, texture).unwrap();
+                let result = creator.create().await;
+
+                // Check if creators actually only support the memory formats declared in config
+                if c.creator_memory_formats().contains(memory_format) {
+                    assert!(
+                        result.is_ok(),
+                        "Expected encoding support for '{mime_type}' with format '{memory_format:?}'"
+                    )
+                } else {
+                    assert!(
+                        result.is_err(),
+                        "Expected error for '{mime_type}' with format '{memory_format:?}'"
+                    )
+                }
+            }
+        }
     });
 }

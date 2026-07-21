@@ -2,7 +2,7 @@ use std::io::Read;
 
 use glycin_common::ChannelType;
 use glycin_utils::{
-    ByteData, EditorImplementation, GenericContexts, MemoryFormatInfo, MemoryFormatSelection,
+    ByteData, EditorImplementation, GenericContexts, MemoryFormat, MemoryFormatInfo, ProcessError,
 };
 use jpegxl_rs::encode::{EncoderFrame, Metadata};
 
@@ -58,6 +58,15 @@ impl EditorImplementation for ImgEditor {
                 .expected_error()?;
         }
 
+        if !matches!(
+            frame.memory_format,
+            MemoryFormat::R8g8b8 | MemoryFormat::R8g8b8a8
+        ) {
+            return Err(ProcessError::expected(&format!(
+                "Unsupported memory format"
+            )));
+        }
+
         /*
         TODO:
         | MemoryFormatSelection::R16g16b16
@@ -65,16 +74,10 @@ impl EditorImplementation for ImgEditor {
         | MemoryFormatSelection::R32g32b32Float
         | MemoryFormatSelection::R32g32b32a32Float
          */
-        let memory_format = (MemoryFormatSelection::R8g8b8 | MemoryFormatSelection::R8g8b8a8)
-            .best_format_for(frame.memory_format)
-            .internal_error()?;
 
-        let mut frame = frame.into_fungible();
-        glycin_utils::editing::change_memory_format(&mut frame, memory_format).expected_error()?;
+        let num_channels = frame.memory_format.n_channels() as u32;
 
-        let num_channels = memory_format.n_channels() as u32;
-
-        let encoder_result = match memory_format.channel_type() {
+        let encoder_result = match frame.memory_format.channel_type() {
             ChannelType::U8 => encoder.encode_frame::<u8, u8>(
                 &EncoderFrame::new(&frame.texture).num_channels(num_channels),
                 frame.width,
