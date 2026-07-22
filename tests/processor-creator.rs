@@ -350,6 +350,7 @@ fn processor_creator_supported_memory_formats() {
         for (mime_type, c) in config.editors() {
             for memory_format in MemoryFormat::ALL {
                 let mut creator = glycin::Creator::new(mime_type.clone()).await.unwrap();
+                creator.set_transform_memory_format(false);
                 let texture = vec![0; memory_format.n_bytes().usize()];
                 creator.add_frame(1, 1, *memory_format, texture).unwrap();
                 let result = creator.create().await;

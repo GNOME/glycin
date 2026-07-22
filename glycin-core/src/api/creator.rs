@@ -5,7 +5,9 @@ use std::sync::Arc;
 use glib::object::IsA;
 use glib::prelude::*;
 use glycin_common::MemoryFormatInfo;
-use glycin_utils::{ByteData, DimensionTooLargerError, FungibleMemory, MemoryFormat};
+use glycin_utils::{
+    ByteData, DimensionTooLargerError, FungibleMemory, MemoryFormat, MemoryFormatSelection,
+};
 use gufo_common::physical_dimension::PixelDensity;
 
 #[cfg(feature = "builtin")]
@@ -25,8 +27,8 @@ pub struct Creator {
     pub(crate) sandbox_selector: SandboxSelector,
     encoding_options: glycin_utils::EncodingOptions,
     new_image: glycin_utils::NewImage<FungibleMemory>,
-
     new_frames: Vec<NewFrame>,
+    transform_memory_formats: bool,
 }
 
 static_assertions::assert_impl_all!(Creator: Send, Sync);
@@ -56,6 +58,7 @@ impl Creator {
             encoding_options: glycin_utils::EncodingOptions::default(),
             new_image: glycin_utils::NewImage::new(glycin_utils::ImageDetails::new(1, 1), vec![]),
             new_frames: vec![],
+            transform_memory_formats: true,
         })
     }
 
@@ -141,15 +144,29 @@ impl Creator {
         Box::pin(async move {
             let cancellable = self.cancellable.clone();
 
-            self.load_internal().make_cancellable(cancellable).await
+            self.create_internal().make_cancellable(cancellable).await
         })
     }
 
-    async fn load_internal(self) -> Result<EncodedImage, Error> {
+    async fn create_internal(self) -> Result<EncodedImage, Error> {
         let mut new_image = self.new_image;
 
         for frame in self.new_frames {
-            new_image.frames.push(frame.frame()?);
+            let mut frame = frame.frame()?;
+
+            if self.transform_memory_formats {
+                let target_format = MemoryFormatSelection::from_memory_formats(
+                    self.config.creator_memory_formats(),
+                )
+                .best_format_for(frame.memory_format)
+                .ok_or_else(|| {
+                    Error::other("Creator configured without any supported memory formats.")
+                })?;
+
+                glycin_utils::editing::change_memory_format(&mut frame, target_format)?;
+            }
+
+            new_image.frames.push(frame);
         }
 
         let editor_context =
@@ -250,6 +267,15 @@ impl Creator {
 
         self.new_image.image_info.metadata_key_value = Some(key_value);
         Ok(())
+    }
+
+    /// Transform texture to supported memory format
+    ///
+    /// Automatically transform the textures for each frame to a memory format
+    /// that is supported by the image format. The best available format is
+    /// selected via [`MemoryFormatSelection::best_format_for`].
+    pub fn set_transform_memory_format(&mut self, transform: bool) {
+        self.transform_memory_formats = transform;
     }
 
     pub fn add_metadata_key_value(

@@ -85,6 +85,13 @@ impl Error {
         }
     }
 
+    pub fn other(msg: &str) -> Self {
+        Self {
+            kind: Box::new(ErrorKind::Other(msg.to_string())),
+            context: None,
+        }
+    }
+
     #[cfg(feature = "unstable")]
     pub fn kind(self) -> ErrorKind {
         *self.kind
@@ -230,6 +237,8 @@ pub enum ErrorKind {
     Timeout(Duration),
     #[error("This state should never have been reached: {0}:{1}")]
     Unreachable(&'static str, u32),
+    #[error("Other: {0}")]
+    Other(String),
 }
 
 impl ErrorKind {

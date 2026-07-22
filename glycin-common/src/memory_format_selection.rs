@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use crate::{MemoryFormat, MemoryFormatInfo};
 
 /// Selection of memory formats the API user accepts
@@ -139,6 +141,25 @@ impl MemoryFormatSelection {
         }
 
         vec
+    }
+    pub fn from_memory_format(memory_format: MemoryFormat) -> Self {
+        for (selection, format) in Self::X {
+            if format == memory_format {
+                return selection;
+            }
+        }
+
+        Self::empty()
+    }
+
+    pub fn from_memory_formats(
+        memory_formats: impl IntoIterator<Item = impl Borrow<MemoryFormat>>,
+    ) -> Self {
+        let mut x = Self::empty();
+        for format in memory_formats {
+            x |= Self::from_memory_format(*format.borrow());
+        }
+        x
     }
 
     /// Select the best contained format to represent `src`

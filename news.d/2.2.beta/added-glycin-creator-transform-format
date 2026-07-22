@@ -1,0 +1,1 @@
+glycin: Creator::set_transform_memory_format allows to automatically transform frame textures to a memory format supported by the image format.
