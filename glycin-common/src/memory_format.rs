@@ -412,6 +412,34 @@ impl MemoryFormat {
             _ => return None,
         })
     }
+
+    pub const fn display(&self) -> &'static str {
+        match self {
+            Self::B8g8r8a8Premultiplied => "BGRA8 Premultiplied",
+            Self::A8r8g8b8Premultiplied => "ARGB8 Premultiplied",
+            Self::R8g8b8a8Premultiplied => "RGBA8 Premultiplied",
+            Self::B8g8r8a8 => "BGRA8",
+            Self::A8r8g8b8 => "ARGB8",
+            Self::R8g8b8a8 => "RGBA8",
+            Self::A8b8g8r8 => "ABGR8",
+            Self::R8g8b8 => "RGB8",
+            Self::B8g8r8 => "BGR8",
+            Self::R16g16b16 => "RGB16",
+            Self::R16g16b16a16Premultiplied => "RGBA16 Premultiplied",
+            Self::R16g16b16a16 => "RGBA16",
+            Self::R16g16b16Float => "RGB16Float",
+            Self::R16g16b16a16Float => "RGBA16Float",
+            Self::R32g32b32Float => "RGB32Float",
+            Self::R32g32b32a32FloatPremultiplied => "RGBA32Float Premultiplied",
+            Self::R32g32b32a32Float => "RGBA32Float",
+            Self::G8a8Premultiplied => "GA8 Premultiplied",
+            Self::G8a8 => "GA8",
+            Self::G8 => "G8",
+            Self::G16a16Premultiplied => "GA16 Premultiplied",
+            Self::G16a16 => "GA16",
+            Self::G16 => "G16",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]

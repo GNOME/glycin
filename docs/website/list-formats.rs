@@ -312,19 +312,29 @@ fn html(format_list: FormatList) -> String {
         }
 
         if let Some(editor) = info.editor {
-            s.push_str(&format!("<h4>Editor: {}</h4>", &editor.name));
+            if !editor.config.operations().is_empty() {
+                s.push_str(&format!("<h4>Editor: {}</h4>", &editor.name));
 
-            s.push_str("<ul class='features'>");
-            add_flag(s, "Create Images", Some(editor.config.creator.to_string()));
-
-            for (operation, name) in [(OperationId::Clip, "Clip"), (OperationId::Rotate, "Rotate")]
-            {
-                if editor.config.operations.contains(&operation) {
-                    s.push_str(&format!("<li class='implemented' title='The editing feature “{name}” is implemented for this format.'>✔ {name}</li>"))
+                s.push_str("<ul class='features'>");
+                for (operation, name) in
+                    [(OperationId::Clip, "Clip"), (OperationId::Rotate, "Rotate")]
+                {
+                    if editor.config.operations().contains(&operation) {
+                        s.push_str(&format!("<li class='implemented' title='The editing feature “{name}” is implemented for this format.'>✔ {name}</li>"))
+                    }
                 }
+                s.push_str("</ul>");
             }
 
-            s.push_str("</ul>");
+            if editor.config.is_creator() {
+                s.push_str(&format!("<h4>Creator: {}</h4>", &editor.name));
+
+                s.push_str("<ul class='features'>");
+                for format in editor.config.creator_memory_formats() {
+                    add_flag(s, &format.display(), Some(format!("true")));
+                }
+                s.push_str("</ul>");
+            }
         }
     }
 
