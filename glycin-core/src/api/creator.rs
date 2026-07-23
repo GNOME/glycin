@@ -155,13 +155,20 @@ impl Creator {
             let mut frame = frame.frame()?;
 
             if self.transform_memory_formats {
-                let target_format = MemoryFormatSelection::from_memory_formats(
-                    self.config.creator_memory_formats(),
-                )
-                .best_format_for(frame.memory_format)
-                .ok_or_else(|| {
-                    Error::other("Creator configured without any supported memory formats.")
-                })?;
+                let creator_memory_formats = self.config.creator_memory_formats();
+
+                let target_format = if creator_memory_formats.is_empty() {
+                    tracing::warn!(
+                        "Creator configured without any supported memory formats. This will no longer be supported in the future."
+                    );
+                    frame.memory_format
+                } else {
+                    MemoryFormatSelection::from_memory_formats(creator_memory_formats)
+                        .best_format_for(frame.memory_format)
+                        .ok_or_else(|| {
+                            Error::other("Creator configured without any supported memory formats.")
+                        })?
+                };
 
                 glycin_utils::editing::change_memory_format(&mut frame, target_format)?;
             }
