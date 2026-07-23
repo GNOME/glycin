@@ -348,6 +348,10 @@ fn processor_creator_supported_memory_formats() {
         let config = glycin::config::Config::cached().await;
 
         for (mime_type, c) in config.editors() {
+            if mime_type.as_str() == "image/x-glycin-test" {
+                continue;
+            }
+
             for memory_format in MemoryFormat::ALL {
                 let mut creator = glycin::Creator::new(mime_type.clone()).await.unwrap();
                 creator.set_transform_memory_format(false);

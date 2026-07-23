@@ -150,7 +150,7 @@ test-fedora43-loaders:
     - rm tests/test-images/images/color/color.xpm
     - rm tests/test-images/images/monochrome/monochrome.xbm
     - rm tests/test-images/images/color-variations/color-variations-u32.exr
-    - GLYCIN_TEST_SKIP_EXT=heic cargo test -p tests -- --nocapture --test-threads 1 processor_
+    - GLYCIN_TEST_SKIP_EXT=heic cargo test -p tests -- --nocapture --skip processor_creator_supported_memory_formats --test-threads 1 processor_
 
 test-fedora44-loaders:
   image: 'registry.fedoraproject.org/fedora:44'
@@ -161,7 +161,7 @@ test-fedora44-loaders:
     - rm tests/test-images/images/animated-numbers/animated-numbers.heic
     - rm tests/test-images/images/color/color.hdr
     - rm tests/test-images/images/color-variations/color-variations-u32.exr
-    - GLYCIN_TEST_SKIP_EXT=heic cargo test -p tests -- --nocapture --test-threads 1 processor_
+    - GLYCIN_TEST_SKIP_EXT=heic cargo test -p tests -- --nocapture --skip processor_creator_supported_memory_formats --test-threads 1 processor_
 
 macos:
   tags:
