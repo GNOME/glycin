@@ -7,7 +7,7 @@ use std::sync::Arc;
 use gio::glib;
 use gio::prelude::*;
 
-use crate::config::{Config, ImageEditorConfig, ImageLoaderConfig};
+use crate::config::{Config, EditorConfig, LoaderConfig};
 #[cfg(feature = "external")]
 use crate::dbus::ZbusProxy;
 use crate::dbus::{EditorProxy, LoaderProxy};
@@ -180,11 +180,11 @@ pub trait GetConfig {
     fn guess_mime_type(config: &Config, path: Option<&Path>, head: &[u8]) -> Option<MimeType>;
 }
 
-impl GetConfig for ImageLoaderConfig {
+impl GetConfig for LoaderConfig {
     fn config_entry<'a>(
         config: &'a Config,
         mime_type: &'a MimeType,
-    ) -> Result<&'a ImageLoaderConfig, Error> {
+    ) -> Result<&'a LoaderConfig, Error> {
         config.loader(mime_type)
     }
 
@@ -197,11 +197,11 @@ impl GetConfig for ImageLoaderConfig {
     }
 }
 
-impl GetConfig for ImageEditorConfig {
+impl GetConfig for EditorConfig {
     fn config_entry<'a>(
         config: &'a Config,
         mime_type: &'a MimeType,
-    ) -> Result<&'a ImageEditorConfig, Error> {
+    ) -> Result<&'a EditorConfig, Error> {
         config.editor(mime_type)
     }
 
@@ -284,7 +284,7 @@ impl<T: GetConfig + Clone> ProcessorContext<T, ()> {
     }
 }
 
-impl<S> ProcessorContext<ImageLoaderConfig, S> {
+impl<S> ProcessorContext<LoaderConfig, S> {
     pub async fn loader(
         self,
         pool: Arc<Pool>,
@@ -332,7 +332,7 @@ impl<S> ProcessorContext<ImageLoaderConfig, S> {
     }
 }
 
-impl<S> ProcessorContext<ImageEditorConfig, S> {
+impl<S> ProcessorContext<EditorConfig, S> {
     pub async fn editor(
         self,
         pool: Arc<Pool>,

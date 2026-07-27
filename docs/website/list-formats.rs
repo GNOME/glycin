@@ -33,13 +33,13 @@ struct FormatList {
 #[derive(Debug)]
 struct Loader {
     name: String,
-    config: glycin::config::ImageLoaderConfig,
+    config: glycin::config::LoaderConfig,
 }
 
 #[derive(Debug)]
 struct Editor {
     name: String,
-    config: glycin::config::ImageEditorConfig,
+    config: glycin::config::EditorConfig,
 }
 
 #[derive(Debug, Default)]

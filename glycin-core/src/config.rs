@@ -119,16 +119,16 @@ const CONFIG_FILE_EXT: &str = "conf";
 
 #[derive(Debug, Clone, Default)]
 pub struct Config {
-    pub(crate) image_loader: BTreeMap<MimeType, ImageLoaderConfig>,
-    pub(crate) image_editor: BTreeMap<MimeType, ImageEditorConfig>,
+    pub(crate) image_loader: BTreeMap<MimeType, LoaderConfig>,
+    pub(crate) image_editor: BTreeMap<MimeType, EditorConfig>,
 }
 
 impl Config {
-    pub fn loaders(&self) -> &BTreeMap<MimeType, ImageLoaderConfig> {
+    pub fn loaders(&self) -> &BTreeMap<MimeType, LoaderConfig> {
         &self.image_loader
     }
 
-    pub fn editors(&self) -> &BTreeMap<MimeType, ImageEditorConfig> {
+    pub fn editors(&self) -> &BTreeMap<MimeType, EditorConfig> {
         &self.image_editor
     }
 
@@ -181,12 +181,12 @@ impl Config {
 
 #[derive(Debug, Clone)]
 pub enum ConfigEntry {
-    Editor(ImageEditorConfig),
-    Loader(ImageLoaderConfig),
+    Editor(EditorConfig),
+    Loader(LoaderConfig),
 }
 
 #[derive(Debug, Clone)]
-pub struct ImageLoaderConfig {
+pub struct LoaderConfig {
     pub processor: Processor,
     pub identifiers: Vec<Identifier>,
     pub expose_base_dir: bool,
@@ -257,7 +257,7 @@ impl ConfigEntryHash {
 }
 
 #[derive(Debug, Clone)]
-pub struct ImageEditorConfig {
+pub struct EditorConfig {
     pub(crate) processor: Processor,
     pub(crate) identifiers: Vec<Identifier>,
     pub(crate) expose_base_dir: bool,
@@ -272,7 +272,7 @@ pub struct ImageEditorConfig {
     pub(crate) creator_memory_formats: BTreeSet<MemoryFormat>,
 }
 
-impl ImageEditorConfig {
+impl EditorConfig {
     /// Memory formats which the creator supports for writing
     pub fn creator_memory_formats(&self) -> &BTreeSet<MemoryFormat> {
         &self.creator_memory_formats
@@ -353,7 +353,7 @@ impl Config {
         }
     }
 
-    pub fn loader(&self, mime_type: &MimeType) -> Result<&ImageLoaderConfig, Error> {
+    pub fn loader(&self, mime_type: &MimeType) -> Result<&LoaderConfig, Error> {
         if self.image_loader.is_empty() {
             return Err(ErrorKind::NoLoadersConfigured(self.clone()).err());
         }
@@ -363,7 +363,7 @@ impl Config {
             .ok_or_else(|| ErrorKind::UnknownImageFormat(mime_type.to_string(), self.clone()).err())
     }
 
-    pub fn editor(&self, mime_type: &MimeType) -> Result<&ImageEditorConfig, Error> {
+    pub fn editor(&self, mime_type: &MimeType) -> Result<&EditorConfig, Error> {
         self.image_editor
             .get(mime_type)
             .ok_or_else(|| ErrorKind::UnknownImageFormat(mime_type.to_string(), self.clone()).err())
@@ -478,7 +478,7 @@ impl Config {
                 Self::handle_and_default(keyfile.boolean(&group, "ExposeBaseDir"))?;
             let fontconfig = Self::handle_and_default(keyfile.boolean(&group, "Fontconfig"))?;
 
-            let cfg = ImageLoaderConfig {
+            let cfg = LoaderConfig {
                 processor,
                 expose_base_dir,
                 fontconfig,
@@ -566,7 +566,7 @@ impl Config {
                     }),
             );
 
-            let cfg = ImageEditorConfig {
+            let cfg = EditorConfig {
                 processor,
                 identifiers,
                 expose_base_dir,

@@ -12,7 +12,7 @@ use gufo_common::physical_dimension::PixelDensity;
 
 #[cfg(feature = "builtin")]
 use crate::config;
-use crate::config::{Config, ImageEditorConfig};
+use crate::config::{Config, EditorConfig};
 use crate::error::ResultExt;
 use crate::pool::Pool;
 use crate::util::CancellableFuture;
@@ -21,7 +21,7 @@ use crate::{Error, ErrorKind, MimeType, Processor, ProcessorContext, SandboxSele
 #[derive(Debug)]
 pub struct Creator {
     mime_type: MimeType,
-    config: ImageEditorConfig,
+    config: EditorConfig,
     pool: Arc<Pool>,
     pub(crate) cancellable: gio::Cancellable,
     pub(crate) sandbox_selector: SandboxSelector,
@@ -322,7 +322,7 @@ impl Creator {
 
 #[derive(Debug)]
 pub struct NewFrame {
-    config: ImageEditorConfig,
+    config: EditorConfig,
     width: u32,
     height: u32,
     //stride: Option<u32>,
@@ -335,7 +335,7 @@ pub struct NewFrame {
 
 impl NewFrame {
     fn new(
-        config: ImageEditorConfig,
+        config: EditorConfig,
         width: u32,
         height: u32,
         memory_format: MemoryFormat,

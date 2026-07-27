@@ -330,7 +330,7 @@ impl EditableImage {
     }
 
     /// List all configured image editors
-    pub async fn supported_formats() -> BTreeMap<MimeType, config::ImageEditorConfig> {
+    pub async fn supported_formats() -> BTreeMap<MimeType, config::EditorConfig> {
         let config = config::Config::cached().await;
         config.image_editor.clone()
     }

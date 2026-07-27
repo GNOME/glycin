@@ -19,7 +19,7 @@ use nix::libc::siginfo_t;
 use nix::sys::{memfd, resource};
 use nix::unistd;
 
-use crate::config::{ConfigEntry, ImageLoaderConfig, Processor};
+use crate::config::{ConfigEntry, LoaderConfig, Processor};
 use crate::util::{self, AsyncMutex, new_async_mutex, spawn_blocking};
 use crate::{Error, ErrorKind, SandboxMechanism};
 
@@ -664,7 +664,7 @@ impl Sandbox {
     }
 
     async fn check_bwrap_syscalls_blocked_internal() -> Result<bool, Error> {
-        let config_entry = ConfigEntry::Loader(ImageLoaderConfig {
+        let config_entry = ConfigEntry::Loader(LoaderConfig {
             // The binary is not really relevant, since sandbox is also assumed to work, if the
             // binary does not exist.
             processor: Processor::Binary(PathBuf::from("/usr/bin/true")),

@@ -121,7 +121,7 @@ impl Pool {
 
     pub(crate) async fn get_loader(
         self: Arc<Self>,
-        loader_config: config::ImageLoaderConfig,
+        loader_config: config::LoaderConfig,
         sandbox_mechanism: SandboxMechanism,
         base_dir: Option<PathBuf>,
         cancellable: &gio::Cancellable,
@@ -151,7 +151,7 @@ impl Pool {
     /// Spawns loader if not available yet
     pub(crate) async fn get_editor(
         self: Arc<Self>,
-        editor_config: config::ImageEditorConfig,
+        editor_config: config::EditorConfig,
         sandbox_mechanism: SandboxMechanism,
         base_dir: Option<PathBuf>,
         cancellable: &gio::Cancellable,
