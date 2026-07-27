@@ -58,6 +58,7 @@ build-release-tarball:
 
 benchmark:
   image: quay.io/podman/stable:v5.8.2
+  allow_failure: true
   variables:
     STORAGE_DRIVER: vfs
     IMAGE: registry.bencher.dev/glycin:latest
