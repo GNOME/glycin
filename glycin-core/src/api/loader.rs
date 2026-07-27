@@ -43,6 +43,7 @@ pub struct Loader {
     pub(crate) memory_format_selection: MemoryFormatSelection,
     pub(crate) limits: Limits,
     pub(crate) main_context_selector: MainContextSelector,
+    pub(crate) color_convert_icc_srgb: bool,
 }
 
 static_assertions::assert_impl_all!(Loader: Send, Sync);
@@ -85,6 +86,7 @@ impl Loader {
             memory_format_selection: MemoryFormatSelection::all(),
             limits: Limits::default(),
             main_context_selector: MainContextSelector::Auto,
+            color_convert_icc_srgb: true,
         }
     }
 
@@ -122,6 +124,14 @@ impl Loader {
         memory_format_selection: MemoryFormatSelection,
     ) -> &mut Self {
         self.memory_format_selection = memory_format_selection;
+        self
+    }
+
+    /// Sets whether to convert textures to sRGB if ICC profile is present
+    ///
+    /// The default value if not changed is `true`.
+    pub fn color_convert_icc_srgb(&mut self, convert: bool) -> &mut Self {
+        self.color_convert_icc_srgb = convert;
         self
     }
 
@@ -771,19 +781,24 @@ impl Frame {
             color_state = ColorState::Cicp(cicp);
             frame
         } else if let Some(icc_profile) = icc_profile {
-            let (frame, icc_result) =
-                spawn_blocking(move || icc::apply_transformation(&icc_profile, frame)).await?;
+            if image.loader.color_convert_icc_srgb {
+                let (frame, icc_result) =
+                    spawn_blocking(move || icc::apply_transformation(&icc_profile, frame)).await?;
 
-            match icc_result {
-                Err(err) => {
-                    tracing::warn!("Failed to apply ICC profile: {err}");
+                match icc_result {
+                    Err(err) => {
+                        tracing::warn!("Failed to apply ICC profile: {err}");
+                    }
+                    Ok(new_color_state) => {
+                        color_state = new_color_state;
+                    }
                 }
-                Ok(new_color_state) => {
-                    color_state = new_color_state;
-                }
+
+                frame
+            } else {
+                color_state = ColorState::IccProfile(icc_profile);
+                frame
             }
-
-            frame
         } else {
             frame
         };

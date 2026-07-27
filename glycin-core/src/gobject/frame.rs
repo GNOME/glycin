@@ -15,6 +15,7 @@ static_assertions::assert_impl_all!(GlyFrame: Send, Sync);
 pub enum GlyColorMode {
     Srgb,
     Cicp,
+    IccProfile,
 }
 
 #[derive(Clone, Debug, glib::Boxed)]
@@ -66,6 +67,7 @@ impl GlyFrame {
         match self.frame().color_state() {
             crate::ColorState::Srgb => GlyColorMode::Srgb,
             crate::ColorState::Cicp(_) => GlyColorMode::Cicp,
+            crate::ColorState::IccProfile(_) => GlyColorMode::IccProfile,
         }
     }
 

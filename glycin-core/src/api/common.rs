@@ -86,6 +86,7 @@ impl SandboxSelector {
 pub enum ColorState {
     Srgb,
     Cicp(crate::Cicp),
+    IccProfile(Vec<u8>),
 }
 
 /// A version of an input stream that can be sent.

@@ -8,11 +8,11 @@ use gio::prelude::CancellableExtManual;
 #[cfg(feature = "gdk4")]
 use glycin_utils::MemoryFormat;
 
-#[cfg(feature = "gdk4")]
-use crate::ColorState;
 use crate::error::ErrorKind;
 #[cfg(feature = "external")]
 use crate::sandbox::Sandbox;
+#[cfg(feature = "gdk4")]
+use crate::{ColorState, Error};
 
 pub trait ShortcutErrorFuture<T, E>: Future<Output = Result<T, crate::Error>> + Sized
 where
@@ -117,6 +117,9 @@ pub fn gdk_color_state(format: &ColorState) -> Result<gdk::ColorState, crate::Er
 
             Ok(cicp_params.build_color_state()?)
         }
+        ColorState::IccProfile(_) => Err(Error::other(
+            "GTK 4 doesn't support ICC profiles in color states yet. Set Loader::color_convert_icc_srgb to true to avoid this error.",
+        )),
     }
 }
 
