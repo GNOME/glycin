@@ -20,8 +20,9 @@ use nix::sys::{memfd, resource};
 use nix::unistd;
 
 use crate::config::{ConfigEntry, LoaderConfig, Processor};
+use crate::error::ErrorKind;
 use crate::util::{self, AsyncMutex, new_async_mutex, spawn_blocking};
-use crate::{Error, ErrorKind, SandboxMechanism};
+use crate::{Error, SandboxMechanism};
 
 type SystemSetupStore = Arc<Result<SystemSetup, Arc<io::Error>>>;
 

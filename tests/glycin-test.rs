@@ -23,11 +23,6 @@ fn glycin_test_panic_load() {
         let loader = glycin_core::Loader::new_vec(instruction(&[b"panic"]));
         let err = loader.load().await.unwrap_err();
         assert!(err.is_panic(), "Error: {err}");
-        #[cfg(all(feature = "builtin-loaders", not(feature = "external-loaders")))]
-        assert!(matches!(
-            err.kind(),
-            glycin_core::ErrorKind::ThreadPanic(Some(_))
-        ));
     });
 }
 

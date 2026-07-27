@@ -13,8 +13,9 @@ use gio::glib;
 use glycin_common::{MemoryFormat, OperationId};
 
 use crate::config::indentifier::Identifier;
+use crate::error::ErrorKind;
 use crate::util::{self, AsyncMutex, new_async_mutex, read};
-use crate::{Error, ErrorKind, SandboxMechanism};
+use crate::{Error, SandboxMechanism};
 
 #[derive(Clone, Debug)]
 /// Mime type

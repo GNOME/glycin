@@ -10,7 +10,7 @@ use glycin_utils::MemoryFormat;
 
 #[cfg(feature = "gdk4")]
 use crate::ColorState;
-use crate::ErrorKind;
+use crate::error::ErrorKind;
 #[cfg(feature = "external")]
 use crate::sandbox::Sandbox;
 
@@ -43,7 +43,7 @@ pub trait CancellableFuture<T>: Future<Output = Result<T, crate::Error>> + Sized
         let self_ = std::pin::pin!(self);
         let either = futures_util::future::select(cancellable.future(), self_).await;
         match either {
-            futures_util::future::Either::Left(_) => Err(crate::ErrorKind::Canceled(None).err()),
+            futures_util::future::Either::Left(_) => Err(ErrorKind::Canceled(None).err()),
             futures_util::future::Either::Right((res, _)) => res,
         }
     }
@@ -57,7 +57,7 @@ pub trait TimeoutFuture<T>: Future<Output = Result<T, crate::Error>> + Sized {
         let timeout_ = std::pin::pin!(timeout_future(timeout));
         let either = futures_util::future::select(timeout_, self_).await;
         match either {
-            futures_util::future::Either::Left(_) => Err(crate::ErrorKind::Timeout(timeout).err()),
+            futures_util::future::Either::Left(_) => Err(ErrorKind::Timeout(timeout).err()),
             futures_util::future::Either::Right((res, _)) => res,
         }
     }

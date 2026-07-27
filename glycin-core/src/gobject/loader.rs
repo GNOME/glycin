@@ -8,6 +8,7 @@ use glib::subclass::prelude::*;
 use glycin_common::MemoryFormatSelection;
 
 use super::{GlyImage, init};
+use crate::error::ErrorKind;
 use crate::main_context::ProvidesMainContext;
 use crate::{Loader, SandboxSelector};
 
@@ -164,7 +165,7 @@ impl GlyLoader {
     pub fn load(&self) -> Result<GlyImage, crate::Error> {
         glib::MainContext::new().block_on(async {
             let Some(mut loader) = std::mem::take(&mut *self.imp().loader.lock().await) else {
-                return Err(crate::ErrorKind::LoaderUsedTwice.into());
+                return Err(ErrorKind::LoaderUsedTwice.into());
             };
 
             loader.main_context_selector(crate::MainContextSelector::Managed);

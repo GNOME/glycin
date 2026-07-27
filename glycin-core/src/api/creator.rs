@@ -13,10 +13,11 @@ use gufo_common::physical_dimension::PixelDensity;
 #[cfg(feature = "builtin")]
 use crate::config;
 use crate::config::{Config, EditorConfig};
+use crate::error::ErrorKind;
 use crate::error::ResultExt;
 use crate::pool::Pool;
 use crate::util::CancellableFuture;
-use crate::{Error, ErrorKind, MimeType, Processor, ProcessorContext, SandboxSelector};
+use crate::{Error, MimeType, Processor, ProcessorContext, SandboxSelector};
 
 #[derive(Debug)]
 pub struct Creator {
@@ -204,8 +205,6 @@ impl Creator {
             #[cfg(feature = "builtin")]
             Processor::Builtin(builtin) => {
                 use glycin_utils::EditorImplementation;
-
-                use crate::ErrorKind;
 
                 let mime_type = builtin.mime_type.to_string();
                 let encoding_options = self.encoding_options;

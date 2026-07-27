@@ -22,13 +22,14 @@ use crate::api::*;
 pub use crate::config::MimeType;
 #[cfg(feature = "external")]
 use crate::dbus::*;
+use crate::error::ErrorKind;
 use crate::error::ResultExt;
 use crate::main_context::{MainContextSelector, ProvidesMainContext};
 #[cfg(feature = "external")]
 use crate::pool::{PooledProcess, UsageTracker};
 use crate::source::SourceTransmission;
 use crate::util::spawn_blocking;
-use crate::{Error, ErrorKind, MAX_TEXTURE_SIZE, Pool, config, icc, orientation, util};
+use crate::{Error, MAX_TEXTURE_SIZE, Pool, config, icc, orientation, util};
 
 /// Image request builder
 #[derive(Debug)]

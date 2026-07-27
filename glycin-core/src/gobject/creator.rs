@@ -6,9 +6,10 @@ use glib::prelude::*;
 use glib::subclass::prelude::*;
 use glycin_utils::MemoryFormat;
 
+use crate::error::ErrorKind;
 use crate::gobject::GlyNewFrame;
 use crate::util::AsyncMutex;
-use crate::{Creator, Error, ErrorKind, MimeType, SandboxSelector, gobject};
+use crate::{Creator, Error, MimeType, SandboxSelector, gobject};
 
 static_assertions::assert_impl_all!(GlyCreator: Send, Sync);
 use super::init;

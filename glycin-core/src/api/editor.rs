@@ -18,12 +18,13 @@ use zbus::zvariant::OwnedObjectPath;
 use crate::api::*;
 #[cfg(feature = "external")]
 use crate::dbus::EditorProxy;
+use crate::error::ErrorKind;
 use crate::error::ResultExt;
 use crate::main_context::{MainContextSelector, ProvidesMainContext};
 #[cfg(feature = "external")]
 use crate::pool::PooledProcess;
 use crate::util::{self, CancellableFuture, ShortcutErrorFuture};
-use crate::{Error, ErrorKind, MimeType, Pool, config};
+use crate::{Error, MimeType, Pool, config};
 
 /// Image edit builder
 #[derive(Debug)]

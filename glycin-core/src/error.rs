@@ -92,11 +92,6 @@ impl Error {
         }
     }
 
-    #[cfg(feature = "unstable")]
-    pub fn kind(self) -> ErrorKind {
-        *self.kind
-    }
-
     /// Returns if the error is related to unsupported formats.
     ///
     /// Return the mime type of the unsupported format or [`None`] if the error
@@ -153,7 +148,7 @@ impl Error {
 
 #[derive(Debug, Clone, thiserror::Error)]
 #[non_exhaustive]
-pub enum ErrorKind {
+pub(crate) enum ErrorKind {
     #[error("Remote error: {0}")]
     RemoteError(#[from] RemoteError),
     #[error("GLib error: {0}")]

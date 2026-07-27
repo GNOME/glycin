@@ -5,7 +5,8 @@ use std::os::fd::OwnedFd;
 use futures_util::SinkExt;
 use gio::prelude::*;
 
-use crate::{Error, ErrorKind, Source};
+use crate::error::ErrorKind;
+use crate::{Error, Source};
 
 const BUF_SIZE: usize = u16::MAX as usize;
 
@@ -55,8 +56,6 @@ impl SourceTransmission {
         }
 
         loop {
-            use crate::ErrorKind;
-
             let buf = vec![0; BUF_SIZE];
 
             let (buf, n) = self
@@ -110,8 +109,6 @@ impl SourceTransmission {
         }
 
         loop {
-            use crate::ErrorKind;
-
             let buf = vec![0; BUF_SIZE];
 
             let (buf, n) = self

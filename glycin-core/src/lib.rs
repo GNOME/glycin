@@ -118,7 +118,7 @@ pub const COMPAT_VERSION: u8 = 2;
 pub use api::*;
 #[cfg(not(feature = "external"))]
 use dbus_shim as dbus;
-pub use error::{Error, ErrorContext, ErrorKind};
+pub use error::{Error, ErrorContext};
 pub use glycin_common::{
     ColorProfilePreference, MemoryFormat, MemoryFormatSelection, Operation, OperationId, Operations,
 };

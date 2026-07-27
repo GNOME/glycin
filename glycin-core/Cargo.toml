@@ -33,7 +33,6 @@ gobject = [
     "dep:tracing-subscriber",
 ]
 gdk4 = ["dep:gdk"]
-unstable = []
 
 builtin-image-rs = ["dep:glycin-image-rs", "builtin"]
 builtin-test = ["dep:glycin-test", "builtin"]

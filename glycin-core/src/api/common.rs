@@ -11,11 +11,12 @@ use crate::config::{Config, EditorConfig, LoaderConfig};
 #[cfg(feature = "external")]
 use crate::dbus::ZbusProxy;
 use crate::dbus::{EditorProxy, LoaderProxy};
+use crate::error::ErrorKind;
 #[cfg(feature = "external")]
 use crate::pool::{PooledProcess, UsageTracker};
 use crate::source::SourceTransmission;
 use crate::util::RunEnvironment;
-use crate::{Error, ErrorKind, MimeType, Pool, config};
+use crate::{Error, MimeType, Pool, config};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 /// Sandboxing mechanism for image loading and editing

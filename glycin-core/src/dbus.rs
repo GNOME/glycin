@@ -21,11 +21,10 @@ use glycin_utils::{
 use nix::sys::signal;
 use zbus::zvariant::{self, OwnedObjectPath};
 
+use crate::error::ErrorKind;
 use crate::sandbox::Sandbox;
 use crate::util::{self, Task, spawn};
-use crate::{
-    DBusProxy, EditableImage, Error, ErrorKind, Image, MimeType, SandboxMechanism, config,
-};
+use crate::{DBusProxy, EditableImage, Error, Image, MimeType, SandboxMechanism, config};
 
 #[derive(Debug)]
 pub struct RemoteProcess<P: DBusProxy> {

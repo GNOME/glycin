@@ -12,8 +12,9 @@ use gio::prelude::*;
 #[cfg(feature = "external")]
 use crate::DBusProxy;
 use crate::config::{ConfigEntry, ConfigEntryHash};
+use crate::error::ErrorKind;
 use crate::util::{AsyncMutex, TimerHandle, spawn_timeout};
-use crate::{Error, ErrorKind, SandboxMechanism, config, dbus};
+use crate::{Error, SandboxMechanism, config, dbus};
 
 #[derive(Debug)]
 pub struct PooledProcess<P: DBusProxy> {
