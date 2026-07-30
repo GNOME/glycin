@@ -187,7 +187,7 @@ macos:
       ln -s /opt/rustup/toolchains/1.93.1-aarch64-apple-darwin/bin/* .venv/bin
     - | # Clone GTK early so we can access wrapped GLib version.
       git clone https://gitlab.gnome.org/gnome/gtk.git
-      git -C gtk checkout 4.22.2
+      git -C gtk checkout main # Use main for now, since all others are broken due to pango/glib version missmatch
       git -C gtk submodule update --init --recursive
     - | # Build GLib.
       pip3 install crudini==0.9.6   # to pick the version from wrap file
