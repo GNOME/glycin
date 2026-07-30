@@ -98,6 +98,14 @@ pub unsafe extern "C" fn gly_frame_get_details(frame: *mut GlyFrame) -> *const G
 }
 
 #[unsafe(no_mangle)]
+pub unsafe extern "C" fn gly_frame_get_color_mode(frame: *mut GlyFrame) -> i32 {
+    unsafe {
+        let frame = gobject::GlyFrame::from_glib_ptr_borrow(&frame);
+        frame.color_mode().into_glib()
+    }
+}
+
+#[unsafe(no_mangle)]
 pub extern "C" fn gly_cicp_get_type() -> GType {
     <GlyCicp as StaticType>::static_type().into_glib()
 }

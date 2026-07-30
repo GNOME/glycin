@@ -3,20 +3,10 @@ use std::sync::OnceLock;
 use gio::glib;
 use glib::subclass::prelude::*;
 
+use super::{GlyColorMode, GlyFrameDetails};
 use crate::Frame;
-use crate::gobject::GlyFrameDetails;
 
 static_assertions::assert_impl_all!(GlyFrame: Send, Sync);
-
-#[derive(Debug, Copy, Clone, gio::glib::Enum)]
-#[enum_type(name = "GlyColorMode")]
-#[repr(i32)]
-#[non_exhaustive]
-pub enum GlyColorMode {
-    Srgb,
-    Cicp,
-    IccProfile,
-}
 
 #[derive(Clone, Debug, glib::Boxed)]
 #[boxed_type(name = "GlyCicp", nullable)]

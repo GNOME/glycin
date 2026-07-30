@@ -706,6 +706,25 @@ typedef enum
 GType gly_memory_format_get_type(void);
 
 /**
+ * GlyColorMode:
+ * @GLY_COLOR_MODE_SRGB: The frame's texture is in sRGB color profile. No further color inforamtion is available.
+ * @GLY_COLOR_MODE_CICP: The frame's texture is in the color profile as specified by [method@Frame.get_color_cicp].
+ * @GLY_SANDBOX_SELECTOR_NOT_SANDBOXED: The frame's texture is in the color profile as specified by [method@Frame.get_color_icc_profile].
+ *
+ * Specifies what defines the textures color profile.
+ *
+ * Since: 2.2
+ */
+typedef enum
+{
+    GLY_COLOR_MODE_SRGB = 1,
+    GLY_COLOR_MODE_CICP = 2,
+    GLY_COLOR_MODE_ICC_PROFILE = 3,
+} GlyColorMode;
+
+GType gly_color_mode_get_type(void);
+
+/**
  * gly_memory_format_has_alpha:
  * @memory_format:
  *
@@ -836,6 +855,18 @@ GlyCicp *gly_cicp_copy(GlyCicp *cicp);
 void gly_cicp_free(GlyCicp *cicp);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GlyCicp, gly_cicp_free)
+
+/**
+ * gly_frame_get_color_mode:
+ * @frame:
+ *
+ * This function advertises which property contains the color information for the frame's texture. See [Enum.ColorMode] for details.
+ *
+ * Returns: (transfer full): Color Mode
+ *
+ * Since: 2.2
+ */
+GlyColorMode gly_frame_get_color_mode(GlyFrame *frame);
 
 /**
  * gly_frame_get_color_cicp:

@@ -1,3 +1,4 @@
+mod color_mode;
 mod common;
 mod creator;
 mod encoded_image;
@@ -11,6 +12,7 @@ mod memory_format;
 mod new_frame;
 mod pixel_density;
 
+pub use color_mode::*;
 pub use creator::*;
 pub use encoded_image::*;
 pub use error::*;

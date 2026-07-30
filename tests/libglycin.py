@@ -176,13 +176,15 @@ def main():
     frame = image.next_frame()
     cicp = frame.get_color_cicp()
     icc_profile = frame.get_color_icc_profile()
+    color_mode = frame.get_color_mode()
 
     assert cicp.color_primaries == 12
     assert cicp.transfer_characteristics == 13
     assert cicp.matrix_coefficients == 0
     assert cicp.video_full_range_flag == 1
 
-    assert(icc_profile is None)
+    assert icc_profile is None
+    assert color_mode == Gly.ColorMode.CICP
 
     cicp_copy = cicp.copy()
 
@@ -209,9 +211,11 @@ def main():
     frame = image.next_frame()
     icc_profile = frame.get_color_icc_profile()
     cicp = frame.get_color_cicp()
+    color_mode = frame.get_color_mode()
 
-    assert(icc_profile is not None)
-    assert(cicp is None)
+    assert icc_profile is not None
+    assert cicp is None
+    assert color_mode == Gly.ColorMode.ICC_PROFILE
 
     # Animation
 

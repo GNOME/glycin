@@ -1,3 +1,4 @@
+pub mod color_mode;
 pub mod creator;
 pub mod encoded_image;
 pub mod frame;
@@ -10,6 +11,7 @@ pub mod pixel_density;
 
 use std::sync::OnceLock;
 
+pub use color_mode::GlyColorMode;
 pub use creator::GlyCreator;
 pub use encoded_image::GlyEncodedImage;
 pub use frame::{GlyCicp, GlyFrame};
