@@ -709,7 +709,7 @@ GType gly_memory_format_get_type(void);
  * GlyColorMode:
  * @GLY_COLOR_MODE_SRGB: The frame's texture is in sRGB color profile. No further color inforamtion is available.
  * @GLY_COLOR_MODE_CICP: The frame's texture is in the color profile as specified by [method@Frame.get_color_cicp].
- * @GLY_SANDBOX_SELECTOR_NOT_SANDBOXED: The frame's texture is in the color profile as specified by [method@Frame.get_color_icc_profile].
+ * @GLY_COLOR_MODE_ICC_PROFILE: The frame's texture is in the color profile as specified by [method@Frame.get_color_icc_profile].
  *
  * Specifies what defines the textures color profile.
  *
