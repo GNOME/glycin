@@ -36,6 +36,8 @@ pub mod imp {
         accepted_memory_formats: PhantomData<MemoryFormatSelection>,
         #[property(set=Self::set_apply_transformations)]
         apply_transformations: PhantomData<bool>,
+        #[property(set=Self::set_color_convert_icc_srgb)]
+        color_convert_icc_srgb: PhantomData<bool>,
 
         pub(super) loader: Mutex<Option<Loader>>,
     }
@@ -120,6 +122,12 @@ pub mod imp {
         fn set_apply_transformations(&self, apply_transformations: bool) {
             self.inspect(|x| {
                 x.apply_transformations(apply_transformations);
+            });
+        }
+
+        fn set_color_convert_icc_srgb(&self, convert: bool) {
+            self.inspect(|x| {
+                x.color_convert_icc_srgb(convert);
             });
         }
 

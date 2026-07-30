@@ -83,6 +83,18 @@ pub unsafe extern "C" fn gly_loader_set_apply_transformations(
 }
 
 #[unsafe(no_mangle)]
+pub unsafe extern "C" fn gly_loader_set_color_convert_icc_srgb(
+    loader: *mut GlyLoader,
+    convert: c_int,
+) {
+    unsafe {
+        let obj = gobject::GlyLoader::from_glib_ptr_borrow(&loader);
+
+        obj.set_color_convert_icc_srgb(convert != 0);
+    }
+}
+
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn gly_loader_load(
     loader: *mut GlyLoader,
     g_error: *mut *mut GError,

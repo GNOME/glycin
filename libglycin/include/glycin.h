@@ -347,6 +347,20 @@ void gly_loader_set_apply_transformations(GlyLoader *loader,
                                           gboolean apply_transformations);
 
 /**
+ * gly_loader_set_color_convert_icc_srgb:
+ * @loader:
+ * @convert:
+ *
+ * Sets whether to convert textures to sRGB if ICC profile is present
+ *
+ * This option is enabled by default.
+ *
+ * Since: 2.2
+ */
+void gly_loader_set_color_convert_icc_srgb(GlyLoader *loader,
+                                           gboolean convert);
+
+/**
  * gly_loader_load:
  * @loader:
  * @error:
@@ -835,6 +849,19 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC(GlyCicp, gly_cicp_free)
  * Since: 2.0
  */
 GlyCicp *gly_frame_get_color_cicp(GlyFrame *frame);
+
+/**
+ * gly_frame_get_color_icc_profile:
+ * @frame:
+ *
+ * Returns the ICC profile for the frames texture.
+ * This value is `NULL` if no CICP is used.
+ *
+ * Returns: (nullable) (transfer full): Binary ICC profile
+ *
+ * Since: 2.2
+ */
+GBytes *gly_frame_get_color_icc_profile(GlyFrame *frame);
 
 /**************** GlyFrameDetails ****************/
 

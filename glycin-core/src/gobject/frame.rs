@@ -79,6 +79,14 @@ impl GlyFrame {
         }
     }
 
+    pub fn color_icc_profile(&self) -> Option<glib::Bytes> {
+        if let crate::ColorState::IccProfile(icc_profile) = self.frame().color_state() {
+            Some(glib::Bytes::from_owned(icc_profile.clone()))
+        } else {
+            None
+        }
+    }
+
     pub fn details(&self) -> GlyFrameDetails {
         GlyFrameDetails::new(self.frame().details())
     }

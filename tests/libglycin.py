@@ -61,6 +61,11 @@ def main():
     test_image_cicp = os.path.join(dir, "test-images/images/cicp-p3/cicp-p3.png")
     file_cicp = Gio.File.new_for_path(test_image_cicp)
 
+    test_image_icc_profile = os.path.join(
+        dir, "test-images/images/color-iccp-pro/color-iccp-pro.jpg"
+    )
+    file_icc_profile = Gio.File.new_for_path(test_image_icc_profile)
+
     test_image_orientation = os.path.join(dir, "test-images/images/color-exif-orientation/color-rotated-90.jpg")
     file_orientation = Gio.File.new_for_path(test_image_orientation)
 
@@ -170,11 +175,14 @@ def main():
 
     frame = image.next_frame()
     cicp = frame.get_color_cicp()
+    icc_profile = frame.get_color_icc_profile()
 
     assert cicp.color_primaries == 12
     assert cicp.transfer_characteristics == 13
     assert cicp.matrix_coefficients == 0
     assert cicp.video_full_range_flag == 1
+
+    assert(icc_profile is None)
 
     cicp_copy = cicp.copy()
 
@@ -191,6 +199,19 @@ def main():
     assert cicp.get_transfer_function() == 13
     assert cicp.get_matrix_coefficients() == 0
     assert cicp.get_range() == Gdk.CicpRange.FULL
+
+    # ICC Profile
+
+    loader = Gly.Loader.new(file_icc_profile)
+    loader.set_color_convert_icc_srgb(False)
+    image = loader.load()
+
+    frame = image.next_frame()
+    icc_profile = frame.get_color_icc_profile()
+    cicp = frame.get_color_cicp()
+
+    assert(icc_profile is not None)
+    assert(cicp is None)
 
     # Animation
 

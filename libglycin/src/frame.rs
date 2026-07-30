@@ -1,5 +1,5 @@
 use gio::prelude::*;
-use glib::ffi::GType;
+use glib::ffi::{GBytes, GType};
 use glib::subclass::prelude::*;
 use glib::translate::*;
 use glycin::gobject::{self, GlyCicp};
@@ -74,6 +74,17 @@ pub unsafe extern "C" fn gly_frame_get_color_cicp(frame: *mut GlyFrame) -> *cons
             }
             .into_glib_ptr(),
             None => std::ptr::null(),
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn gly_frame_get_color_icc_profile(frame: *mut GlyFrame) -> *mut GBytes {
+    unsafe {
+        let frame = gobject::GlyFrame::from_glib_ptr_borrow(&frame);
+        match frame.color_icc_profile() {
+            Some(icc_profile) => icc_profile.into_glib_ptr(),
+            None => std::ptr::null_mut(),
         }
     }
 }
