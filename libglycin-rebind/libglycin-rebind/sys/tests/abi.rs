@@ -5,14 +5,14 @@
 
 #![cfg(unix)]
 
-use libglycin_rebind_sys::*;
-use std::mem::{align_of, size_of};
-use std::env;
 use std::error::Error;
 use std::ffi::OsString;
+use std::mem::{align_of, size_of};
 use std::path::Path;
 use std::process::{Command, Stdio};
-use std::str;
+use std::{env, str};
+
+use libglycin_rebind_sys::*;
 use tempfile::Builder;
 
 static PACKAGES: &[&str] = &["glycin-2"];
@@ -67,8 +67,7 @@ fn pkg_config_cflags(packages: &[&str]) -> Result<Vec<String>, Box<dyn Error>> {
     if packages.is_empty() {
         return Ok(Vec::new());
     }
-    let pkg_config = env::var_os("PKG_CONFIG")
-        .unwrap_or_else(|| OsString::from("pkg-config"));
+    let pkg_config = env::var_os("PKG_CONFIG").unwrap_or_else(|| OsString::from("pkg-config"));
     let mut cmd = Command::new(pkg_config);
     cmd.arg("--cflags");
     cmd.args(packages);
@@ -81,7 +80,6 @@ fn pkg_config_cflags(packages: &[&str]) -> Result<Vec<String>, Box<dyn Error>> {
     let stdout = str::from_utf8(&out.stdout)?;
     Ok(shell_words::split(stdout.trim())?)
 }
-
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 struct Layout {
@@ -164,8 +162,7 @@ fn cross_validate_layout_with_c() {
 
     let mut results = Results::default();
 
-    for ((rust_name, rust_layout), (c_name, c_layout)) in
-        RUST_LAYOUTS.iter().zip(c_layouts.iter())
+    for ((rust_name, rust_layout), (c_name, c_layout)) in RUST_LAYOUTS.iter().zip(c_layouts.iter())
     {
         if rust_name != c_name {
             results.record_failed();
@@ -175,9 +172,7 @@ fn cross_validate_layout_with_c() {
 
         if rust_layout != c_layout {
             results.record_failed();
-            eprintln!(
-                "Layout mismatch for {rust_name}\nRust: {rust_layout:?}\nC:    {c_layout:?}",
-            );
+            eprintln!("Layout mismatch for {rust_name}\nRust: {rust_layout:?}\nC:    {c_layout:?}",);
             continue;
         }
 
@@ -207,22 +202,118 @@ fn get_c_output(name: &str) -> Result<String, Box<dyn Error>> {
 }
 
 const RUST_LAYOUTS: &[(&str, Layout)] = &[
-    ("GlyCicp", Layout {size: size_of::<GlyCicp>(), alignment: align_of::<GlyCicp>()}),
-    ("GlyColorMode", Layout {size: size_of::<GlyColorMode>(), alignment: align_of::<GlyColorMode>()}),
-    ("GlyCreatorClass", Layout {size: size_of::<GlyCreatorClass>(), alignment: align_of::<GlyCreatorClass>()}),
-    ("GlyEncodedImageClass", Layout {size: size_of::<GlyEncodedImageClass>(), alignment: align_of::<GlyEncodedImageClass>()}),
-    ("GlyFrameClass", Layout {size: size_of::<GlyFrameClass>(), alignment: align_of::<GlyFrameClass>()}),
-    ("GlyFrameDetailsClass", Layout {size: size_of::<GlyFrameDetailsClass>(), alignment: align_of::<GlyFrameDetailsClass>()}),
-    ("GlyFrameRequestClass", Layout {size: size_of::<GlyFrameRequestClass>(), alignment: align_of::<GlyFrameRequestClass>()}),
-    ("GlyImageClass", Layout {size: size_of::<GlyImageClass>(), alignment: align_of::<GlyImageClass>()}),
-    ("GlyLoaderClass", Layout {size: size_of::<GlyLoaderClass>(), alignment: align_of::<GlyLoaderClass>()}),
-    ("GlyLoaderError", Layout {size: size_of::<GlyLoaderError>(), alignment: align_of::<GlyLoaderError>()}),
-    ("GlyMemoryFormat", Layout {size: size_of::<GlyMemoryFormat>(), alignment: align_of::<GlyMemoryFormat>()}),
-    ("GlyMemoryFormatSelection", Layout {size: size_of::<GlyMemoryFormatSelection>(), alignment: align_of::<GlyMemoryFormatSelection>()}),
-    ("GlyNewFrameClass", Layout {size: size_of::<GlyNewFrameClass>(), alignment: align_of::<GlyNewFrameClass>()}),
-    ("GlyPhysicalDimensionUnit", Layout {size: size_of::<GlyPhysicalDimensionUnit>(), alignment: align_of::<GlyPhysicalDimensionUnit>()}),
-    ("GlyPixelDensityClass", Layout {size: size_of::<GlyPixelDensityClass>(), alignment: align_of::<GlyPixelDensityClass>()}),
-    ("GlySandboxSelector", Layout {size: size_of::<GlySandboxSelector>(), alignment: align_of::<GlySandboxSelector>()}),
+    (
+        "GlyCicp",
+        Layout {
+            size: size_of::<GlyCicp>(),
+            alignment: align_of::<GlyCicp>(),
+        },
+    ),
+    (
+        "GlyColorMode",
+        Layout {
+            size: size_of::<GlyColorMode>(),
+            alignment: align_of::<GlyColorMode>(),
+        },
+    ),
+    (
+        "GlyCreatorClass",
+        Layout {
+            size: size_of::<GlyCreatorClass>(),
+            alignment: align_of::<GlyCreatorClass>(),
+        },
+    ),
+    (
+        "GlyEncodedImageClass",
+        Layout {
+            size: size_of::<GlyEncodedImageClass>(),
+            alignment: align_of::<GlyEncodedImageClass>(),
+        },
+    ),
+    (
+        "GlyFrameClass",
+        Layout {
+            size: size_of::<GlyFrameClass>(),
+            alignment: align_of::<GlyFrameClass>(),
+        },
+    ),
+    (
+        "GlyFrameDetailsClass",
+        Layout {
+            size: size_of::<GlyFrameDetailsClass>(),
+            alignment: align_of::<GlyFrameDetailsClass>(),
+        },
+    ),
+    (
+        "GlyFrameRequestClass",
+        Layout {
+            size: size_of::<GlyFrameRequestClass>(),
+            alignment: align_of::<GlyFrameRequestClass>(),
+        },
+    ),
+    (
+        "GlyImageClass",
+        Layout {
+            size: size_of::<GlyImageClass>(),
+            alignment: align_of::<GlyImageClass>(),
+        },
+    ),
+    (
+        "GlyLoaderClass",
+        Layout {
+            size: size_of::<GlyLoaderClass>(),
+            alignment: align_of::<GlyLoaderClass>(),
+        },
+    ),
+    (
+        "GlyLoaderError",
+        Layout {
+            size: size_of::<GlyLoaderError>(),
+            alignment: align_of::<GlyLoaderError>(),
+        },
+    ),
+    (
+        "GlyMemoryFormat",
+        Layout {
+            size: size_of::<GlyMemoryFormat>(),
+            alignment: align_of::<GlyMemoryFormat>(),
+        },
+    ),
+    (
+        "GlyMemoryFormatSelection",
+        Layout {
+            size: size_of::<GlyMemoryFormatSelection>(),
+            alignment: align_of::<GlyMemoryFormatSelection>(),
+        },
+    ),
+    (
+        "GlyNewFrameClass",
+        Layout {
+            size: size_of::<GlyNewFrameClass>(),
+            alignment: align_of::<GlyNewFrameClass>(),
+        },
+    ),
+    (
+        "GlyPhysicalDimensionUnit",
+        Layout {
+            size: size_of::<GlyPhysicalDimensionUnit>(),
+            alignment: align_of::<GlyPhysicalDimensionUnit>(),
+        },
+    ),
+    (
+        "GlyPixelDensityClass",
+        Layout {
+            size: size_of::<GlyPixelDensityClass>(),
+            alignment: align_of::<GlyPixelDensityClass>(),
+        },
+    ),
+    (
+        "GlySandboxSelector",
+        Layout {
+            size: size_of::<GlySandboxSelector>(),
+            alignment: align_of::<GlySandboxSelector>(),
+        },
+    ),
 ];
 
 const RUST_CONSTANTS: &[(&str, &str)] = &[
@@ -263,17 +354,26 @@ const RUST_CONSTANTS: &[(&str, &str)] = &[
     ("(guint) GLY_MEMORY_SELECTION_B8G8R8A8_PREMULTIPLIED", "1"),
     ("(guint) GLY_MEMORY_SELECTION_G16", "4194304"),
     ("(guint) GLY_MEMORY_SELECTION_G16A16", "2097152"),
-    ("(guint) GLY_MEMORY_SELECTION_G16A16_PREMULTIPLIED", "1048576"),
+    (
+        "(guint) GLY_MEMORY_SELECTION_G16A16_PREMULTIPLIED",
+        "1048576",
+    ),
     ("(guint) GLY_MEMORY_SELECTION_G8", "524288"),
     ("(guint) GLY_MEMORY_SELECTION_G8A8", "262144"),
     ("(guint) GLY_MEMORY_SELECTION_G8A8_PREMULTIPLIED", "131072"),
     ("(guint) GLY_MEMORY_SELECTION_R16G16B16", "512"),
     ("(guint) GLY_MEMORY_SELECTION_R16G16B16A16", "2048"),
     ("(guint) GLY_MEMORY_SELECTION_R16G16B16A16_FLOAT", "8192"),
-    ("(guint) GLY_MEMORY_SELECTION_R16G16B16A16_PREMULTIPLIED", "1024"),
+    (
+        "(guint) GLY_MEMORY_SELECTION_R16G16B16A16_PREMULTIPLIED",
+        "1024",
+    ),
     ("(guint) GLY_MEMORY_SELECTION_R16G16B16_FLOAT", "4096"),
     ("(guint) GLY_MEMORY_SELECTION_R32G32B32A32_FLOAT", "65536"),
-    ("(guint) GLY_MEMORY_SELECTION_R32G32B32A32_FLOAT_PREMULTIPLIED", "32768"),
+    (
+        "(guint) GLY_MEMORY_SELECTION_R32G32B32A32_FLOAT_PREMULTIPLIED",
+        "32768",
+    ),
     ("(guint) GLY_MEMORY_SELECTION_R32G32B32_FLOAT", "16384"),
     ("(guint) GLY_MEMORY_SELECTION_R8G8B8", "128"),
     ("(guint) GLY_MEMORY_SELECTION_R8G8B8A8", "32"),
@@ -289,5 +389,3 @@ const RUST_CONSTANTS: &[(&str, &str)] = &[
     ("(gint) GLY_SANDBOX_SELECTOR_FLATPAK_SPAWN", "2"),
     ("(gint) GLY_SANDBOX_SELECTOR_NOT_SANDBOXED", "3"),
 ];
-
-

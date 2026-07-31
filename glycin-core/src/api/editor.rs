@@ -18,8 +18,7 @@ use zbus::zvariant::OwnedObjectPath;
 use crate::api::*;
 #[cfg(feature = "external")]
 use crate::dbus::EditorProxy;
-use crate::error::ErrorKind;
-use crate::error::ResultExt;
+use crate::error::{ErrorKind, ResultExt};
 use crate::main_context::{MainContextSelector, ProvidesMainContext};
 #[cfg(feature = "external")]
 use crate::pool::PooledProcess;

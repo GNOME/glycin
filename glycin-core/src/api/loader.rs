@@ -22,8 +22,7 @@ use crate::api::*;
 pub use crate::config::MimeType;
 #[cfg(feature = "external")]
 use crate::dbus::*;
-use crate::error::ErrorKind;
-use crate::error::ResultExt;
+use crate::error::{ErrorKind, ResultExt};
 use crate::main_context::{MainContextSelector, ProvidesMainContext};
 #[cfg(feature = "external")]
 use crate::pool::{PooledProcess, UsageTracker};

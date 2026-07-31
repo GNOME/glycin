@@ -13,8 +13,7 @@ use gufo_common::physical_dimension::PixelDensity;
 #[cfg(feature = "builtin")]
 use crate::config;
 use crate::config::{Config, EditorConfig};
-use crate::error::ErrorKind;
-use crate::error::ResultExt;
+use crate::error::{ErrorKind, ResultExt};
 use crate::pool::Pool;
 use crate::util::CancellableFuture;
 use crate::{Error, MimeType, Processor, ProcessorContext, SandboxSelector};

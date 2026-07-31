@@ -3,7 +3,6 @@
 // from gir-files (@ baa82dc06419)
 // DO NOT EDIT
 
-
 fn main() {
     if std::env::var("DOCS_RS").is_ok() {
         // prevent linking libraries to avoid documentation failure

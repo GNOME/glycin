@@ -4,24 +4,29 @@
 // DO NOT EDIT
 
 #![allow(non_camel_case_types, non_upper_case_globals, non_snake_case)]
-#![allow(clippy::approx_constant, clippy::type_complexity, clippy::unreadable_literal, clippy::upper_case_acronyms)]
+#![allow(
+    clippy::approx_constant,
+    clippy::type_complexity,
+    clippy::unreadable_literal,
+    clippy::upper_case_acronyms
+)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+#[allow(unused_imports)]
+use std::ffi::{
+    c_char, c_double, c_float, c_int, c_long, c_short, c_uchar, c_uint, c_ulong, c_ushort, c_void,
+};
+
+use gio_sys as gio;
+#[allow(unused_imports)]
+use glib::{GType, gboolean, gconstpointer, gpointer};
 use glib_sys as glib;
 use gobject_sys as gobject;
-use gio_sys as gio;
-
 #[allow(unused_imports)]
-use std::ffi::{c_int, c_char, c_uchar, c_float, c_uint, c_double,
-    c_short, c_ushort, c_long, c_ulong, c_void};
-#[allow(unused_imports)]
-use libc::{size_t, ssize_t, time_t, off_t, intptr_t, uintptr_t, FILE};
+use libc::{FILE, intptr_t, off_t, size_t, ssize_t, time_t, uintptr_t};
 #[cfg(unix)]
 #[allow(unused_imports)]
 use libc::{dev_t, gid_t, pid_t, socklen_t, uid_t};
-
-#[allow(unused_imports)]
-use glib::{gboolean, gconstpointer, gpointer, GType};
 
 // Enums
 pub type GlyColorMode = c_int;
@@ -115,11 +120,11 @@ pub struct GlyCicp {
 impl ::std::fmt::Debug for GlyCicp {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         f.debug_struct(&format!("GlyCicp @ {self:p}"))
-         .field("color_primaries", &self.color_primaries)
-         .field("transfer_characteristics", &self.transfer_characteristics)
-         .field("matrix_coefficients", &self.matrix_coefficients)
-         .field("video_full_range_flag", &self.video_full_range_flag)
-         .finish()
+            .field("color_primaries", &self.color_primaries)
+            .field("transfer_characteristics", &self.transfer_characteristics)
+            .field("matrix_coefficients", &self.matrix_coefficients)
+            .field("video_full_range_flag", &self.video_full_range_flag)
+            .finish()
     }
 }
 
@@ -132,8 +137,8 @@ pub struct GlyCreatorClass {
 impl ::std::fmt::Debug for GlyCreatorClass {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         f.debug_struct(&format!("GlyCreatorClass @ {self:p}"))
-         .field("parent_class", &self.parent_class)
-         .finish()
+            .field("parent_class", &self.parent_class)
+            .finish()
     }
 }
 
@@ -146,8 +151,8 @@ pub struct GlyEncodedImageClass {
 impl ::std::fmt::Debug for GlyEncodedImageClass {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         f.debug_struct(&format!("GlyEncodedImageClass @ {self:p}"))
-         .field("parent_class", &self.parent_class)
-         .finish()
+            .field("parent_class", &self.parent_class)
+            .finish()
     }
 }
 
@@ -160,8 +165,8 @@ pub struct GlyFrameClass {
 impl ::std::fmt::Debug for GlyFrameClass {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         f.debug_struct(&format!("GlyFrameClass @ {self:p}"))
-         .field("parent_class", &self.parent_class)
-         .finish()
+            .field("parent_class", &self.parent_class)
+            .finish()
     }
 }
 
@@ -174,8 +179,8 @@ pub struct GlyFrameDetailsClass {
 impl ::std::fmt::Debug for GlyFrameDetailsClass {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         f.debug_struct(&format!("GlyFrameDetailsClass @ {self:p}"))
-         .field("parent_class", &self.parent_class)
-         .finish()
+            .field("parent_class", &self.parent_class)
+            .finish()
     }
 }
 
@@ -188,8 +193,8 @@ pub struct GlyFrameRequestClass {
 impl ::std::fmt::Debug for GlyFrameRequestClass {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         f.debug_struct(&format!("GlyFrameRequestClass @ {self:p}"))
-         .field("parent_class", &self.parent_class)
-         .finish()
+            .field("parent_class", &self.parent_class)
+            .finish()
     }
 }
 
@@ -202,8 +207,8 @@ pub struct GlyImageClass {
 impl ::std::fmt::Debug for GlyImageClass {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         f.debug_struct(&format!("GlyImageClass @ {self:p}"))
-         .field("parent_class", &self.parent_class)
-         .finish()
+            .field("parent_class", &self.parent_class)
+            .finish()
     }
 }
 
@@ -216,8 +221,8 @@ pub struct GlyLoaderClass {
 impl ::std::fmt::Debug for GlyLoaderClass {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         f.debug_struct(&format!("GlyLoaderClass @ {self:p}"))
-         .field("parent_class", &self.parent_class)
-         .finish()
+            .field("parent_class", &self.parent_class)
+            .finish()
     }
 }
 
@@ -230,8 +235,8 @@ pub struct GlyNewFrameClass {
 impl ::std::fmt::Debug for GlyNewFrameClass {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         f.debug_struct(&format!("GlyNewFrameClass @ {self:p}"))
-         .field("parent_class", &self.parent_class)
-         .finish()
+            .field("parent_class", &self.parent_class)
+            .finish()
     }
 }
 
@@ -244,8 +249,8 @@ pub struct GlyPixelDensityClass {
 impl ::std::fmt::Debug for GlyPixelDensityClass {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         f.debug_struct(&format!("GlyPixelDensityClass @ {self:p}"))
-         .field("parent_class", &self.parent_class)
-         .finish()
+            .field("parent_class", &self.parent_class)
+            .finish()
     }
 }
 
@@ -259,8 +264,7 @@ pub struct GlyCreator {
 
 impl ::std::fmt::Debug for GlyCreator {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-        f.debug_struct(&format!("GlyCreator @ {self:p}"))
-         .finish()
+        f.debug_struct(&format!("GlyCreator @ {self:p}")).finish()
     }
 }
 
@@ -274,7 +278,7 @@ pub struct GlyEncodedImage {
 impl ::std::fmt::Debug for GlyEncodedImage {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         f.debug_struct(&format!("GlyEncodedImage @ {self:p}"))
-         .finish()
+            .finish()
     }
 }
 
@@ -287,8 +291,7 @@ pub struct GlyFrame {
 
 impl ::std::fmt::Debug for GlyFrame {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-        f.debug_struct(&format!("GlyFrame @ {self:p}"))
-         .finish()
+        f.debug_struct(&format!("GlyFrame @ {self:p}")).finish()
     }
 }
 
@@ -302,7 +305,7 @@ pub struct GlyFrameDetails {
 impl ::std::fmt::Debug for GlyFrameDetails {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         f.debug_struct(&format!("GlyFrameDetails @ {self:p}"))
-         .finish()
+            .finish()
     }
 }
 
@@ -316,7 +319,7 @@ pub struct GlyFrameRequest {
 impl ::std::fmt::Debug for GlyFrameRequest {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         f.debug_struct(&format!("GlyFrameRequest @ {self:p}"))
-         .finish()
+            .finish()
     }
 }
 
@@ -329,8 +332,7 @@ pub struct GlyImage {
 
 impl ::std::fmt::Debug for GlyImage {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-        f.debug_struct(&format!("GlyImage @ {self:p}"))
-         .finish()
+        f.debug_struct(&format!("GlyImage @ {self:p}")).finish()
     }
 }
 
@@ -343,8 +345,7 @@ pub struct GlyLoader {
 
 impl ::std::fmt::Debug for GlyLoader {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-        f.debug_struct(&format!("GlyLoader @ {self:p}"))
-         .finish()
+        f.debug_struct(&format!("GlyLoader @ {self:p}")).finish()
     }
 }
 
@@ -357,8 +358,7 @@ pub struct GlyNewFrame {
 
 impl ::std::fmt::Debug for GlyNewFrame {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-        f.debug_struct(&format!("GlyNewFrame @ {self:p}"))
-         .finish()
+        f.debug_struct(&format!("GlyNewFrame @ {self:p}")).finish()
     }
 }
 
@@ -372,7 +372,7 @@ pub struct GlyPixelDensity {
 impl ::std::fmt::Debug for GlyPixelDensity {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         f.debug_struct(&format!("GlyPixelDensity @ {self:p}"))
-         .finish()
+            .finish()
     }
 }
 
@@ -426,16 +426,56 @@ unsafe extern "C" {
     // GlyCreator
     //=========================================================================
     pub fn gly_creator_get_type() -> GType;
-    pub fn gly_creator_new(mime_type: *const c_char, error: *mut *mut glib::GError) -> *mut GlyCreator;
-    pub fn gly_creator_add_frame(creator: *mut GlyCreator, width: u32, height: u32, memory_format: GlyMemoryFormat, texture: *mut glib::GBytes, error: *mut *mut glib::GError) -> *mut GlyNewFrame;
-    pub fn gly_creator_add_frame_with_stride(creator: *mut GlyCreator, width: u32, height: u32, stride: u32, memory_format: GlyMemoryFormat, texture: *mut glib::GBytes, error: *mut *mut glib::GError) -> *mut GlyNewFrame;
-    pub fn gly_creator_add_metadata_key_value(creator: *mut GlyCreator, key: *const c_char, value: *const c_char) -> gboolean;
-    pub fn gly_creator_create(image: *mut GlyCreator, error: *mut *mut glib::GError) -> *mut GlyEncodedImage;
-    pub fn gly_creator_create_async(creator: *mut GlyCreator, cancellable: *mut gio::GCancellable, callback: gio::GAsyncReadyCallback, user_data: gpointer);
-    pub fn gly_creator_create_finish(creator: *mut GlyCreator, result: *mut gio::GAsyncResult, error: *mut *mut glib::GError) -> *mut GlyEncodedImage;
-    pub fn gly_creator_set_encoding_compression(creator: *mut GlyCreator, compression: u8) -> gboolean;
+    pub fn gly_creator_new(
+        mime_type: *const c_char,
+        error: *mut *mut glib::GError,
+    ) -> *mut GlyCreator;
+    pub fn gly_creator_add_frame(
+        creator: *mut GlyCreator,
+        width: u32,
+        height: u32,
+        memory_format: GlyMemoryFormat,
+        texture: *mut glib::GBytes,
+        error: *mut *mut glib::GError,
+    ) -> *mut GlyNewFrame;
+    pub fn gly_creator_add_frame_with_stride(
+        creator: *mut GlyCreator,
+        width: u32,
+        height: u32,
+        stride: u32,
+        memory_format: GlyMemoryFormat,
+        texture: *mut glib::GBytes,
+        error: *mut *mut glib::GError,
+    ) -> *mut GlyNewFrame;
+    pub fn gly_creator_add_metadata_key_value(
+        creator: *mut GlyCreator,
+        key: *const c_char,
+        value: *const c_char,
+    ) -> gboolean;
+    pub fn gly_creator_create(
+        image: *mut GlyCreator,
+        error: *mut *mut glib::GError,
+    ) -> *mut GlyEncodedImage;
+    pub fn gly_creator_create_async(
+        creator: *mut GlyCreator,
+        cancellable: *mut gio::GCancellable,
+        callback: gio::GAsyncReadyCallback,
+        user_data: gpointer,
+    );
+    pub fn gly_creator_create_finish(
+        creator: *mut GlyCreator,
+        result: *mut gio::GAsyncResult,
+        error: *mut *mut glib::GError,
+    ) -> *mut GlyEncodedImage;
+    pub fn gly_creator_set_encoding_compression(
+        creator: *mut GlyCreator,
+        compression: u8,
+    ) -> gboolean;
     pub fn gly_creator_set_encoding_quality(creator: *mut GlyCreator, quality: u8) -> gboolean;
-    pub fn gly_creator_set_sandbox_selector(creator: *mut GlyCreator, sandbox_selector: GlySandboxSelector) -> gboolean;
+    pub fn gly_creator_set_sandbox_selector(
+        creator: *mut GlyCreator,
+        sandbox_selector: GlySandboxSelector,
+    ) -> gboolean;
 
     //=========================================================================
     // GlyEncodedImage
@@ -472,32 +512,70 @@ unsafe extern "C" {
     pub fn gly_frame_details_get_type() -> GType;
     #[cfg(feature = "v2_2")]
     #[cfg_attr(docsrs, doc(cfg(feature = "v2_2")))]
-    pub fn gly_frame_details_get_pixel_density(frame_details: *mut GlyFrameDetails) -> *mut GlyPixelDensity;
+    pub fn gly_frame_details_get_pixel_density(
+        frame_details: *mut GlyFrameDetails,
+    ) -> *mut GlyPixelDensity;
 
     //=========================================================================
     // GlyFrameRequest
     //=========================================================================
     pub fn gly_frame_request_get_type() -> GType;
     pub fn gly_frame_request_new() -> *mut GlyFrameRequest;
-    pub fn gly_frame_request_set_loop_animation(frame_request: *mut GlyFrameRequest, loop_animation: gboolean);
-    pub fn gly_frame_request_set_scale(frame_request: *mut GlyFrameRequest, width: u32, height: u32);
+    pub fn gly_frame_request_set_loop_animation(
+        frame_request: *mut GlyFrameRequest,
+        loop_animation: gboolean,
+    );
+    pub fn gly_frame_request_set_scale(
+        frame_request: *mut GlyFrameRequest,
+        width: u32,
+        height: u32,
+    );
 
     //=========================================================================
     // GlyImage
     //=========================================================================
     pub fn gly_image_get_type() -> GType;
     pub fn gly_image_get_height(image: *mut GlyImage) -> u32;
-    pub fn gly_image_get_metadata_key_value(image: *mut GlyImage, key: *const c_char) -> *mut c_char;
+    pub fn gly_image_get_metadata_key_value(
+        image: *mut GlyImage,
+        key: *const c_char,
+    ) -> *mut c_char;
     pub fn gly_image_get_metadata_keys(image: *mut GlyImage) -> *mut *mut c_char;
     pub fn gly_image_get_mime_type(image: *mut GlyImage) -> *const c_char;
-    pub fn gly_image_get_specific_frame(image: *mut GlyImage, frame_request: *mut GlyFrameRequest, error: *mut *mut glib::GError) -> *mut GlyFrame;
-    pub fn gly_image_get_specific_frame_async(image: *mut GlyImage, frame_request: *mut GlyFrameRequest, cancellable: *mut gio::GCancellable, callback: gio::GAsyncReadyCallback, user_data: gpointer);
-    pub fn gly_image_get_specific_frame_finish(image: *mut GlyImage, result: *mut gio::GAsyncResult, error: *mut *mut glib::GError) -> *mut GlyFrame;
+    pub fn gly_image_get_specific_frame(
+        image: *mut GlyImage,
+        frame_request: *mut GlyFrameRequest,
+        error: *mut *mut glib::GError,
+    ) -> *mut GlyFrame;
+    pub fn gly_image_get_specific_frame_async(
+        image: *mut GlyImage,
+        frame_request: *mut GlyFrameRequest,
+        cancellable: *mut gio::GCancellable,
+        callback: gio::GAsyncReadyCallback,
+        user_data: gpointer,
+    );
+    pub fn gly_image_get_specific_frame_finish(
+        image: *mut GlyImage,
+        result: *mut gio::GAsyncResult,
+        error: *mut *mut glib::GError,
+    ) -> *mut GlyFrame;
     pub fn gly_image_get_transformation_orientation(image: *mut GlyImage) -> u16;
     pub fn gly_image_get_width(image: *mut GlyImage) -> u32;
-    pub fn gly_image_next_frame(image: *mut GlyImage, error: *mut *mut glib::GError) -> *mut GlyFrame;
-    pub fn gly_image_next_frame_async(image: *mut GlyImage, cancellable: *mut gio::GCancellable, callback: gio::GAsyncReadyCallback, user_data: gpointer);
-    pub fn gly_image_next_frame_finish(image: *mut GlyImage, result: *mut gio::GAsyncResult, error: *mut *mut glib::GError) -> *mut GlyFrame;
+    pub fn gly_image_next_frame(
+        image: *mut GlyImage,
+        error: *mut *mut glib::GError,
+    ) -> *mut GlyFrame;
+    pub fn gly_image_next_frame_async(
+        image: *mut GlyImage,
+        cancellable: *mut gio::GCancellable,
+        callback: gio::GAsyncReadyCallback,
+        user_data: gpointer,
+    );
+    pub fn gly_image_next_frame_finish(
+        image: *mut GlyImage,
+        result: *mut gio::GAsyncResult,
+        error: *mut *mut glib::GError,
+    ) -> *mut GlyFrame;
 
     //=========================================================================
     // GlyLoader
@@ -507,26 +585,57 @@ unsafe extern "C" {
     pub fn gly_loader_new_for_bytes(bytes: *mut glib::GBytes) -> *mut GlyLoader;
     pub fn gly_loader_new_for_stream(stream: *mut gio::GInputStream) -> *mut GlyLoader;
     pub fn gly_loader_get_mime_types() -> *mut *mut c_char;
-    pub fn gly_loader_get_mime_types_async(cancellable: *mut gio::GCancellable, callback: gio::GAsyncReadyCallback, user_data: gpointer);
-    pub fn gly_loader_get_mime_types_finish(result: *mut gio::GAsyncResult, error: *mut *mut glib::GError) -> *mut *mut c_char;
+    pub fn gly_loader_get_mime_types_async(
+        cancellable: *mut gio::GCancellable,
+        callback: gio::GAsyncReadyCallback,
+        user_data: gpointer,
+    );
+    pub fn gly_loader_get_mime_types_finish(
+        result: *mut gio::GAsyncResult,
+        error: *mut *mut glib::GError,
+    ) -> *mut *mut c_char;
     pub fn gly_loader_load(loader: *mut GlyLoader, error: *mut *mut glib::GError) -> *mut GlyImage;
-    pub fn gly_loader_load_async(loader: *mut GlyLoader, cancellable: *mut gio::GCancellable, callback: gio::GAsyncReadyCallback, user_data: gpointer);
-    pub fn gly_loader_load_finish(loader: *mut GlyLoader, result: *mut gio::GAsyncResult, error: *mut *mut glib::GError) -> *mut GlyImage;
-    pub fn gly_loader_set_accepted_memory_formats(loader: *mut GlyLoader, memory_format_selection: GlyMemoryFormatSelection);
-    pub fn gly_loader_set_apply_transformations(loader: *mut GlyLoader, apply_transformations: gboolean);
+    pub fn gly_loader_load_async(
+        loader: *mut GlyLoader,
+        cancellable: *mut gio::GCancellable,
+        callback: gio::GAsyncReadyCallback,
+        user_data: gpointer,
+    );
+    pub fn gly_loader_load_finish(
+        loader: *mut GlyLoader,
+        result: *mut gio::GAsyncResult,
+        error: *mut *mut glib::GError,
+    ) -> *mut GlyImage;
+    pub fn gly_loader_set_accepted_memory_formats(
+        loader: *mut GlyLoader,
+        memory_format_selection: GlyMemoryFormatSelection,
+    );
+    pub fn gly_loader_set_apply_transformations(
+        loader: *mut GlyLoader,
+        apply_transformations: gboolean,
+    );
     #[cfg(feature = "v2_2")]
     #[cfg_attr(docsrs, doc(cfg(feature = "v2_2")))]
     pub fn gly_loader_set_color_convert_icc_srgb(loader: *mut GlyLoader, convert: gboolean);
-    pub fn gly_loader_set_sandbox_selector(loader: *mut GlyLoader, sandbox_selector: GlySandboxSelector);
+    pub fn gly_loader_set_sandbox_selector(
+        loader: *mut GlyLoader,
+        sandbox_selector: GlySandboxSelector,
+    );
 
     //=========================================================================
     // GlyNewFrame
     //=========================================================================
     pub fn gly_new_frame_get_type() -> GType;
-    pub fn gly_new_frame_set_color_icc_profile(new_frame: *mut GlyNewFrame, icc_profile: *mut glib::GBytes) -> gboolean;
+    pub fn gly_new_frame_set_color_icc_profile(
+        new_frame: *mut GlyNewFrame,
+        icc_profile: *mut glib::GBytes,
+    ) -> gboolean;
     #[cfg(feature = "v2_2")]
     #[cfg_attr(docsrs, doc(cfg(feature = "v2_2")))]
-    pub fn gly_new_frame_set_pixel_density(new_frame: *mut GlyNewFrame, pixel_density: *mut GlyPixelDensity);
+    pub fn gly_new_frame_set_pixel_density(
+        new_frame: *mut GlyNewFrame,
+        pixel_density: *mut GlyPixelDensity,
+    );
 
     //=========================================================================
     // GlyPixelDensity
@@ -536,19 +645,31 @@ unsafe extern "C" {
     pub fn gly_pixel_density_get_type() -> GType;
     #[cfg(feature = "v2_2")]
     #[cfg_attr(docsrs, doc(cfg(feature = "v2_2")))]
-    pub fn gly_pixel_density_new(x_value: c_double, x_unit: GlyPhysicalDimensionUnit, y_value: c_double, y_unit: GlyPhysicalDimensionUnit) -> *mut GlyPixelDensity;
+    pub fn gly_pixel_density_new(
+        x_value: c_double,
+        x_unit: GlyPhysicalDimensionUnit,
+        y_value: c_double,
+        y_unit: GlyPhysicalDimensionUnit,
+    ) -> *mut GlyPixelDensity;
     #[cfg(feature = "v2_2")]
     #[cfg_attr(docsrs, doc(cfg(feature = "v2_2")))]
-    pub fn gly_pixel_density_convert(pixel_density: *mut GlyPixelDensity, unit: GlyPhysicalDimensionUnit) -> *mut GlyPixelDensity;
+    pub fn gly_pixel_density_convert(
+        pixel_density: *mut GlyPixelDensity,
+        unit: GlyPhysicalDimensionUnit,
+    ) -> *mut GlyPixelDensity;
     #[cfg(feature = "v2_2")]
     #[cfg_attr(docsrs, doc(cfg(feature = "v2_2")))]
-    pub fn gly_pixel_density_get_x_unit(pixel_density: *mut GlyPixelDensity) -> GlyPhysicalDimensionUnit;
+    pub fn gly_pixel_density_get_x_unit(
+        pixel_density: *mut GlyPixelDensity,
+    ) -> GlyPhysicalDimensionUnit;
     #[cfg(feature = "v2_2")]
     #[cfg_attr(docsrs, doc(cfg(feature = "v2_2")))]
     pub fn gly_pixel_density_get_x_value(pixel_density: *mut GlyPixelDensity) -> c_double;
     #[cfg(feature = "v2_2")]
     #[cfg_attr(docsrs, doc(cfg(feature = "v2_2")))]
-    pub fn gly_pixel_density_get_y_unit(pixel_density: *mut GlyPixelDensity) -> GlyPhysicalDimensionUnit;
+    pub fn gly_pixel_density_get_y_unit(
+        pixel_density: *mut GlyPixelDensity,
+    ) -> GlyPhysicalDimensionUnit;
     #[cfg(feature = "v2_2")]
     #[cfg_attr(docsrs, doc(cfg(feature = "v2_2")))]
     pub fn gly_pixel_density_get_y_value(pixel_density: *mut GlyPixelDensity) -> c_double;
