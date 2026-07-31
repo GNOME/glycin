@@ -1655,9 +1655,9 @@ checksum = "a0370574b86f7eca156b9f298392b5e69a23f8c86f3f865add60bbc2e79467a6"
 
 [[package]]
 name = "jpegxl-rs"
-version = "0.12.0+libjxl-0.11.1"
+version = "0.14.0+libjxl-0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4bc73de4d7188a80badb62062780510e402a17947f663e50f6390ebb6e7b90ed"
+checksum = "9b7d16fe73fb6d2e16b986392b716409c6ae6fabd35769d66bea391b016cdbc9"
 dependencies = [
  "bon",
  "byteorder",

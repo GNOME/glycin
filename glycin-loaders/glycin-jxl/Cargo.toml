@@ -18,6 +18,6 @@ glycin-utils = { workspace = true, features = [
 ] }
 glycin-common.workspace = true
 gufo-common.workspace = true
-jpegxl-rs = { version = "0.12.0", default-features = false }
-jpegxl-sys = { version = "0.12.0", default-features = false }
+jpegxl-rs = { version = "0.14.0", default-features = false }
+jpegxl-sys = { version = "0.12.1", default-features = false }
 zerocopy.workspace = true
