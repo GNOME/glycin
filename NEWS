@@ -15,6 +15,10 @@ This release contains the following new component versions:
 - glycin 4.0.0-beta
 - glycin-builtin 4.0.0-beta
 - glycin-external 4.0.0-beta
+- libglycin-gtk4-rebind 0.2.0-beta
+- libglycin-gtk4-rebind-sys 0.2.0-beta
+- libglycin-rebind 0.2.0-beta
+- libglycin-rebind-sys 0.2.0-beta
 - libglycin 2.2.0-beta
 - libglycin-gtk4 2.2.0-beta
 
