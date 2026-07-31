@@ -1,0 +1,1 @@
+libglycin: Expose API to disable conversion to sRGB from ICC profile and for obtaining the ICC profile.

@@ -1,3 +1,32 @@
+## 2.2.beta (2026-07-31)
+
+This release contains the following new component versions:
+
+- glycin-common 2.0.0-beta
+- glycin-core 4.0.0-beta
+- glycin-heif 2.2.0-beta
+- glycin-image-rs 2.2.0-beta
+- glycin-jxl 2.2.0-beta
+- glycin-raw 2.2.0-beta
+- glycin-svg 2.2.0-beta
+- glycin-test 2.2.0-beta
+- glycin-thumbnailer 2.2.0-beta
+- glycin-utils 5.0.0-beta
+- glycin 4.0.0-beta
+- glycin-builtin 4.0.0-beta
+- glycin-external 4.0.0-beta
+- libglycin 2.2.0-beta
+- libglycin-gtk4 2.2.0-beta
+
+### Added
+
+- glycin: API to disable conversion of frames with ICC profile to sRGB.
+- glycin: Creator::set_transform_memory_format allows to automatically transform
+  frame textures to a memory format supported by the image format.
+- image-rs: Support XMP in GIF, TIFF, and WebP
+- libglycin: Expose API to disable conversion to sRGB from ICC profile and for
+  obtaining the ICC profile.
+
 ## 2.2.alpha.7 (2026-07-17)
 
 This release contains the following new component versions:
