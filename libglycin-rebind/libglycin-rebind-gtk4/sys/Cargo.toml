@@ -1,6 +1,6 @@
 [package]
 name = "libglycin-gtk4-rebind-sys"
-version = "0.1.0"
+version = "0.2.0-beta"
 categories = ["api-bindings", "gui"]
 keywords = ["gtk4-rs", "gnome", "glycin", "GUI"]
 description = "FFI bindings for libglycin-gtk4"
@@ -30,6 +30,7 @@ version = "2.0.1"
 
 [package.metadata.docs.rs]
 all-features = true
+rustdoc-args = ["--generate-link-to-definition"]
 
 [dependencies]
 libc = "0.2"
@@ -46,13 +47,14 @@ workspace = true
 [dependencies.gly-sys]
 package = "libglycin-rebind-sys"
 path = "../../libglycin-rebind/sys"
-version = "0.1.0"
+version = "0.2.0-beta"
 
 [dev-dependencies]
 shell-words = "1.0.0"
 tempfile = "3"
 
 [features]
+v2_2 = []
 
 [build-dependencies]
 system-deps = "7"

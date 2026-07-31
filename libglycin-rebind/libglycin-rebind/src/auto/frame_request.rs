@@ -92,7 +92,7 @@ impl FrameRequest {
             let f: Box_<F> = Box_::new(f);
             connect_raw(
                 self.as_ptr() as *mut _,
-                c"notify::loop-animation".as_ptr() as *const _,
+                c"notify::loop-animation".as_ptr(),
                 Some(std::mem::transmute::<*const (), unsafe extern "C" fn()>(
                     notify_loop_animation_trampoline::<F> as *const (),
                 )),
@@ -122,7 +122,7 @@ impl FrameRequest {
             let f: Box_<F> = Box_::new(f);
             connect_raw(
                 self.as_ptr() as *mut _,
-                c"notify::scale-height".as_ptr() as *const _,
+                c"notify::scale-height".as_ptr(),
                 Some(std::mem::transmute::<*const (), unsafe extern "C" fn()>(
                     notify_scale_height_trampoline::<F> as *const (),
                 )),
@@ -152,7 +152,7 @@ impl FrameRequest {
             let f: Box_<F> = Box_::new(f);
             connect_raw(
                 self.as_ptr() as *mut _,
-                c"notify::scale-width".as_ptr() as *const _,
+                c"notify::scale-width".as_ptr(),
                 Some(std::mem::transmute::<*const (), unsafe extern "C" fn()>(
                     notify_scale_width_trampoline::<F> as *const (),
                 )),

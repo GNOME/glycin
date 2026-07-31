@@ -248,7 +248,7 @@ impl Creator {
             let f: Box_<F> = Box_::new(f);
             connect_raw(
                 self.as_ptr() as *mut _,
-                c"notify::sandbox-selector".as_ptr() as *const _,
+                c"notify::sandbox-selector".as_ptr(),
                 Some(std::mem::transmute::<*const (), unsafe extern "C" fn()>(
                     notify_sandbox_selector_trampoline::<F> as *const (),
                 )),

@@ -131,6 +131,7 @@ impl Loader {
     }
 
     #[doc(alias = "gly_loader_set_accepted_memory_formats")]
+    #[doc(alias = "accepted-memory-formats")]
     pub fn set_accepted_memory_formats(&self, memory_format_selection: MemoryFormatSelection) {
         unsafe {
             ffi::gly_loader_set_accepted_memory_formats(
@@ -141,12 +142,23 @@ impl Loader {
     }
 
     #[doc(alias = "gly_loader_set_apply_transformations")]
+    #[doc(alias = "apply-transformations")]
     pub fn set_apply_transformations(&self, apply_transformations: bool) {
         unsafe {
             ffi::gly_loader_set_apply_transformations(
                 self.to_glib_none().0,
                 apply_transformations.into_glib(),
             );
+        }
+    }
+
+    #[cfg(feature = "v2_2")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "v2_2")))]
+    #[doc(alias = "gly_loader_set_color_convert_icc_srgb")]
+    #[doc(alias = "color-convert-icc-srgb")]
+    pub fn set_color_convert_icc_srgb(&self, convert: bool) {
+        unsafe {
+            ffi::gly_loader_set_color_convert_icc_srgb(self.to_glib_none().0, convert.into_glib());
         }
     }
 
@@ -161,20 +173,6 @@ impl Loader {
         }
     }
 
-    #[doc(alias = "apply-transformation")]
-    pub fn is_apply_transformation(&self) -> bool {
-        ObjectExt::property(self, "apply-transformation")
-    }
-
-    #[doc(alias = "apply-transformation")]
-    pub fn set_apply_transformation(&self, apply_transformation: bool) {
-        ObjectExt::set_property(self, "apply-transformation", apply_transformation)
-    }
-
-    pub fn bytes(&self) -> Option<glib::Bytes> {
-        ObjectExt::property(self, "bytes")
-    }
-
     pub fn cancellable(&self) -> Option<gio::Cancellable> {
         ObjectExt::property(self, "cancellable")
     }
@@ -183,27 +181,11 @@ impl Loader {
         ObjectExt::set_property(self, "cancellable", cancellable)
     }
 
-    pub fn file(&self) -> Option<gio::File> {
-        ObjectExt::property(self, "file")
-    }
-
-    #[doc(alias = "memory-format-selection")]
-    pub fn memory_format_selection(&self) -> MemoryFormatSelection {
-        ObjectExt::property(self, "memory-format-selection")
-    }
-
-    #[doc(alias = "memory-format-selection")]
-    pub fn set_memory_format_selection(&self, memory_format_selection: MemoryFormatSelection) {
-        ObjectExt::set_property(self, "memory-format-selection", memory_format_selection)
-    }
-
-    #[doc(alias = "sandbox-selector")]
-    pub fn sandbox_selector(&self) -> SandboxSelector {
-        ObjectExt::property(self, "sandbox-selector")
-    }
-
-    pub fn stream(&self) -> Option<gio::InputStream> {
-        ObjectExt::property(self, "stream")
+    #[cfg(not(feature = "v2_2"))]
+    #[cfg_attr(docsrs, doc(cfg(not(feature = "v2_2"))))]
+    #[doc(alias = "color-convert-icc-srgb")]
+    pub fn set_color_convert_icc_srgb(&self, color_convert_icc_srgb: bool) {
+        ObjectExt::set_property(self, "color-convert-icc-srgb", color_convert_icc_srgb)
     }
 
     #[doc(alias = "gly_loader_get_mime_types")]
@@ -275,12 +257,12 @@ impl Loader {
         }))
     }
 
-    #[doc(alias = "apply-transformation")]
-    pub fn connect_apply_transformation_notify<F: Fn(&Self) + Send + Sync + 'static>(
+    #[doc(alias = "accepted-memory-formats")]
+    pub fn connect_accepted_memory_formats_notify<F: Fn(&Self) + Send + Sync + 'static>(
         &self,
         f: F,
     ) -> SignalHandlerId {
-        unsafe extern "C" fn notify_apply_transformation_trampoline<
+        unsafe extern "C" fn notify_accepted_memory_formats_trampoline<
             F: Fn(&Loader) + Send + Sync + 'static,
         >(
             this: *mut ffi::GlyLoader,
@@ -296,9 +278,39 @@ impl Loader {
             let f: Box_<F> = Box_::new(f);
             connect_raw(
                 self.as_ptr() as *mut _,
-                c"notify::apply-transformation".as_ptr() as *const _,
+                c"notify::accepted-memory-formats".as_ptr(),
                 Some(std::mem::transmute::<*const (), unsafe extern "C" fn()>(
-                    notify_apply_transformation_trampoline::<F> as *const (),
+                    notify_accepted_memory_formats_trampoline::<F> as *const (),
+                )),
+                Box_::into_raw(f),
+            )
+        }
+    }
+
+    #[doc(alias = "apply-transformations")]
+    pub fn connect_apply_transformations_notify<F: Fn(&Self) + Send + Sync + 'static>(
+        &self,
+        f: F,
+    ) -> SignalHandlerId {
+        unsafe extern "C" fn notify_apply_transformations_trampoline<
+            F: Fn(&Loader) + Send + Sync + 'static,
+        >(
+            this: *mut ffi::GlyLoader,
+            _param_spec: glib::ffi::gpointer,
+            f: glib::ffi::gpointer,
+        ) {
+            unsafe {
+                let f: &F = &*(f as *const F);
+                f(&from_glib_borrow(this))
+            }
+        }
+        unsafe {
+            let f: Box_<F> = Box_::new(f);
+            connect_raw(
+                self.as_ptr() as *mut _,
+                c"notify::apply-transformations".as_ptr(),
+                Some(std::mem::transmute::<*const (), unsafe extern "C" fn()>(
+                    notify_apply_transformations_trampoline::<F> as *const (),
                 )),
                 Box_::into_raw(f),
             )
@@ -326,7 +338,7 @@ impl Loader {
             let f: Box_<F> = Box_::new(f);
             connect_raw(
                 self.as_ptr() as *mut _,
-                c"notify::cancellable".as_ptr() as *const _,
+                c"notify::cancellable".as_ptr(),
                 Some(std::mem::transmute::<*const (), unsafe extern "C" fn()>(
                     notify_cancellable_trampoline::<F> as *const (),
                 )),
@@ -335,12 +347,12 @@ impl Loader {
         }
     }
 
-    #[doc(alias = "memory-format-selection")]
-    pub fn connect_memory_format_selection_notify<F: Fn(&Self) + Send + Sync + 'static>(
+    #[doc(alias = "color-convert-icc-srgb")]
+    pub fn connect_color_convert_icc_srgb_notify<F: Fn(&Self) + Send + Sync + 'static>(
         &self,
         f: F,
     ) -> SignalHandlerId {
-        unsafe extern "C" fn notify_memory_format_selection_trampoline<
+        unsafe extern "C" fn notify_color_convert_icc_srgb_trampoline<
             F: Fn(&Loader) + Send + Sync + 'static,
         >(
             this: *mut ffi::GlyLoader,
@@ -356,9 +368,9 @@ impl Loader {
             let f: Box_<F> = Box_::new(f);
             connect_raw(
                 self.as_ptr() as *mut _,
-                c"notify::memory-format-selection".as_ptr() as *const _,
+                c"notify::color-convert-icc-srgb".as_ptr(),
                 Some(std::mem::transmute::<*const (), unsafe extern "C" fn()>(
-                    notify_memory_format_selection_trampoline::<F> as *const (),
+                    notify_color_convert_icc_srgb_trampoline::<F> as *const (),
                 )),
                 Box_::into_raw(f),
             )
@@ -386,7 +398,7 @@ impl Loader {
             let f: Box_<F> = Box_::new(f);
             connect_raw(
                 self.as_ptr() as *mut _,
-                c"notify::sandbox-selector".as_ptr() as *const _,
+                c"notify::sandbox-selector".as_ptr(),
                 Some(std::mem::transmute::<*const (), unsafe extern "C" fn()>(
                     notify_sandbox_selector_trampoline::<F> as *const (),
                 )),
@@ -418,11 +430,19 @@ impl LoaderBuilder {
         }
     }
 
-    pub fn apply_transformation(self, apply_transformation: bool) -> Self {
+    pub fn accepted_memory_formats(self, accepted_memory_formats: MemoryFormatSelection) -> Self {
         Self {
             builder: self
                 .builder
-                .property("apply-transformation", apply_transformation),
+                .property("accepted-memory-formats", accepted_memory_formats),
+        }
+    }
+
+    pub fn apply_transformations(self, apply_transformations: bool) -> Self {
+        Self {
+            builder: self
+                .builder
+                .property("apply-transformations", apply_transformations),
         }
     }
 
@@ -440,17 +460,17 @@ impl LoaderBuilder {
         }
     }
 
-    pub fn file(self, file: &impl IsA<gio::File>) -> Self {
-        Self {
-            builder: self.builder.property("file", file.clone().upcast()),
-        }
-    }
-
-    pub fn memory_format_selection(self, memory_format_selection: MemoryFormatSelection) -> Self {
+    pub fn color_convert_icc_srgb(self, color_convert_icc_srgb: bool) -> Self {
         Self {
             builder: self
                 .builder
-                .property("memory-format-selection", memory_format_selection),
+                .property("color-convert-icc-srgb", color_convert_icc_srgb),
+        }
+    }
+
+    pub fn file(self, file: &impl IsA<gio::File>) -> Self {
+        Self {
+            builder: self.builder.property("file", file.clone().upcast()),
         }
     }
 

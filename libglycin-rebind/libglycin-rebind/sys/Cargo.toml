@@ -1,6 +1,6 @@
 [package]
 name = "libglycin-rebind-sys"
-version = "0.1.0"
+version = "0.2.0-beta"
 categories = ["api-bindings"]
 keywords = ["gnome", "glycin"]
 description = "FFI bindings for libglycin"
@@ -30,8 +30,12 @@ version = "2"
 [package.metadata.system-deps.glycin_2.v2_0_1]
 version = "2.0.1"
 
+[package.metadata.system-deps.glycin_2.v2_2]
+version = "2.2"
+
 [package.metadata.docs.rs]
 all-features = true
+rustdoc-args = ["--generate-link-to-definition"]
 
 [dependencies]
 libc = "0.2"
@@ -53,6 +57,7 @@ shell-words = "1.0.0"
 tempfile = "3"
 
 [features]
+v2_2 = []
 
 [build-dependencies]
 system-deps = "7"

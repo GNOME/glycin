@@ -37,4 +37,5 @@ pub(crate) mod builders {
     pub use super::creator::CreatorBuilder;
     pub use super::frame_request::FrameRequestBuilder;
     pub use super::loader::LoaderBuilder;
+    pub use super::new_frame::NewFrameBuilder;
 }

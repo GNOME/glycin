@@ -1,6 +1,6 @@
 [package]
 name = "libglycin-rebind"
-version = "0.1.0"
+version = "0.2.0-beta"
 authors = ["Maximiliano Sandoval <msandova@gnome.org>"]
 edition.workspace = true
 rust-version.workspace = true
@@ -15,6 +15,9 @@ categories = ["api-bindings"]
 keywords = ["gnome", "glycin"]
 exclude = ["Gir.toml"]
 
+[features]
+"v2_2" = []
+
 [package.metadata.docs.rs]
 all-features = true
 
@@ -26,4 +29,4 @@ gio.workspace = true
 [dependencies.ffi]
 package = "libglycin-rebind-sys"
 path = './sys'
-version = "0.1.0"
+version = "0.2.0-beta"

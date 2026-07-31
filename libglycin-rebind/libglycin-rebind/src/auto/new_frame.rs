@@ -3,9 +3,13 @@
 // from gir-files
 // DO NOT EDIT
 
+use std::boxed::Box as Box_;
+
+use glib::prelude::*;
+use glib::signal::{SignalHandlerId, connect_raw};
 use glib::translate::*;
 
-use crate::ffi;
+use crate::{MemoryFormat, ffi};
 
 glib::wrapper! {
     #[doc(alias = "GlyNewFrame")]
@@ -17,7 +21,19 @@ glib::wrapper! {
 }
 
 impl NewFrame {
+    // rustdoc-stripper-ignore-next
+    /// Creates a new builder-pattern struct instance to construct [`NewFrame`]
+    /// objects.
+    ///
+    /// This method returns an instance of
+    /// [`NewFrameBuilder`](crate::builders::NewFrameBuilder) which can be used
+    /// to create [`NewFrame`] objects.
+    pub fn builder() -> NewFrameBuilder {
+        NewFrameBuilder::new()
+    }
+
     #[doc(alias = "gly_new_frame_set_color_icc_profile")]
+    #[doc(alias = "color-icc-profile")]
     pub fn set_color_icc_profile(&self, icc_profile: &glib::Bytes) -> bool {
         unsafe {
             from_glib(ffi::gly_new_frame_set_color_icc_profile(
@@ -25,6 +41,132 @@ impl NewFrame {
                 icc_profile.to_glib_none().0,
             ))
         }
+    }
+
+    //#[cfg(feature = "v2_2")]
+    //#[cfg_attr(docsrs, doc(cfg(feature = "v2_2")))]
+    //#[doc(alias = "gly_new_frame_set_pixel_density")]
+    //pub fn set_pixel_density(&self, pixel_density: /*Ignored*/&PixelDensity) {
+    //    unsafe { TODO: call ffi:gly_new_frame_set_pixel_density() }
+    //}
+
+    #[doc(alias = "color-icc-profile")]
+    pub fn color_icc_profile(&self) -> Option<glib::Bytes> {
+        ObjectExt::property(self, "color-icc-profile")
+    }
+
+    pub fn height(&self) -> u32 {
+        ObjectExt::property(self, "height")
+    }
+
+    #[doc(alias = "memory-format")]
+    pub fn memory_format(&self) -> MemoryFormat {
+        ObjectExt::property(self, "memory-format")
+    }
+
+    pub fn stride(&self) -> u32 {
+        ObjectExt::property(self, "stride")
+    }
+
+    pub fn texture(&self) -> Option<glib::Bytes> {
+        ObjectExt::property(self, "texture")
+    }
+
+    pub fn width(&self) -> u32 {
+        ObjectExt::property(self, "width")
+    }
+
+    #[doc(alias = "color-icc-profile")]
+    pub fn connect_color_icc_profile_notify<F: Fn(&Self) + Send + Sync + 'static>(
+        &self,
+        f: F,
+    ) -> SignalHandlerId {
+        unsafe extern "C" fn notify_color_icc_profile_trampoline<
+            F: Fn(&NewFrame) + Send + Sync + 'static,
+        >(
+            this: *mut ffi::GlyNewFrame,
+            _param_spec: glib::ffi::gpointer,
+            f: glib::ffi::gpointer,
+        ) {
+            unsafe {
+                let f: &F = &*(f as *const F);
+                f(&from_glib_borrow(this))
+            }
+        }
+        unsafe {
+            let f: Box_<F> = Box_::new(f);
+            connect_raw(
+                self.as_ptr() as *mut _,
+                c"notify::color-icc-profile".as_ptr(),
+                Some(std::mem::transmute::<*const (), unsafe extern "C" fn()>(
+                    notify_color_icc_profile_trampoline::<F> as *const (),
+                )),
+                Box_::into_raw(f),
+            )
+        }
+    }
+}
+
+// rustdoc-stripper-ignore-next
+/// A [builder-pattern] type to construct [`NewFrame`] objects.
+///
+/// [builder-pattern]: https://doc.rust-lang.org/1.0.0/style/ownership/builders.html
+#[must_use = "The builder must be built to be used"]
+pub struct NewFrameBuilder {
+    builder: glib::object::ObjectBuilder<'static, NewFrame>,
+}
+
+impl NewFrameBuilder {
+    fn new() -> Self {
+        Self {
+            builder: glib::object::Object::builder(),
+        }
+    }
+
+    pub fn color_icc_profile(self, color_icc_profile: &glib::Bytes) -> Self {
+        Self {
+            builder: self
+                .builder
+                .property("color-icc-profile", color_icc_profile.clone()),
+        }
+    }
+
+    pub fn height(self, height: u32) -> Self {
+        Self {
+            builder: self.builder.property("height", height),
+        }
+    }
+
+    pub fn memory_format(self, memory_format: MemoryFormat) -> Self {
+        Self {
+            builder: self.builder.property("memory-format", memory_format),
+        }
+    }
+
+    pub fn stride(self, stride: u32) -> Self {
+        Self {
+            builder: self.builder.property("stride", stride),
+        }
+    }
+
+    pub fn texture(self, texture: &glib::Bytes) -> Self {
+        Self {
+            builder: self.builder.property("texture", texture.clone()),
+        }
+    }
+
+    pub fn width(self, width: u32) -> Self {
+        Self {
+            builder: self.builder.property("width", width),
+        }
+    }
+
+    // rustdoc-stripper-ignore-next
+    /// Build the [`NewFrame`].
+    #[must_use = "Building the object from the builder is usually expensive and is not expected to have side effects"]
+    pub fn build(self) -> NewFrame {
+        assert_initialized_main_thread!();
+        self.builder.build()
     }
 }
 

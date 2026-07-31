@@ -1,6 +1,6 @@
 [package]
 name = "libglycin-gtk4-rebind"
-version = "0.1.0"
+version = "0.2.0-beta"
 authors = ["Maximiliano Sandoval <msandova@gnome.org>"]
 edition.workspace = true
 rust-version.workspace = true
@@ -15,6 +15,9 @@ categories = ["api-bindings", "gui"]
 keywords = ["gtk4-rs", "gnome", "glycin", "GUI"]
 exclude = ["Gir.toml"]
 
+[features]
+v2_2 = []
+
 [package.metadata.docs.rs]
 all-features = true
 
@@ -27,9 +30,9 @@ gdk.workspace = true
 [dependencies.gly]
 package = "libglycin-rebind"
 path = "../libglycin-rebind"
-version = "0.1.0"
+version = "0.2.0-beta"
 
 [dependencies.ffi]
 package = "libglycin-gtk4-rebind-sys"
 path = './sys'
-version = "0.1.0"
+version = "0.2.0-beta"

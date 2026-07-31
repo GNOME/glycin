@@ -1728,7 +1728,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4-rebind"
-version = "0.1.0"
+version = "0.2.0-beta"
 dependencies = [
  "gdk4",
  "gio",
@@ -1740,7 +1740,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4-rebind-sys"
-version = "0.1.0"
+version = "0.2.0-beta"
 dependencies = [
  "gdk4-sys",
  "glib-sys",
@@ -1753,7 +1753,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-rebind"
-version = "0.1.0"
+version = "0.2.0-beta"
 dependencies = [
  "gio",
  "glib",
@@ -1763,7 +1763,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-rebind-sys"
-version = "0.1.0"
+version = "0.2.0-beta"
 dependencies = [
  "gio-sys",
  "glib-sys",

@@ -29,11 +29,35 @@ impl Frame {
         unsafe { from_glib_full(ffi::gly_frame_get_color_cicp(self.to_glib_none().0)) }
     }
 
+    #[cfg(feature = "v2_2")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "v2_2")))]
+    #[doc(alias = "gly_frame_get_color_icc_profile")]
+    #[doc(alias = "get_color_icc_profile")]
+    pub fn color_icc_profile(&self) -> Option<glib::Bytes> {
+        unsafe { from_glib_full(ffi::gly_frame_get_color_icc_profile(self.to_glib_none().0)) }
+    }
+
+    //#[cfg(feature = "v2_2")]
+    //#[cfg_attr(docsrs, doc(cfg(feature = "v2_2")))]
+    //#[doc(alias = "gly_frame_get_color_mode")]
+    //#[doc(alias = "get_color_mode")]
+    //pub fn color_mode(&self) -> /*Ignored*/ColorMode {
+    //    unsafe { TODO: call ffi:gly_frame_get_color_mode() }
+    //}
+
     #[doc(alias = "gly_frame_get_delay")]
     #[doc(alias = "get_delay")]
     pub fn delay(&self) -> i64 {
         unsafe { ffi::gly_frame_get_delay(self.to_glib_none().0) }
     }
+
+    //#[cfg(feature = "v2_2")]
+    //#[cfg_attr(docsrs, doc(cfg(feature = "v2_2")))]
+    //#[doc(alias = "gly_frame_get_details")]
+    //#[doc(alias = "get_details")]
+    //pub fn details(&self) -> /*Ignored*/FrameDetails {
+    //    unsafe { TODO: call ffi:gly_frame_get_details() }
+    //}
 
     #[doc(alias = "gly_frame_get_height")]
     #[doc(alias = "get_height")]
