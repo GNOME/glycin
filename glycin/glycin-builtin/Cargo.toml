@@ -22,3 +22,6 @@ gdk4 = ["glycin-core/gdk4"]
 gobject = ["glycin-core/gobject"]
 tests = []
 tokio = ["glycin-core/tokio"]
+
+[package.metadata.docs.rs]
+features = ["async-io"]

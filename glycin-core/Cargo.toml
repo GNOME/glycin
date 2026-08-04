@@ -91,4 +91,4 @@ yeslogic-fontconfig-sys = { workspace = true, optional = true }
 zbus = { workspace = true, features = ["p2p"], optional = true }
 
 [package.metadata.docs.rs]
-features = ["gdk4"]
+features = ["gdk4", "external", "builtin-image-rs"]
