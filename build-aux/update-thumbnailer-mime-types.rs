@@ -24,8 +24,8 @@ fn main() {
             thumbnailer_path.set_extension("thumbnailer.in");
 
             let mut config = glycin::config::Config::default();
-            async_io::block_on(glycin::config::Config::load_config(
-                glycin::config::ConfigProcessor::File(loader_path),
+            async_io::block_on(glycin::config::Config::load_from_into(
+                glycin::config::ConfigSource::File(loader_path.clone()),
                 &mut config,
             ))
             .unwrap();
@@ -39,7 +39,7 @@ fn main() {
             let mut mime_types = mime_types.join(";");
             mime_types.push(';');
 
-            dbg!(&mime_types);
+            eprintln!("Mime types for {loader_path:?}:\n  {mime_types}\n");
 
             let thumbnailer_config = glib::KeyFile::new();
 

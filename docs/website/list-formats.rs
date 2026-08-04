@@ -219,8 +219,8 @@ fn info() -> FormatList {
                 eprintln!("{type_}: {mime_type}");
 
                 let mut config = glycin::config::Config::default();
-                async_io::block_on(glycin::config::Config::load_config(
-                    glycin::config::ConfigProcessor::File(path.clone()),
+                async_io::block_on(glycin::config::Config::load_from_into(
+                    glycin::config::ConfigSource::File(path.clone()),
                     &mut config,
                 ))
                 .unwrap();

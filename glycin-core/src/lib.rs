@@ -20,9 +20,7 @@ mod error_message {
 
 #[cfg(all(feature = "async-io", feature = "tokio"))]
 mod error_message {
-    compile_error!(
-        "Features 'async-io' (default) or and 'tokio' cannot be enabled at the same time."
-    );
+    compile_error!("Features 'async-io' (default) and 'tokio' cannot be enabled at the same time.");
 }
 
 #[cfg(all(not(feature = "external"), not(feature = "builtin")))]
