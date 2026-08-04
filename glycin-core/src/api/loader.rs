@@ -30,7 +30,7 @@ use crate::source::SourceTransmission;
 use crate::util::spawn_blocking;
 use crate::{Error, MAX_TEXTURE_SIZE, Pool, config, icc, orientation, util};
 
-/// Image request builder
+/// Builder pattern for loading images
 #[derive(Debug)]
 pub struct Loader {
     pub(crate) source: Source,
@@ -589,6 +589,7 @@ impl std::fmt::Debug for ImageBuiltinLoader {
     }
 }
 
+/// More information about an [image](Image)
 #[derive(Debug, Clone)]
 pub struct ImageDetails {
     inner: Arc<glycin_utils::ImageDetails<FungibleMemory>>,
@@ -916,6 +917,7 @@ impl FrameRequest {
     }
 }
 
+/// Additional information about a [frame](Frame)
 #[derive(Debug, Clone)]
 pub struct FrameDetails {
     inner: Arc<glycin_utils::FrameDetails<FungibleMemory>>,

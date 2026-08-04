@@ -1,6 +1,7 @@
 //! Processor (Loader/Editor) configuration
 //!
-//! If external loaders are used, the configuration will usually be loaded from the filesystem. The configs must be stored in the form of
+//! If external loaders are used, the configuration will usually be loaded from
+//! the filesystem. The configs must be stored in the form of
 //!
 //! ```
 //! <data-dir>/share/glycin-loaders/<compat-version>+/conf.d/<loader-name>.conf
@@ -235,7 +236,8 @@ impl EditorConfig {
     ///
     /// # Config Key
     ///
-    /// Can be set via `CreatorMemoryFormats` in configurations. Example: `CreatorMemoryFormats=R8g8b8;R8g8b8a8;`.
+    /// Can be set via `CreatorMemoryFormats` in configurations. Example:
+    /// `CreatorMemoryFormats=R8g8b8;R8g8b8a8;`.
     pub fn creator_memory_formats(&self) -> &BTreeSet<MemoryFormat> {
         &self.creator_memory_formats
     }
@@ -244,7 +246,8 @@ impl EditorConfig {
     ///
     /// # Config Key
     ///
-    /// Can be set via `Operations` in configurations. Example: `Operations=Clip;Rotate;`.
+    /// Can be set via `Operations` in configurations. Example:
+    /// `Operations=Clip;Rotate;`.
     pub fn operations(&self) -> &BTreeSet<OperationId> {
         &self.operations
     }

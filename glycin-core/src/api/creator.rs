@@ -18,6 +18,7 @@ use crate::pool::Pool;
 use crate::util::CancellableFuture;
 use crate::{Error, MimeType, Processor, ProcessorContext, SandboxSelector};
 
+/// Builder pattern for creating images
 #[derive(Debug)]
 pub struct Creator {
     mime_type: MimeType,
@@ -33,6 +34,10 @@ pub struct Creator {
 
 static_assertions::assert_impl_all!(Creator: Send, Sync);
 
+/// Error for when processors do not support a feature
+///
+/// This error is not fatal. The builder pattern can still be used, but the
+/// option that returned this error will be ignored.
 #[derive(Debug, Clone)]
 pub struct FeatureNotSupported;
 
@@ -318,6 +323,9 @@ impl Creator {
     }
 }
 
+/// Builder pattern for a new frame
+///
+/// Returned by [`Creator.add_frame()`](`Creator::add_frame`)
 #[derive(Debug)]
 pub struct NewFrame {
     config: EditorConfig,
@@ -397,6 +405,7 @@ impl NewFrame {
     }
 }
 
+/// Result of a [creator](Creator) operation
 #[derive(Debug)]
 pub struct EncodedImage {
     pub(crate) inner: glycin_utils::EncodedImage<FungibleMemory>,

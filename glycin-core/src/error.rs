@@ -13,7 +13,7 @@ use crate::dbus::RemoteProcess;
 use crate::{DBusProxy, FeatureNotSupported, MAX_TEXTURE_SIZE, config};
 
 #[derive(Debug, Clone, Default)]
-pub struct ErrorContext {
+pub(crate) struct ErrorContext {
     stderr: Option<String>,
     stdout: Option<String>,
 }

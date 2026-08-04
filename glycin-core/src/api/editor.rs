@@ -25,7 +25,7 @@ use crate::pool::PooledProcess;
 use crate::util::{self, CancellableFuture, ShortcutErrorFuture};
 use crate::{Error, MimeType, Pool, config};
 
-/// Image edit builder
+/// Builder pattern for editing images
 #[derive(Debug)]
 pub struct Editor {
     source: Source,
@@ -194,6 +194,9 @@ impl Editor {
     }
 }
 
+/// Image handle on which editing operations can be applied
+///
+/// Obtained via [`Editor.edit()`](Editor::edit).
 #[derive(Debug)]
 pub struct EditableImage {
     pub(crate) editor: Editor,
@@ -380,7 +383,7 @@ impl std::fmt::Debug for ImageEditorBuiltin {
 }
 
 #[derive(Debug)]
-/// An image change that is potentially sparse.
+/// Potentially sparse result of an [editor](Editor) operation
 ///
 /// See also: [`EditableImage::apply_sparse()`]
 pub enum SparseEdit {
@@ -392,6 +395,7 @@ pub enum SparseEdit {
     Complete(FungibleMemory),
 }
 
+/// Result of an [editor](Editor) operation
 #[derive(Debug)]
 pub struct Edit {
     inner: CompleteEditorOutput<FungibleMemory>,

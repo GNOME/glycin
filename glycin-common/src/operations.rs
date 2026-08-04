@@ -5,6 +5,7 @@ use gufo_common::orientation::{Orientation, Rotation};
 use serde::de::{IntoDeserializer, value};
 use serde::{Deserialize, Deserializer, Serialize};
 
+/// Image editing operation
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[non_exhaustive]
 pub enum Operation {
@@ -15,6 +16,9 @@ pub enum Operation {
     Rotate(gufo_common::orientation::Rotation),
 }
 
+/// Image editing operation id
+///
+/// The id only gives an abstract name for an operation. It is lacking the parameters of an actuial [`Operation`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, PartialOrd, Ord)]
 #[non_exhaustive]
 pub enum OperationId {
@@ -24,6 +28,7 @@ pub enum OperationId {
     Rotate,
 }
 
+/// Set of ordered image editing operations
 #[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
 #[serde(from = "OperationsIntermediate")]
 pub struct Operations {
