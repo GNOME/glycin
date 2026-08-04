@@ -299,8 +299,8 @@ fn color_encoding_to_cicp(c: JxlColorEncoding) -> Option<Cicp> {
         JxlTransferFunction::Linear => TransferCharacteristics::Linear,
         JxlTransferFunction::HLG => TransferCharacteristics::Hlg,
         JxlTransferFunction::PQ => TransferCharacteristics::Pq,
-        JxlTransferFunction::SRGB => TransferCharacteristics::Gamma24,
-        JxlTransferFunction::BT709 => TransferCharacteristics::Gamma22,
+        JxlTransferFunction::SRGB => TransferCharacteristics::Srgb,
+        JxlTransferFunction::BT709 => TransferCharacteristics::Bt709,
         JxlTransferFunction::DCI => TransferCharacteristics::Dci,
         _ => {
             return None;
