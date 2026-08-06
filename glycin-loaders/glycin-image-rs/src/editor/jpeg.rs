@@ -139,6 +139,11 @@ fn apply_non_sparse<B: ByteData>(
 
     // Find out what the used color encoding/model is
     let mut decoder = zune_jpeg::JpegDecoder::new(Cursor::new(&mut buf));
+    let options = zune_core::options::DecoderOptions::new_fast()
+        .set_max_width(usize::MAX)
+        .set_max_height(usize::MAX);
+    decoder.set_options(options);
+
     decoder.decode_headers().expected_error()?;
     let colorspace = decoder.input_colorspace().expected_error()?;
     drop(decoder);
