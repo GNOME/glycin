@@ -63,7 +63,8 @@ impl EditorImplementation for ImgEditor {
             MemoryFormat::R8g8b8 | MemoryFormat::R8g8b8a8
         ) {
             return Err(ProcessError::expected(&format!(
-                "Unsupported memory format"
+                "Unsupported memory format: {:?}",
+                frame.memory_format
             )));
         }
 

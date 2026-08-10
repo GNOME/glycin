@@ -946,10 +946,7 @@ impl FrameDetails {
     }
 
     pub fn color_profile_preference(&self) -> ColorProfilePreference {
-        self.inner
-            .color_profile_preference
-            .clone()
-            .unwrap_or_default()
+        self.inner.color_profile_preference.unwrap_or_default()
     }
 
     pub fn info_alpha_channel(&self) -> Option<bool> {

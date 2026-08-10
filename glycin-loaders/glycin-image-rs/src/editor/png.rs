@@ -130,9 +130,9 @@ fn reset_exif_orientation(mut png: gufo::png::Png) -> Result<Vec<u8>, glycin_uti
 
     let mut byte_updates = Vec::new();
 
-    let mut chunks = png.chunks().into_iter();
+    let chunks = png.chunks().into_iter();
 
-    while let Some(chunk) = chunks.next() {
+    for chunk in chunks {
         if matches!(chunk.chunk_type(), gufo::png::ChunkType::eXIf) {
             let exif_data = chunk.chunk_data().to_vec();
             if let Some(tag_position) = exif_orientation_value_position(exif_data) {

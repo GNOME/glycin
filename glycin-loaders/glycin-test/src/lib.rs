@@ -1,4 +1,5 @@
 use std::io::Cursor;
+use std::time::Duration;
 
 use glycin_utils::*;
 
@@ -40,7 +41,7 @@ fn handle_instructions<B: ByteData>(
 
     match instructions[0].as_str() {
         "panic" => panic!("Ordered to panic"),
-        "infinte-loop" => loop {},
+        "infinte-loop" => std::thread::sleep(Duration::MAX),
         "alloc" => {
             B::new(instructions[1].parse().unwrap()).expected_error()?;
         }
@@ -72,7 +73,9 @@ impl LoaderImplementation for ImgDecoder {
             "panic-next-step" => panic!("Requested frame panic"),
             "infinte-loop-next-step" => {
                 eprintln!("Entering infinte loop as requested");
-                loop {}
+                loop {
+                    std::thread::sleep(Duration::MAX)
+                }
             }
             "half-with-icc-profile" => {
                 let mut frame = Frame::new(

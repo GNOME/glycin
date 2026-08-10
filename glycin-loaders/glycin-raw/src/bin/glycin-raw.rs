@@ -52,7 +52,7 @@ impl LoaderImplementation for ImgDecoder {
         let w = rawimage.width();
         let h = rawimage.height();
         let xmp = rawfile
-            .metadata_value(&"Exif.Image.ApplicationNotes".to_string())
+            .metadata_value("Exif.Image.ApplicationNotes")
             .and_then(|value| {
                 if let Value::Bytes(xmp) = value {
                     Some(xmp)

@@ -384,7 +384,7 @@ impl MemoryFormat {
         }
     }
 
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn try_from_str(s: &str) -> Option<Self> {
         Some(match s {
             "B8g8r8a8Premultiplied" => Self::B8g8r8a8Premultiplied,
             "A8r8g8b8Premultiplied" => Self::A8r8g8b8Premultiplied,

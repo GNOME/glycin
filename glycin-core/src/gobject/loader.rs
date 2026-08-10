@@ -10,8 +10,7 @@ use glycin_common::MemoryFormatSelection;
 use super::{GlyImage, init};
 use crate::error::ErrorKind;
 use crate::main_context::ProvidesMainContext;
-use crate::util;
-use crate::{Loader, SandboxSelector};
+use crate::{Loader, SandboxSelector, util};
 
 static_assertions::assert_impl_all!(GlyLoader: Send, Sync);
 

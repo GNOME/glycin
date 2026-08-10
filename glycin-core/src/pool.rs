@@ -64,7 +64,8 @@ impl<P: DBusProxy> PooledProcess<P> {
 
 /// Configuration and set of processor processes
 ///
-/// Pools store a configuration based on which processor processes are spawned. Pool can retain spawned processed for later use based on the configuration.
+/// Pools store a configuration based on which processor processes are spawned.
+/// Pool can retain spawned processed for later use based on the configuration.
 #[derive(Debug, Default)]
 pub struct Pool {
     loaders: AsyncMutex<
@@ -98,7 +99,8 @@ impl PoolConfig {
         Self::default()
     }
 
-    /// Maximum of operations one process will be tasked with. The default value is [`usize::MAX`].
+    /// Maximum of operations one process will be tasked with. The default value
+    /// is [`usize::MAX`].
     pub fn max_parallel_operations(mut self, max_parallel_operations: usize) -> Self {
         if max_parallel_operations == 0 {
             self.max_parallel_operations = usize::MAX;
@@ -108,7 +110,8 @@ impl PoolConfig {
         self
     }
 
-    /// Time after last use after which a processor process will be terminated. The default value is 30 seconds.
+    /// Time after last use after which a processor process will be terminated.
+    /// The default value is 30 seconds.
     pub fn retention_time(mut self, retention_time: Duration) -> Self {
         self.loader_retention_time = retention_time;
         self

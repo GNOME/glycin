@@ -202,16 +202,9 @@ impl LoaderImplementation for ImgDecoder {
         let height = thread.height;
 
         let total_size = frame_request.scale.unwrap_or((width, height));
-        let area = if let Some(clip) = frame_request.clip {
-            Some(rsvg::Rectangle::new(
-                clip.0.into(),
-                clip.1.into(),
-                clip.2.into(),
-                clip.3.into(),
-            ))
-        } else {
-            None
-        };
+        let area = frame_request.clip.map(|clip| {
+            rsvg::Rectangle::new(clip.0.into(), clip.1.into(), clip.2.into(), clip.3.into())
+        });
 
         let instr = Instruction { total_size, area };
 
@@ -219,7 +212,7 @@ impl LoaderImplementation for ImgDecoder {
 
         let frame = thread.frame_recv.recv().unwrap().expected_error()?;
 
-        Ok(frame.into_other().internal_error()?)
+        frame.into_other().internal_error()
     }
 }
 

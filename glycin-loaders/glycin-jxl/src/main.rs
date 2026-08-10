@@ -34,19 +34,23 @@ impl LoaderImplementation for ImgDecoder {
     ) -> Result<(Self, ImageDetails<B>), ProcessError> {
         let mut data = Vec::new();
         stream.read_to_end(&mut data).expected_error()?;
-        let (info, icc_profile, exif, cicp) = basic_info(&data);
+        let basic_info = basic_info(&data);
 
-        let info = info.expected_error()?;
+        let info = basic_info.info.expected_error()?;
 
         let mut image_info = ImageDetails::new(info.xsize, info.ysize);
         image_info.info_format_name = Some(String::from("JPEG XL"));
-        image_info.metadata_exif = exif.map(B::try_from_vec).transpose().expected_error()?;
+        image_info.metadata_exif = basic_info
+            .exif
+            .map(B::try_from_vec)
+            .transpose()
+            .expected_error()?;
         image_info.transformation_ignore_exif = true;
 
         let loader_implementation = ImgDecoder {
             data,
-            icc_profile,
-            cicp,
+            icc_profile: basic_info.icc_profile,
+            cicp: basic_info.cicp,
         };
 
         Ok((loader_implementation, image_info))
@@ -86,9 +90,8 @@ impl LoaderImplementation for ImgDecoder {
             jpegxl_rs::decode::Pixels::Float16(data) => {
                 bits = 16;
                 f16_bytes = data
-                    .into_iter()
-                    .map(|x| x.to_le_bytes())
-                    .flatten()
+                    .iter()
+                    .flat_map(|x| x.to_le_bytes())
                     .collect::<Vec<u8>>();
                 bytes = f16_bytes.as_bytes();
 
@@ -156,14 +159,14 @@ impl LoaderImplementation for ImgDecoder {
     }
 }
 
-fn basic_info(
-    data: &[u8],
-) -> (
-    Option<JxlBasicInfo>,
-    Option<Vec<u8>>,
-    Option<Vec<u8>>,
-    Option<Cicp>,
-) {
+struct BasicInfo {
+    info: Option<JxlBasicInfo>,
+    icc_profile: Option<Vec<u8>>,
+    exif: Option<Vec<u8>>,
+    cicp: Option<Cicp>,
+}
+
+fn basic_info(data: &[u8]) -> BasicInfo {
     unsafe {
         let decoder = JxlDecoderCreate(std::ptr::null());
 
@@ -253,10 +256,10 @@ fn basic_info(
                         exif_buf.push(buf.clone());
                     }
 
-                    if remaining > 0 {
-                        if let Some(last) = exif_buf.last_mut() {
-                            last.resize(last.len() - remaining, 0);
-                        }
+                    if remaining > 0
+                        && let Some(last) = exif_buf.last_mut()
+                    {
+                        last.resize(last.len() - remaining, 0);
                     }
 
                     let exif_data = exif_buf.concat();
@@ -275,7 +278,12 @@ fn basic_info(
 
         JxlDecoderDestroy(decoder);
 
-        (basic_info, icc_profile, exif, cicp)
+        BasicInfo {
+            info: basic_info,
+            icc_profile,
+            exif,
+            cicp,
+        }
     }
 }
 

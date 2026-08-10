@@ -564,7 +564,7 @@ impl Config {
                     .unwrap_or_default()
                     .into_iter()
                     .flat_map(|x| {
-                        let f = MemoryFormat::from_str(&x);
+                        let f = MemoryFormat::try_from_str(&x);
                         if f.is_none() {
                             tracing::warn!("Unknown memory format '{x}' found in {mime_type}")
                         }

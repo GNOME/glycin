@@ -18,7 +18,8 @@ pub enum Operation {
 
 /// Image editing operation id
 ///
-/// The id only gives an abstract name for an operation. It is lacking the parameters of an actuial [`Operation`].
+/// The id only gives an abstract name for an operation. It is lacking the
+/// parameters of an actuial [`Operation`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, PartialOrd, Ord)]
 #[non_exhaustive]
 pub enum OperationId {
