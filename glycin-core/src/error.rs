@@ -1,4 +1,3 @@
-use std::any::Any;
 use std::fmt::Display;
 use std::process::ExitStatus;
 use std::sync::Arc;
@@ -131,10 +130,16 @@ impl Error {
     }
 
     pub fn is_panic(&self) -> bool {
-        matches!(
+        #[cfg(feature = "builtin")]
+        let result = matches!(
             *self.kind,
             ErrorKind::ThreadPanic(_) | ErrorKind::RemoteError(RemoteError::Panic)
-        )
+        );
+
+        #[cfg(not(feature = "builtin"))]
+        let result = matches!(*self.kind, ErrorKind::RemoteError(RemoteError::Panic));
+
+        result
     }
 
     pub fn is_cancelled(&self) -> bool {
@@ -224,6 +229,7 @@ pub(crate) enum ErrorKind {
     MemoryAllocationError(String),
     #[error("GLib thread failed: {0}")]
     JoinError(String),
+    #[cfg(feature = "builtin")]
     #[error("Thread panic: {0:?}")]
     ThreadPanic(Option<String>),
     #[error("Feature not supported: {0}")]
@@ -241,7 +247,8 @@ impl ErrorKind {
         Error::from_kind(self)
     }
 
-    pub fn panic(any: Box<dyn Any>) -> ErrorKind {
+    #[cfg(feature = "builtin")]
+    pub fn panic(any: Box<dyn std::any::Any>) -> ErrorKind {
         let s = any
             .downcast_ref::<&str>()
             .map(|x| x.to_string())

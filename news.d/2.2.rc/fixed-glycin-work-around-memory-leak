@@ -1,0 +1,1 @@
+Work around memory leak in gtk-rs <https://github.com/gtk-rs/gtk-rs-core/issues/2011> #314

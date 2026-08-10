@@ -206,14 +206,6 @@ async fn flatpak_devel() -> Option<bool> {
     Some(flatpak_builder && name.ends_with("Devel"))
 }
 
-pub async fn spawn_blocking<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(
-    f: F,
-) -> Result<T, crate::Error> {
-    gio::spawn_blocking(f)
-        .await
-        .map_err(|e| ErrorKind::panic(e).err())
-}
-
 #[cfg(feature = "async-io")]
 pub use async_io_utils::*;
 #[cfg(feature = "tokio")]
@@ -222,6 +214,17 @@ pub use tokio_utils::*;
 #[cfg(feature = "async-io")]
 mod async_io_utils {
     use super::*;
+
+    pub async fn spawn_blocking<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(
+        f: F,
+    ) -> Result<T, crate::Error> {
+        Ok(blocking::unblock(f).await)
+    }
+
+    #[cfg(feature = "gobject")]
+    pub fn block_on<F: Future>(f: F) -> F::Output {
+        async_io::block_on(f)
+    }
 
     #[cfg(feature = "external")]
     pub type Task<T> = async_task::Task<T>;
@@ -284,6 +287,19 @@ mod async_io_utils {
 #[cfg(feature = "tokio")]
 mod tokio_utils {
     use super::*;
+
+    pub async fn spawn_blocking<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(
+        f: F,
+    ) -> Result<T, crate::Error> {
+        tokio::task::spawn_blocking(f)
+            .await
+            .map_err(|x| crate::Error::other(&x.to_string()))
+    }
+
+    #[cfg(feature = "gobject")]
+    pub fn block_on<F: Future>(f: F) -> F::Output {
+        tokio::runtime::Runtime::new().unwrap().block_on(f)
+    }
 
     #[cfg(feature = "external")]
     pub type Task<T> = tokio::task::JoinHandle<T>;
