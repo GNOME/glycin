@@ -19,6 +19,8 @@ Other rust crates:
 - [glycin-utils](https://docs.rs/glycin-utils/) – Utilities to write loaders for glycin
 - [glycin-common](https://docs.rs/glycin-common/) – Components shared between the glycin-utils and glycin crates.
 
+Libglycin, glycin-loaders, and glycin-thumbnailer are released as [tarballs](https://download.gnome.org/sources/glycin/) and use the same synced version. The rust crates are available from [crates.io](https://crates.io/search?q=glycin) and use versions that are not in sync with the other versions. You can check the [NEWS](NEWS) file to see which versions were part of a specific release.
+
 ## Usage and Packaging
 
 The Rust client library is available as [glycin on crates.io](https://docs.rs/glycin/). For other programming languages, the libglycin C client library can be used. For the client libraries to work on Linux, **loader binaries must also be installed**. The loader binaries provided by the glycin project cover a lot of common image formats (see below). Both, the loader binaries and libglycin can be built from the released [glycin tarballs](https://download.gnome.org/sources/glycin/). By using `-Dglycin-thumbnailer=false`, `-Dglycin-loaders=false`, `-Dlibglycin=false`, or `-Dlibglycin-gtk4=false` it is possible to build only specific components. In distributions, the loaders are usually packaged as *glycin-loaders*, and libglycin as *libglycin-2*. However, each loader binary could be also packaged as its own package.
