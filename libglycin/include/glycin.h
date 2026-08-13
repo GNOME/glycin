@@ -648,11 +648,11 @@ uint16_t gly_image_get_transformation_orientation(GlyImage *image);
 
 /**
  * GlyMemoryFormat:
- * @GLY_MEMORY_B8G8R8A8_PREMULTIPLIED: 8-bit RGRA premultiplied
+ * @GLY_MEMORY_B8G8R8A8_PREMULTIPLIED: 8-bit BGRA premultiplied
  * @GLY_MEMORY_A8R8G8B8_PREMULTIPLIED: 8-bit ARGB premultiplied
  * @GLY_MEMORY_R8G8B8A8_PREMULTIPLIED: 8-bit RGBA premultiplied
- * @GLY_MEMORY_B8G8R8A8: 8-bit RGBA
- * @GLY_MEMORY_A8R8G8B8: 8-bit AGBR
+ * @GLY_MEMORY_B8G8R8A8: 8-bit BGRA
+ * @GLY_MEMORY_A8R8G8B8: 8-bit ARGB
  * @GLY_MEMORY_R8G8B8A8: 8-bit RGBA
  * @GLY_MEMORY_A8B8G8R8: 8-bit ABGR
  * @GLY_MEMORY_R8G8B8: 8-bit RGB
