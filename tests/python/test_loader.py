@@ -1,12 +1,22 @@
-import gi
 import os
 import resource
+
+import gi
 import pytest
 
 gi.require_version("Gly", "2")
 gi.require_version("GlyGtk4", "2")
 
 from gi.repository import Gly, GlyGtk4, Gio, GLib, Gdk
+
+
+def helper_image_path(path):
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(current_dir, "../test-images", path)
+
+
+def helper_image_file(path):
+    return Gio.File.new_for_path(helper_image_path(path))
 
 
 @pytest.mark.skipif(
@@ -16,10 +26,7 @@ from gi.repository import Gly, GlyGtk4, Gio, GLib, Gdk
 def test_check_fd_leaks():
     resource.setrlimit(resource.RLIMIT_NOFILE, (100, 100))
 
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-
-    test_image = os.path.join(current_dir, "../test-images/images/tiny/tiny.png")
-    file = Gio.File.new_for_path(test_image)
+    file = helper_image_file("images/tiny/tiny.png")
 
     for i in range(150):
         loader = Gly.Loader(file=file)
@@ -30,3 +37,16 @@ def test_check_fd_leaks():
         image = loader.load()
         frame = image.next_frame()
         assert frame is not None
+
+
+def test_cancellable():
+    file = helper_image_file("images/color/color.jpg")
+
+    loader = Gly.Loader(file=file)
+    image = loader.load()
+    cancellable = Gio.Cancellable()
+
+    image.next_frame_async(cancellable, lambda x: x)
+    # This panicked in the past.
+    # See <https://gitlab.gnome.org/GNOME/glycin/-/merge_requests/442>
+    cancellable.cancel()
