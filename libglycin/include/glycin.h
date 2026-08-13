@@ -672,7 +672,9 @@ uint16_t gly_image_get_transformation_orientation(GlyImage *image);
  * @GLY_MEMORY_G16A16: 16-bit gray with alpha
  * @GLY_MEMORY_G16: 16-bit gray
  *
- * Memory format
+ * Describes the formats the image data can have. Orderings like "RGB" are
+ * independent of the systems endianness. Single channels like "R16" follow
+ * the endianness of the system.
  *
  * Since: 2.0
  */
