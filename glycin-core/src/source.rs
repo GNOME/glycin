@@ -15,38 +15,59 @@ pub struct SourceTransmission {
     file: Option<gio::File>,
     input_stream: gio::InputStream,
     first_bytes: Vec<u8>,
+    sync: bool,
 }
 
 impl SourceTransmission {
-    pub async fn init(source: Source) -> Result<SourceTransmission, Error> {
+    pub async fn init(source: Source, sync: bool) -> Result<SourceTransmission, Error> {
         tracing::trace!("Opening source");
 
-        let input_stream = source.to_stream().await?;
-        let buf = vec![0; BUF_SIZE];
+        let input_stream = source.to_stream(sync).await?;
+
+        let mut source_transmission = Self {
+            file: source.file(),
+            input_stream,
+            first_bytes: vec![],
+            sync,
+        };
 
         tracing::trace!("Read first {BUF_SIZE} bytes");
 
-        let (buf, n) = input_stream
-            .read_future(buf, glib::Priority::DEFAULT)
-            .await
-            .map_err(|(_, err)| ErrorKind::ImageSource(err).err())?;
+        let buf = vec![0; BUF_SIZE];
+        let (buf, n) = source_transmission.read_sync_aware(buf).await?;
 
-        let first_bytes = buf
+        source_transmission.first_bytes = buf
             .get(..n)
             .ok_or_else(|| ErrorKind::unreachable().err())?
             .to_vec();
 
-        Ok(Self {
-            file: source.file(),
-            input_stream,
-            first_bytes,
-        })
+        Ok(source_transmission)
+    }
+
+    pub async fn read_sync_aware<'a>(
+        &self,
+        mut buffer: Vec<u8>,
+    ) -> Result<(Vec<u8>, usize), Error> {
+        if self.sync {
+            self.input_stream
+                .read(&mut buffer, gio::Cancellable::NONE)
+                .map(|x| (buffer, x))
+                .map_err(|err| ErrorKind::ImageSource(err).err())
+        } else {
+            self.input_stream
+                .read_future(buffer, glib::Priority::DEFAULT)
+                .await
+                .map_err(|(_, err)| ErrorKind::ImageSource(err).err())
+        }
     }
 
     #[cfg(feature = "external")]
-    async fn spawn_with_stream(self, stream: gio_unix::OutputStream) -> Result<(), Error> {
+    async fn spawn_with_stream(mut self, stream: gio_unix::OutputStream) -> Result<(), Error> {
         let res = stream
-            .write_all_future(self.first_bytes, glib::Priority::DEFAULT)
+            .write_all_future(
+                std::mem::take(&mut self.first_bytes),
+                glib::Priority::DEFAULT,
+            )
             .await;
 
         match res {
@@ -58,11 +79,7 @@ impl SourceTransmission {
         loop {
             let buf = vec![0; BUF_SIZE];
 
-            let (buf, n) = self
-                .input_stream
-                .read_future(buf, glib::Priority::DEFAULT)
-                .await
-                .map_err(|(_, err)| ErrorKind::ImageSource(err).err())?;
+            let (buf, n) = self.read_sync_aware(buf).await?;
             if n == 0 {
                 return Ok(());
             }
@@ -111,11 +128,7 @@ impl SourceTransmission {
         loop {
             let buf = vec![0; BUF_SIZE];
 
-            let (buf, n) = self
-                .input_stream
-                .read_future(buf, glib::Priority::DEFAULT)
-                .await
-                .map_err(|(_, err)| ErrorKind::ImageSource(err).err())?;
+            let (buf, n) = self.read_sync_aware(buf).await?;
             if n == 0 {
                 return Ok(());
             }

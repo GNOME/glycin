@@ -80,20 +80,32 @@ impl Editor {
     }
 
     pub fn edit(self) -> Pin<Box<dyn Future<Output = Result<EditableImage, Error>> + Send>> {
+        self.edit_with_sync(false)
+    }
+
+    /// Same as [`Self::edit`] but with sync option
+    ///
+    /// See [`Loader::load_with_sync`] for details about the sync option.
+    fn edit_with_sync(
+        self,
+        sync: bool,
+    ) -> Pin<Box<dyn Future<Output = Result<EditableImage, Error>> + Send>> {
         Box::pin(async move {
             let main_context = self.main_context();
             let cancellable = self.cancellable.clone();
 
-            let f = || async move { self.edit_internal().await }.make_cancellable(cancellable);
+            let f =
+                move || async move { self.edit_internal(sync).await }.make_cancellable(cancellable);
 
             main_context.spawn_from_within(f).await?
         })
     }
 
-    async fn edit_internal(mut self) -> Result<EditableImage, Error> {
+    async fn edit_internal(mut self, sync: bool) -> Result<EditableImage, Error> {
         let source: Source = self.source.send();
 
-        let editor_context = ProcessorContext::new(source, false, &self.sandbox_selector).await?;
+        let editor_context =
+            ProcessorContext::new(source, false, &self.sandbox_selector, sync).await?;
 
         let editor = editor_context
             .editor(self.pool.clone(), &self.cancellable)

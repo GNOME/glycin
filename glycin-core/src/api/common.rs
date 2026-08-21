@@ -125,13 +125,17 @@ impl Source {
         }
     }
 
-    pub async fn to_stream(&self) -> Result<gio::InputStream, Error> {
+    pub async fn to_stream(&self, sync: bool) -> Result<gio::InputStream, Error> {
         match self {
-            Self::File(file) => file
-                .read_future(glib::Priority::DEFAULT)
-                .await
-                .map(|x| x.upcast())
-                .map_err(|e| ErrorKind::ImageSource(e).err()),
+            Self::File(file) => {
+                let read = if sync {
+                    file.read(gio::Cancellable::NONE)
+                } else {
+                    file.read_future(glib::Priority::DEFAULT).await
+                };
+                read.map(|x| x.upcast())
+                    .map_err(|e| ErrorKind::ImageSource(e).err())
+            }
             Self::Stream(stream) => Ok(stream.0.clone()),
             Self::TransferredStream => Err(ErrorKind::TransferredStream.into()),
         }
@@ -225,10 +229,11 @@ impl<T: GetConfig + Clone> ProcessorContext<T, SourceTransmission> {
         source: Source,
         use_expose_base_dir: bool,
         sandbox_selector: &SandboxSelector,
+        sync: bool,
     ) -> Result<ProcessorContext<T, SourceTransmission>, Error> {
         let file = source.file();
 
-        let source_transmission = SourceTransmission::init(source).await?;
+        let source_transmission = SourceTransmission::init(source, sync).await?;
         let config = config::Config::cached().await;
 
         let mime_type = T::guess_mime_type(

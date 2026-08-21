@@ -164,8 +164,23 @@ impl Loader {
     }
 
     /// Load basic image information and enable further operations
-    pub fn load(mut self) -> Pin<Box<dyn Future<Output = Result<Image, Error>> + Send>> {
-        Box::pin(async {
+    pub fn load(self) -> Pin<Box<dyn Future<Output = Result<Image, Error>> + Send>> {
+        self.load_with_sync(false)
+    }
+
+    /// Same as [`load`](Self::load) but with sync option
+    ///
+    /// Setting `sync` to true will use sync variants of the Gio.File API.
+    /// Otherwise, the async Gio.File function might make no progress since some
+    /// libglycin consumers block all GTasks with sync operations, also
+    /// blocking the internal GIO thread pools for IO.
+    ///
+    /// See <https://gitlab.gnome.org/GNOME/glib/-/work_items/4034>.
+    pub(crate) fn load_with_sync(
+        mut self,
+        sync: bool,
+    ) -> Pin<Box<dyn Future<Output = Result<Image, Error>> + Send>> {
+        Box::pin(async move {
             tracing::debug!(image = self.source.display(), "Loading image");
 
             let source = self.source.send();
@@ -174,7 +189,7 @@ impl Loader {
             let timeout = self.limits.inner.timeout;
 
             let f = move || {
-                async move { self.load_internal(source).await }
+                async move { self.load_internal(source, sync).await }
                     .make_cancellable(cancellable)
                     .enforce_timeout(timeout)
             };
@@ -183,9 +198,14 @@ impl Loader {
         })
     }
 
-    async fn load_internal(self, source: Source) -> Result<Image, Error> {
-        let loader_context =
-            ProcessorContext::new(source, self.use_expose_base_dir, &self.sandbox_selector).await?;
+    async fn load_internal(self, source: Source, sync: bool) -> Result<Image, Error> {
+        let loader_context = ProcessorContext::new(
+            source,
+            self.use_expose_base_dir,
+            &self.sandbox_selector,
+            sync,
+        )
+        .await?;
 
         let loader = loader_context
             .loader(self.pool.clone(), &self.cancellable)

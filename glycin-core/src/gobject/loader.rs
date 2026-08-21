@@ -177,7 +177,7 @@ impl GlyLoader {
             };
 
             loader.main_context_selector(crate::MainContextSelector::Managed);
-            let image = loader.load().await?;
+            let image = loader.load_with_sync(true).await?;
 
             Ok(GlyImage::new(image))
         })
