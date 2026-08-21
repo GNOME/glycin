@@ -125,18 +125,18 @@ test-i386:
     - meson install -C builddir
     - meson test -vC builddir
 
-# Disabled since there is no runner available anymore
-# test-aarch64:
-#   image: rust:1.93-trixie
-#   tags:
-#     - asan-aarch64
-#   extends: .install_dependencies
-#   interruptible: true
-#   script:
-#     - export LD_LIBRARY_PATH=/usr/local/lib/aarch64-linux-gnu/
-#     - meson setup -Dprofile=dev -Dpython_tests=true -Dtest_skip_install=true --prefix=/usr -Dloaders=glycin-heif,glycin-image-rs,glycin-jxl,glycin-raw,glycin-svg,glycin-test builddir
-#     - meson install -C builddir
-#     - meson test -vC builddir
+test-aarch64:
+  image: rust:1.93-trixie
+  tags:
+    # Required since other configuration don't allow apt-get
+    - asan-aarch64
+  extends: .install_dependencies
+  interruptible: true
+  script:
+    - export LD_LIBRARY_PATH=/usr/local/lib/aarch64-linux-gnu/
+    - meson setup -Dprofile=dev -Dpython_tests=true -Dtest_skip_install=true --prefix=/usr -Dloaders=glycin-heif,glycin-image-rs,glycin-jxl,glycin-raw,glycin-svg,glycin-test builddir
+    - meson install -C builddir
+    - meson test -vC builddir
 
 test-fedora43-loaders:
   image: 'registry.fedoraproject.org/fedora:43'
