@@ -250,7 +250,7 @@ checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 
 [[package]]
 name = "benches"
-version = "2.2.0-beta"
+version = "2.2.0-beta.1"
 dependencies = [
  "async-io",
  "criterion",
@@ -1112,7 +1112,7 @@ dependencies = [
 
 [[package]]
 name = "glycin"
-version = "4.0.0-beta"
+version = "4.0.0-beta.1"
 dependencies = [
  "glycin-builtin",
  "glycin-external",
@@ -1120,7 +1120,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-builtin"
-version = "4.0.0-beta"
+version = "4.0.0-beta.1"
 dependencies = [
  "glycin-core",
 ]
@@ -1145,7 +1145,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-core"
-version = "4.0.0-beta"
+version = "4.0.0-beta.1"
 dependencies = [
  "async-fs",
  "async-global-executor",
@@ -1186,7 +1186,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-dev-tools"
-version = "2.2.0-beta"
+version = "2.2.0-beta.1"
 dependencies = [
  "async-io",
  "gdk4",
@@ -1199,14 +1199,14 @@ dependencies = [
 
 [[package]]
 name = "glycin-external"
-version = "4.0.0-beta"
+version = "4.0.0-beta.1"
 dependencies = [
  "glycin-core",
 ]
 
 [[package]]
 name = "glycin-heif"
-version = "2.2.0-beta"
+version = "2.2.0-beta.1"
 dependencies = [
  "four-cc",
  "glycin-common",
@@ -1219,7 +1219,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-image-rs"
-version = "2.2.0-beta"
+version = "2.2.0-beta.1"
 dependencies = [
  "bytemuck",
  "exr",
@@ -1240,7 +1240,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-jxl"
-version = "2.2.0-beta"
+version = "2.2.0-beta.1"
 dependencies = [
  "glycin-common",
  "glycin-utils",
@@ -1252,7 +1252,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-raw"
-version = "2.2.0-beta"
+version = "2.2.0-beta.1"
 dependencies = [
  "glycin-utils",
  "gufo-common",
@@ -1261,7 +1261,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-svg"
-version = "2.2.0-beta"
+version = "2.2.0-beta.1"
 dependencies = [
  "cairo-rs",
  "gio",
@@ -1274,7 +1274,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-test"
-version = "2.2.0-beta"
+version = "2.2.0-beta.1"
 dependencies = [
  "glycin-utils",
  "moxcms",
@@ -1282,7 +1282,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-thumbnailer"
-version = "2.2.0-beta"
+version = "2.2.0-beta.1"
 dependencies = [
  "gio",
  "image",
@@ -1706,7 +1706,7 @@ checksum = "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
 
 [[package]]
 name = "libglycin"
-version = "2.2.0-beta"
+version = "2.2.0-beta.1"
 dependencies = [
  "async-global-executor",
  "futures-task",
@@ -1719,7 +1719,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4"
-version = "2.2.0-beta"
+version = "2.2.0-beta.1"
 dependencies = [
  "gdk4",
  "glycin",
@@ -2779,7 +2779,7 @@ dependencies = [
 
 [[package]]
 name = "tests"
-version = "2.2.0-beta"
+version = "2.2.0-beta.1"
 dependencies = [
  "async-io",
  "blocking",
