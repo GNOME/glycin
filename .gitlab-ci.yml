@@ -29,7 +29,11 @@ variables:
         dpkg --add-architecture $CUSTOM_ARCH
       fi
     - apt-get update
-    - apt-get install -y git curl meson gcc gcc-multilib pkg-config gi-docgen valac gobject-introspection python3-gi build-essential gettext clang mold bubblewrap
+    - apt-get install -y git curl meson gcc pkg-config gi-docgen valac gobject-introspection python3-gi build-essential gettext clang mold bubblewrap
+    - |
+      if [ -n "$CUSTOM_ARCH" ]; then
+        apt-get install -y gcc-multilib
+      fi
     - apt-get install -y libc6-dev:$CUSTOM_ARCH libgirepository1.0-dev:$CUSTOM_ARCH libseccomp-dev:$CUSTOM_ARCH libfontconfig-dev:$CUSTOM_ARCH libgtk-4-dev:$CUSTOM_ARCH libcairo2-dev:$CUSTOM_ARCH librsvg2-dev:$CUSTOM_ARCH libjxl-dev:$CUSTOM_ARCH
     # We need libfheif 1.20
     - echo "deb http://deb.debian.org/debian forky main" > /etc/apt/sources.list.d/forky.list
@@ -129,18 +133,18 @@ test-i686:
     # Disable tests for now since they fail with pkg-config error
     #- meson test -vC builddir
 
-# Disabled since there is no runner available anymore
-# test-aarch64:
-#   image: rust:1.93-trixie
-#   tags:
-#     - asan-aarch64
-#   extends: .install_dependencies
-#   interruptible: true
-#   script:
-#     - export LD_LIBRARY_PATH=/usr/local/lib/aarch64-linux-gnu/
-#     - meson setup -Dprofile=dev -Dpython_tests=true -Dtest_skip_install=true --prefix=/usr -Dloaders=glycin-heif,glycin-image-rs,glycin-jxl,glycin-raw,glycin-svg,glycin-test builddir
-#     - meson install -C builddir
-#     - meson test -vC builddir
+test-aarch64:
+  image: rust:1.93-trixie
+  tags:
+    # Required since other configuration don't allow apt-get
+    - asan-aarch64
+  extends: .install_dependencies
+  interruptible: true
+  script:
+    - export LD_LIBRARY_PATH=/usr/local/lib/aarch64-linux-gnu/
+    - meson setup -Dprofile=dev -Dpython_tests=true -Dtest_skip_install=true --prefix=/usr -Dloaders=glycin-heif,glycin-image-rs,glycin-jxl,glycin-raw,glycin-svg,glycin-test builddir
+    - meson install -C builddir
+    - meson test -vC builddir
 
 test-fedora43-loaders:
   image: 'registry.fedoraproject.org/fedora:43'
