@@ -1,27 +1,32 @@
-#![allow(clippy::large_enum_variant)]
-
 mod editing;
+mod parallel_runner;
 
 use std::io::Read;
-use std::mem::MaybeUninit;
 
 use glycin_utils::*;
 use gufo_common::cicp::{Cicp, ColorPrimaries, MatrixCoefficients, TransferCharacteristics};
-use jpegxl_sys::color::color_encoding::{
-    JxlColorEncoding, JxlColorSpace, JxlPrimaries, JxlTransferFunction, JxlWhitePoint,
+use jxl::api::states::WithImageInfo;
+use jxl::api::{
+    Endianness, JxlAuxBoxType, JxlBitDepth, JxlColorEncoding, JxlColorProfile, JxlColorType,
+    JxlDataFormat, JxlDecoder, JxlDecoderOptions, JxlExtraChannel, JxlOutputBuffer, JxlPixelFormat,
+    JxlPrimaries, JxlTransferFunction, JxlWhitePoint, ProcessingResult, VisibleFrameInfo,
 };
-use jpegxl_sys::common::types::{JxlBool, JxlBoxType};
-use jpegxl_sys::decode::*;
-use jpegxl_sys::metadata::codestream_header::*;
-use zerocopy::IntoBytes;
+use jxl::headers::extra_channels::ExtraChannel;
 
 use crate::editing::ImgEditor;
+use crate::parallel_runner::RayonParallelRunner;
 
 init_main_loader_editor!(ImgDecoder, ImgEditor);
 
-#[derive(Default)]
 pub struct ImgDecoder {
+    decoder: Option<JxlDecoder<WithImageInfo>>,
+    scanned_frames: Vec<VisibleFrameInfo>,
+    num_loops: usize,
+    current_loop_idx: usize,
+    next_frame: usize,
     data: Vec<u8>,
+    offset: usize,
+    memory_format: MemoryFormat,
     icc_profile: Option<Vec<u8>>,
     cicp: Option<Cicp>,
 }
@@ -34,23 +39,166 @@ impl LoaderImplementation for ImgDecoder {
     ) -> Result<(Self, ImageDetails<B>), ProcessError> {
         let mut data = Vec::new();
         stream.read_to_end(&mut data).expected_error()?;
-        let basic_info = basic_info(&data);
 
-        let info = basic_info.info.expected_error()?;
+        let mut data_slice = &data[..];
+        let mut options = JxlDecoderOptions::default();
+        options.scan_frames_only = true;
+        options.request_aux_boxes = vec![JxlAuxBoxType::EXIF];
+        let decoder = JxlDecoder::new(options);
 
-        let mut image_info = ImageDetails::new(info.xsize, info.ysize);
+        let result = decoder.process(&mut data_slice, None).expected_error()?;
+        let mut decoder = match result {
+            ProcessingResult::Complete { result } => result,
+            ProcessingResult::NeedsMoreInput { .. } => {
+                return Err(ProcessError::expected(&"unexpected end of file"));
+            }
+        };
+
+        let (xsize, ysize) = decoder.basic_info().size;
+        let xsize = u32::try_from(xsize).expected_error()?;
+        let ysize = u32::try_from(ysize).expected_error()?;
+
+        let mut image_info = ImageDetails::new(xsize, ysize);
         image_info.info_format_name = Some(String::from("JPEG XL"));
-        image_info.metadata_exif = basic_info
-            .exif
-            .map(B::try_from_vec)
-            .transpose()
-            .expected_error()?;
         image_info.transformation_ignore_exif = true;
 
+        // Perform a quick frame scan.
+        while decoder.has_more_frames() {
+            let frame_decoder = match decoder.process(&mut data_slice, None).expected_error()? {
+                ProcessingResult::Complete { result } => result,
+                ProcessingResult::NeedsMoreInput { .. } => {
+                    return Err(ProcessError::expected(&"unexpected end of file"));
+                }
+            };
+
+            decoder = match frame_decoder.skip_frame(&mut data_slice).expected_error()? {
+                ProcessingResult::Complete { result } => result,
+                ProcessingResult::NeedsMoreInput { .. } => {
+                    return Err(ProcessError::expected(&"unexpected end of file"));
+                }
+            };
+        }
+
+        // Process trailing data for complete metadata.
+        let decoder = match decoder
+            .process_trailing_data(&mut data_slice)
+            .expected_error()?
+        {
+            ProcessingResult::Complete { result } => result,
+            ProcessingResult::NeedsMoreInput { .. } => {
+                return Err(ProcessError::expected(&"unexpected end of file"));
+            }
+        };
+
+        // Only the first Exif box is valid.
+        let trailing_box_exif = decoder
+            .trailing_box()
+            .filter(|b| b.box_type() == JxlAuxBoxType::EXIF);
+        let exif_buf = decoder
+            .aux_boxes(JxlAuxBoxType::EXIF)
+            .first()
+            .map(|b| b.data(&[]))
+            .or_else(|| trailing_box_exif.map(|b| b.data(data_slice)))
+            .transpose()
+            .expected_error()?;
+        if let Some(exif_buf) = exif_buf {
+            // The buffer needs to be processed for actual Exif metadata. There is no documentation
+            // about this in jxl-rs yet; See
+            // https://libjxl.readthedocs.io/en/stable/api_decoder.html#_CPPv420JxlDecoderGetBoxTypeP10JxlDecoder10JxlBoxType8JXL_BOOL
+            // for how to handle each box type.
+            if exif_buf.len() < 4 {
+                return Err(ProcessError::expected(&"Exif box is too short"));
+            }
+            let offset = u32::from_be_bytes((&exif_buf[..4]).try_into().expected_error()?);
+            let offset = offset as usize + 4;
+            if exif_buf.len() < offset {
+                return Err(ProcessError::expected(
+                    &"TIFF header offset is out of bounds",
+                ));
+            }
+
+            image_info.metadata_exif =
+                Some(B::try_from_slice(&exif_buf[offset..]).expected_error()?);
+        }
+
+        let scanned_frames = decoder.scanned_frames().to_vec();
+        drop(decoder);
+
+        // Prepare another decoder for actual rendering.
+        let decoder = JxlDecoder::new(JxlDecoderOptions::default());
+        let mut data_slice = &data[..];
+
+        let result = decoder.process(&mut data_slice, None).expected_error()?;
+        let mut decoder = match result {
+            ProcessingResult::Complete { result } => result,
+            ProcessingResult::NeedsMoreInput { .. } => {
+                return Err(ProcessError::expected(&"unexpected end of file"));
+            }
+        };
+
+        let is_grayscale = decoder.current_pixel_format().color_type.is_grayscale();
+        let alpha = decoder
+            .basic_info()
+            .extra_channels
+            .iter()
+            .find(|ec| ec.ec_type == ExtraChannel::Alpha);
+        let bit_depth = &decoder.basic_info().bit_depth;
+        let memory_format = memory_format(is_grayscale, bit_depth, alpha);
+
+        // Remap from computed memory format.
+        let color_type = match memory_format.n_channels() {
+            1 => JxlColorType::Grayscale,
+            2 => JxlColorType::GrayscaleAlpha,
+            3 => JxlColorType::Rgb,
+            4 => JxlColorType::Rgba,
+            _ => unreachable!(),
+        };
+        let endianness = Endianness::native();
+        let color_data_format = match memory_format.channel_type() {
+            glycin_common::ChannelType::U8 => JxlDataFormat::U8 { bit_depth: 8 },
+            glycin_common::ChannelType::U16 => JxlDataFormat::U16 {
+                bit_depth: 16,
+                endianness,
+            },
+            glycin_common::ChannelType::F16 => JxlDataFormat::F16 { endianness },
+            glycin_common::ChannelType::F32 => JxlDataFormat::F32 { endianness },
+        };
+        let num_ec = decoder.basic_info().extra_channels.len();
+        let pixel_format = JxlPixelFormat {
+            color_type,
+            color_data_format: Some(color_data_format),
+            extra_channel_format: vec![None; num_ec],
+        };
+
+        // jxl-rs changes its preferred output profile depending on the pixel format.
+        decoder.set_pixel_format(pixel_format).expected_error()?;
+        let profile = decoder.output_color_profile();
+        let iccp = profile.try_as_icc().map(|icc| icc.into_owned());
+        let cicp = if let JxlColorProfile::Simple(c) = profile {
+            color_encoding_to_cicp(c)
+        } else {
+            None
+        };
+
+        let num_loops = decoder
+            .basic_info()
+            .animation
+            .as_ref()
+            .map(|anim| anim.num_loops as usize)
+            .unwrap_or(0);
+
+        let offset = data.len() - data_slice.len();
         let loader_implementation = ImgDecoder {
+            decoder: Some(decoder),
+            scanned_frames,
+            num_loops,
+            current_loop_idx: 0,
+            next_frame: 0,
             data,
-            icc_profile: basic_info.icc_profile,
-            cicp: basic_info.cicp,
+            offset,
+            memory_format,
+            icc_profile: iccp,
+            cicp,
         };
 
         Ok((loader_implementation, image_info))
@@ -58,261 +206,129 @@ impl LoaderImplementation for ImgDecoder {
 
     fn specific_frame<B: glycin_utils::ByteData>(
         &mut self,
-        _frame_request: FrameRequest,
+        frame_request: FrameRequest,
     ) -> Result<Frame<B>, ProcessError> {
-        let runner = jpegxl_rs::parallel::resizable_runner::ResizableRunner::new(None).unwrap();
-        let decoder = jpegxl_rs::decoder_builder()
-            .parallel_runner(&runner)
-            .build()
-            .expected_error()?;
-
-        let (metadata, pixels) = decoder.decode(&self.data).expected_error()?;
-
-        let memory_format;
-        let bytes;
-        let bits;
-        let f16_bytes;
-
-        let alpha_channel = metadata.has_alpha_channel;
-        let grayscale = metadata.num_color_channels == 1;
-
-        match &pixels {
-            jpegxl_rs::decode::Pixels::Float(data) => {
-                bits = 32;
-                bytes = data.as_bytes();
-
-                memory_format = match (metadata.num_color_channels, metadata.has_alpha_channel) {
-                    (3, false) => MemoryFormat::R32g32b32Float,
-                    (3, true) => MemoryFormat::R32g32b32a32Float,
-                    _ => unimplemented!(),
-                };
+        let num_frames = self.scanned_frames.len();
+        let looped = self.next_frame >= num_frames;
+        if looped {
+            if num_frames == 1 || !frame_request.loop_animation {
+                return Err(ProcessError::NoMoreFrames);
             }
-            jpegxl_rs::decode::Pixels::Float16(data) => {
-                bits = 16;
-                f16_bytes = data
-                    .iter()
-                    .flat_map(|x| x.to_le_bytes())
-                    .collect::<Vec<u8>>();
-                bytes = f16_bytes.as_bytes();
 
-                memory_format = match (metadata.num_color_channels, metadata.has_alpha_channel) {
-                    (3, false) => MemoryFormat::R16g16b16Float,
-                    (3, true) => MemoryFormat::R16g16b16a16Float,
-                    _ => unimplemented!(),
-                };
-            }
-            jpegxl_rs::decode::Pixels::Uint16(data) => {
-                bits = 16;
-                bytes = data.as_bytes();
-
-                memory_format = match (metadata.num_color_channels, metadata.has_alpha_channel) {
-                    (3, false) => MemoryFormat::R16g16b16,
-                    (3, true) => MemoryFormat::R16g16b16a16,
-                    (1, false) => MemoryFormat::G16,
-                    (1, true) => MemoryFormat::G16a16,
-                    _ => unimplemented!(),
-                };
-            }
-            jpegxl_rs::decode::Pixels::Uint8(data) => {
-                bits = 8;
-                bytes = data.as_bytes();
-
-                memory_format = match (metadata.num_color_channels, metadata.has_alpha_channel) {
-                    (3, false) => MemoryFormat::R8g8b8,
-                    (3, true) => MemoryFormat::R8g8b8a8,
-                    (1, false) => MemoryFormat::G8,
-                    (1, true) => MemoryFormat::G8a8,
-                    _ => unimplemented!(),
-                };
+            self.next_frame = 0;
+            // Track loop count only when there are finite number of loops.
+            if self.num_loops > 0 {
+                self.current_loop_idx += 1;
             }
         }
 
-        let width = metadata.width;
-        let height = metadata.height;
+        if self.num_loops > 0 && self.current_loop_idx >= self.num_loops {
+            return Err(ProcessError::NoMoreFrames);
+        }
 
-        let texture = B::try_from_slice(bytes).expected_error()?;
+        // Take the decoder out only when all early return condition has been processed.
+        let mut decoder = self.decoder.take().expected_error()?;
+        let (xsize, ysize) = decoder.basic_info().size;
 
-        let mut frame = Frame::new(width, height, memory_format, texture).expected_error()?;
+        let frame_idx = self.next_frame;
+        if looped {
+            let seek_target = self.scanned_frames[frame_idx].seek_target;
+            decoder.start_new_frame(seek_target);
+            self.offset = seek_target.decode_start_file_offset as usize;
+        }
 
+        let mut data_slice = &self.data[self.offset..];
+        let result = decoder
+            .process(&mut data_slice, Some(&mut RayonParallelRunner))
+            .expected_error()?;
+        let frame_decoder = match result {
+            ProcessingResult::Complete { result } => result,
+            ProcessingResult::NeedsMoreInput { .. } => {
+                return Err(ProcessError::expected(&"unexpected end of file"));
+            }
+        };
+
+        let bytes_per_pixel = self.memory_format.n_bytes().usize();
+        let mut raw_buffer = Vec::new();
+        let buffer_size = ysize
+            .checked_mul(xsize)
+            .expected_error()?
+            .checked_mul(bytes_per_pixel)
+            .expected_error()?;
+        raw_buffer.try_reserve(buffer_size).expected_error()?;
+        raw_buffer.resize(buffer_size, 0u8);
+        let duration = frame_decoder.frame_header().duration;
+
+        let mut output_buffer = [JxlOutputBuffer::new(
+            &mut raw_buffer,
+            ysize,
+            xsize * bytes_per_pixel,
+        )];
+        let result = frame_decoder
+            .process(
+                &mut data_slice,
+                &mut output_buffer,
+                Some(&mut RayonParallelRunner),
+            )
+            .expected_error()?;
+        decoder = match result {
+            ProcessingResult::Complete { result } => result,
+            ProcessingResult::NeedsMoreInput { .. } => {
+                return Err(ProcessError::expected(&"unexpected end of file"));
+            }
+        };
+        self.decoder = Some(decoder);
+
+        let texture = B::try_from_vec(raw_buffer).expected_error()?;
+
+        // xsize and ysize are checked to be in u32 range, in `load`.
+        let mut frame =
+            Frame::new(xsize as u32, ysize as u32, self.memory_format, texture).expected_error()?;
         frame.details.color_icc_profile = self
             .icc_profile
             .as_deref()
             .map(B::try_from_slice)
             .transpose()
             .expected_error()?;
-
         frame.details.color_cicp = self.cicp.map(|x| x.to_bytes());
-
-        if bits != 8 {
-            frame.details.info_bit_depth = Some(bits);
+        if let Some(ms) = duration {
+            frame.delay = Some(std::time::Duration::from_secs_f64(ms / 1000.0)).into();
+            frame.details.n_frame = Some(frame_idx as u64);
         }
 
-        if alpha_channel {
-            frame.details.info_alpha_channel = Some(true);
-        }
-
-        if grayscale {
-            frame.details.info_grayscale = Some(true);
-        }
-
+        self.next_frame += 1;
+        self.offset = self.data.len() - data_slice.len();
         Ok(frame)
     }
 }
 
-struct BasicInfo {
-    info: Option<JxlBasicInfo>,
-    icc_profile: Option<Vec<u8>>,
-    exif: Option<Vec<u8>>,
-    cicp: Option<Cicp>,
-}
-
-fn basic_info(data: &[u8]) -> BasicInfo {
-    unsafe {
-        let decoder = JxlDecoderCreate(std::ptr::null());
-
-        JxlDecoderSubscribeEvents(
-            decoder,
-            JxlDecoderStatus::BasicInfo as i32
-                | JxlDecoderStatus::ColorEncoding as i32
-                | JxlDecoderStatus::Box as i32,
-        );
-        JxlDecoderSetDecompressBoxes(decoder, JxlBool::True);
-        JxlDecoderSetInput(decoder, data.as_ptr(), data.len());
-        JxlDecoderCloseInput(decoder);
-
-        let mut basic_info = None;
-        let mut icc_profile = None;
-        let mut exif = None;
-        let mut cicp = None;
-
-        let mut exif_buf = Vec::new();
-        let mut buf = Vec::new();
-
-        loop {
-            let status = JxlDecoderProcessInput(decoder);
-            match status {
-                JxlDecoderStatus::BasicInfo => {
-                    let mut info = MaybeUninit::uninit();
-                    if JxlDecoderGetBasicInfo(decoder, info.as_mut_ptr())
-                        == JxlDecoderStatus::Success
-                    {
-                        basic_info = Some(info.assume_init());
-                    }
-                }
-                JxlDecoderStatus::Box => {
-                    let mut type_ = JxlBoxType([0; 4]);
-                    JxlDecoderGetBoxType(decoder, &mut type_, JxlBool::True);
-
-                    if &type_.0.map(|x| x as u8) == b"Exif" {
-                        buf.resize(65536, 0);
-                        JxlDecoderSetBoxBuffer(decoder, buf.as_mut_ptr(), buf.len());
-                    }
-                }
-                JxlDecoderStatus::BoxNeedMoreOutput => {
-                    let remaining = JxlDecoderReleaseBoxBuffer(decoder);
-                    buf.truncate(buf.len() - remaining);
-                    exif_buf.push(buf.clone());
-
-                    JxlDecoderSetBoxBuffer(decoder, buf.as_mut_ptr(), buf.len());
-                }
-                JxlDecoderStatus::ColorEncoding => {
-                    let mut color_encoding = MaybeUninit::uninit();
-                    let res = JxlDecoderGetColorAsEncodedProfile(
-                        decoder,
-                        JxlColorProfileTarget::Original,
-                        color_encoding.as_mut_ptr(),
-                    );
-
-                    if res == JxlDecoderStatus::Success {
-                        let color_encoding = color_encoding.assume_init();
-                        cicp = color_encoding_to_cicp(color_encoding);
-                    }
-
-                    let mut size = 0;
-                    let mut iccp = Vec::new();
-
-                    if JxlDecoderGetICCProfileSize(decoder, JxlColorProfileTarget::Data, &mut size)
-                        != JxlDecoderStatus::Success
-                    {
-                        break;
-                    }
-
-                    iccp.resize(size, 0);
-
-                    if JxlDecoderGetColorAsICCProfile(
-                        decoder,
-                        JxlColorProfileTarget::Data,
-                        iccp.as_mut_ptr(),
-                        size,
-                    ) == JxlDecoderStatus::Success
-                    {
-                        icc_profile = Some(iccp);
-                    }
-                }
-                JxlDecoderStatus::Success => {
-                    let remaining = JxlDecoderReleaseBoxBuffer(decoder);
-
-                    if !buf.is_empty() {
-                        exif_buf.push(buf.clone());
-                    }
-
-                    if remaining > 0
-                        && let Some(last) = exif_buf.last_mut()
-                    {
-                        last.resize(last.len() - remaining, 0);
-                    }
-
-                    let exif_data = exif_buf.concat();
-                    if exif_data.len() > 4 {
-                        let (_, data) = exif_data.split_at(4);
-                        exif = Some(data.to_vec());
-                    }
-
-                    break;
-                }
-                status => {
-                    eprintln!("Unexpected metadata status: {status:?}")
-                }
-            }
-        }
-
-        JxlDecoderDestroy(decoder);
-
-        BasicInfo {
-            info: basic_info,
-            icc_profile,
-            exif,
-            cicp,
-        }
-    }
-}
-
-fn color_encoding_to_cicp(c: JxlColorEncoding) -> Option<Cicp> {
-    if c.color_space != JxlColorSpace::Rgb {
-        return None;
-    }
-
-    let color_primaries = if c.primaries == JxlPrimaries::P3 && c.white_point == JxlWhitePoint::Dci
-    {
-        ColorPrimaries::DciP3
-    } else if c.primaries == JxlPrimaries::P3 && c.white_point == JxlWhitePoint::D65 {
-        ColorPrimaries::DisplayP3
-    } else if c.primaries == JxlPrimaries::Rec2100 && c.white_point == JxlWhitePoint::D65 {
-        ColorPrimaries::Rec2020
-    } else {
+fn color_encoding_to_cicp(c: &JxlColorEncoding) -> Option<Cicp> {
+    let JxlColorEncoding::RgbColorSpace {
+        white_point,
+        primaries,
+        transfer_function,
+        ..
+    } = c
+    else {
         return None;
     };
 
-    let transfer_characteristics = match c.transfer_function {
+    let color_primaries = match (white_point, primaries) {
+        (JxlWhitePoint::D65, JxlPrimaries::SRGB) => ColorPrimaries::Srgb,
+        (JxlWhitePoint::DCI, JxlPrimaries::P3) => ColorPrimaries::DciP3,
+        (JxlWhitePoint::D65, JxlPrimaries::P3) => ColorPrimaries::DisplayP3,
+        (JxlWhitePoint::D65, JxlPrimaries::BT2100) => ColorPrimaries::Rec2020,
+        _ => return None,
+    };
+
+    let transfer_characteristics = match transfer_function {
         JxlTransferFunction::Linear => TransferCharacteristics::Linear,
         JxlTransferFunction::HLG => TransferCharacteristics::Hlg,
         JxlTransferFunction::PQ => TransferCharacteristics::Pq,
         JxlTransferFunction::SRGB => TransferCharacteristics::Srgb,
         JxlTransferFunction::BT709 => TransferCharacteristics::Bt709,
         JxlTransferFunction::DCI => TransferCharacteristics::Dci,
-        _ => {
-            return None;
-        }
+        _ => return None,
     };
 
     Some(Cicp {
@@ -321,4 +337,54 @@ fn color_encoding_to_cicp(c: JxlColorEncoding) -> Option<Cicp> {
         transfer_characteristics,
         video_full_range_flag: gufo_common::cicp::VideoRangeFlag::Full,
     })
+}
+
+fn memory_format(
+    is_grayscale: bool,
+    bit_depth: &JxlBitDepth,
+    alpha: Option<&JxlExtraChannel>,
+) -> MemoryFormat {
+    let alpha_associated = alpha.map(|ec| ec.alpha_associated);
+
+    if matches!(
+        bit_depth,
+        JxlBitDepth::Int {
+            bits_per_sample: ..=16
+        }
+    ) {
+        let sixteen_bits = bit_depth.bits_per_sample() > 8;
+        match (is_grayscale, sixteen_bits, alpha_associated) {
+            (false, false, None) => MemoryFormat::R8g8b8,
+            (false, false, Some(false)) => MemoryFormat::R8g8b8a8,
+            (false, false, Some(true)) => MemoryFormat::R8g8b8a8Premultiplied,
+            (false, true, None) => MemoryFormat::R16g16b16,
+            (false, true, Some(false)) => MemoryFormat::R16g16b16a16,
+            (false, true, Some(true)) => MemoryFormat::R16g16b16a16Premultiplied,
+            (true, false, None) => MemoryFormat::G8,
+            (true, false, Some(false)) => MemoryFormat::G8a8,
+            (true, false, Some(true)) => MemoryFormat::G8a8Premultiplied,
+            (true, true, None) => MemoryFormat::G16,
+            (true, true, Some(false)) => MemoryFormat::G16a16,
+            (true, true, Some(true)) => MemoryFormat::G16a16Premultiplied,
+        }
+    } else if matches!(
+        bit_depth,
+        JxlBitDepth::Float {
+            bits_per_sample: ..=16,
+            exponent_bits_per_sample: ..=5
+        }
+    ) {
+        match alpha_associated {
+            None => MemoryFormat::R16g16b16Float,
+            Some(false) => MemoryFormat::R16g16b16a16Float,
+            // f16 memory format doesn't have premultiplied variant
+            Some(true) => MemoryFormat::R32g32b32a32FloatPremultiplied,
+        }
+    } else {
+        match alpha_associated {
+            None => MemoryFormat::R32g32b32Float,
+            Some(false) => MemoryFormat::R32g32b32a32Float,
+            Some(true) => MemoryFormat::R32g32b32a32FloatPremultiplied,
+        }
+    }
 }
