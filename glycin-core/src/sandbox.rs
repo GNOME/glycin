@@ -98,7 +98,7 @@ const BLOCKED_SYSCALLS: &[(&str, ScmpAction, &[ScmpArgCompare])] = &[
         &[ScmpArgCompare::new(
             1,
             ScmpCompareOp::MaskedEqual(0xFFFFFFFF),
-            libc::TIOCSTI,
+            libc::TIOCSTI as u64,
         )],
     ),
     /* In the unlikely event that the controlling tty is a Linux virtual
@@ -110,7 +110,7 @@ const BLOCKED_SYSCALLS: &[(&str, ScmpAction, &[ScmpArgCompare])] = &[
         &[ScmpArgCompare::new(
             1,
             ScmpCompareOp::MaskedEqual(0xFFFFFFFF),
-            libc::TIOCLINUX,
+            libc::TIOCLINUX as u64,
         )],
     ),
     /* seccomp can't look into clone3()'s struct clone_args to check whether
