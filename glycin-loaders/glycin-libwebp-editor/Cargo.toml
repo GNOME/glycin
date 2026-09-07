@@ -1,0 +1,19 @@
+[package]
+name = "glycin-libwebp-editor"
+publish = false
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+glycin-utils = { workspace = true, features = [
+    "async-io",
+    "loader-utils",
+    "external",
+] }
+webp.workspace = true

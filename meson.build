@@ -15,6 +15,8 @@ fontconfig_req = '>= 2.13.0'
 
 compat_version = '2+'
 
+dedicated_editors = ['glycin-libwebp-editor']
+
 datadir = get_option('prefix') / get_option('datadir')
 bindir = get_option('prefix') / get_option('bindir')
 libdir = get_option('prefix') / get_option('libdir')

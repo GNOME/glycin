@@ -108,14 +108,20 @@ foreach loader : get_option('loaders')
   )
 
   # Install .conf file
+  if loader == 'glycin-libwebp-editor'
+    loader_cfg = 'glycin-0-libwebp-editor'
+  else
+    loader_cfg = loader
+  endif
+
   i18n.merge_file(
     type: 'desktop',
     input: configure_file(
-      input: loader / loader + '.conf',
-      output: 'tmp-' + loader,
+      input: loader / loader_cfg + '.conf',
+      output: 'tmp-' + loader_cfg,
       configuration: {'EXEC': loader_libexecdir / loader},
     ),
-    output: loader + '.conf',
+    output: loader_cfg + '.conf',
     po_dir: '..' / 'po',
     install: true,
     install_dir: glycin_datadir / 'conf.d',
@@ -125,13 +131,15 @@ foreach loader : get_option('loaders')
   conf = configuration_data()
   conf.set('BINDIR', bindir)
 
-  configure_file(
-    input: loader / loader + '.thumbnailer.in',
-    output: loader + '.thumbnailer',
-    configuration: conf,
-    install: true,
-    install_dir: datadir / 'thumbnailers',
-  )
+  if loader not in dedicated_editors
+    configure_file(
+      input: loader / loader + '.thumbnailer.in',
+      output: loader + '.thumbnailer',
+      configuration: conf,
+      install: true,
+      install_dir: datadir / 'thumbnailers',
+    )
+  endif
 endforeach
 
 if get_option('tests')
