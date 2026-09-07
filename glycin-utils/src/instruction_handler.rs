@@ -7,7 +7,7 @@ use std::sync::Mutex;
 
 use nix::libc::{c_uint, siginfo_t};
 
-use crate::{Editor, Loader, VoidEditorImplementation, api};
+use crate::{Editor, Loader, VoidEditorImplementation, VoidLoaderImplementation, api};
 
 pub struct DbusServer {
     _dbus_connection: zbus::Connection,
@@ -17,6 +17,13 @@ impl DbusServer {
     pub fn spawn_loader<L: api::LoaderImplementation>(description: String) {
         futures_lite::future::block_on(async move {
             let _connection = Self::connect::<L, VoidEditorImplementation>(description).await;
+            std::future::pending::<()>().await;
+        })
+    }
+
+    pub fn spawn_editor<E: api::EditorImplementation>(description: String) {
+        futures_lite::future::block_on(async move {
+            let _connection = Self::connect::<VoidLoaderImplementation, E>(description).await;
             std::future::pending::<()>().await;
         })
     }
@@ -74,14 +81,16 @@ impl DbusServer {
             .p2p()
             .auth_mechanism(zbus::AuthMechanism::Anonymous);
 
-        let loader_instruction_handler = Loader::<L> {
-            image_id: Mutex::new(1),
-            loader: Default::default(),
-        };
+        if L::USEABLE {
+            let loader_instruction_handler = Loader::<L> {
+                image_id: Mutex::new(1),
+                loader: Default::default(),
+            };
 
-        dbus_connection_builder = dbus_connection_builder
-            .serve_at("/org/gnome/glycin", loader_instruction_handler)
-            .expect("Failed to setup loader handler");
+            dbus_connection_builder = dbus_connection_builder
+                .serve_at("/org/gnome/glycin", loader_instruction_handler)
+                .expect("Failed to setup loader handler");
+        }
 
         if E::USEABLE {
             let editor_instruction_handler = Editor::<E> {
@@ -170,6 +179,22 @@ macro_rules! init_main_loader {
 
         fn main() {
             $crate::DbusServer::spawn_loader::<$loader>(format!(
+                "{} v{}",
+                env!("CARGO_PKG_NAME"),
+                env!("CARGO_PKG_VERSION")
+            ));
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! init_main_editor {
+    ($editor:path) => {
+        /// Init handler for SIGSYS before main() to catch
+        static __CTOR: extern "C" fn() = pre_main;
+
+        fn main() {
+            $crate::DbusServer::spawn_editor::<$editor>(format!(
                 "{} v{}",
                 env!("CARGO_PKG_NAME"),
                 env!("CARGO_PKG_VERSION")
