@@ -15,6 +15,8 @@ use crate::safe_math::{SafeConversion, SafeMath};
 use crate::{ByteData, FungibleMemory, Limits, MemoryAllocationError, ProcessError};
 
 pub trait LoaderImplementation: Send + Sync + Sized + 'static {
+    const USEABLE: bool = true;
+
     fn load<B: ByteData, R: Read + Send + 'static>(
         stream: R,
         mime_type: String,

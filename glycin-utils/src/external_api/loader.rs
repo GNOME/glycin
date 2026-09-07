@@ -1,5 +1,6 @@
 // Copyright (c) 2024 GNOME Foundation Inc.
 
+use std::io::Read;
 use std::marker::PhantomData;
 use std::os::fd::OwnedFd;
 use std::os::unix::net::UnixStream;
@@ -8,7 +9,7 @@ use std::sync::{Arc, Mutex, MutexGuard};
 use futures_util::FutureExt;
 use zbus::zvariant::OwnedObjectPath;
 
-use crate::error::*;
+use crate::{ByteData, error::*};
 use crate::{SharedMemory, api};
 
 pub struct Loader<T: api::LoaderImplementation> {
@@ -128,5 +129,27 @@ impl<T: api::LoaderImplementation> Image<T> {
         }
         let _ = self.dropped.set(()).await;
         Ok(())
+    }
+}
+
+/// Unusable Loader implementation for pure editors
+pub enum VoidLoaderImplementation {}
+
+impl api::LoaderImplementation for VoidLoaderImplementation {
+    const USEABLE: bool = false;
+
+    fn load<B: ByteData, R: Read + Send + 'static>(
+        _stream: R,
+        _mime_type: String,
+        _details: api::InitializationDetails,
+    ) -> Result<(Self, api::ImageDetails<B>), ProcessError> {
+        unreachable!()
+    }
+
+    fn specific_frame<T: ByteData>(
+        &mut self,
+        _frame_request: api::FrameRequest,
+    ) -> Result<api::Frame<T>, ProcessError> {
+        unreachable!()
     }
 }
