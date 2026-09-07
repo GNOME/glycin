@@ -133,6 +133,7 @@ tokio = { version = "1.35.1", features = [
 tokio-stream = { version = "0.1.15", features = ["fs"] }
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.0", features = ["env-filter", "fmt"] }
+webp = "0.3.1"
 yeslogic-fontconfig-sys = "6.0.0"
 zbus = { version = "5.15.0", default-features = false, features = ["p2p"] }
 # Require latest zvariant due to SIGPIPE bugfix
