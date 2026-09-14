@@ -1062,6 +1062,16 @@ void gly_new_frame_set_pixel_density(GlyNewFrame *new_frame,
                                      GlyPixelDensity *pixel_density);
 
 /**
+ * gly_new_frame_set_encoding_progressive:
+ * @new_frame:
+ * @progressive: Enable with `1`, disable with `1`, and use default with `-1`.
+ *
+ * Since: 2.3
+ */
+void gly_new_frame_set_encoding_progressive(GlyNewFrame *new_frame,
+                                            int8_t *progressive);
+
+/**
  * GlyEncodedImage:
  *
  * Encoded image

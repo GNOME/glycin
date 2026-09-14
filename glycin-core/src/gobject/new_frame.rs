@@ -46,6 +46,8 @@ pub mod imp {
 
         #[property(get, set, nullable)]
         color_icc_profile: Mutex<Option<glib::Bytes>>,
+        #[property(get, set)]
+        encoding_progressive: Mutex<i8>,
 
         pub(crate) pixel_density: Mutex<Option<PixelDensity>>,
     }
@@ -114,6 +116,13 @@ impl GlyNewFrame {
         // TODO: Errors here should be handled earlier
         frame.set_color_icc_profile(self.color_icc_profile().map(|x| x.into_data().to_vec()))?;
         frame.set_pixel_density(self.imp().pixel_density.lock().unwrap().clone())?;
+
+        let progressive = match self.encoding_progressive() {
+            -1 => None,
+            0 => Some(false),
+            _ => Some(true),
+        };
+        frame.set_encoding_progressive(progressive)?;
 
         Ok(())
     }

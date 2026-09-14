@@ -337,6 +337,7 @@ pub struct NewFrame {
     //delay: Option<Duration>,
     details: glycin_utils::FrameDetails<FungibleMemory>,
     icc_profile: Option<Vec<u8>>,
+    encoding_progressive: Option<bool>,
 }
 
 impl NewFrame {
@@ -357,6 +358,7 @@ impl NewFrame {
             //delay: None,
             details: Default::default(),
             icc_profile: Default::default(),
+            encoding_progressive: None,
         }
     }
 
@@ -369,6 +371,18 @@ impl NewFrame {
         }
 
         self.icc_profile = icc_profile;
+        Ok(())
+    }
+
+    pub fn set_encoding_progressive(
+        &mut self,
+        progressive: Option<bool>,
+    ) -> Result<(), FeatureNotSupported> {
+        if !self.config.creator_encoding_progressive && progressive.is_some() {
+            return Err(FeatureNotSupported);
+        }
+
+        self.encoding_progressive = progressive;
         Ok(())
     }
 
@@ -400,6 +414,8 @@ impl NewFrame {
             let icc_profile = FungibleMemory::try_from_vec(icc_profile)?;
             frame.details.color_icc_profile = Some(icc_profile);
         }
+
+        frame.details.encoding_progressive = self.encoding_progressive;
 
         Ok(frame)
     }

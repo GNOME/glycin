@@ -1,0 +1,1 @@
+glycin/libglycin: Add support for progessive encoding of images. Support is interlaced (Adam7) for PNG.

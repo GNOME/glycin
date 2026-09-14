@@ -308,7 +308,7 @@ impl<B: ByteData> Default for FrameDetails<B> {
             n_frame: None,
             pixel_density: None,
             physical_size: None,
-            progressive: None,
+            encoding_progressive: None,
         }
     }
 }
@@ -544,7 +544,7 @@ pub struct FrameDetails<B: ByteData> {
         )
     )]
     // Encoded in a format that support progressive loading
-    pub progressive: Option<bool>,
+    pub encoding_progressive: Option<bool>,
 }
 
 impl<B: ByteData> FrameDetails<B> {
@@ -559,7 +559,7 @@ impl<B: ByteData> FrameDetails<B> {
             n_frame: self.n_frame,
             pixel_density: self.pixel_density,
             physical_size: self.physical_size,
-            progressive: self.progressive,
+            encoding_progressive: self.encoding_progressive,
         }
     }
 
@@ -574,7 +574,7 @@ impl<B: ByteData> FrameDetails<B> {
             n_frame: self.n_frame,
             pixel_density: self.pixel_density,
             physical_size: self.physical_size,
-            progressive: self.progressive,
+            encoding_progressive: self.encoding_progressive,
         })
     }
 

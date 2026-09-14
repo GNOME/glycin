@@ -53,6 +53,20 @@ pub unsafe extern "C" fn gly_new_frame_set_pixel_density(
 }
 
 #[unsafe(no_mangle)]
+pub unsafe extern "C" fn gly_new_frame_set_encoding_progressive(
+    new_frame: *mut GlyNewFrame,
+    progressive: i8,
+) -> bool {
+    unsafe {
+        let new_frame = gobject::GlyNewFrame::from_glib_ptr_borrow(&new_frame);
+
+        new_frame.set_encoding_progressive(progressive);
+
+        true
+    }
+}
+
+#[unsafe(no_mangle)]
 pub extern "C" fn gly_physical_dimension_unit_get_type() -> GType {
     <GlyPhysicalDimensionUnit as StaticType>::static_type().into_glib()
 }

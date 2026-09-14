@@ -226,6 +226,7 @@ pub struct EditorConfig {
     pub(crate) creator_color_icc_profile: bool,
     pub(crate) creator_encoding_quality: bool,
     pub(crate) creator_encoding_compression: bool,
+    pub(crate) creator_encoding_progressive: bool,
     pub(crate) creator_metadata_key_value: bool,
     pub(crate) creator_pixel_density: bool,
     pub(crate) creator_memory_formats: BTreeSet<MemoryFormat>,
@@ -554,6 +555,9 @@ impl Config {
             let creator_encoding_quality =
                 Self::handle_and_default(keyfile.boolean(&group, "CreatorEncodingQuality"))?;
 
+            let creator_encoding_progressive =
+                Self::handle_and_default(keyfile.boolean(&group, "CreatorEncodingProgressive"))?;
+
             let creator_metadata_key_value =
                 Self::handle_and_default(keyfile.boolean(&group, "CreatorMetadataKeyValue"))?;
 
@@ -584,6 +588,7 @@ impl Config {
                 creator_color_icc_profile,
                 creator_encoding_compression,
                 creator_encoding_quality,
+                creator_encoding_progressive,
                 creator_metadata_key_value,
                 creator_pixel_density,
                 creator_memory_formats,

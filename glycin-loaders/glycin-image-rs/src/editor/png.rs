@@ -55,7 +55,7 @@ pub fn create<B: ByteData>(
         .map(std::borrow::Cow::Borrowed);
     info.color_type = color_type;
     info.bit_depth = bit_depth;
-    info.interlaced = frame.details.progressive.unwrap_or_default();
+    info.interlaced = frame.details.encoding_progressive.unwrap_or_default();
     info.exif_metadata = new_image
         .image_info
         .metadata_exif
