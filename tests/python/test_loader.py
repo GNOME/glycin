@@ -3,20 +3,12 @@ import resource
 
 import gi
 import pytest
+from utils import *
 
 gi.require_version("Gly", "2")
 gi.require_version("GlyGtk4", "2")
 
 from gi.repository import Gly, GlyGtk4, Gio, GLib, Gdk
-
-
-def helper_image_path(path):
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(current_dir, "../test-images", path)
-
-
-def helper_image_file(path):
-    return Gio.File.new_for_path(helper_image_path(path))
 
 
 @pytest.mark.skipif(
