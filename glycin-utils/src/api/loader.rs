@@ -308,6 +308,7 @@ impl<B: ByteData> Default for FrameDetails<B> {
             n_frame: None,
             pixel_density: None,
             physical_size: None,
+            progressive: None,
         }
     }
 }
@@ -534,6 +535,16 @@ pub struct FrameDetails<B: ByteData> {
         )
     )]
     pub physical_size: Option<physical_dimension::PhysicalSize>,
+    #[cfg_attr(
+        feature = "external",
+        serde(
+            with = "as_value::optional",
+            skip_serializing_if = "Option::is_none",
+            default
+        )
+    )]
+    // Encoded in a format that support progressive loading
+    pub progressive: Option<bool>,
 }
 
 impl<B: ByteData> FrameDetails<B> {
@@ -548,6 +559,7 @@ impl<B: ByteData> FrameDetails<B> {
             n_frame: self.n_frame,
             pixel_density: self.pixel_density,
             physical_size: self.physical_size,
+            progressive: self.progressive,
         }
     }
 
@@ -562,6 +574,7 @@ impl<B: ByteData> FrameDetails<B> {
             n_frame: self.n_frame,
             pixel_density: self.pixel_density,
             physical_size: self.physical_size,
+            progressive: self.progressive,
         })
     }
 
