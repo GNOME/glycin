@@ -202,7 +202,7 @@ impl SharedMemory {
     }
 
     fn add_memmap(&mut self) -> Result<(), MemoryAllocationError> {
-        let mmap: memmap::Mmap = unsafe { memmap::Mmap::map(&self.memfd) }
+        let mmap = unsafe { memmap::MmapOptions::new().map_copy_read_only(&self.memfd) }
             .map_err(|err| MemoryAllocationError(err.to_string()))?;
 
         self.mmap = Some(MMapOptions::ReadOnly(mmap));
