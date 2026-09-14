@@ -504,9 +504,9 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
 name = "crc32fast"
-version = "1.5.0"
+version = "1.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9481c1c90cbf2ac953f07c8d4a58aa3945c425b7185c9154d67a65e4230da511"
+checksum = "01a7799fd6b852db0e61728dde9a204c423b44d689dbd432522543614b490e78"
 dependencies = [
  "cfg-if",
 ]
@@ -1234,6 +1234,7 @@ dependencies = [
  "jpeg-encoder",
  "log",
  "moxcms",
+ "png 0.18.1 (git+https://github.com/image-rs/image-png.git)",
  "tiff",
  "zune-jpeg",
 ]
@@ -1287,7 +1288,7 @@ dependencies = [
  "gio",
  "image",
  "libglycin-rebind",
- "png",
+ "png 0.18.1 (git+https://github.com/image-rs/image-png.git)",
 ]
 
 [[package]]
@@ -1551,7 +1552,7 @@ dependencies = [
  "image-webp",
  "moxcms",
  "num-traits",
- "png",
+ "png 0.18.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "qoi",
  "tiff",
  "zune-core",
@@ -2272,6 +2273,18 @@ name = "png"
 version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60769b8b31b2a9f263dae2776c37b1b28ae246943cf719eb6946a1db05128a61"
+dependencies = [
+ "bitflags 2.13.1",
+ "crc32fast",
+ "fdeflate",
+ "flate2",
+ "miniz_oxide 0.8.9",
+]
+
+[[package]]
+name = "png"
+version = "0.18.1"
+source = "git+https://github.com/image-rs/image-png.git#e917d6a04f198c0b49df0ee5d0a65732bb6a337c"
 dependencies = [
  "bitflags 2.13.1",
  "crc32fast",

@@ -1,12 +1,10 @@
 use std::io::{Cursor, Read};
 
 use glycin_utils::{image_rs, *};
-use gufo::png::NewChunk;
-use gufo_common::error::ErrorWithData;
 use gufo_common::physical_dimension::PhysicalDimensionUnit;
 use gufo_common::{field, orientation};
 use gufo_exif::Exif;
-use image::{ExtendedColorType, ImageEncoder};
+use image::ImageEncoder;
 
 pub struct EditorPng {
     png: gufo::png::Png,
@@ -18,37 +16,87 @@ pub fn create<B: ByteData>(
     new_image: NewImage<B>,
     frame: Frame<FungibleMemory>,
     encoding_options: EncodingOptions,
-    memory_format: ExtendedColorType,
-    icc_profile: Option<Vec<u8>>,
 ) -> Result<Vec<u8>, ProcessError> {
     let compression = if let Some(compression) = encoding_options.compression {
-        if compression < 30 {
-            image::codecs::png::CompressionType::Fast
+        if compression < 20 {
+            png::Compression::NoCompression
+        } else if compression < 40 {
+            png::Compression::Fastest
+        } else if compression < 60 {
+            png::Compression::Fast
         } else if compression < 80 {
-            image::codecs::png::CompressionType::Default
+            png::Compression::Balanced
         } else {
-            image::codecs::png::CompressionType::Best
+            png::Compression::High
         }
     } else {
-        image::codecs::png::CompressionType::Default
+        png::Compression::Balanced
     };
 
     let mut out_buf = Vec::new();
-    let mut encoder = image::codecs::png::PngEncoder::new_with_quality(
-        &mut out_buf,
-        compression,
-        image::codecs::png::FilterType::default(),
-    );
 
-    if let Some(icc_profile) = icc_profile {
-        let _ = encoder.set_icc_profile(icc_profile);
+    let (color_type, bit_depth) = match frame.memory_format {
+        MemoryFormat::G8 => (png::ColorType::Grayscale, png::BitDepth::Eight),
+        MemoryFormat::G8a8 => (png::ColorType::GrayscaleAlpha, png::BitDepth::Eight),
+        MemoryFormat::R8g8b8 => (png::ColorType::Rgb, png::BitDepth::Eight),
+        MemoryFormat::R8g8b8a8 => (png::ColorType::Rgba, png::BitDepth::Eight),
+        MemoryFormat::G16 => (png::ColorType::Grayscale, png::BitDepth::Sixteen),
+        MemoryFormat::G16a16 => (png::ColorType::GrayscaleAlpha, png::BitDepth::Sixteen),
+        MemoryFormat::R16g16b16 => (png::ColorType::Rgb, png::BitDepth::Sixteen),
+        MemoryFormat::R16g16b16a16 => (png::ColorType::Rgba, png::BitDepth::Sixteen),
+        _ => panic!(),
+    };
+
+    let mut info = png::Info::with_size(frame.width, frame.height);
+    info.icc_profile = frame
+        .details
+        .color_icc_profile
+        .as_deref()
+        .map(std::borrow::Cow::Borrowed);
+    info.color_type = color_type;
+    info.bit_depth = bit_depth;
+    info.interlaced = frame.details.progressive.unwrap_or_default();
+    info.exif_metadata = new_image
+        .image_info
+        .metadata_exif
+        .as_deref()
+        .map(|x| std::borrow::Cow::Borrowed(x));
+
+    if let Some(cicp) = frame.details.color_cicp {
+        info.coding_independent_code_points = Some(png::CodingIndependentCodePoints {
+            color_primaries: cicp[0],
+            transfer_function: cicp[1],
+            matrix_coefficients: cicp[2],
+            is_video_full_range_image: cicp[3] != 0,
+        });
     }
 
-    encoder
-        .write_image(&frame.texture, frame.width, frame.height, memory_format)
-        .internal_error()?;
+    if let Some(pixel_density) = frame.details.pixel_density {
+        let pixel_density = pixel_density.convert(PhysicalDimensionUnit::Meter);
 
-    Ok(add_metadata(out_buf, &new_image.image_info, &frame.details))
+        info.pixel_dims = Some(png::PixelDimensions {
+            unit: png::Unit::Meter,
+            xppu: pixel_density.x().value().round() as u32,
+            yppu: pixel_density.y().value().round() as u32,
+        });
+    }
+
+    if let Some(key_value) = new_image.image_info.metadata_key_value {
+        info.uncompressed_latin1_text = key_value
+            .iter()
+            .map(|(k, v)| png::text_metadata::TEXtChunk::new(k, v))
+            .collect();
+    }
+
+    let mut encoder = png::Encoder::with_info(&mut out_buf, info).expected_error()?;
+
+    encoder.set_compression(compression);
+
+    let mut writer = encoder.write_header().expected_error()?;
+    writer.write_image_data(&frame.texture).expected_error()?;
+    drop(writer);
+
+    Ok(out_buf)
 }
 
 pub fn load<S: Read>(mut stream: S) -> Result<EditorPng, glycin_utils::ProcessError> {
@@ -188,50 +236,4 @@ fn exif_orientation_value_position(data: Vec<u8>) -> Option<Vec<(usize, u8)>> {
         gufo_exif::Typed::Short(vec![orientation::Orientation::Id as u16]),
     )
     .ok()
-}
-
-pub fn add_metadata<B: ByteData, C: ByteData>(
-    buf: Vec<u8>,
-    image_info: &ImageDetails<B>,
-    frame_details: &FrameDetails<C>,
-) -> Vec<u8> {
-    match add_metadata_internal(buf, image_info, frame_details) {
-        Err(err) => {
-            log::error!("Failed to add metadata: {err}");
-            err.into_inner()
-        }
-        Ok(buf) => buf,
-    }
-}
-
-fn add_metadata_internal<B: ByteData, C: ByteData>(
-    buf: Vec<u8>,
-    image_info: &ImageDetails<B>,
-    frame_details: &FrameDetails<C>,
-) -> Result<Vec<u8>, ErrorWithData<gufo::png::Error>> {
-    let mut png = gufo::png::Png::new(buf)?;
-
-    let mut new_chunks = Vec::new();
-
-    if let Some(key_value) = &image_info.metadata_key_value {
-        for (key, value) in key_value {
-            new_chunks.push(NewChunk::text(key, value));
-        }
-    }
-
-    if let Some(pixel_density) = &frame_details.pixel_density {
-        let pixel_density = pixel_density.convert(PhysicalDimensionUnit::Meter);
-        new_chunks.push(NewChunk::phys_meter(
-            pixel_density.x().value().round() as u32,
-            pixel_density.y().value().round() as u32,
-        ));
-    }
-
-    for chunk in new_chunks {
-        if let Err(err) = png.insert_chunk(chunk) {
-            return Err(ErrorWithData::new(err, png.into_inner()));
-        }
-    }
-
-    Ok(png.into_inner())
 }

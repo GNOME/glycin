@@ -66,13 +66,7 @@ impl EditorImplementation for ImgEditor {
         let icc_profile = frame.details.color_icc_profile.as_ref().map(|x| x.to_vec());
 
         let image_buf = match image_format {
-            ImageFormat::Png => png::create(
-                new_image,
-                frame,
-                encoding_options,
-                memory_format,
-                icc_profile,
-            )?,
+            ImageFormat::Png => png::create(new_image, frame, encoding_options)?,
             ImageFormat::Jpeg => jpeg::create(frame, encoding_options, icc_profile)?,
             ImageFormat::Tiff => tiff::create(frame)?,
             _ => {
