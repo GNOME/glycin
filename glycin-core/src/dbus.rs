@@ -74,8 +74,8 @@ impl<P: DBusProxy> RemoteProcess<P> {
         base_dir: Option<PathBuf>,
         cancellable: &gio::Cancellable,
     ) -> Result<Self, Error> {
-        // UnixStream which facilitates the D-Bus connection. The stream is passed as
-        // stdin to loader binaries.
+        // UnixStream which facilitates the D-Bus connection. The stream is
+        // passed as stdin to loader binaries.
         let (unix_stream, loader_stdin) = std::os::unix::net::UnixStream::pair()?;
         unix_stream.set_nonblocking(true)?;
         loader_stdin.set_nonblocking(true)?;

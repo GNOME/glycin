@@ -155,8 +155,8 @@ pub fn apply<B: ByteData>(
 
     let new_png = gufo::png::Png::new(new_png_data.into_inner()).expected_error()?;
 
-    // Keep old PNG with its metadata but replace image data with the one from new
-    // one
+    // Keep old PNG with its metadata but replace image data with the one from
+    // new one
     old_png.replace_image_data(&new_png).expected_error()?;
 
     let raw_data = reset_exif_orientation(old_png)?;

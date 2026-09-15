@@ -448,8 +448,8 @@ pub(crate) async fn guess_mime_type(
     // Prefer file extension for TIFF since it can be a RAW format as well
     let is_tiff = mime_type.clone().ok() == Some("image/tiff".into());
 
-    // Prefer file extension for XML since long comment between `<?xml` and `<svg>`
-    // can falsely guess XML instead of SVG
+    // Prefer file extension for XML since long comment between `<?xml` and
+    // `<svg>` can falsely guess XML instead of SVG
     let is_xml = mime_type.clone().ok() == Some("application/xml".into());
 
     // Prefer file extension for gzip since it might be an SVGZ

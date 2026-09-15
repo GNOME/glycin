@@ -66,8 +66,8 @@ pub fn worker(format: ImageRsFormat<Reader>, data: Reader, mime_type: String, se
                 send.send(decoded_frame.map(|x| (x, looped))).unwrap();
             }
         } else {
-            // Only use FrameDetails for still images because they might not make too much
-            // sense otherwise
+            // Only use FrameDetails for still images because they might not
+            // make too much sense otherwise
             let frame = first_frames.pop().unwrap();
             let decoded_frame = animated_get_frame((0, frame), Some(frame_details), is_animated);
             send.send(decoded_frame.map(|x| (x, looped))).unwrap();

@@ -125,7 +125,14 @@ impl GlyCreator {
         memory_format: MemoryFormat,
         texture: glib::Bytes,
     ) -> Result<GlyNewFrame, Error> {
-        let frame = GlyNewFrame::new(width, height, None, memory_format, texture);
+        let frame = GlyNewFrame::new(
+            self.creator().as_ref().unwrap().config(),
+            width,
+            height,
+            None,
+            memory_format,
+            texture,
+        );
 
         self.imp().frames.lock().await.push(frame.clone());
 
@@ -141,7 +148,14 @@ impl GlyCreator {
         texture: glib::Bytes,
     ) -> Result<GlyNewFrame, Error> {
         // TODO: Check valid stride etc
-        let frame = GlyNewFrame::new(width, height, Some(stride), memory_format, texture);
+        let frame = GlyNewFrame::new(
+            self.creator().as_ref().unwrap().config(),
+            width,
+            height,
+            Some(stride),
+            memory_format,
+            texture,
+        );
 
         self.imp().frames.lock().await.push(frame.clone());
 

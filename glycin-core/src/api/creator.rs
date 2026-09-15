@@ -321,6 +321,10 @@ impl Creator {
         self.cancellable = cancellable.upcast();
         self
     }
+
+    pub(crate) fn config(&self) -> EditorConfig {
+        self.config.clone()
+    }
 }
 
 /// Builder pattern for a new frame

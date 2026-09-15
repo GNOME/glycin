@@ -213,9 +213,9 @@ impl SharedMemory {
     async fn seal(&self, seals: fcntl::SealFlag) -> Result<(), MemoryAllocationError> {
         let start = std::time::Instant::now();
 
-        // Sealing returns a ResourceBusy for SealWrite until no readable maps exist
-        // anymore. Practically, we are waiting for the loader to close it's
-        // mmap to the memfd.
+        // Sealing returns a ResourceBusy for SealWrite until no readable maps
+        // exist anymore. Practically, we are waiting for the loader to
+        // close it's mmap to the memfd.
         loop {
             // 🦭
             let seal = fcntl::fcntl(&self.memfd, fcntl::FcntlArg::F_ADD_SEALS(seals));

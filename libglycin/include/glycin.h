@@ -1058,8 +1058,8 @@ gboolean gly_new_frame_set_color_icc_profile(GlyNewFrame *new_frame, GBytes *icc
  *
  * Since: 2.2
  */
-void gly_new_frame_set_pixel_density(GlyNewFrame *new_frame,
-                                     GlyPixelDensity *pixel_density);
+gboolean gly_new_frame_set_pixel_density(GlyNewFrame *new_frame,
+                                         GlyPixelDensity *pixel_density);
 
 /**
  * gly_new_frame_set_encoding_progressive:
@@ -1068,8 +1068,8 @@ void gly_new_frame_set_pixel_density(GlyNewFrame *new_frame,
  *
  * Since: 2.3
  */
-void gly_new_frame_set_encoding_progressive(GlyNewFrame *new_frame,
-                                            int8_t *progressive);
+gboolean gly_new_frame_set_encoding_progressive(GlyNewFrame *new_frame,
+                                                int8_t *progressive);
 
 /**
  * GlyEncodedImage:

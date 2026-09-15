@@ -209,8 +209,8 @@ fn apply_non_sparse<B: ByteData>(
 
     let mut out_buf = jpeg.into_inner();
 
-    // Since we apply all operionats, including existing exif orientation, to the
-    // image itself, the Exif entry, if it exists, is now wrong
+    // Since we apply all operionats, including existing exif orientation, to
+    // the image itself, the Exif entry, if it exists, is now wrong
     if let Some(remove_metadata_rotate) = remove_metadata_rotate {
         remove_metadata_rotate
             .apply(&mut out_buf)

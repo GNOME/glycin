@@ -46,8 +46,8 @@ impl NewFrame {
     //#[cfg(feature = "v2_2")]
     //#[cfg_attr(docsrs, doc(cfg(feature = "v2_2")))]
     //#[doc(alias = "gly_new_frame_set_pixel_density")]
-    //pub fn set_pixel_density(&self, pixel_density: /*Ignored*/&PixelDensity) {
-    //    unsafe { TODO: call ffi:gly_new_frame_set_pixel_density() }
+    //pub fn set_pixel_density(&self, pixel_density: /*Ignored*/&PixelDensity)
+    // {    unsafe { TODO: call ffi:gly_new_frame_set_pixel_density() }
     //}
 
     #[doc(alias = "color-icc-profile")]

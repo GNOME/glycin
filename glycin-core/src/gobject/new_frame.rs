@@ -7,6 +7,7 @@ use glycin_utils::MemoryFormat;
 use gufo_common::physical_dimension::PixelDensity;
 
 use super::init;
+use crate::config::EditorConfig;
 use crate::gobject::GlyPixelDensity;
 
 static_assertions::assert_impl_all!(GlyNewFrame: Send, Sync);
@@ -28,6 +29,7 @@ pub enum GlyPhysicalDimensionUnit {
 }
 
 pub mod imp {
+
     use super::*;
 
     #[derive(Debug, Default, glib::Properties)]
@@ -44,12 +46,13 @@ pub mod imp {
         #[property(get, construct_only)]
         texture: OnceLock<glib::Bytes>,
 
-        #[property(get, set, nullable)]
-        color_icc_profile: Mutex<Option<glib::Bytes>>,
-        #[property(get, set)]
-        encoding_progressive: Mutex<i8>,
-
+        #[property(get, nullable)]
+        pub(crate) color_icc_profile: Mutex<Option<glib::Bytes>>,
+        #[property(get)]
+        pub(crate) encoding_progressive: Mutex<i8>,
         pub(crate) pixel_density: Mutex<Option<PixelDensity>>,
+
+        pub(crate) editor_config: OnceLock<EditorConfig>,
     }
 
     #[glib::object_subclass]
@@ -64,6 +67,14 @@ pub mod imp {
             self.parent_constructed();
 
             init();
+
+            *self.encoding_progressive.lock().unwrap() = -1;
+        }
+    }
+
+    impl GlyNewFrame {
+        pub(super) fn config(&self) -> &EditorConfig {
+            self.editor_config.get().unwrap()
         }
     }
 }
@@ -75,24 +86,55 @@ glib::wrapper! {
 
 impl GlyNewFrame {
     pub fn new(
+        config: EditorConfig,
         width: u32,
         height: u32,
         stride: Option<u32>,
         memory_format: MemoryFormat,
         texture: glib::Bytes,
     ) -> Self {
-        glib::Object::builder()
+        let obj = glib::Object::builder::<Self>()
             .property("width", width)
             .property("height", height)
             .property("stride", stride.unwrap_or_default())
             .property("memory-format", memory_format)
             .property("texture", texture)
-            .build()
+            .build();
+
+        obj.imp().editor_config.set(config).unwrap();
+
+        obj
     }
 
-    pub fn set_pixel_density(&self, pixel_density: Option<GlyPixelDensity>) {
+    pub fn set_pixel_density(&self, pixel_density: Option<GlyPixelDensity>) -> bool {
+        if !self.imp().config().creator_pixel_density && pixel_density.is_some() {
+            return false;
+        }
+
         *self.imp().pixel_density.lock().unwrap() =
             pixel_density.map(|x| x.inner().to_owned().unwrap());
+
+        true
+    }
+
+    pub fn set_color_icc_profile(&self, icc_profile: Option<glib::Bytes>) -> bool {
+        if !self.imp().config().creator_color_icc_profile && icc_profile.is_some() {
+            return false;
+        }
+
+        *self.imp().color_icc_profile.lock().unwrap() = icc_profile;
+
+        true
+    }
+
+    pub fn set_encoding_progressive(&self, progressive: i8) -> bool {
+        if !self.imp().config().creator_encoding_progressive && progressive != -1 {
+            return false;
+        }
+
+        *self.imp().encoding_progressive.lock().unwrap() = progressive;
+
+        true
     }
 
     pub async fn build(&self, creator: &mut crate::Creator) -> Result<(), crate::Error> {
@@ -113,10 +155,10 @@ impl GlyNewFrame {
             )?
         };
 
-        // TODO: Errors here should be handled earlier
+        // Set all further properties. This shouldn't trigger errors, since we
+        // checked support before setting the value.
         frame.set_color_icc_profile(self.color_icc_profile().map(|x| x.into_data().to_vec()))?;
         frame.set_pixel_density(self.imp().pixel_density.lock().unwrap().clone())?;
-
         let progressive = match self.encoding_progressive() {
             -1 => None,
             0 => Some(false),

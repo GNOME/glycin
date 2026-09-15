@@ -146,7 +146,8 @@ fn animated_worker(data: Vec<u8>, mime_type: String, send: FrameSender) {
         loop {
             match track.decode_next_image(ColorSpace::Rgb(rgb_chroma), None) {
                 Ok(mut image) => {
-                    // Scale HDR pixels to 16bit (they are usually 10bit or 12bit)
+                    // Scale HDR pixels to 16bit (they are usually 10bit or
+                    // 12bit)
                     if is_rgb_chroma_hdr(rgb_chroma) {
                         scale_image_to_16bit(&mut image);
                     }
@@ -255,7 +256,8 @@ impl LoaderImplementation for ImgDecoder {
                 .expected_error()?;
             image_info.info_format_name = Some(format_name.to_string());
 
-            // TODO: Later use libheif 1.16 to get info if there is a transformation
+            // TODO: Later use libheif 1.16 to get info if there is a
+            // transformation
             image_info.transformation_ignore_exif = true;
 
             (context.has_sequence(), image_info)

@@ -56,8 +56,9 @@ pub fn frame<B: ByteData>(data: &[u8]) -> Result<Frame<B>, ProcessError> {
                 }
             },
             |pixels, v, (r, g, b, a): (Sample, Sample, Sample, Sample)| {
-                // We have to use coordinates, since the pixels are not necressarily returned in
-                // the order they appear in the texture
+                // We have to use coordinates, since the pixels are not
+                // necressarily returned in the order they
+                // appear in the texture
                 let index = v.x() * pixels.channel_size * pixels.num_channels
                     + v.y() * pixels.width * pixels.channel_size * pixels.num_channels;
 

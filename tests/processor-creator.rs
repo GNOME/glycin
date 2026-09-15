@@ -354,7 +354,8 @@ fn processor_creator_supported_memory_formats() {
                 creator.add_frame(1, 1, *memory_format, texture).unwrap();
                 let result = creator.create().await;
 
-                // Check if creators actually only support the memory formats declared in config
+                // Check if creators actually only support the memory formats
+                // declared in config
                 if c.creator_memory_formats().contains(memory_format) {
                     assert!(
                         result.is_ok(),

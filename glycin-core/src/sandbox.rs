@@ -402,8 +402,8 @@ impl Sandbox {
             mount(&mut command, "--ro-bind", dir);
         }
 
-        // Make loader binary available if not in /usr. This is useful for testing and
-        // adding loaders in user (/home) configurations.
+        // Make loader binary available if not in /usr. This is useful for
+        // testing and adding loaders in user (/home) configurations.
         if !self.exec().starts_with("/usr") {
             mount(&mut command, "--ro-bind", self.exec());
         }
@@ -487,8 +487,8 @@ impl Sandbox {
 
         // Start from a clean environment
         //
-        // It's not really cleared due to this issue but nothing we can do about this:
-        // <https://github.com/flatpak/flatpak/issues/5271>
+        // It's not really cleared due to this issue but nothing we can do about
+        // this: <https://github.com/flatpak/flatpak/issues/5271>
         command.env_clear();
 
         // Inherit some environment variables
@@ -653,8 +653,8 @@ impl Sandbox {
         match Self::check_bwrap_syscalls_blocked_internal().await {
             Err(err) => {
                 tracing::info!("Can't determine if bwrap syscalls are blocked: {err} ({err:?})");
-                // For error states we assume that bwrap failed for other reasons than sandbox
-                // creation being blocked
+                // For error states we assume that bwrap failed for other
+                // reasons than sandbox creation being blocked
                 false
             }
             Ok(blocked) => {

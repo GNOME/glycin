@@ -23,7 +23,7 @@ pub unsafe extern "C" fn gly_new_frame_set_color_icc_profile(
         let new_frame = gobject::GlyNewFrame::from_glib_ptr_borrow(&new_frame);
 
         if icc_profile.is_null() {
-            new_frame.set_color_icc_profile(None::<&glib::Bytes>);
+            new_frame.set_color_icc_profile(None::<glib::Bytes>);
 
             true.into_glib()
         } else {
@@ -40,15 +40,13 @@ pub unsafe extern "C" fn gly_new_frame_set_color_icc_profile(
 pub unsafe extern "C" fn gly_new_frame_set_pixel_density(
     new_frame: *mut GlyNewFrame,
     pixel_density: *mut GlyPixelDensity,
-) -> bool {
+) -> glib::ffi::gboolean {
     unsafe {
         let new_frame = gobject::GlyNewFrame::from_glib_ptr_borrow(&new_frame);
         let pixel_density =
             from_glib_borrow::<_, Option<gobject::GlyPixelDensity>>(pixel_density).to_owned();
 
-        new_frame.set_pixel_density(pixel_density);
-
-        true
+        new_frame.set_pixel_density(pixel_density).into_glib()
     }
 }
 
@@ -56,13 +54,11 @@ pub unsafe extern "C" fn gly_new_frame_set_pixel_density(
 pub unsafe extern "C" fn gly_new_frame_set_encoding_progressive(
     new_frame: *mut GlyNewFrame,
     progressive: i8,
-) -> bool {
+) -> glib::ffi::gboolean {
     unsafe {
         let new_frame = gobject::GlyNewFrame::from_glib_ptr_borrow(&new_frame);
 
-        new_frame.set_encoding_progressive(progressive);
-
-        true
+        new_frame.set_encoding_progressive(progressive).into_glib()
     }
 }
 
