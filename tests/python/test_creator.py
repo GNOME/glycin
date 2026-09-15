@@ -20,7 +20,7 @@ def test_encoding_progressive_png():
     assert list(buf.get_data()) == data
 
 
-def test_encoding_progressive_bmp():
+def test_encoding_progressive_not_supported():
     creator = Gly.Creator(mime_type="image/gif")
 
     data = [0, 1, 2, 255]
