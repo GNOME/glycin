@@ -90,7 +90,9 @@ impl LoaderImplementation for ImgDecoder {
             }
         };
 
-        // Only the first Exif box is valid.
+        // There can be multiple Exif boxes in a JPEG XL container, however exact meaning of those
+        // boxes in that case is not defined. We can set only one Exif metadata to an image anyway,
+        // so take the first Exif box in a container.
         let trailing_box_exif = decoder
             .trailing_box()
             .filter(|b| b.box_type() == JxlAuxBoxType::EXIF);
