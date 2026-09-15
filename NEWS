@@ -1,3 +1,14 @@
+## 2.2.1 (2026-09-15)
+
+This release contains the following new component versions:
+
+- glycin-utils 5.0.1
+
+### Fixed
+
+- Don't mmap already write sealed memfds as shared. This is only supported since
+  Linux 6.7 <https://lkml.indiana.edu/2310.1/06395.html>.
+
 ## 2.2.0 (2026-09-09)
 
 This release contains the following new component versions:

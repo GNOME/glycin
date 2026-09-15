@@ -1,0 +1,1 @@
+Don't mmap already write sealed memfds as shared. This is only supported since Linux 6.7 <https://lkml.indiana.edu/2310.1/06395.html>.
