@@ -305,21 +305,27 @@ impl LoaderImplementation for ImgDecoder {
 }
 
 fn color_encoding_to_cicp(c: &JxlColorEncoding) -> Option<Cicp> {
-    let JxlColorEncoding::RgbColorSpace {
-        white_point,
-        primaries,
-        transfer_function,
-        ..
-    } = c
-    else {
-        return None;
-    };
-
-    let color_primaries = match (white_point, primaries) {
-        (JxlWhitePoint::D65, JxlPrimaries::SRGB) => ColorPrimaries::Srgb,
-        (JxlWhitePoint::DCI, JxlPrimaries::P3) => ColorPrimaries::DciP3,
-        (JxlWhitePoint::D65, JxlPrimaries::P3) => ColorPrimaries::DisplayP3,
-        (JxlWhitePoint::D65, JxlPrimaries::BT2100) => ColorPrimaries::Rec2020,
+    let (color_primaries, transfer_function) = match c {
+        JxlColorEncoding::RgbColorSpace {
+            white_point,
+            primaries,
+            transfer_function,
+            ..
+        } => {
+            let color_primaries = match (white_point, primaries) {
+                (JxlWhitePoint::D65, JxlPrimaries::SRGB) => ColorPrimaries::Srgb,
+                (JxlWhitePoint::DCI, JxlPrimaries::P3) => ColorPrimaries::DciP3,
+                (JxlWhitePoint::D65, JxlPrimaries::P3) => ColorPrimaries::DisplayP3,
+                (JxlWhitePoint::D65, JxlPrimaries::BT2100) => ColorPrimaries::Rec2020,
+                _ => return None,
+            };
+            (color_primaries, transfer_function)
+        }
+        JxlColorEncoding::GrayscaleColorSpace {
+            white_point: JxlWhitePoint::D65,
+            transfer_function: tf @ (JxlTransferFunction::HLG | JxlTransferFunction::PQ),
+            ..
+        } => (ColorPrimaries::DisplayP3, tf),
         _ => return None,
     };
 
