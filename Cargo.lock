@@ -1234,7 +1234,7 @@ dependencies = [
  "jpeg-encoder",
  "log",
  "moxcms",
- "png 0.18.1 (git+https://github.com/image-rs/image-png.git)",
+ "png",
  "tiff",
  "zune-jpeg",
 ]
@@ -1288,7 +1288,7 @@ dependencies = [
  "gio",
  "image",
  "libglycin-rebind",
- "png 0.18.1 (git+https://github.com/image-rs/image-png.git)",
+ "png",
 ]
 
 [[package]]
@@ -1552,7 +1552,7 @@ dependencies = [
  "image-webp",
  "moxcms",
  "num-traits",
- "png 0.18.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "png",
  "qoi",
  "tiff",
  "zune-core",
@@ -2266,19 +2266,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "51bae2ac328883f7acdfea3d66a7c35751187f870bc81f94563733a154d7a670"
 dependencies = [
  "plotters-backend",
-]
-
-[[package]]
-name = "png"
-version = "0.18.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "60769b8b31b2a9f263dae2776c37b1b28ae246943cf719eb6946a1db05128a61"
-dependencies = [
- "bitflags 2.13.1",
- "crc32fast",
- "fdeflate",
- "flate2",
- "miniz_oxide 0.8.9",
 ]
 
 [[package]]
