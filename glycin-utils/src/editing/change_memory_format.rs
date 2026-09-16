@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use glycin_common::{ChannelType, MemoryFormatInfo, Source, Target};
+use glycin_common::{ChannelType, MemoryFormatInfo};
 use gufo_common::math::Checked;
 use rayon::iter::IntoParallelIterator;
 use rayon::prelude::*;
@@ -44,16 +44,20 @@ pub fn change_memory_format(
         .build()
         .map_err(Arc::new)?
         .install(|| {
-            if src_format.channel_type() == target_format.channel_type()
+            if src_format.color_model() == target_format.color_model()
+                && src_format.channel_type() == target_format.channel_type()
                 && src_format.is_premultiplied() == target_format.is_premultiplied()
-                && (!src_format.source_definition().contains(&Source::Opaque)
-                    || !target_format.target_definition().contains(&Target::A))
-                && !target_format.target_definition().contains(&Target::RgbAvg)
+                && (src_format.has_alpha() || !target_format.has_alpha())
             {
                 let mut source_target_index_map = [0; 4];
-                for (n, target) in target_format.target_definition().iter().enumerate() {
+                for (n, target) in target_format
+                    .target_definition()
+                    .into_iter_usize()
+                    .enumerate()
+                {
                     source_target_index_map[n] =
-                        src_format.source_definition()[*target as usize] as usize;
+                        *src_format.swizzle().into_iter_usize().collect::<Vec<_>>()[target]
+                            as usize;
                 }
 
                 let target_n_channels = target_format.n_channels();
@@ -78,15 +82,19 @@ pub fn change_memory_format(
                 });
             } else if src_format.channel_type() == ChannelType::U16
                 && target_format.channel_type() == ChannelType::U8
+                && src_format.color_model() == target_format.color_model()
                 && src_format.is_premultiplied() == target_format.is_premultiplied()
-                && (!src_format.source_definition().contains(&Source::Opaque)
-                    || !target_format.target_definition().contains(&Target::A))
-                && !target_format.target_definition().contains(&Target::RgbAvg)
+                && (src_format.has_alpha() || !target_format.has_alpha())
             {
                 let mut source_target_index_map = [0; 4];
-                for (n, target) in target_format.target_definition().iter().enumerate() {
+                for (n, target) in target_format
+                    .target_definition()
+                    .into_iter_usize()
+                    .enumerate()
+                {
                     source_target_index_map[n] =
-                        src_format.source_definition()[*target as usize] as usize;
+                        *src_format.swizzle().into_iter_usize().collect::<Vec<_>>()[target]
+                            as usize;
                 }
 
                 let target_n_channels = target_format.n_channels();
@@ -186,5 +194,56 @@ mod test {
             Frame::new(1, 2, crate::MemoryFormat::R8g8b8a8Premultiplied, texture).unwrap();
         change_memory_format(&mut frame, MemoryFormat::R8g8b8a8).unwrap();
         assert_eq!(&*frame.texture, &[255, 126, 0, 127, 127, 63, 0, 255]);
+    }
+
+    #[test]
+    fn u8premultiplied_roundtrip() {
+        let original = vec![127, 63, 0, 127, 127, 63, 0, 255];
+        let texture = FungibleMemory::from_vec(original.clone());
+        let mut frame =
+            Frame::new(1, 2, crate::MemoryFormat::R8g8b8a8Premultiplied, texture).unwrap();
+        change_memory_format(&mut frame, MemoryFormat::R8g8b8a8).unwrap();
+        change_memory_format(&mut frame, MemoryFormat::R8g8b8a8Premultiplied).unwrap();
+        assert_eq!(&*frame.texture, &original);
+    }
+
+    #[test]
+    fn cmyk_to_rgb() {
+        let texture = FungibleMemory::from_vec(vec![10, 20, 30, 5]);
+        let mut frame = Frame::new(1, 1, crate::MemoryFormat::C8m8y8k8, texture).unwrap();
+        change_memory_format(&mut frame, MemoryFormat::R8g8b8).unwrap();
+        assert_eq!(&*frame.texture, &[240, 230, 221]);
+    }
+
+    #[test]
+    fn cmyk_to_rgb_black() {
+        let texture = FungibleMemory::from_vec(vec![0, 0, 0, 255]);
+        let mut frame = Frame::new(1, 1, crate::MemoryFormat::C8m8y8k8, texture).unwrap();
+        change_memory_format(&mut frame, MemoryFormat::R8g8b8).unwrap();
+        assert_eq!(&*frame.texture, &[0, 0, 0]);
+    }
+
+    #[test]
+    fn cmyk_to_rgb_black2() {
+        let texture = FungibleMemory::from_vec(vec![255, 255, 255, 0]);
+        let mut frame = Frame::new(1, 1, crate::MemoryFormat::C8m8y8k8, texture).unwrap();
+        change_memory_format(&mut frame, MemoryFormat::R8g8b8).unwrap();
+        assert_eq!(&*frame.texture, &[0, 0, 0]);
+    }
+
+    #[test]
+    fn cmyk_to_rgb_white() {
+        let texture = FungibleMemory::from_vec(vec![0, 0, 0, 0]);
+        let mut frame = Frame::new(1, 1, crate::MemoryFormat::C8m8y8k8, texture).unwrap();
+        change_memory_format(&mut frame, MemoryFormat::R8g8b8).unwrap();
+        assert_eq!(&*frame.texture, &[255, 255, 255]);
+    }
+
+    #[test]
+    fn rgb_to_cmyk_black() {
+        let texture = FungibleMemory::from_vec(vec![0, 0, 0]);
+        let mut frame = Frame::new(1, 1, crate::MemoryFormat::R8g8b8, texture).unwrap();
+        change_memory_format(&mut frame, MemoryFormat::C8m8y8k8).unwrap();
+        assert_eq!(&*frame.texture, &[0, 0, 0, 255]);
     }
 }

@@ -93,6 +93,7 @@ pub const fn gdk_memory_format(format: MemoryFormat) -> gdk::MemoryFormat {
         MemoryFormat::G16a16Premultiplied => gdk::MemoryFormat::G16a16Premultiplied,
         MemoryFormat::G16a16 => gdk::MemoryFormat::G16a16,
         MemoryFormat::G16 => gdk::MemoryFormat::G16,
+        MemoryFormat::C8m8y8k8 | MemoryFormat::C8m8y8k8a8 => panic!(),
     }
 }
 

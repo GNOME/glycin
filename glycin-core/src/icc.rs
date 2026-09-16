@@ -77,6 +77,7 @@ fn transformation(
             &target_profile,
             moxcms::TransformOptions::default(),
         )?)),
+        _ => unreachable!(),
     }
 }
 
