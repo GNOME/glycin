@@ -100,8 +100,7 @@ foreach loader : get_option('loaders')
     install: true,
     install_dir: loader_libexecdir,
     output: loader,
-    command: [
-      'cp',
+    command: [copy_cmd.full_path()] + [
       cargo_artifact_dir / rust_target / loader,
       '@OUTPUT@',
     ],
