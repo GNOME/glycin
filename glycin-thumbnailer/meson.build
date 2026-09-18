@@ -25,6 +25,8 @@ cargo_build = custom_target(
     ],
 )
 
+thumbnailer_exeext = is_windows_target ? '.exe' : ''
+
 custom_target(
     'glycin-thumbnailer-cp-binary',
     depends: cargo_build,
@@ -32,9 +34,9 @@ custom_target(
     build_always_stale: true,
     install: true,
     install_dir: bindir,
-    output: 'glycin-thumbnailer',
+    output: f'glycin-thumbnailer@thumbnailer_exeext@',
     command: [copy_cmd.full_path()] + [
-        cargo_artifact_dir / rust_target / 'glycin-thumbnailer',
+        cargo_artifact_dir / rust_target / f'glycin-thumbnailer@thumbnailer_exeext@',
         '@OUTPUT@',
     ],
 )
