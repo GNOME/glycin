@@ -89,6 +89,13 @@ if glycin_loaders != get_option('glycin-loaders')
   summary('glycin-loaders', glycin_loaders, section: 'Overwritten options')
 endif
 
+# Windows targets might not have 'cp' available, so fallback
+# to 'build-aux/cp-fallback.py' in these cases.
+copy_cmd = find_program('cp', required: not is_windows_target)
+if not copy_cmd.found()
+  copy_cmd = find_program('build-aux/cp-fallback.py')
+endif
+
 subdir('glycin-loaders')
 subdir('libglycin')
 subdir('glycin-thumbnailer')
