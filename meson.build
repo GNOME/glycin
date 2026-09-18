@@ -13,6 +13,8 @@ gtk4_req = '>= 4.16.0'
 seccomp_req = '>= 2.5.0'
 fontconfig_req = '>= 2.13.0'
 
+is_windows_target = host_machine.system() == 'windows'
+
 compat_version = '2+'
 
 dedicated_editors = ['glycin-libwebp-editor']
