@@ -60,7 +60,6 @@ endif
 
 global_libglycin_gir = 'non-existent'
 
-cc = meson.get_compiler('c')
 if host_machine.system() == 'darwin'
     lib_ext = 'dylib'
 elif is_windows_target
@@ -68,9 +67,6 @@ elif is_windows_target
 else
     lib_ext = 'so'
 endif
-
-windows_msvc = is_windows_target and cc.get_argument_syntax() == 'msvc'
-windows_gnu = is_windows_target and cc.get_argument_syntax() == 'gcc'
 
 foreach package : packages
     suffix = package['suffix']

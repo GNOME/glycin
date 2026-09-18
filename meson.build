@@ -15,6 +15,10 @@ fontconfig_req = '>= 2.13.0'
 
 is_windows_target = host_machine.system() == 'windows'
 
+cc = meson.get_compiler('c')
+windows_msvc = is_windows_target and cc.get_argument_syntax() == 'msvc'
+windows_gnu = is_windows_target and cc.get_argument_syntax() == 'gcc'
+
 compat_version = '2+'
 
 datadir = get_option('prefix') / get_option('datadir')
@@ -29,8 +33,65 @@ cargo_manifest = meson.project_source_root() / 'Cargo.toml'
 cargo_env = environment()
 cargo_env.set('CARGO_HOME', cargo_home)
 
+cargo_bin = find_program('cargo')
+is_rustc_cross_build = false
+
+# Use `cargo version -v` to find the (default) target arch and toolchain, which equates to the
+# `host: ...` line
+# This gives `host: <arch>-<platform>-<compiler_toolchain>`
+cargo_version_details = run_command(cargo_bin, 'version', '-v', check: true).stdout().strip().split('\n')
+foreach part : cargo_version_details
+  p = part.split(':')
+  if p[0] != part and p[0] == 'host'
+    cargo_default_toolchain_parts = p[1].strip().split('-')
+    cargo_host_arch = cargo_default_toolchain_parts[0]
+  endif
+endforeach
+
+# Check whether the RustC cross-compilation mode (--target=xxx) is to be used.
+# If this is a cross build, we proceed as we did before; otherwise on Windows builds
+# we check the default host given by `cargo version -v` and see whether the info
+# matches the compiler and target arch we are using.
 if meson.is_cross_build()
+  is_rustc_cross_build = true
   cargo_build_target = meson.get_external_property('rust_target')
+else
+  rustc_target_platform = []
+  rustc_target_toolchain = []
+  rustc_target_arch = []
+
+  # Currently, this checks for non-cross Windows builds only
+  if is_windows_target
+    if windows_msvc and cargo_default_toolchain_parts[3] != 'msvc'
+      is_rustc_cross_build = true
+    endif
+    if windows_gnu and cargo_default_toolchain_parts[3] != 'gnu'
+      is_rustc_cross_build = true
+    endif
+    target_arch = host_machine.cpu_family()
+    if target_arch != cargo_host_arch
+      if cargo_host_arch != 'i686' or target_arch != 'x86'
+        is_rustc_cross_build = true
+      endif
+    endif
+    if is_rustc_cross_build
+      if windows_msvc
+        rustc_target_toolchain = 'msvc'
+      elif windows_gnu
+        rustc_target_toolchain = 'gnu'
+      endif
+      rustc_target_platform = 'pc-windows'
+      rustc_target_arch = target_arch == 'x86' ? 'i686' : target_arch
+    endif
+  endif
+  if is_rustc_cross_build
+    cargo_build_target = f'@rustc_target_arch@-@rustc_target_platform@-@rustc_target_toolchain@'
+  endif
+endif
+
+message('RustC cross build carried out: @0@'.format(is_rustc_cross_build ? 'YES' : 'NO'))
+
+if is_rustc_cross_build
   cargo_target_args = ['--target', cargo_build_target]
   cargo_artifact_dir = cargo_target_dir / cargo_build_target
   cargo_env.set('PKG_CONFIG', find_program('pkg-config', required: true).full_path())
@@ -38,8 +99,6 @@ else
   cargo_target_args = []
   cargo_artifact_dir = cargo_target_dir
 endif
-
-cargo_bin = find_program('cargo')
 
 if get_option('libglycin') and (get_option('libglycin-gtk4') or get_option('glycin-thumbnailer'))
   # Let the libglycin-gtk4 or glycin-thumbnailer build find the previously
@@ -49,15 +108,6 @@ if get_option('libglycin') and (get_option('libglycin-gtk4') or get_option('glyc
     meson.project_build_root() / 'meson-uninstalled',
   )
 endif
-
-cargo_version_details = run_command(cargo_bin, 'version', '-v', check: true).stdout().strip().split('\n')
-foreach part : cargo_version_details
-  p = part.split(':')
-  if p[0] != part and p[0] == 'host'
-    cargo_host_arch = p[1].split('-')[0].strip()
-  endif
-endforeach
-
 
 if get_option('profile') == 'release'
   rust_target = 'release'
