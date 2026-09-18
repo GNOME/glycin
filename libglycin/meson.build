@@ -132,8 +132,7 @@ foreach package : packages
         build_by_default: true,
         build_always_stale: true,
         output: f'tmp@suffix@.so',
-        command: [
-            'cp',
+        command: [copy_cmd.full_path()] + [
             '-a', cargo_output,
             meson.current_build_dir() / f'tmp@suffix@.so',
         ],
@@ -172,8 +171,7 @@ foreach package : packages
         build_always_stale: true,
         build_by_default: true,
         output: f'would-overlap-with-library()@suffix@',
-        command: [
-            'cp',
+        command: [copy_cmd.full_path()] + [
             '-a', cargo_output,
             libglycin_shim.full_path(),
         ],
@@ -189,8 +187,7 @@ foreach package : packages
             build_always_stale: true,
             build_by_default: true,
             output: f'would-overlap-with-import-library()@suffix@',
-            command: [
-                'cp',
+            command: [copy_cmd.full_path()] + [
                 '-a', cargo_implib_output,
                 shim_import_lib,
             ],

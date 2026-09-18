@@ -33,8 +33,7 @@ custom_target(
     install: true,
     install_dir: bindir,
     output: 'glycin-thumbnailer',
-    command: [
-        'cp',
+    command: [copy_cmd.full_path()] + [
         cargo_artifact_dir / rust_target / 'glycin-thumbnailer',
         '@OUTPUT@',
     ],
