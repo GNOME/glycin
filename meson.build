@@ -50,16 +50,24 @@ if get_option('libglycin') and (get_option('libglycin-gtk4') or get_option('glyc
   )
 endif
 
+cargo_version_details = run_command(cargo_bin, 'version', '-v', check: true).stdout().strip()
+parts = cargo_version_details.split('\n')
+foreach part : parts
+  p = part.split(':')
+  if p[0] != part and p[0] == 'host'
+    cargo_host_arch = p[1].split('-')[0].strip()
+  endif
+endforeach
+
+
 if get_option('profile') == 'release'
   rust_target = 'release'
   cargo_profile = 'release'
 
   if get_option('lto') == 'auto'
-    cargo_version_details = run_command(cargo_bin, 'version', '-v', check: true).stdout().strip()
-
     # Disable LTO for architectures other than x86_64 and aarch64
     # There have been frequent built issues with memory limits on 32-bit architectures
-    if not cargo_version_details.contains('host: x86_64-') and not cargo_version_details.contains('host: aarch64-')
+    if cargo_host_arch != 'x86_64' and cargo_host_arch != 'aarch64'
       message('LTO automatically disabled')
       cargo_env.set('CARGO_PROFILE_RELEASE_LTO', 'false')
     endif
