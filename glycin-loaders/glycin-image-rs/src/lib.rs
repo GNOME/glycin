@@ -3,8 +3,10 @@
 mod animated;
 mod editor;
 mod exr;
+mod loader;
 
 use std::io::{Cursor, Read};
+use std::ops::DerefMut;
 use std::sync::Mutex;
 use std::sync::mpsc::{Receiver, Sender, channel};
 
@@ -47,7 +49,18 @@ pub enum Decoder {
         join_handle: std::thread::JoinHandle<()>,
         frame_receiver: FrameReceiver,
     },
+    Specific(Mutex<SpecificDecoder>),
+}
+
+impl Decoder {
+    fn specific(specific: SpecificDecoder) -> Self {
+        Self::Specific(Mutex::new(specific))
+    }
+}
+
+pub enum SpecificDecoder {
     Exr(Vec<u8>),
+    Jpeg(zune_jpeg::JpegDecoder<loader::jpeg::JpegReader>),
 }
 
 impl LoaderImplementation for ImgLoader {
@@ -65,7 +78,17 @@ impl LoaderImplementation for ImgLoader {
             let metadata = exr::metadata(&buf)?;
             return Ok((
                 ImgLoader {
-                    decoder: Mutex::new(Some(Decoder::Exr(buf))),
+                    decoder: Mutex::new(Some(Decoder::specific(SpecificDecoder::Exr(buf)))),
+                    ..Default::default()
+                },
+                metadata,
+            ));
+        } else if mime_type == "image/jpeg" {
+            let (metadata, jpeg) = loader::jpeg::load(buf)?;
+
+            return Ok((
+                ImgLoader {
+                    decoder: Mutex::new(Some(Decoder::specific(SpecificDecoder::Jpeg(jpeg)))),
                     ..Default::default()
                 },
                 metadata,
@@ -202,7 +225,13 @@ impl LoaderImplementation for ImgLoader {
                 }
                 frame
             }
-            Decoder::Exr(data) => exr::frame(&data)?,
+            Decoder::Specific(specific) => {
+                let mut specific = specific.lock().unwrap();
+                match specific.deref_mut() {
+                    SpecificDecoder::Exr(data) => exr::frame(data)?,
+                    SpecificDecoder::Jpeg(jpeg) => loader::jpeg::frame(jpeg)?,
+                }
+            }
         };
 
         frame.details.color_cicp = cicp.map(|x| {
