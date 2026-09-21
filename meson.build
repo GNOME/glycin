@@ -100,6 +100,21 @@ else
   cargo_artifact_dir = cargo_target_dir
 endif
 
+# Prepend the paths in -Dpkg_config_path=... for Cargo
+pkg_config_path_opt = get_option('pkg_config_path')
+
+if pkg_config_path_opt != []
+  path_sep = is_windows_target ? ';' : ':'
+  paths = pkg_config_path_opt[0].split(path_sep)
+  n_paths = paths.length()
+  foreach i : range(0, n_paths)
+    cargo_env.prepend(
+      'PKG_CONFIG_PATH',
+      paths[n_paths - i - 1],
+    )
+  endforeach
+endif
+
 if get_option('libglycin') and (get_option('libglycin-gtk4') or get_option('glycin-thumbnailer'))
   # Let the libglycin-gtk4 or glycin-thumbnailer build find the previously
   # built libglycin
