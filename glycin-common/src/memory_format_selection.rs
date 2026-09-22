@@ -29,6 +29,8 @@ pub enum MemoryFormatSelection {
     G16a16Premultiplied = (1 << 20),
     G16a16 = (1 << 21),
     G16 = (1 << 22),
+    C8m8y8k8 = (1 << 30),
+    C8m8y8k8a8 = (1 << 31),
 }
 
 #[cfg(not(feature = "gobject"))]
@@ -59,17 +61,20 @@ bitflags::bitflags! {
         const G16a16Premultiplied = (1 << 20);
         const G16a16 = (1 << 21);
         const G16 = (1 << 22);
+        const C8m8y8k8 = (1 << 30);
+        const C8m8y8k8a8 = (1 << 31);
     }
 }
 
 impl Default for MemoryFormatSelection {
+    /// All but CMYK
     fn default() -> Self {
-        Self::all()
+        !(Self::C8m8y8k8 | Self::C8m8y8k8a8)
     }
 }
 
 impl MemoryFormatSelection {
-    const X: [(MemoryFormatSelection, MemoryFormat); 23] = [
+    const MEMORY_FORMAT_MAPPING: &[(MemoryFormatSelection, MemoryFormat)] = &[
         (
             MemoryFormatSelection::B8g8r8a8Premultiplied,
             MemoryFormat::B8g8r8a8Premultiplied,
@@ -129,23 +134,25 @@ impl MemoryFormatSelection {
         ),
         (MemoryFormatSelection::G16a16, MemoryFormat::G16a16),
         (MemoryFormatSelection::G16, MemoryFormat::G16),
+        (MemoryFormatSelection::C8m8y8k8, MemoryFormat::C8m8y8k8),
+        (MemoryFormatSelection::C8m8y8k8a8, MemoryFormat::C8m8y8k8a8),
     ];
 
     /// List of selected memory formats
     pub fn memory_formats(self) -> Vec<MemoryFormat> {
         let mut vec = Vec::new();
-        for (selection, format) in Self::X {
-            if self.contains(selection) {
-                vec.push(format);
+        for (selection, format) in Self::MEMORY_FORMAT_MAPPING {
+            if self.contains(*selection) {
+                vec.push(*format);
             }
         }
 
         vec
     }
     pub fn from_memory_format(memory_format: MemoryFormat) -> Self {
-        for (selection, format) in Self::X {
-            if format == memory_format {
-                return selection;
+        for (selection, format) in Self::MEMORY_FORMAT_MAPPING {
+            if *format == memory_format {
+                return *selection;
             }
         }
 
@@ -194,12 +201,24 @@ impl MemoryFormatSelection {
     /// );
     ///
     /// assert_eq!(
+    ///     (MemoryFormatSelection::R8g8b8 | MemoryFormatSelection::R16g16b16)
+    ///         .best_format_for(MemoryFormat::C8m8y8k8),
+    ///     Some(MemoryFormat::R8g8b8)
+    /// );
+    ///
+    /// assert_eq!(
+    ///     (MemoryFormatSelection::R8g8b8a8 | MemoryFormatSelection::R16g16b16a16)
+    ///         .best_format_for(MemoryFormat::C8m8y8k8a8),
+    ///     Some(MemoryFormat::R8g8b8a8)
+    /// );
+    ///
+    /// assert_eq!(
     ///     MemoryFormatSelection::empty().best_format_for(MemoryFormat::R16g16b16Float),
     ///     None
     /// );
     /// ```
     pub fn best_format_for(self, src: MemoryFormat) -> Option<MemoryFormat> {
-        let formats: Vec<MemoryFormat> = self.memory_formats();
+        let formats = self.memory_formats();
 
         // Shortcut if format itself is supported
         if formats.contains(&src) {
@@ -212,8 +231,10 @@ impl MemoryFormatSelection {
                 (
                     // Prioritize formats by how good they can represent the original format
                     (
+                        x.color_model() == src.color_model(),
                         x.has_alpha() == src.has_alpha(),
-                        x.n_channels() >= src.n_channels(),
+                        // Ensure there are enough channels
+                        x.n_channels() as i16 - src.n_channels() as i16,
                         x.channel_type() == src.channel_type(),
                         x.channel_type().size() >= src.channel_type().size(),
                         // Don't have unnecessary many channels
