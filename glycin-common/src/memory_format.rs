@@ -43,8 +43,8 @@ gufo_common::maybe_convertible_enum!(
         G16a16Premultiplied = 20,
         G16a16 = 21,
         G16 = 22,
-        C8m8y8k8 = 100_001,
-        C8m8y8k8a8 = 100_002,
+        C8m8y8k8 = 30,
+        C8m8y8k8a8 = 31,
     }
 );
 
