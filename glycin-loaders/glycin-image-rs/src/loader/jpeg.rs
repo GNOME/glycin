@@ -57,9 +57,12 @@ pub fn frame<B: ByteData>(
     let memory_format = match color {
         colorspace::ColorSpace::RGB => MemoryFormat::R8g8b8,
         colorspace::ColorSpace::Luma => MemoryFormat::G8,
-        colorspace::ColorSpace::CMYK => MemoryFormat::C8m8y8k8,
+        colorspace::ColorSpace::CMYK => {
+            jpeg_cmyk_to_cmyk(&mut texture);
+            MemoryFormat::C8m8y8k8
+        }
         colorspace::ColorSpace::YCCK => {
-            ycck_to_cmyk(&mut texture);
+            jpeg_ycck_to_cmyk(&mut texture);
             MemoryFormat::C8m8y8k8
         }
         c => unreachable!("{c:?}"),
@@ -80,11 +83,11 @@ pub fn frame<B: ByteData>(
 }
 
 /// Naive Rec. T.871 implementation
-fn ycck_to_cmyk(data: &mut [u8]) {
+fn jpeg_ycck_to_cmyk(data: &mut [u8]) {
     for chunk in data.as_chunks_mut::<4>().0 {
-        let y = chunk[0] as f32;
-        let cb = chunk[1] as f32;
-        let cr = chunk[2] as f32;
+        let y = 255. - chunk[0] as f32;
+        let cb = 255. - chunk[1] as f32;
+        let cr = 255. - chunk[2] as f32;
 
         let r = y + 1.402 * (cr - 128.);
         let g = y - 0.3441 * (cb - 128.) - 0.7141 * (cr - 128.);
@@ -94,5 +97,11 @@ fn ycck_to_cmyk(data: &mut [u8]) {
         chunk[1] = (255. - g).round() as u8;
         chunk[2] = (255. - b).round() as u8;
         chunk[3] = 255 - chunk[3];
+    }
+}
+
+fn jpeg_cmyk_to_cmyk(data: &mut [u8]) {
+    for channel in data {
+        *channel = 255 - *channel;
     }
 }
