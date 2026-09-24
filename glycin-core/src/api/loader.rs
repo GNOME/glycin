@@ -82,7 +82,7 @@ impl Loader {
             apply_transformations: true,
             use_expose_base_dir: false,
             sandbox_selector: SandboxSelector::default(),
-            memory_format_selection: MemoryFormatSelection::all(),
+            memory_format_selection: MemoryFormatSelection::default(),
             limits: Limits::default(),
             main_context_selector: MainContextSelector::Auto,
             color_convert_icc_srgb: true,
@@ -118,6 +118,9 @@ impl Loader {
     ///
     /// If the memory format doesn't match one of the selected formats, the
     /// format will be transformed into the best suitable format selected.
+    ///
+    /// The default value is `MemoryFormatSelection::default()` which excludes
+    /// CYMK and CMYKA.
     pub fn accepted_memory_formats(
         &mut self,
         memory_format_selection: MemoryFormatSelection,
@@ -782,6 +785,13 @@ impl Frame {
             frame.into_fungible()
         };
 
+        // TODO: Handle None
+        let final_memory_format = image
+            .loader
+            .memory_format_selection
+            .best_format_for(frame.memory_format)
+            .unwrap();
+
         let mut color_state = ColorState::Srgb;
 
         let cicp = frame
@@ -802,8 +812,10 @@ impl Frame {
             frame
         } else if let Some(icc_profile) = icc_profile {
             if image.loader.color_convert_icc_srgb {
-                let (frame, icc_result) =
-                    spawn_blocking(move || icc::apply_transformation(&icc_profile, frame)).await?;
+                let (frame, icc_result) = spawn_blocking(move || {
+                    icc::apply_transformation(&icc_profile, frame, final_memory_format)
+                })
+                .await?;
 
                 match icc_result {
                     Err(err) => {
