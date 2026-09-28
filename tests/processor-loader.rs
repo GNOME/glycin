@@ -63,6 +63,11 @@ fn processor_loader_animated_numbers() {
 }
 
 #[test]
+fn processor_loader_red_cmyk_turned_green_via_icc_profile() {
+    test_dir("test-images/images/red-cmyk-turned-green-via-icc_profile");
+}
+
+#[test]
 fn processor_loader_input_stream() {
     block_on(test_input_stream());
 }
