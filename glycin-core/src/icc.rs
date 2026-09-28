@@ -212,7 +212,7 @@ fn transform(
                 let src_chunks = buf.chunks_mut(chunk_size);
                 let dst_chunks = dst_buf.chunks_mut(dst_chunk_size);
 
-                for (chunk, dst_chunk) in src_chunks.zip(dst_chunks) {
+                let results = src_chunks.zip(dst_chunks).map(|(chunk, dst_chunk)| {
                     let transform = transform.clone();
                     s.spawn(move || {
                         let src_iter = chunk.chunks_mut(stride as usize);
@@ -222,12 +222,20 @@ fn transform(
                             transform.transform(&mut src[0..row_length], dst)?;
                         }
                         Ok::<(), Error>(())
-                    });
-                }
-                Ok::<(), Error>(())
+                    })
+                });
+
+                // Propagate errors and panics from threads
+                results
+                    .map(|x| x.join())
+                    .find_map(|res| match res {
+                        Err(panic) => Some(Error::other("ICC transformation paniced")),
+                        Ok(Err(err)) => Some(err),
+                        Ok(Ok(_)) => None,
+                    })
+                    .map_or(Ok(()), Err)
             })?;
 
-            // TODO: Check for errors from threads?
             std::mem::swap(&mut frame.texture, &mut dst_buf);
             frame.memory_format = final_memory_format;
             frame.stride = dst_stride;
