@@ -44,6 +44,20 @@ def test_cancellable():
     cancellable.cancel()
 
 
+def test_cmyk():
+    file = helper_image_file("images/color/color_cmyk.jpg")
+
+    loader = Gly.Loader(
+        file=file,
+        accepted_memory_formats=Gly.MemoryFormatSelection.R8G8B8
+        | Gly.MemoryFormatSelection.C8M8Y8K8,
+    )
+    image = loader.load()
+    frame = image.next_frame()
+
+    assert frame.get_memory_format() == Gly.MemoryFormat.C8M8Y8K8
+
+
 def test_gtask_starvation():
     """Test sync libglycin API while blocking the complete GTask pool.
 

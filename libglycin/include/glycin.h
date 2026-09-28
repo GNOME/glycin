@@ -155,6 +155,8 @@ GType gly_sandbox_selector_get_type(void);
  * @GLY_MEMORY_SELECTION_G16A16_PREMULTIPLIED: 16-bit gray with alpha premultiplied
  * @GLY_MEMORY_SELECTION_G16A16: 16-bit gray with alpha
  * @GLY_MEMORY_SELECTION_G16: 16-bit gray
+ * @GLY_MEMORY_SELECTION_C8M8Y8K8: 8-bit CMYK
+ * @GLY_MEMORY_SELECTION_C8M8Y8K8A8: 8-bit CMYK with alpha
  *
  * Memory format selection
  *
@@ -185,6 +187,9 @@ typedef enum
     GLY_MEMORY_SELECTION_G16A16_PREMULTIPLIED = (1 << 20),
     GLY_MEMORY_SELECTION_G16A16 = (1 << 21),
     GLY_MEMORY_SELECTION_G16 = (1 << 22),
+    GLY_MEMORY_SELECTION_C8M8Y8K8 = (1 << 30),
+    GLY_MEMORY_SELECTION_C8M8Y8K8A8 = (1 << 30),
+
 } GlyMemoryFormatSelection;
 
 GType gly_memory_format_selection_get_type(void);
@@ -703,6 +708,8 @@ typedef enum
     GLY_MEMORY_G16A16_PREMULTIPLIED,
     GLY_MEMORY_G16A16,
     GLY_MEMORY_G16,
+    GLY_MEMORY_C8M8Y8K8 = 30,
+    GLY_MEMORY_C8M8Y8K8A8 = 31,
 } GlyMemoryFormat;
 
 GType gly_memory_format_get_type(void);
