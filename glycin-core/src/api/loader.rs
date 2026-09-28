@@ -704,6 +704,7 @@ pub struct Frame {
     pub(crate) memory_format: MemoryFormat,
     pub(crate) delay: Option<std::time::Duration>,
     pub(crate) details: Arc<glycin_utils::FrameDetails<FungibleMemory>>,
+    extended_details: Arc<FrameExtendedDetails>,
     pub(crate) image_details: ImageDetails,
     pub(crate) color_state: ColorState,
 }
@@ -750,7 +751,11 @@ impl Frame {
     }
 
     pub fn details(&self) -> FrameDetails {
-        FrameDetails::new(self.details.clone(), self.image_details.clone())
+        FrameDetails::new(
+            self.details.clone(),
+            self.image_details.clone(),
+            self.extended_details.clone(),
+        )
     }
 
     #[cfg(feature = "gdk4")]
@@ -791,6 +796,10 @@ impl Frame {
             .memory_format_selection
             .best_format_for(frame.memory_format)
             .unwrap();
+
+        let extended_details = FrameExtendedDetails {
+            original_memory_format: frame.memory_format,
+        };
 
         let mut color_state = ColorState::Srgb;
 
@@ -861,6 +870,7 @@ impl Frame {
             delay: frame.delay.into(),
             details: Arc::new(frame.details.into_other()?),
             image_details: image.details(),
+            extended_details: Arc::new(extended_details),
             color_state,
         })
     }
@@ -954,16 +964,19 @@ impl FrameRequest {
 pub struct FrameDetails {
     inner: Arc<glycin_utils::FrameDetails<FungibleMemory>>,
     image_details: ImageDetails,
+    extended_details: Arc<FrameExtendedDetails>,
 }
 
 impl FrameDetails {
     fn new(
         inner: Arc<glycin_utils::FrameDetails<FungibleMemory>>,
         image_details: ImageDetails,
+        extended_details: Arc<FrameExtendedDetails>,
     ) -> Self {
         Self {
             inner,
             image_details,
+            extended_details,
         }
     }
 
@@ -1007,6 +1020,21 @@ impl FrameDetails {
     pub fn physical_size(&self) -> Option<physical_dimension::PhysicalSize> {
         self.inner.physical_size.clone()
     }
+
+    /// Memory format glycin got from the loader
+    ///
+    /// The value will differ from [`Frame::memory_format`] if the memory format
+    /// was not in [`Loader::accepted_memory_formats`] or if an ICC profile based
+    /// transformation was necessary and `moxcms` didn't support the memory
+    /// format.
+    pub fn original_memory_format(&self) -> MemoryFormat {
+        self.extended_details.original_memory_format
+    }
+}
+
+#[derive(Debug, Clone)]
+struct FrameExtendedDetails {
+    original_memory_format: MemoryFormat,
 }
 
 #[cfg(test)]

@@ -212,6 +212,7 @@ fn transform(
                 let src_chunks = buf.chunks_mut(chunk_size);
                 let dst_chunks = dst_buf.chunks_mut(dst_chunk_size);
 
+                // Split ICC transformations to multiple threads
                 let results = src_chunks.zip(dst_chunks).map(|(chunk, dst_chunk)| {
                     let transform = transform.clone();
                     s.spawn(move || {
@@ -229,7 +230,7 @@ fn transform(
                 results
                     .map(|x| x.join())
                     .find_map(|res| match res {
-                        Err(panic) => Some(Error::other("ICC transformation paniced")),
+                        Err(_) => Some(Error::other("ICC transformation paniced")),
                         Ok(Err(err)) => Some(err),
                         Ok(Ok(_)) => None,
                     })
