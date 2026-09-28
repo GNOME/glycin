@@ -322,6 +322,7 @@ impl Creator {
         self
     }
 
+    #[cfg(feature = "gobject")]
     pub(crate) fn config(&self) -> EditorConfig {
         self.config.clone()
     }
