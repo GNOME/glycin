@@ -61,8 +61,6 @@ impl EditorImplementation for ImgEditor {
 
         let frame = frame.into_fungible();
 
-        let memory_format = image_memory_format(frame.memory_format)?;
-
         let icc_profile = frame.details.color_icc_profile.as_ref().map(|x| x.to_vec());
 
         let image_buf = match image_format {
@@ -70,6 +68,7 @@ impl EditorImplementation for ImgEditor {
             ImageFormat::Jpeg => jpeg::create(frame, encoding_options, icc_profile)?,
             ImageFormat::Tiff => tiff::create(frame)?,
             _ => {
+                let memory_format = image_memory_format(frame.memory_format)?;
                 let mut cur = Cursor::new(Vec::new());
                 image::write_buffer_with_format(
                     &mut cur,
