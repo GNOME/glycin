@@ -30,6 +30,7 @@ pub fn create(
     let color_type = match frame.memory_format {
         MemoryFormat::R8g8b8 => jpeg_encoder::ColorType::Rgb,
         MemoryFormat::G8 => jpeg_encoder::ColorType::Luma,
+        MemoryFormat::C8m8y8k8 => jpeg_encoder::ColorType::CmykAsYcck,
         format => {
             return Err(ProcessError::expected(&format!(
                 "Unsupported memory format: {format:?}"
