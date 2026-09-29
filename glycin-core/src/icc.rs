@@ -34,6 +34,7 @@ enum Transform {
 #[derive(Clone)]
 enum TransformNewPlace {
     U8(TransformExectuor<u8>),
+    U16(TransformExectuor<u16>),
 }
 
 #[derive(Clone)]
@@ -47,6 +48,11 @@ impl TransformNewPlace {
     fn transform(&self, src: &mut [u8], dst: &mut [u8]) -> Result<(), Error> {
         match self {
             Self::U8(executor) => executor.transform(src, dst),
+            Self::U16(executor) => {
+                let src = bytemuck::try_cast_slice_mut(src)?;
+                let dst = bytemuck::try_cast_slice_mut(dst)?;
+                executor.transform(src, dst)
+            }
         }
         .map_err(Into::into)
     }
@@ -117,6 +123,20 @@ fn transformation(
                 moxcms::TransformOptions::default(),
             )?,
         ))),
+        ChannelType::U16
+            if *memory_format == MemoryFormat::C16m16y16k16
+                && final_memory_format.color_model() == ColorModel::Rgb =>
+        {
+            Ok(Transform::NewPlace {
+                transform: TransformNewPlace::U16(src_profile.create_transform_16bit(
+                    layout,
+                    &moxcms::ColorProfile::new_srgb(),
+                    moxcms::Layout::Rgb,
+                    moxcms::TransformOptions::default(),
+                )?),
+                final_memory_format: MemoryFormat::R16g16b16,
+            })
+        }
         ChannelType::U16 => Ok(Transform::InPlace(TransformInPlace::U16(
             src_profile.create_in_place_transform_16bit(
                 layout,
