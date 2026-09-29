@@ -61,6 +61,7 @@ impl Decoder {
 pub enum SpecificDecoder {
     Exr(Vec<u8>),
     Jpeg(zune_jpeg::JpegDecoder<loader::jpeg::JpegReader>),
+    Tiff(tiff::decoder::Decoder<loader::tiff::TiffReader>),
 }
 
 impl LoaderImplementation for ImgLoader {
@@ -89,6 +90,16 @@ impl LoaderImplementation for ImgLoader {
             return Ok((
                 ImgLoader {
                     decoder: Mutex::new(Some(Decoder::specific(SpecificDecoder::Jpeg(jpeg)))),
+                    ..Default::default()
+                },
+                metadata,
+            ));
+        } else if mime_type == "image/tiff" {
+            let (metadata, tiff) = loader::tiff::load(buf)?;
+
+            return Ok((
+                ImgLoader {
+                    decoder: Mutex::new(Some(Decoder::specific(SpecificDecoder::Tiff(tiff)))),
                     ..Default::default()
                 },
                 metadata,
@@ -230,6 +241,7 @@ impl LoaderImplementation for ImgLoader {
                 match specific.deref_mut() {
                     SpecificDecoder::Exr(data) => exr::frame(data)?,
                     SpecificDecoder::Jpeg(jpeg) => loader::jpeg::frame(jpeg)?,
+                    SpecificDecoder::Tiff(tiff) => loader::tiff::frame(tiff)?,
                 }
             }
         };
