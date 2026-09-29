@@ -44,10 +44,7 @@ impl SourceTransmission {
         Ok(source_transmission)
     }
 
-    pub async fn read_sync_aware<'a>(
-        &self,
-        mut buffer: Vec<u8>,
-    ) -> Result<(Vec<u8>, usize), Error> {
+    pub async fn read_sync_aware(&self, mut buffer: Vec<u8>) -> Result<(Vec<u8>, usize), Error> {
         if self.sync {
             self.input_stream
                 .read(&mut buffer, gio::Cancellable::NONE)

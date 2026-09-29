@@ -60,7 +60,7 @@ pub fn create<B: ByteData>(
         .image_info
         .metadata_exif
         .as_deref()
-        .map(|x| std::borrow::Cow::Borrowed(x));
+        .map(std::borrow::Cow::Borrowed);
 
     if let Some(cicp) = frame.details.color_cicp {
         info.coding_independent_code_points = Some(png::CodingIndependentCodePoints {

@@ -55,8 +55,7 @@ pub fn frame<B: ByteData>(
         .map(|x| x.first().cloned())
         .ok()
         .flatten()
-        .map(tiff::tags::ExtraSamples::from_u16)
-        .flatten()
+        .and_then(tiff::tags::ExtraSamples::from_u16)
         .unwrap_or(tiff::tags::ExtraSamples::Unspecified);
 
     let memory_format = match (color_type, layout_preference.sample_format, extra_samples) {

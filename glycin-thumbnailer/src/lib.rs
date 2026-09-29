@@ -97,18 +97,15 @@ fn x(
     let thumbnail_width = (frame.width() as f32 * scale).round() as u32;
     let thumbnail_height = (frame.height() as f32 * scale).round() as u32;
 
-    let buf;
-    let color;
-
-    match frame.memory_format() {
-        gly::MemoryFormat::R8g8b8 => {
-            buf = resize::<image::Rgb<u8>>(&frame, thumbnail_width, thumbnail_height);
-            color = png::ColorType::Rgb;
-        }
-        gly::MemoryFormat::R8g8b8a8 => {
-            buf = resize::<image::Rgba<u8>>(&frame, thumbnail_width, thumbnail_height);
-            color = png::ColorType::Rgba;
-        }
+    let (buf, color) = match frame.memory_format() {
+        gly::MemoryFormat::R8g8b8 => (
+            resize::<image::Rgb<u8>>(&frame, thumbnail_width, thumbnail_height),
+            png::ColorType::Rgb,
+        ),
+        gly::MemoryFormat::R8g8b8a8 => (
+            resize::<image::Rgba<u8>>(&frame, thumbnail_width, thumbnail_height),
+            png::ColorType::Rgba,
+        ),
         unexpected_format => unreachable!("Unexpected memory format: {unexpected_format:?}"),
     };
 
