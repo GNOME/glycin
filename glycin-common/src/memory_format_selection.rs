@@ -29,6 +29,8 @@ pub enum MemoryFormatSelection {
     G16a16Premultiplied = (1 << 20),
     G16a16 = (1 << 21),
     G16 = (1 << 22),
+    C16m16y16k16 = (1 << 28),
+    C16m16y16k16a16 = (1 << 29),
     C8m8y8k8 = (1 << 30),
     C8m8y8k8a8 = (1 << 31),
 }
@@ -61,6 +63,8 @@ bitflags::bitflags! {
         const G16a16Premultiplied = (1 << 20);
         const G16a16 = (1 << 21);
         const G16 = (1 << 22);
+        const C16m16y16k16 = (1 << 28);
+        const C16m16y16k16a16 = (1 << 29);
         const C8m8y8k8 = (1 << 30);
         const C8m8y8k8a8 = (1 << 31);
     }
@@ -69,7 +73,7 @@ bitflags::bitflags! {
 impl Default for MemoryFormatSelection {
     /// All but CMYK
     fn default() -> Self {
-        !(Self::C8m8y8k8 | Self::C8m8y8k8a8)
+        !(Self::C8m8y8k8 | Self::C8m8y8k8a8 | Self::C16m16y16k16 | Self::C16m16y16k16a16)
     }
 }
 
@@ -134,6 +138,14 @@ impl MemoryFormatSelection {
         ),
         (MemoryFormatSelection::G16a16, MemoryFormat::G16a16),
         (MemoryFormatSelection::G16, MemoryFormat::G16),
+        (
+            MemoryFormatSelection::C16m16y16k16,
+            MemoryFormat::C16m16y16k16,
+        ),
+        (
+            MemoryFormatSelection::C16m16y16k16a16,
+            MemoryFormat::C16m16y16k16a16,
+        ),
         (MemoryFormatSelection::C8m8y8k8, MemoryFormat::C8m8y8k8),
         (MemoryFormatSelection::C8m8y8k8a8, MemoryFormat::C8m8y8k8a8),
     ];

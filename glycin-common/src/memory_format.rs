@@ -43,6 +43,8 @@ gufo_common::maybe_convertible_enum!(
         G16a16Premultiplied = 20,
         G16a16 = 21,
         G16 = 22,
+        C16m16y16k16 = 28,
+        C16m16y16k16a16 = 29,
         C8m8y8k8 = 30,
         C8m8y8k8a8 = 31,
     }
@@ -74,6 +76,8 @@ impl MemoryFormatInfo for MemoryFormat {
             MemoryFormat::G16a16Premultiplied => MemoryFormatBytes::B4,
             MemoryFormat::G16a16 => MemoryFormatBytes::B4,
             MemoryFormat::G16 => MemoryFormatBytes::B2,
+            MemoryFormat::C16m16y16k16 => MemoryFormatBytes::B8,
+            MemoryFormat::C16m16y16k16a16 => MemoryFormatBytes::B10,
             MemoryFormat::C8m8y8k8 => MemoryFormatBytes::B4,
             MemoryFormat::C8m8y8k8a8 => MemoryFormatBytes::B5,
         }
@@ -81,7 +85,7 @@ impl MemoryFormatInfo for MemoryFormat {
 
     fn n_channels(self) -> u8 {
         match self {
-            MemoryFormat::C8m8y8k8a8 => 5,
+            MemoryFormat::C8m8y8k8a8 | MemoryFormat::C16m16y16k16a16 => 5,
             MemoryFormat::B8g8r8a8Premultiplied
             | MemoryFormat::A8r8g8b8Premultiplied
             | MemoryFormat::R8g8b8a8Premultiplied
@@ -94,7 +98,8 @@ impl MemoryFormatInfo for MemoryFormat {
             | MemoryFormat::R16g16b16a16Float
             | MemoryFormat::R32g32b32a32FloatPremultiplied
             | MemoryFormat::R32g32b32a32Float
-            | MemoryFormat::C8m8y8k8 => 4,
+            | MemoryFormat::C8m8y8k8
+            | MemoryFormat::C16m16y16k16 => 4,
             MemoryFormat::R8g8b8
             | MemoryFormat::B8g8r8
             | MemoryFormat::R16g16b16
@@ -134,6 +139,8 @@ impl MemoryFormat {
         Self::G16a16Premultiplied,
         Self::G16a16,
         Self::G16,
+        Self::C16m16y16k16,
+        Self::C16m16y16k16a16,
         Self::C8m8y8k8,
         Self::C8m8y8k8a8,
     ];
@@ -160,7 +167,9 @@ impl MemoryFormat {
             | MemoryFormat::R16g16b16a16
             | MemoryFormat::G16a16Premultiplied
             | MemoryFormat::G16a16
-            | MemoryFormat::G16 => ChannelType::U16,
+            | MemoryFormat::G16
+            | MemoryFormat::C16m16y16k16
+            | MemoryFormat::C16m16y16k16a16 => ChannelType::U16,
 
             MemoryFormat::R16g16b16Float | MemoryFormat::R16g16b16a16Float => ChannelType::F16,
 
@@ -188,7 +197,8 @@ impl MemoryFormat {
             | MemoryFormat::R16g16b16a16Float
             | MemoryFormat::G16a16Premultiplied
             | MemoryFormat::G16a16
-            | MemoryFormat::C8m8y8k8a8 => true,
+            | MemoryFormat::C8m8y8k8a8
+            | MemoryFormat::C16m16y16k16a16 => true,
 
             MemoryFormat::R8g8b8
             | MemoryFormat::B8g8r8
@@ -197,7 +207,8 @@ impl MemoryFormat {
             | MemoryFormat::R32g32b32Float
             | MemoryFormat::G8
             | MemoryFormat::G16
-            | MemoryFormat::C8m8y8k8 => false,
+            | MemoryFormat::C8m8y8k8
+            | MemoryFormat::C16m16y16k16 => false,
         }
     }
 
@@ -228,7 +239,9 @@ impl MemoryFormat {
             | MemoryFormat::G16a16
             | MemoryFormat::G16
             | MemoryFormat::C8m8y8k8
-            | MemoryFormat::C8m8y8k8a8 => false,
+            | MemoryFormat::C8m8y8k8a8
+            | MemoryFormat::C16m16y16k16
+            | MemoryFormat::C16m16y16k16a16 => false,
         }
     }
 
@@ -303,7 +316,7 @@ impl MemoryFormat {
                 NormalizeSwizzle::Ga([SwizzleChannel::_0, SwizzleChannel::ConstMax])
             }
 
-            MemoryFormat::C8m8y8k8 => NormalizeSwizzle::Cmyka([
+            MemoryFormat::C8m8y8k8 | MemoryFormat::C16m16y16k16 => NormalizeSwizzle::Cmyka([
                 SwizzleChannel::_0,
                 SwizzleChannel::_1,
                 SwizzleChannel::_2,
@@ -311,7 +324,7 @@ impl MemoryFormat {
                 SwizzleChannel::ConstMax,
             ]),
 
-            MemoryFormat::C8m8y8k8a8 => NormalizeSwizzle::Cmyka([
+            MemoryFormat::C8m8y8k8a8 | MemoryFormat::C16m16y16k16a16 => NormalizeSwizzle::Cmyka([
                 SwizzleChannel::_0,
                 SwizzleChannel::_1,
                 SwizzleChannel::_2,
@@ -355,13 +368,13 @@ impl MemoryFormat {
             | MemoryFormat::G16a16Premultiplied
             | MemoryFormat::G16a16 => TargetSwizzle::Ga(&[TargetGa::G, TargetGa::A]),
             MemoryFormat::G8 | MemoryFormat::G16 => TargetSwizzle::Ga(&[TargetGa::G]),
-            MemoryFormat::C8m8y8k8 => TargetSwizzle::Cmyk(&[
+            MemoryFormat::C8m8y8k8 | MemoryFormat::C16m16y16k16 => TargetSwizzle::Cmyk(&[
                 TargetCmyka::C,
                 TargetCmyka::M,
                 TargetCmyka::Y,
                 TargetCmyka::K,
             ]),
-            MemoryFormat::C8m8y8k8a8 => TargetSwizzle::Cmyk(&[
+            MemoryFormat::C8m8y8k8a8 | MemoryFormat::C16m16y16k16a16 => TargetSwizzle::Cmyk(&[
                 TargetCmyka::C,
                 TargetCmyka::M,
                 TargetCmyka::Y,
@@ -505,6 +518,8 @@ impl MemoryFormat {
             "G16a16Premultiplied" => Self::G16a16Premultiplied,
             "G16a16" => Self::G16a16,
             "G16" => Self::G16,
+            "C16m16y16k16" => Self::C16m16y16k16,
+            "C16m16y16k16a16" => Self::C16m16y16k16a16,
             "C8m8y8k8" => Self::C8m8y8k8,
             "C8m8y8k8a8" => Self::C8m8y8k8a8,
             _ => return None,
@@ -536,6 +551,8 @@ impl MemoryFormat {
             Self::G16a16Premultiplied => "GA16 Premultiplied",
             Self::G16a16 => "GA16",
             Self::G16 => "G16",
+            Self::C16m16y16k16 => "CMYK16",
+            Self::C16m16y16k16a16 => "CMYKA16",
             Self::C8m8y8k8 => "CMYK8",
             Self::C8m8y8k8a8 => "CMYKA8",
         }
@@ -676,6 +693,7 @@ pub enum MemoryFormatBytes {
     B5 = 5,
     B6 = 6,
     B8 = 8,
+    B10 = 10,
     B12 = 12,
     B16 = 16,
 }

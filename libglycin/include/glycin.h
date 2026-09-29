@@ -155,6 +155,8 @@ GType gly_sandbox_selector_get_type(void);
  * @GLY_MEMORY_SELECTION_G16A16_PREMULTIPLIED: 16-bit gray with alpha premultiplied
  * @GLY_MEMORY_SELECTION_G16A16: 16-bit gray with alpha
  * @GLY_MEMORY_SELECTION_G16: 16-bit gray
+ * @GLY_MEMORY_SELECTION_C16M16Y16K16: CMYK 16-bit
+ * @GLY_MEMORY_SELECTION_C16M16Y16K16A16: CMYKA 16-bit
  * @GLY_MEMORY_SELECTION_C8M8Y8K8: 8-bit CMYK
  * @GLY_MEMORY_SELECTION_C8M8Y8K8A8: 8-bit CMYK with alpha
  *
@@ -187,8 +189,10 @@ typedef enum
     GLY_MEMORY_SELECTION_G16A16_PREMULTIPLIED = (1 << 20),
     GLY_MEMORY_SELECTION_G16A16 = (1 << 21),
     GLY_MEMORY_SELECTION_G16 = (1 << 22),
+    GLY_MEMORY_SELECTION_C16M16Y16K16 = (1 << 28),
+    GLY_MEMORY_SELECTION_C16M16Y16K16A16 = (1 << 29),
     GLY_MEMORY_SELECTION_C8M8Y8K8 = (1 << 30),
-    GLY_MEMORY_SELECTION_C8M8Y8K8A8 = (1 << 30),
+    GLY_MEMORY_SELECTION_C8M8Y8K8A8 = (1 << 31),
 
 } GlyMemoryFormatSelection;
 
@@ -676,6 +680,10 @@ uint16_t gly_image_get_transformation_orientation(GlyImage *image);
  * @GLY_MEMORY_G16A16_PREMULTIPLIED: 16-bit gray with alpha premultiplied
  * @GLY_MEMORY_G16A16: 16-bit gray with alpha
  * @GLY_MEMORY_G16: 16-bit gray
+ * @GLY_MEMORY_C16M16Y16K16: CMYK 16-bit
+ * @GLY_MEMORY_C16M16Y16K16A16: CMYKA 16-bit
+ * @GLY_MEMORY_C8M8Y8K8: CMYK 8-bit
+ * @GLY_MEMORY_C8M8Y8K8A8: CMYKA 8-bit
  *
  * Describes the formats the image data can have. Orderings like "RGB" are
  * independent of the systems endianness. Single channels like "R16" follow
@@ -708,6 +716,8 @@ typedef enum
     GLY_MEMORY_G16A16_PREMULTIPLIED,
     GLY_MEMORY_G16A16,
     GLY_MEMORY_G16,
+    GLY_MEMORY_C16M16Y16K16 = 28,
+    GLY_MEMORY_C16M16Y16K16A16 = 29,
     GLY_MEMORY_C8M8Y8K8 = 30,
     GLY_MEMORY_C8M8Y8K8A8 = 31,
 } GlyMemoryFormat;
