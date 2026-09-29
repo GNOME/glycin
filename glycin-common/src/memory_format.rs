@@ -505,6 +505,8 @@ impl MemoryFormat {
             "G16a16Premultiplied" => Self::G16a16Premultiplied,
             "G16a16" => Self::G16a16,
             "G16" => Self::G16,
+            "C8m8y8k8" => Self::C8m8y8k8,
+            "C8m8y8k8a8" => Self::C8m8y8k8a8,
             _ => return None,
         })
     }

@@ -359,7 +359,7 @@ fn processor_creator_supported_memory_formats() {
                 if c.creator_memory_formats().contains(memory_format) {
                     assert!(
                         result.is_ok(),
-                        "Expected encoding support for '{mime_type}' with format '{memory_format:?}'"
+                        "Expected encoding support for '{mime_type}' with format '{memory_format:?}'. But errored with '{result:?}'."
                     )
                 } else {
                     assert!(
