@@ -443,6 +443,10 @@ impl MemoryFormat {
                     *channel = swizzle[n].take(source_channels).to_f32_normed();
                 }
 
+                if source_format.is_premultiplied() && channels_f32[1] > 0. {
+                    channels_f32[0] /= channels_f32[1];
+                }
+
                 NoramlizedPixel::Ga(channels_f32)
             }
             NormalizeSwizzle::Cmyka(swizzle) => {
@@ -476,15 +480,26 @@ impl MemoryFormat {
     ) {
         let target_channel_size = target_format.channel_type().size() as usize;
         let target_definition = target_format.target_definition();
+        let target_color_model = target_definition.color_model();
 
-        let mut pixel = pixel.to_color_model_internal(target_definition.color_model());
+        let mut pixel = pixel.to_color_model_internal(target_color_model);
         let target_definition = target_definition.into_iter_usize();
 
         if target_format.is_premultiplied() {
             // Premultiply color channels
-            pixel[0] *= pixel[3];
-            pixel[1] *= pixel[3];
-            pixel[2] *= pixel[3];
+            match target_color_model {
+                ColorModel::Rgb => {
+                    pixel[0] *= pixel[3];
+                    pixel[1] *= pixel[3];
+                    pixel[2] *= pixel[3];
+                }
+                ColorModel::G => {
+                    pixel[0] *= pixel[1];
+                }
+                ColorModel::Cmyk => {
+                    unreachable!("CMYKA does not support premultiplied.");
+                }
+            }
         }
 
         for (def, chunk) in target_definition.zip(target.chunks_exact_mut(target_channel_size)) {
@@ -954,6 +969,34 @@ mod tests {
         );
 
         assert_eq!(*target, [255, 255, 0, 0, 127, 127]);
+    }
+
+    #[test]
+    fn g8_to_g16a16pre() {
+        let target = &mut [0; 4];
+
+        MemoryFormat::transform(
+            MemoryFormat::G8,
+            &[85],
+            MemoryFormat::G16a16Premultiplied,
+            target,
+        );
+
+        assert_eq!(*target, [85, 85, 255, 255]);
+    }
+
+    #[test]
+    fn g16a16pre_to_g16a16() {
+        let target = &mut [0; 4];
+
+        MemoryFormat::transform(
+            MemoryFormat::G16a16Premultiplied,
+            &[85, 85, 255, 255],
+            MemoryFormat::G16a16,
+            target,
+        );
+
+        assert_eq!(*target, [85, 85, 255, 255]);
     }
 
     #[test]
