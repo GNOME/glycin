@@ -80,6 +80,8 @@ pub fn frame<B: ByteData>(
         (tiff::ColorType::RGBA(16), Uint, _) => MemoryFormat::R16g16b16a16,
         (tiff::ColorType::RGBA(16), IEEEFP, _) => MemoryFormat::R16g16b16a16Float,
         (tiff::ColorType::RGBA(32), IEEEFP, _) => MemoryFormat::R32g32b32a32Float,
+        (tiff::ColorType::CMYK(16), Uint, _) => MemoryFormat::C16m16y16k16,
+        (tiff::ColorType::CMYKA(16), Uint, _) => MemoryFormat::C16m16y16k16a16,
         (tiff::ColorType::CMYK(8), Uint, _) => MemoryFormat::C8m8y8k8,
         (tiff::ColorType::CMYKA(8), Uint, _) => MemoryFormat::C8m8y8k8a8,
         (color_type, sample_format, extra_samples) => {
