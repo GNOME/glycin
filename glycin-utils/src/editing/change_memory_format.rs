@@ -49,6 +49,8 @@ pub fn change_memory_format(
                 && src_format.is_premultiplied() == target_format.is_premultiplied()
                 && (src_format.has_alpha() || !target_format.has_alpha())
             {
+                // Fast path for pure shuffling of indices
+
                 let mut source_target_index_map = [0; 4];
                 for (n, target) in target_format
                     .target_definition()
@@ -61,6 +63,7 @@ pub fn change_memory_format(
                 }
 
                 let target_n_channels = target_format.n_channels();
+                let target_channel_bytes = target_format.channel_type().size() as usize;
 
                 target_rows.into_par_iter().for_each(|(y, new_row)| {
                     for x in 0..frame.width as usize {
@@ -72,10 +75,11 @@ pub fn change_memory_format(
                         // target bytes for pixel
                         let k0 = x * target_pixel_n_bytes;
 
-                        for channel_byte in 0..target_format.channel_type().size() as usize {
-                            for i in 0..target_n_channels as usize {
-                                new_row[k0 + i + channel_byte] =
-                                    src_data[i0 + source_target_index_map[i] + channel_byte];
+                        for i in 0..target_n_channels as usize {
+                            for channel_byte in 0..target_channel_bytes {
+                                new_row[k0 + i * target_channel_bytes + channel_byte] = src_data[i0
+                                    + source_target_index_map[i] * target_channel_bytes
+                                    + channel_byte];
                             }
                         }
                     }
@@ -86,6 +90,8 @@ pub fn change_memory_format(
                 && src_format.is_premultiplied() == target_format.is_premultiplied()
                 && (src_format.has_alpha() || !target_format.has_alpha())
             {
+                // Fast path for u16 to u8 conversion
+
                 let mut source_target_index_map = [0; 5];
                 for (n, target) in target_format
                     .target_definition()
@@ -121,6 +127,8 @@ pub fn change_memory_format(
                     }
                 });
             } else {
+                // Slow generic path
+
                 target_rows.into_par_iter().for_each(|(y, new_row)| {
                     for x in 0..frame.width as usize {
                         let x_ = x * src_pixel_n_bytes;
@@ -170,6 +178,53 @@ mod test {
                 change_memory_format(&mut frame, *to).unwrap();
             }
         }
+    }
+
+    #[test]
+    fn gray_to_all_to_all_to_gray() {
+        for from in crate::MemoryFormat::ALL {
+            for to in crate::MemoryFormat::ALL {
+                let src = vec![255 / 3];
+                let texture = FungibleMemory::from_vec(src);
+                let mut frame = Frame::new(1, 1, MemoryFormat::G8, texture).unwrap();
+                change_memory_format(&mut frame, *from).unwrap();
+                change_memory_format(&mut frame, *to).unwrap();
+                change_memory_format(&mut frame, MemoryFormat::G8).unwrap();
+                assert!(
+                    [255 / 3, 255 / 3 - 1].contains(&frame.texture[0]),
+                    "Not matching after going through {from:?} to {to:?}: {} != {}",
+                    frame.texture[0],
+                    255 / 3
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn g8_to_g16a16pre() {
+        let src = vec![85];
+        let texture = FungibleMemory::from_vec(src);
+        let mut frame = Frame::new(1, 1, MemoryFormat::G8, texture).unwrap();
+        change_memory_format(&mut frame, MemoryFormat::G16a16Premultiplied).unwrap();
+        assert_eq!(&[85, 85, 255, 255], &frame.texture.as_ref());
+    }
+
+    #[test]
+    fn rgba16_to_rgb16() {
+        let src = vec![85, 85, 85, 85, 85, 85, 255, 255];
+        let texture = FungibleMemory::from_vec(src);
+        let mut frame = Frame::new(1, 1, MemoryFormat::R16g16b16a16, texture).unwrap();
+        change_memory_format(&mut frame, MemoryFormat::R16g16b16).unwrap();
+        assert_eq!(&[85, 85, 85, 85, 85, 85], &frame.texture.as_ref());
+    }
+
+    #[test]
+    fn g16a16pre_to_g16a16() {
+        let src = vec![85, 85, 255, 255];
+        let texture = FungibleMemory::from_vec(src);
+        let mut frame = Frame::new(1, 1, MemoryFormat::G16a16Premultiplied, texture).unwrap();
+        change_memory_format(&mut frame, MemoryFormat::G16a16).unwrap();
+        assert_eq!(&[85, 85, 255, 255], &frame.texture.as_ref());
     }
 
     #[test]
