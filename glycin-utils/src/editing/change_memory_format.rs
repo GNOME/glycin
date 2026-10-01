@@ -86,7 +86,7 @@ pub fn change_memory_format(
                 && src_format.is_premultiplied() == target_format.is_premultiplied()
                 && (src_format.has_alpha() || !target_format.has_alpha())
             {
-                let mut source_target_index_map = [0; 4];
+                let mut source_target_index_map = [0; 5];
                 for (n, target) in target_format
                     .target_definition()
                     .into_iter_usize()
@@ -159,6 +159,18 @@ pub fn change_memory_format(
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn all_to_all() {
+        for from in crate::MemoryFormat::ALL {
+            for to in crate::MemoryFormat::ALL {
+                let src = vec![0; from.n_bytes().usize()];
+                let texture = FungibleMemory::from_vec(src);
+                let mut frame = Frame::new(1, 1, *from, texture).unwrap();
+                change_memory_format(&mut frame, *to).unwrap();
+            }
+        }
+    }
 
     #[test]
     fn u16_to_u8() {
