@@ -65,6 +65,7 @@ pub fn create<B: ByteData>(frame: Frame<B>) -> Result<Vec<u8>, ProcessError> {
         MemoryFormat::R16g16b16a16 => write_tiff::<B, colortype::RGBA16>(frame),
         MemoryFormat::R32g32b32Float => write_tiff::<B, colortype::RGB32Float>(frame),
         MemoryFormat::R32g32b32a32Float => write_tiff::<B, colortype::RGB32Float>(frame),
+        MemoryFormat::C16m16y16k16 => write_tiff::<B, colortype::CMYK16>(frame),
         MemoryFormat::C8m8y8k8 => write_tiff::<B, colortype::CMYK8>(frame),
         MemoryFormat::C8m8y8k8a8 => write_tiff::<B, colortype::CMYKA8>(frame),
         _ => todo!(),
