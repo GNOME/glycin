@@ -1,0 +1,1 @@
+Set the unix socket sending the image data to the loader to non-blocking. Otherwise, small socket send buffer configurations might lead to infinite blocking.

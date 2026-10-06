@@ -1,3 +1,20 @@
+## 2.2.2 (2026-10-06)
+
+This release contains the following new component versions:
+
+- glycin-core 4.0.2
+- glycin 4.0.2
+- glycin-builtin 4.0.2
+- glycin-external 4.0.2
+- libglycin 2.2.2
+- libglycin-gtk4 2.2.2
+
+### Fixed
+
+- Set the unix socket sending the image data to the loader to non-blocking.
+  Otherwise, small socket send buffer configurations might lead to infinite
+  blocking.
+
 ## 2.2.1 (2026-09-15)
 
 This release contains the following new component versions:
