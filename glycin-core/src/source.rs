@@ -108,6 +108,8 @@ impl SourceTransmission {
     ) -> Result<(OwnedFd, impl Future<Output = Result<(), Error>>), Error> {
         let (external_reader, writer) = std::os::unix::net::UnixStream::pair()?;
 
+        writer.set_nonblocking(true)?;
+
         let writer = gio_unix::OutputStream::take_fd(writer.into());
 
         Ok((external_reader.into(), self.spawn_with_stream(writer)))
