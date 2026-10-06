@@ -1112,7 +1112,7 @@ dependencies = [
 
 [[package]]
 name = "glycin"
-version = "4.0.0"
+version = "4.0.2"
 dependencies = [
  "glycin-builtin",
  "glycin-external",
@@ -1120,7 +1120,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-builtin"
-version = "4.0.0"
+version = "4.0.2"
 dependencies = [
  "glycin-core",
 ]
@@ -1145,7 +1145,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-core"
-version = "4.0.0"
+version = "4.0.2"
 dependencies = [
  "async-fs",
  "async-global-executor",
@@ -1199,7 +1199,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-external"
-version = "4.0.0"
+version = "4.0.2"
 dependencies = [
  "glycin-core",
 ]
@@ -1706,7 +1706,7 @@ checksum = "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
 
 [[package]]
 name = "libglycin"
-version = "2.2.0"
+version = "2.2.2"
 dependencies = [
  "async-global-executor",
  "futures-task",
@@ -1719,7 +1719,7 @@ dependencies = [
 
 [[package]]
 name = "libglycin-gtk4"
-version = "2.2.0"
+version = "2.2.2"
 dependencies = [
  "gdk4",
  "glycin",
