@@ -80,6 +80,27 @@ pub fn change_memory_format(
                             }
                         }
                     });
+            } else if src_format == MemoryFormat::B8g8r8a8Premultiplied
+                && target_format == MemoryFormat::R8g8b8a8
+            {
+                // Specialize for librsvg format
+
+                src_data
+                    .chunks_exact_mut(src_stride)
+                    .par_bridge()
+                    .for_each(|new_row| {
+                        for pixel in new_row[..src_correct_stride].chunks_exact_mut(4) {
+                            // Swap red and blue
+                            pixel.swap(0, 2);
+
+                            if pixel[3] > 0 {
+                                let unpremultiply = 255. / pixel[3] as f32;
+                                pixel[0] = (pixel[0] as f32 * unpremultiply) as u8;
+                                pixel[1] = (pixel[1] as f32 * unpremultiply) as u8;
+                                pixel[2] = (pixel[2] as f32 * unpremultiply) as u8;
+                            }
+                        }
+                    });
             } else if src_format.channel_type() == ChannelType::U16
                 && target_format.channel_type() == ChannelType::U8
                 && src_format.color_model() == target_format.color_model()
@@ -276,6 +297,15 @@ mod test {
             Frame::new(1, 2, crate::MemoryFormat::R8g8b8a8Premultiplied, texture).unwrap();
         change_memory_format(&mut frame, MemoryFormat::R8g8b8a8).unwrap();
         assert_eq!(&*frame.texture, &[255, 126, 0, 127, 127, 63, 0, 255]);
+    }
+
+    #[test]
+    fn u8_bgra_premultiplied_to_rgba() {
+        let texture = FungibleMemory::from_vec(vec![127, 63, 0, 127, 127, 63, 0, 255]);
+        let mut frame =
+            Frame::new(1, 2, crate::MemoryFormat::B8g8r8a8Premultiplied, texture).unwrap();
+        change_memory_format(&mut frame, MemoryFormat::R8g8b8a8).unwrap();
+        assert_eq!(&*frame.texture, &[0, 126, 255, 127, 0, 63, 127, 255]);
     }
 
     #[test]
