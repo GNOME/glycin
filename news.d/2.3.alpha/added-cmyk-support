@@ -1,0 +1,1 @@
+Glycin now supports CMYK(A) 8-bit and 16-bit textures. JPEG can load and save CYMK 8-bit. TIFF can save and load CMYK(A) 8-bit and 16-bit. By default, CMYK memory formats are not included in `Loader::accepted_memory_formats`. Hence, CMYK textures will be converted to sRGB by default.
