@@ -1261,7 +1261,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-libwebp-editor"
-version = "2.2.0-beta.1"
+version = "2.3.0-alpha"
 dependencies = [
  "glycin-utils",
  "webp",
