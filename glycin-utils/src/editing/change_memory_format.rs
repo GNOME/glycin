@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use glycin_common::{ChannelType, MemoryFormatInfo};
 use gufo_common::math::Checked;
-use rayon::iter::IntoParallelIterator;
 use rayon::prelude::*;
 
 use crate::{Frame, FungibleMemory, MemoryFormat, editing};
@@ -21,23 +20,20 @@ pub fn change_memory_format(
     let start_instant = std::time::Instant::now();
 
     let src_format = frame.memory_format;
-    let src_data = &frame.texture;
+    let src_data = &mut frame.texture;
     let src_pixel_n_bytes = src_format.n_bytes().usize();
+    let src_stride = frame.stride as usize;
+    let src_width = frame.width as usize;
+    let src_correct_stride = src_width * src_pixel_n_bytes;
+    let src_n_channels = frame.memory_format.n_channels() as usize;
+    let src_channel_bytes = frame.memory_format.channel_type().size() as usize;
 
     let target_pixel_n_bytes = target_format.n_bytes().usize();
     let new_stride = (Checked::new(frame.width) * target_format.n_bytes().u32()).check()?;
     let new_total_size: usize =
         (Checked::new(frame.height as usize) * new_stride as usize).check()?;
 
-    let mut new_data = vec![0; new_total_size];
-
-    // Target rows for parallel processing
-    let mut target_rows = Vec::new();
-    (0..frame.height as usize).fold(new_data.as_mut_slice(), |x, y| {
-        let (row, rest) = x.split_at_mut(new_stride as usize);
-        target_rows.push((y, row));
-        rest
-    });
+    let mut new_data_x = None;
 
     rayon::ThreadPoolBuilder::new()
         .thread_name(|i| format!("gly-rayon-{i}"))
@@ -47,7 +43,7 @@ pub fn change_memory_format(
             if src_format.color_model() == target_format.color_model()
                 && src_format.channel_type() == target_format.channel_type()
                 && src_format.is_premultiplied() == target_format.is_premultiplied()
-                && (src_format.has_alpha() || !target_format.has_alpha())
+                && src_format.has_alpha() == target_format.has_alpha()
             {
                 // Fast path for pure shuffling of indices
 
@@ -62,28 +58,28 @@ pub fn change_memory_format(
                             as usize;
                 }
 
-                let target_n_channels = target_format.n_channels();
-                let target_channel_bytes = target_format.channel_type().size() as usize;
+                src_data
+                    .chunks_exact_mut(src_stride)
+                    .par_bridge()
+                    .for_each(|new_row| {
+                        let mut pixel_buffer = vec![0; src_pixel_n_bytes];
 
-                target_rows.into_par_iter().for_each(|(y, new_row)| {
-                    for x in 0..frame.width as usize {
-                        let x_ = x * src_pixel_n_bytes;
-
-                        // src bytes for pixel
-                        let i0 = x_ + y * frame.stride as usize;
-
-                        // target bytes for pixel
-                        let k0 = x * target_pixel_n_bytes;
-
-                        for i in 0..target_n_channels as usize {
-                            for channel_byte in 0..target_channel_bytes {
-                                new_row[k0 + i * target_channel_bytes + channel_byte] = src_data[i0
-                                    + source_target_index_map[i] * target_channel_bytes
-                                    + channel_byte];
+                        for pixel in
+                            new_row[..src_correct_stride].chunks_exact_mut(src_pixel_n_bytes)
+                        {
+                            pixel_buffer.clone_from_slice(&pixel);
+                            for (target_channel, src_channel) in source_target_index_map
+                                .iter()
+                                .take(src_n_channels)
+                                .enumerate()
+                            {
+                                for channel_byte in 0..src_channel_bytes {
+                                    pixel[target_channel + channel_byte] =
+                                        pixel_buffer[src_channel + channel_byte];
+                                }
                             }
                         }
-                    }
-                });
+                    });
             } else if src_format.channel_type() == ChannelType::U16
                 && target_format.channel_type() == ChannelType::U8
                 && src_format.color_model() == target_format.color_model()
@@ -91,6 +87,9 @@ pub fn change_memory_format(
                 && (src_format.has_alpha() || !target_format.has_alpha())
             {
                 // Fast path for u16 to u8 conversion
+
+                let mut new_data = vec![0; new_total_size];
+                let new_data_rows = new_data.chunks_exact_mut(new_stride as usize);
 
                 let mut source_target_index_map = [0; 5];
                 for (n, target) in target_format
@@ -106,55 +105,71 @@ pub fn change_memory_format(
                 let target_n_channels = target_format.n_channels();
                 let source_channel_size = src_format.channel_type().size() as usize;
 
-                target_rows.into_par_iter().for_each(|(y, new_row)| {
-                    for x in 0..frame.width as usize {
-                        let x_ = x * src_pixel_n_bytes;
+                new_data_rows
+                    .enumerate()
+                    .par_bridge()
+                    .for_each(|(y, new_row)| {
+                        for x in 0..frame.width as usize {
+                            let x_ = x * src_pixel_n_bytes;
 
-                        // src bytes for pixel
-                        let i0 = x_ + y * frame.stride as usize;
+                            // src bytes for pixel
+                            let i0 = x_ + y * frame.stride as usize;
 
-                        // target bytes for pixel
-                        let k0 = x * target_pixel_n_bytes;
+                            // target bytes for pixel
+                            let k0 = x * target_pixel_n_bytes;
 
-                        for i in 0..target_n_channels as usize {
-                            new_row[k0 + i] = (u16::from_ne_bytes([
-                                src_data[i0 + source_target_index_map[i] * source_channel_size],
-                                src_data[i0 + source_target_index_map[i] * source_channel_size + 1],
-                            ])
-                            .saturating_add(128)
-                                >> 8) as u8;
+                            for i in 0..target_n_channels as usize {
+                                new_row[k0 + i] = (u16::from_ne_bytes([
+                                    src_data[i0 + source_target_index_map[i] * source_channel_size],
+                                    src_data
+                                        [i0 + source_target_index_map[i] * source_channel_size + 1],
+                                ])
+                                .saturating_add(128)
+                                    >> 8) as u8;
+                            }
                         }
-                    }
-                });
+                    });
+
+                new_data_x = Some(new_data);
             } else {
                 // Slow generic path
 
-                target_rows.into_par_iter().for_each(|(y, new_row)| {
-                    for x in 0..frame.width as usize {
-                        let x_ = x * src_pixel_n_bytes;
+                let mut new_data = vec![0; new_total_size];
+                let new_data_rows = new_data.chunks_exact_mut(new_stride as usize);
 
-                        // src bytes for pixel
-                        let i0 = x_ + y * frame.stride as usize;
-                        let i1 = i0 + src_pixel_n_bytes;
+                new_data_rows
+                    .enumerate()
+                    .par_bridge()
+                    .for_each(|(y, new_row)| {
+                        for x in 0..frame.width as usize {
+                            let x_ = x * src_pixel_n_bytes;
 
-                        // target bytes for pixel
-                        let k0 = x * target_pixel_n_bytes;
-                        let k1 = k0 + target_pixel_n_bytes;
+                            // src bytes for pixel
+                            let i0 = x_ + y * frame.stride as usize;
+                            let i1 = i0 + src_pixel_n_bytes;
 
-                        MemoryFormat::transform(
-                            src_format,
-                            &src_data[i0..i1],
-                            target_format,
-                            &mut new_row[k0..k1],
-                        );
-                    }
-                });
+                            // target bytes for pixel
+                            let k0 = x * target_pixel_n_bytes;
+                            let k1 = k0 + target_pixel_n_bytes;
+
+                            MemoryFormat::transform(
+                                src_format,
+                                &src_data[i0..i1],
+                                target_format,
+                                &mut new_row[k0..k1],
+                            );
+                        }
+                    });
+
+                new_data_x = Some(new_data);
             }
         });
 
-    frame.stride = new_stride;
+    if let Some(new_data) = new_data_x {
+        frame.stride = new_stride;
+        frame.texture = FungibleMemory::from_vec(new_data);
+    }
     frame.memory_format = target_format;
-    frame.texture = FungibleMemory::from_vec(new_data);
 
     log::debug!(
         "Transformation completed after {:?}",
@@ -261,6 +276,14 @@ mod test {
             Frame::new(1, 2, crate::MemoryFormat::R8g8b8a8Premultiplied, texture).unwrap();
         change_memory_format(&mut frame, MemoryFormat::R8g8b8a8).unwrap();
         assert_eq!(&*frame.texture, &[255, 126, 0, 127, 127, 63, 0, 255]);
+    }
+
+    #[test]
+    fn u8_rgb_bgr() {
+        let texture = FungibleMemory::from_vec(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+        let mut frame = Frame::new(2, 2, crate::MemoryFormat::R8g8b8, texture).unwrap();
+        change_memory_format(&mut frame, MemoryFormat::B8g8r8).unwrap();
+        assert_eq!(&*frame.texture, &[3, 2, 1, 6, 5, 4, 9, 8, 7, 12, 11, 10]);
     }
 
     #[test]
