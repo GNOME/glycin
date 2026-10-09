@@ -1,7 +1,8 @@
 use std::io::Cursor;
 
 use glycin_utils::{
-    ByteData, Frame, FrameDetails, GenericContexts, ImageDetails, MemoryFormat, ProcessError,
+    ByteData, Frame, FrameDetails, GenericContexts, ImageDetails, LocalMemory, MemoryFormat,
+    ProcessError,
 };
 use zune_jpeg::zune_core;
 use zune_jpeg::zune_core::colorspace;
@@ -10,7 +11,27 @@ pub type JpegReader = Cursor<Vec<u8>>;
 
 pub fn load<B: ByteData>(
     data: Vec<u8>,
-) -> Result<(ImageDetails<B>, zune_jpeg::JpegDecoder<JpegReader>), ProcessError> {
+) -> Result<
+    (
+        ImageDetails<B>,
+        (
+            zune_jpeg::JpegDecoder<JpegReader>,
+            FrameDetails<LocalMemory>,
+        ),
+    ),
+    ProcessError,
+> {
+    let mut frame_details = FrameDetails::default();
+
+    let data = match gufo::RawMetadata::for_guessed(data) {
+        Ok((metadata, data)) => {
+            frame_details.pixel_density = metadata.pixel_density();
+
+            data
+        }
+        Err(err) => err.into_inner(),
+    };
+
     let mut decoder = zune_jpeg::JpegDecoder::new(Cursor::new(data));
 
     decoder.decode_headers().expected_error()?;
@@ -43,11 +64,12 @@ pub fn load<B: ByteData>(
         .unwrap();
     image_details.info_format_name = Some(String::from("JPEG"));
 
-    Ok((image_details, decoder))
+    Ok((image_details, (decoder, frame_details)))
 }
 
 pub fn frame<B: ByteData>(
     decoder: &mut zune_jpeg::JpegDecoder<JpegReader>,
+    frame_details_src: &mut FrameDetails<LocalMemory>,
 ) -> Result<Frame<B>, ProcessError> {
     let (width, height) = decoder.dimensions().unwrap();
     let color = decoder.output_colorspace().unwrap();
@@ -70,6 +92,9 @@ pub fn frame<B: ByteData>(
     };
 
     let mut frame_details = FrameDetails::default();
+
+    frame_details.pixel_density = frame_details_src.pixel_density.clone();
+
     frame_details.color_icc_profile = decoder
         .icc_profile()
         .map(B::try_from_vec)
