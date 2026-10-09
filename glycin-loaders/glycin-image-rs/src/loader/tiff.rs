@@ -93,6 +93,7 @@ pub fn frame<B: ByteData>(
     };
 
     frame_details.info_bit_depth = Some(memory_format.channel_type().size());
+    frame_details.info_alpha_channel = Some(memory_format.has_alpha());
 
     let texture =
         ByteData::try_from_slice(decoding_result.as_buffer(0).as_bytes()).expected_error()?;
