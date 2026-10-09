@@ -1570,9 +1570,6 @@ dependencies = [
  "num-traits",
  "png",
  "qoi",
- "tiff",
- "zune-core",
- "zune-jpeg",
 ]
 
 [[package]]

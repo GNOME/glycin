@@ -32,12 +32,10 @@ image = { workspace = true, features = [
     "gif",
     "hdr",
     "ico",
-    "jpeg",
     "png",
     "pnm",
     "qoi",
     "tga",
-    "tiff",
     "webp",
 ] }
 log.workspace = true

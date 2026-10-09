@@ -268,13 +268,11 @@ pub enum ImageRsDecoder<T: std::io::BufRead + std::io::Seek> {
     Gif(codecs::gif::GifDecoder<T>),
     Hdr(codecs::hdr::HdrDecoder<T>),
     Ico(codecs::ico::IcoDecoder<T>),
-    Jpeg(codecs::jpeg::JpegDecoder<T>),
     Jpeg2000(hayro_jpeg2000::integration::Jp2Decoder),
     Png(codecs::png::PngDecoder<T>),
     Pnm(codecs::pnm::PnmDecoder<T>),
     Qoi(codecs::qoi::QoiDecoder<T>),
     Tga(codecs::tga::TgaDecoder<T>),
-    Tiff(codecs::tiff::TiffDecoder<T>),
     WebP(codecs::webp::WebPDecoder<T>),
     Xbm(image_extras::xbm::XbmDecoder<T>),
     Xpm(image_extras::xpm::XpmDecoder<T>),
@@ -325,13 +323,6 @@ impl ImageRsFormat<Reader> {
             ))
             .format_name("ICO"),
 
-            "image/jpeg" => Self::new(ImageRsDecoder::Jpeg(
-                codecs::jpeg::JpegDecoder::new(data).expected_error()?,
-            ))
-            .format_name("JPEG")
-            .default_bit_depth(8)
-            .supports_two_grayscale_modes(true),
-
             "image/jp2" | "image/x-jp2-codestream" => Self::new(ImageRsDecoder::Jpeg2000(
                 hayro_jpeg2000::integration::Jp2Decoder::new(data).expected_error()?,
             ))
@@ -377,13 +368,6 @@ impl ImageRsFormat<Reader> {
                 codecs::tga::TgaDecoder::new(data).expected_error()?,
             ))
             .format_name("TGA")
-            .supports_two_grayscale_modes(true),
-
-            "image/tiff" => Self::new(ImageRsDecoder::Tiff(
-                codecs::tiff::TiffDecoder::new(data).expected_error()?,
-            ))
-            .format_name("TIFF")
-            .supports_two_alpha_modes(true)
             .supports_two_grayscale_modes(true),
 
             "image/webp" => Self::new(ImageRsDecoder::WebP(
@@ -457,13 +441,11 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Gif(ref mut d) => f(Box::new(d)),
             ImageRsDecoder::Hdr(ref mut d) => f(Box::new(d)),
             ImageRsDecoder::Ico(ref mut d) => f(Box::new(d)),
-            ImageRsDecoder::Jpeg(ref mut d) => f(Box::new(d)),
             ImageRsDecoder::Jpeg2000(ref mut d) => f(Box::new(d)),
             ImageRsDecoder::Png(ref mut d) => f(Box::new(d)),
             ImageRsDecoder::Pnm(ref mut d) => f(Box::new(d)),
             ImageRsDecoder::Qoi(ref mut d) => f(Box::new(d)),
             ImageRsDecoder::Tga(ref mut d) => f(Box::new(d)),
-            ImageRsDecoder::Tiff(ref mut d) => f(Box::new(d)),
             ImageRsDecoder::WebP(ref mut d) => f(Box::new(d)),
             ImageRsDecoder::Xbm(ref mut d) => f(Box::new(d)),
             ImageRsDecoder::Xpm(ref mut d) => f(Box::new(d)),
@@ -486,13 +468,11 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Gif(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Hdr(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Ico(ref mut d) => self.handler.info(d),
-            ImageRsDecoder::Jpeg(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Jpeg2000(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Png(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Pnm(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Qoi(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Tga(ref mut d) => self.handler.info(d),
-            ImageRsDecoder::Tiff(ref mut d) => self.handler.info(d),
             ImageRsDecoder::WebP(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Xbm(ref mut d) => self.handler.info(d),
             ImageRsDecoder::Xpm(ref mut d) => self.handler.info(d),
@@ -507,13 +487,11 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Gif(d) => self.handler.frame(d),
             ImageRsDecoder::Hdr(d) => self.handler.frame(d),
             ImageRsDecoder::Ico(d) => self.handler.frame(d),
-            ImageRsDecoder::Jpeg(d) => self.handler.frame(d),
             ImageRsDecoder::Jpeg2000(d) => self.handler.frame(d),
             ImageRsDecoder::Png(d) => self.handler.frame(d),
             ImageRsDecoder::Pnm(d) => self.handler.frame(d),
             ImageRsDecoder::Qoi(d) => self.handler.frame(d),
             ImageRsDecoder::Tga(d) => self.handler.frame(d),
-            ImageRsDecoder::Tiff(d) => self.handler.frame(d),
             ImageRsDecoder::WebP(d) => self.handler.frame(d),
             ImageRsDecoder::Xbm(d) => self.handler.frame(d),
             ImageRsDecoder::Xpm(d) => self.handler.frame(d),
@@ -528,13 +506,11 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Gif(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Hdr(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Ico(ref mut d) => self.handler.frame_details(d),
-            ImageRsDecoder::Jpeg(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Jpeg2000(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Png(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Pnm(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Qoi(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Tga(ref mut d) => self.handler.frame_details(d),
-            ImageRsDecoder::Tiff(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::WebP(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Xbm(ref mut d) => self.handler.frame_details(d),
             ImageRsDecoder::Xpm(ref mut d) => self.handler.frame_details(d),
@@ -551,13 +527,11 @@ impl<T: std::io::BufRead + std::io::Seek> ImageRsFormat<T> {
             ImageRsDecoder::Gif(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Hdr(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Ico(ref mut d) => d.set_limits(limits),
-            ImageRsDecoder::Jpeg(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Jpeg2000(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Png(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Pnm(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Qoi(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Tga(ref mut d) => d.set_limits(limits),
-            ImageRsDecoder::Tiff(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::WebP(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Xbm(ref mut d) => d.set_limits(limits),
             ImageRsDecoder::Xpm(ref mut d) => d.set_limits(limits),
