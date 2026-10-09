@@ -26,6 +26,7 @@ pub fn load<B: ByteData>(
         .map(B::try_from_vec)
         .transpose()
         .expected_error()?;
+    image_details.info_format_name = Some(String::from("TIFF"));
 
     Ok((image_details, decoder))
 }

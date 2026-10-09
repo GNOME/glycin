@@ -41,6 +41,7 @@ pub fn load<B: ByteData>(
         .map(|x| B::try_from_slice(x))
         .transpose()
         .unwrap();
+    image_details.info_format_name = Some(String::from("JPEG"));
 
     Ok((image_details, decoder))
 }

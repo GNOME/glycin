@@ -21,10 +21,14 @@ pub fn metadata<B: ByteData>(data: &[u8]) -> Result<ImageDetails<B>, ProcessErro
     let metadata = exr::meta::MetaData::read_from_buffered(data, false).expected_error()?;
     let header = metadata.headers.first().expected_error()?;
 
-    Ok(ImageDetails::new(
+    let mut image_details = ImageDetails::new(
         header.layer_size.width().u32().expected_error()?,
         header.layer_size.height().u32().expected_error()?,
-    ))
+    );
+
+    image_details.info_format_name = Some(String::from("EXR"));
+
+    Ok(image_details)
 }
 
 pub fn frame<B: ByteData>(data: &[u8]) -> Result<Frame<B>, ProcessError> {
