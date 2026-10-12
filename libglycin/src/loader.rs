@@ -184,7 +184,7 @@ pub unsafe extern "C" fn gly_loader_load_finish(
 #[unsafe(no_mangle)]
 pub extern "C" fn gly_loader_get_mime_types() -> GStrv {
     let mime_types = glib::StrV::from_iter(
-        glib::MainContext::default()
+        glib::MainContext::new()
             .block_on(glycin::Loader::supported_mime_types())
             .into_iter()
             .map(|x| glib::GString::from(x.as_str())),
