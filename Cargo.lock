@@ -1112,7 +1112,7 @@ dependencies = [
 
 [[package]]
 name = "glycin"
-version = "4.0.2"
+version = "4.0.3"
 dependencies = [
  "glycin-builtin",
  "glycin-external",
@@ -1120,7 +1120,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-builtin"
-version = "4.0.2"
+version = "4.0.3"
 dependencies = [
  "glycin-core",
 ]
@@ -1145,7 +1145,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-core"
-version = "4.0.2"
+version = "4.0.3"
 dependencies = [
  "async-fs",
  "async-global-executor",
@@ -1199,7 +1199,7 @@ dependencies = [
 
 [[package]]
 name = "glycin-external"
-version = "4.0.2"
+version = "4.0.3"
 dependencies = [
  "glycin-core",
 ]
