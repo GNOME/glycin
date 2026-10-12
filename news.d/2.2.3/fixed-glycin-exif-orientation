@@ -1,0 +1,1 @@
+Require gufo-exif 0.5.2 which fixes parsing issues with non-Canon MakerNote entries. This can cause images not to be rotated according to the Orientation tag. #332
