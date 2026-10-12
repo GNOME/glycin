@@ -4,7 +4,7 @@ project(
   'c',
   # This is a global version that's used for libglycin, glycin-loaders, and glycin-thumbnailers.
   # It is however not used for Rust crates released on crates.io.
-  version: '2.2.2',
+  version: '2.2.3',
   meson_version: '>=1.2',
 )
 
