@@ -1,0 +1,1 @@
+image-rs/animation: Drop thread after the Image.done D-Bus method is called.
