@@ -1,0 +1,1 @@
+image-rs: Prevent channel with animation frames from filling up, causing a effective memory leak. #338

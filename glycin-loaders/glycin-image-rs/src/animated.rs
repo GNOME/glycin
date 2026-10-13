@@ -64,6 +64,7 @@ pub fn worker(format: ImageRsFormat<Reader>, data: Reader, mime_type: String, se
             for frame in first_frames.into_iter().chain(frames).enumerate() {
                 let decoded_frame = animated_get_frame(frame, None, is_animated);
                 send.send(decoded_frame.map(|x| (x, looped))).unwrap();
+                std::thread::park();
             }
         } else {
             // Only use FrameDetails for still images because they might not
@@ -76,8 +77,6 @@ pub fn worker(format: ImageRsFormat<Reader>, data: Reader, mime_type: String, se
             // If not really an animation no need to keep the thread around
             return;
         }
-
-        std::thread::park();
 
         looped = true;
     }
