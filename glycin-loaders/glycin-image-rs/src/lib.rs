@@ -42,12 +42,28 @@ pub struct ImgLoader {
 }
 
 pub enum Decoder {
-    ImageRsStatic(ImageRsFormat<Reader>),
+    ImageRsStatic(Option<ImageRsFormat<Reader>>),
     ImageRsAnimated {
         join_handle: std::thread::JoinHandle<()>,
-        frame_receiver: FrameReceiver,
+        frame_receiver: Option<FrameReceiver>,
     },
     Exr(Vec<u8>),
+}
+
+impl Drop for Decoder {
+    fn drop(&mut self) {
+        match self {
+            Decoder::ImageRsAnimated {
+                join_handle,
+                frame_receiver,
+            } => {
+                // Drop channel to tell thread to terminate
+                drop(std::mem::take(frame_receiver));
+                join_handle.thread().unpark();
+            }
+            _ => {}
+        }
+    }
 }
 
 impl LoaderImplementation for ImgLoader {
@@ -159,10 +175,11 @@ impl LoaderImplementation for ImgLoader {
                 std::thread::spawn(move || animated::worker(format, data, mime_type, send));
             *loader_impelementation.decoder.lock().unwrap() = Some(Decoder::ImageRsAnimated {
                 join_handle: thread,
-                frame_receiver: recv,
+                frame_receiver: Some(recv),
             });
         } else {
-            *loader_impelementation.decoder.lock().unwrap() = Some(Decoder::ImageRsStatic(format));
+            *loader_impelementation.decoder.lock().unwrap() =
+                Some(Decoder::ImageRsStatic(Some(format)));
         }
 
         Ok((loader_impelementation, image_info))
@@ -175,24 +192,27 @@ impl LoaderImplementation for ImgLoader {
         // Ensure lock on data
         let cicp = self.cicp.lock().unwrap();
 
-        let Some(x) = std::mem::take(&mut *self.decoder.lock().unwrap()) else {
+        let mut decoder_lock = self.decoder.lock().unwrap();
+
+        let Some(decoder) = decoder_lock.as_mut() else {
             return Err(ProcessError::NoMoreFrames);
         };
 
-        let mut frame = match x {
-            Decoder::ImageRsStatic(decoder) => decoder.frame().expected_error()?,
+        let mut frame = match decoder {
+            Decoder::ImageRsStatic(decoder) => {
+                let Some(decoder) = std::mem::take(&mut *decoder) else {
+                    return Err(ProcessError::NoMoreFrames);
+                };
+
+                decoder.frame().expected_error()?
+            }
             Decoder::ImageRsAnimated {
                 join_handle,
                 frame_receiver,
             } => {
                 join_handle.thread().unpark();
-                let (frame, looped) = frame_receiver.recv().internal_error()??;
-
-                // Write back decoder since we need it again in the future
-                *self.decoder.lock().unwrap() = Some(Decoder::ImageRsAnimated {
-                    join_handle,
-                    frame_receiver,
-                });
+                let (frame, looped) =
+                    frame_receiver.as_ref().unwrap().recv().internal_error()??;
 
                 if !frame_request.loop_animation
                     && matches!(frame.details.n_frame, Some(0))

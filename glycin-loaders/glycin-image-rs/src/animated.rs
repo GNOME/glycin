@@ -63,7 +63,10 @@ pub fn worker(format: ImageRsFormat<Reader>, data: Reader, mime_type: String, se
         if is_animated {
             for frame in first_frames.into_iter().chain(frames).enumerate() {
                 let decoded_frame = animated_get_frame(frame, None, is_animated);
-                send.send(decoded_frame.map(|x| (x, looped))).unwrap();
+                if send.send(decoded_frame.map(|x| (x, looped))).is_err() {
+                    log::debug!("Terminating animation thread.");
+                    return;
+                }
                 std::thread::park();
             }
         } else {
