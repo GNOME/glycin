@@ -1,0 +1,1 @@
+glycin: Canonicalize paths of "Exec" keys when loading configs. #340

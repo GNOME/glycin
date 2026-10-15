@@ -22,6 +22,7 @@ use std::sync::Arc;
 use futures_util::StreamExt;
 use gio::glib;
 use glycin_common::{MemoryFormat, OperationId};
+use std::fs::canonicalize;
 
 use crate::config::indentifier::Identifier;
 use crate::error::ErrorKind;
@@ -473,10 +474,11 @@ impl Config {
             }
 
             let exec = keyfile.string(&group, "Exec")?;
+            let exec = canonicalize(&exec).unwrap_or_else(|_| PathBuf::from(exec));
 
             let processor = match source {
                 #[cfg(feature = "external")]
-                ConfigSource::File(_) => Processor::Binary(exec.into()),
+                ConfigSource::File(_) => Processor::Binary(exec),
                 #[cfg(feature = "builtin")]
                 ConfigSource::Builtin(ref builtin) => Processor::Builtin(builtin.clone()),
             };
@@ -519,6 +521,7 @@ impl Config {
                     }
                 }
             };
+            let exec = canonicalize(&exec).unwrap_or_else(|_| exec);
 
             let processor = match source {
                 #[cfg(feature = "external")]
