@@ -1,3 +1,29 @@
+## 2.2.3 (2026-10-15)
+
+This release contains the following new component versions:
+
+- glycin-core 4.0.3
+- glycin-image-rs 2.2.3
+- glycin 4.0.3
+- glycin-builtin 4.0.3
+- glycin-external 4.0.3
+- libglycin 2.2.3
+- libglycin-gtk4 2.2.3
+
+### Fixed
+
+- Require gufo-exif 0.5.3 which fixes parsing issues with non-Canon MakerNote
+  entries. This can cause images not to be rotated according to the Orientation
+  tag. #332
+- image-rs/animation: Drop thread after the Image.done D-Bus method is called.
+- image-rs: Prevent channel with animation frames from filling up, causing a
+  effective memory leak. #338
+- libglycin: Don't block main thead in `get_mime_types`.
+
+### Changed
+
+- glycin: Canonicalize paths of "Exec" keys when loading configs. #340
+
 ## 2.2.2 (2026-10-06)
 
 This release contains the following new component versions:
