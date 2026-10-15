@@ -164,6 +164,11 @@ impl LoaderImplementation for ImgDecoder {
             },
             glycin_common::ChannelType::F16 => JxlDataFormat::F16 { endianness },
             glycin_common::ChannelType::F32 => JxlDataFormat::F32 { endianness },
+            c => {
+                return Err(ProcessError::expected(&format!(
+                    "Unsupported ChannelType {c:?}"
+                )));
+            }
         };
         let num_ec = decoder.basic_info().extra_channels.len();
         let pixel_format = JxlPixelFormat {
