@@ -108,19 +108,11 @@ impl LoaderImplementation for ImgDecoder {
             // about this in jxl-rs yet; See
             // https://libjxl.readthedocs.io/en/stable/api_decoder.html#_CPPv420JxlDecoderGetBoxTypeP10JxlDecoder10JxlBoxType8JXL_BOOL
             // for how to handle each box type.
-            if exif_buf.len() < 4 {
-                return Err(ProcessError::expected(&"Exif box is too short"));
-            }
-            let offset = u32::from_be_bytes((&exif_buf[..4]).try_into().expected_error()?);
+            let offset = u32::from_be_bytes(*exif_buf.first_chunk::<4>().expected_error()?);
             let offset = offset as usize + 4;
-            if exif_buf.len() < offset {
-                return Err(ProcessError::expected(
-                    &"TIFF header offset is out of bounds",
-                ));
-            }
-
-            image_info.metadata_exif =
-                Some(B::try_from_slice(&exif_buf[offset..]).expected_error()?);
+            image_info.metadata_exif = Some(
+                B::try_from_slice(&exif_buf.get(offset..).expected_error()?).expected_error()?,
+            );
         }
 
         let scanned_frames = decoder.scanned_frames().to_vec();
