@@ -17,8 +17,4 @@ glycin-utils = { workspace = true, features = [
     "external",
 ] }
 glycin-common.workspace = true
-gufo-common.workspace = true
 jpegxl-rs = { version = "0.14.0", default-features = false }
-jxl = { version = "0.7.4", features = ["all-simd", "brotli"] }
-rayon.workspace = true
-zerocopy.workspace = true

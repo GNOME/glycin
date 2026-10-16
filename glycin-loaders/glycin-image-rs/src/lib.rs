@@ -78,6 +78,7 @@ pub enum SpecificDecoder {
     Exr(Vec<u8>),
     Jpeg(zune_jpeg::JpegDecoder<loader::jpeg::JpegReader>),
     Tiff(tiff::decoder::Decoder<loader::tiff::TiffReader>),
+    Jxl(loader::jxl::JxlLoader),
 }
 
 impl LoaderImplementation for ImgLoader {
@@ -116,6 +117,16 @@ impl LoaderImplementation for ImgLoader {
             return Ok((
                 ImgLoader {
                     decoder: Mutex::new(Some(Decoder::specific(SpecificDecoder::Tiff(tiff)))),
+                    ..Default::default()
+                },
+                metadata,
+            ));
+        } else if mime_type == "image/jxl" {
+            let (jxl, metadata) = loader::jxl::load(buf)?;
+
+            return Ok((
+                ImgLoader {
+                    decoder: Mutex::new(Some(Decoder::specific(SpecificDecoder::Jxl(jxl)))),
                     ..Default::default()
                 },
                 metadata,
@@ -262,6 +273,7 @@ impl LoaderImplementation for ImgLoader {
                     SpecificDecoder::Exr(data) => exr::frame(data)?,
                     SpecificDecoder::Jpeg(jpeg) => loader::jpeg::frame(jpeg)?,
                     SpecificDecoder::Tiff(tiff) => loader::tiff::frame(tiff)?,
+                    SpecificDecoder::Jxl(jxl) => loader::jxl::frame(jxl, frame_request)?,
                 }
             }
         };
