@@ -29,7 +29,7 @@ option(
   choices: [
     'glycin-heif',
     'glycin-image-rs',
-    'glycin-jxl',
+    'glycin-libjxl-editor',
     'glycin-libwebp-editor',
     'glycin-raw',
     'glycin-svg',
@@ -38,7 +38,7 @@ option(
   value: [
     'glycin-heif',
     'glycin-image-rs',
-    'glycin-jxl',
+    'glycin-libjxl-editor',
     'glycin-libwebp-editor',
     'glycin-svg',
   ],

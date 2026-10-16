@@ -21,7 +21,7 @@ windows_gnu = is_windows_target and cc.get_argument_syntax() == 'gcc'
 
 compat_version = '2+'
 
-dedicated_editors = ['glycin-libwebp-editor']
+dedicated_editors = ['glycin-libjxl-editor', 'glycin-libwebp-editor']
 
 datadir = get_option('prefix') / get_option('datadir')
 bindir = get_option('prefix') / get_option('bindir')
