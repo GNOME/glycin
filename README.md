@@ -52,29 +52,30 @@ The following formats are supported by the glycin image loaders provided in the 
 | HEIF image (.heic) | glycin-heif |[libheif](https://github.com/strukturag/libheif) (C++) |
 | JPEG-2000 JP2 image | glycin-image-rs |[hayro-jpeg2000](https://crates.io/crates/hayro-jpeg2000) (Rust) |
 | JPEG image (.jpg) | glycin-image-rs |[zune-jpeg](https://crates.io/crates/zune-jpeg) (Rust) |
-| JPEG XL image (.jxl)² | glycin-jxl |[libjxl](https://github.com/libjxl/libjxl) (C++) |
+| JPEG XL image (.jxl)³ | glycin-image-rs |[jxl](https://crates.io/crates/jxl) (Rust) |
 | PNG image (.png) | glycin-image-rs |[png](https://crates.io/crates/png) (Rust) |
 | Quite OK Image Format (.qoi) | glycin-image-rs |[qoi](https://crates.io/crates/qoi) (Rust) |
 | SVG image | glycin-svg |[librsvg](https://gitlab.gnome.org/GNOME/librsvg) (C/Rust) |
 | Compressed SVG image | glycin-svg |[librsvg](https://gitlab.gnome.org/GNOME/librsvg) (C/Rust) |
 | TIFF image (.tiff) | glycin-image-rs |[tiff](https://crates.io/crates/tiff) (Rust) |
 | Windows icon (.ico) | glycin-image-rs |[image](https://crates.io/crates/image) (Rust), [bmp](https://crates.io/crates/bmp) (Rust), [png](https://crates.io/crates/png) (Rust) |
+| image/vnd.ms-dds type | glycin-image-rs | |
+| image/vnd.radiance type | glycin-image-rs | |
 | WebP image (.webp) | glycin-image-rs |[image-webp](https://crates.io/crates/image-webp) (Rust) |
-| Adobe DNG negative¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
-| Canon CR2 raw image¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
-| DirectDraw surface (.dds) | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
-| image/x-epson-erf type¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| Adobe DNG negative¹⁴ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| Canon CR2 raw image¹⁴ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| image/x-epson-erf type¹⁴ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
 | EXR image (.exr) | glycin-image-rs |[exr](https://crates.io/crates/exr) (Rust) |
-| Minolta MRW raw image¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
-| Olympus ORF raw image¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
-| Panasonic raw image¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
-| Panasonic raw image¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
-| Pentax PEF raw image¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| Minolta MRW raw image¹⁴ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| Olympus ORF raw image¹⁴ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| Panasonic raw image¹⁴ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| Panasonic raw image¹⁴ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| Pentax PEF raw image¹⁴ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
 | PNM image | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
 | PBM image | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
 | PGM image | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
 | PPM image | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
-| Sony SRF raw image¹³ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
+| Sony SRF raw image¹⁴ | glycin-raw |[libopenraw](https://crates.io/crates/libopenraw) (Rust) |
 | TGA image (.tga) | glycin-image-rs |[image](https://crates.io/crates/image) (Rust) |
 | Windows cursor | glycin-image-rs |[image](https://crates.io/crates/image) (Rust), [bmp](https://crates.io/crates/bmp) (Rust), [png](https://crates.io/crates/png) (Rust) |
 | XBM image | glycin-image-rs |[image-extras](https://crates.io/crates/image-extras) (Rust) |
@@ -82,7 +83,8 @@ The following formats are supported by the glycin image loaders provided in the 
 
 1. Support for this format is still experimental the corresponding loader is not built by default
 2. The loader for this format depends on GPL-3.0-or-later licenced software
-3. The loader for this format depends on LGPL-3.0-or-later licenced software
+3. The editor for this format depends on GPL-3.0-or-later licenced software
+4. The loader for this format depends on LGPL-3.0-or-later licenced software
 
 ## Image Loader Configuration
 
@@ -169,4 +171,4 @@ For information on how to implement a loaders, please consult the [`glycin-utils
 
 SPDX-License-Identifier: MPL-2.0 OR LGPL-2.1-or-later
 
-The camera raw loader uses the crate `libopenraw` which is licensed as LGPL-3.0-or-later. The JPEG XL loader uses the `jpegxl-rs` and `jpegxl-sys` crates which are licensed as GPL-3.0-or-later. Given these are only separate executables, only the `glycin-raw` and the `glycin-jxl` binary falls under said licenses, and doesn't precludes using `glycin` under MPL-2.0 OR LGPL-2.1-or-later. This is not legal advice.
+The camera raw loader uses the crate `libopenraw` which is licensed as LGPL-3.0-or-later. The JPEG XL editor uses the `jpegxl-rs` and `jpegxl-sys` crates which are licensed as GPL-3.0-or-later. Given these are only separate executables, only the `glycin-raw` and the `glycin-libjxl-editor` binary falls under said licenses, and doesn't precludes using `glycin` under MPL-2.0 OR LGPL-2.1-or-later. This is not legal advice.

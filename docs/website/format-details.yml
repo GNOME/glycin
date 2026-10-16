@@ -2,6 +2,7 @@ annotations:
   experimental: Support for this format is still experimental the corresponding loader is not built by default
   lgpl: The loader for this format depends on LGPL-3.0-or-later licenced software
   gpl: The loader for this format depends on GPL-3.0-or-later licenced software
+  gpl-editor: The editor for this format depends on GPL-3.0-or-later licenced software
 
 formats:
   image/jpeg:
@@ -39,12 +40,9 @@ formats:
     cicp: true
     exif: true
     xmp: false
-    animation: false
-    loader-codec:
-      name: libjxl
-      url: https://github.com/libjxl/libjxl
-      lang: C++
-    annotations: [gpl]
+    animation: true
+    loader-codec: jxl
+    annotations: [gpl-editor]
 
   image/png:
     icc: true

@@ -8,7 +8,7 @@ if 'glycin-heif' in get_option('loaders')
   dependency('libheif', version: '>= 1.20.0')
 endif
 
-if 'glycin-jxl' in get_option('loaders')
+if 'glycin-libjxl-editor' in get_option('loaders')
   dependency('libjxl', version: ['>= 0.11.1'])
 endif
 
@@ -100,7 +100,8 @@ foreach loader : get_option('loaders')
     install: true,
     install_dir: loader_libexecdir,
     output: loader,
-    command: [copy_cmd.full_path()] + [
+    command: [copy_cmd.full_path()]
+    + [
       cargo_artifact_dir / rust_target / loader,
       '@OUTPUT@',
     ],
