@@ -15,6 +15,9 @@ builtin = ["glycin-utils/builtin"]
 external = ["glycin-utils/external"]
 
 [dependencies]
+bytemuck.workspace = true
+exr.workspace = true
+glycin-common.workspace = true
 glycin-utils = { workspace = true, features = [
     "async-io",
     "image-rs",
@@ -24,6 +27,8 @@ gufo-common.workspace = true
 gufo-exif.workspace = true
 gufo = { workspace = true, features = ["jpeg", "png", "tiff", "webp"] }
 gufo-jpeg = { workspace = true, features = ["encoder"] }
+hayro-jpeg2000 = { workspace = true, features = ["image"] }
+image-extras.workspace = true
 image = { workspace = true, features = [
     "bmp",
     "dds",
@@ -40,16 +45,11 @@ image = { workspace = true, features = [
     "tiff",
     "webp",
 ] }
+jpeg-encoder.workspace = true
+jxl.workspace = true
 log.workspace = true
-jpeg-encoder = "0.7.0"
-image-extras.workspace = true
-hayro-jpeg2000 = { workspace = true, features = ["image"] }
-exr = "1.74.0"
-moxcms = "0.8.1"
-tiff = "0.11.3"
-bytemuck.workspace = true
+moxcms.workspace = true
 png.workspace = true
-zune-jpeg.workspace = true
-jxl = { version = "0.7.4", features = ["all-simd", "brotli"] }
 rayon.workspace = true
-glycin-common.workspace = true
+tiff.workspace = true
+zune-jpeg.workspace = true

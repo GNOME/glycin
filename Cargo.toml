@@ -74,6 +74,7 @@ criterion = "0.8.0"
 env_logger = { version = "0.11.0", default-features = false, features = [
     "humantime",
 ] }
+exr = "1.74.0"
 futures-channel = "0.3.30"
 futures-lite = { version = "2.1.0" }
 futures-task = "0.3.30"
@@ -112,6 +113,8 @@ image-extras = { version = "0.1.1", default-features = false, features = [
     "xbm",
     "xpm",
 ] }
+jpeg-encoder = "0.7.0"
+jxl = { version = "0.7.4", features = ["all-simd", "brotli"] }
 libc = "0.2.152"
 libseccomp = "0.4.0"
 log = "0.4.0"
@@ -127,6 +130,7 @@ serde = { version = "1.0.162", features = ["derive"] }
 static_assertions = { version = "1.1.0" }
 system-deps = "7.0"
 thiserror = "2.0.3"
+tiff = "0.11.3"
 tokio = { version = "1.35.1", features = [
     "fs",
     "rt",
