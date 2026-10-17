@@ -284,3 +284,54 @@ const fn pixel_layout(format: &MemoryFormat) -> moxcms::Layout {
         _ => unreachable!(),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use moxcms::{
+        ColorProfile, DataColorSpace, LutDataType, LutStore, LutType, LutWarehouse, Matrix3d,
+        ProfileClass, Xyzd,
+    };
+
+    use super::*;
+
+    /// Minimal CMYK to Lab profile with a 2x2x2x2 grid
+    fn cmyk_profile() -> Vec<u8> {
+        let mut profile = ColorProfile::default();
+        profile.color_space = DataColorSpace::Cmyk;
+        profile.pcs = DataColorSpace::Lab;
+        profile.profile_class = ProfileClass::OutputDevice;
+        profile.white_point = Xyzd {
+            x: 0.9642,
+            y: 1.0,
+            z: 0.8249,
+        };
+        profile.lut_a_to_b_perceptual = Some(LutWarehouse::Lut(LutDataType {
+            num_input_channels: 4,
+            num_output_channels: 3,
+            num_clut_grid_points: 2,
+            matrix: Matrix3d::IDENTITY,
+            num_input_table_entries: 2,
+            num_output_table_entries: 2,
+            input_table: LutStore::Store16([0, u16::MAX].repeat(4)),
+            clut_table: LutStore::Store16(vec![u16::MAX / 2; 16 * 3]),
+            output_table: LutStore::Store16([0, u16::MAX].repeat(3)),
+            lut_type: LutType::Lut16,
+        }));
+        profile.encode().unwrap()
+    }
+
+    #[test]
+    fn cmyk_to_rgb_buffer_covers_all_rows() {
+        let (width, height) = (4, 100);
+        let texture = FungibleMemory::LocalMemory(vec![0; width as usize * height as usize * 4]);
+        let frame =
+            glycin_utils::Frame::new(width, height, MemoryFormat::C8m8y8k8, texture).unwrap();
+
+        let (frame, result) = apply_transformation(&cmyk_profile(), frame, MemoryFormat::R8g8b8a8);
+        result.unwrap();
+
+        assert_eq!(frame.memory_format, MemoryFormat::R8g8b8);
+        assert_eq!((frame.width, frame.height), (width, height));
+        assert!(frame.texture.len() >= frame.n_bytes().unwrap());
+    }
+}
