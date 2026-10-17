@@ -194,7 +194,7 @@ fn transform(
 
     let stride = frame.stride;
     let width = frame.width;
-    let height = frame.width;
+    let height = frame.height;
     let buf = &mut frame.texture;
 
     let rows_per_thread = (buf.len() / stride as usize).div_ceil(multiple);
