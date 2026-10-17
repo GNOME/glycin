@@ -859,6 +859,9 @@ impl Frame {
             .await??;
         }
 
+        // Transformations above must not break the invariants checked before
+        validate_frame(&frame, &image.loader.limits)?;
+
         frame.final_seal().await?;
 
         Ok(Self {
