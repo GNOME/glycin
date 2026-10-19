@@ -521,7 +521,7 @@ impl Config {
                     }
                 }
             };
-            let exec = canonicalize(&exec).unwrap_or_else(|_| exec);
+            let exec = canonicalize(&exec).unwrap_or(exec);
 
             let processor = match source {
                 #[cfg(feature = "external")]

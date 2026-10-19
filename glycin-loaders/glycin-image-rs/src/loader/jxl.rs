@@ -96,7 +96,7 @@ pub fn load<B: ByteData>(data: Vec<u8>) -> Result<(JxlLoader, ImageDetails<B>), 
         let offset = u32::from_be_bytes(*exif_buf.first_chunk::<4>().expected_error()?);
         let offset = offset as usize + 4;
         image_info.metadata_exif =
-            Some(B::try_from_slice(&exif_buf.get(offset..).expected_error()?).expected_error()?);
+            Some(B::try_from_slice(exif_buf.get(offset..).expected_error()?).expected_error()?);
     }
 
     let scanned_frames = decoder.scanned_frames().to_vec();

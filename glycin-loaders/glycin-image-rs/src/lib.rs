@@ -60,16 +60,14 @@ impl Decoder {
 
 impl Drop for Decoder {
     fn drop(&mut self) {
-        match self {
-            Decoder::ImageRsAnimated {
-                join_handle,
-                frame_receiver,
-            } => {
-                // Drop channel to tell thread to terminate
-                drop(std::mem::take(frame_receiver));
-                join_handle.thread().unpark();
-            }
-            _ => {}
+        if let Decoder::ImageRsAnimated {
+            join_handle,
+            frame_receiver,
+        } = self
+        {
+            // Drop channel to tell thread to terminate
+            drop(std::mem::take(frame_receiver));
+            join_handle.thread().unpark();
         }
     }
 }
@@ -268,7 +266,7 @@ impl LoaderImplementation for ImgLoader {
                 frame
             }
             Decoder::Specific(specific) => {
-                let mut specific = specific.lock().unwrap();
+                let mut specific = specific.get_mut().unwrap();
                 match specific.deref_mut() {
                     SpecificDecoder::Exr(data) => exr::frame(data)?,
                     SpecificDecoder::Jpeg(jpeg) => loader::jpeg::frame(jpeg)?,

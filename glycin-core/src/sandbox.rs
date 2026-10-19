@@ -98,7 +98,11 @@ const BLOCKED_SYSCALLS: &[(&str, ScmpAction, &[ScmpArgCompare])] = &[
         &[ScmpArgCompare::new(
             1,
             ScmpCompareOp::MaskedEqual(0xFFFFFFFF),
-            libc::TIOCSTI as u64,
+            #[allow(clippy::unnecessary_cast)]
+            {
+                // Cast is necessary on 32-bit platforms
+                libc::TIOCSTI as u64
+            },
         )],
     ),
     /* In the unlikely event that the controlling tty is a Linux virtual
@@ -110,7 +114,11 @@ const BLOCKED_SYSCALLS: &[(&str, ScmpAction, &[ScmpArgCompare])] = &[
         &[ScmpArgCompare::new(
             1,
             ScmpCompareOp::MaskedEqual(0xFFFFFFFF),
-            libc::TIOCLINUX as u64,
+            #[allow(clippy::unnecessary_cast)]
+            {
+                // Cast is necessary on 32-bit platforms
+                libc::TIOCLINUX as u64
+            },
         )],
     ),
     /* seccomp can't look into clone3()'s struct clone_args to check whether

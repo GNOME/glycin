@@ -67,16 +67,17 @@ pub fn change_memory_format(
                         for pixel in
                             new_row[..src_correct_stride].chunks_exact_mut(src_pixel_n_bytes)
                         {
-                            pixel_buffer.clone_from_slice(&pixel);
+                            pixel_buffer.clone_from_slice(pixel);
                             for (target_channel, src_channel) in source_target_index_map
                                 .iter()
                                 .take(src_n_channels)
                                 .enumerate()
                             {
-                                for channel_byte in 0..src_channel_bytes {
-                                    pixel[target_channel + channel_byte] =
-                                        pixel_buffer[src_channel + channel_byte];
-                                }
+                                pixel[target_channel..(src_channel_bytes + target_channel)]
+                                    .copy_from_slice(
+                                        &pixel_buffer
+                                            [*src_channel..(src_channel_bytes + src_channel)],
+                                    );
                             }
                         }
                     });
@@ -89,7 +90,7 @@ pub fn change_memory_format(
                     .chunks_exact_mut(src_stride)
                     .par_bridge()
                     .for_each(|new_row| {
-                        for pixel in new_row[..src_correct_stride].chunks_exact_mut(4) {
+                        for pixel in new_row[..src_correct_stride].as_chunks_mut::<4>().0 {
                             // Swap red and blue
                             pixel.swap(0, 2);
 
