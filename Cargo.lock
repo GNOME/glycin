@@ -1362,9 +1362,9 @@ dependencies = [
 
 [[package]]
 name = "gufo-exif"
-version = "0.5.3"
+version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4183c4b2bf6cfd58823cf02b2e8a4d955da3605f8e1b98adbd3456a97e35ae16"
+checksum = "4b334a76d1df73308ef010af6a5870b7fe0f175bd66c79dc8564ac3116781f69"
 dependencies = [
  "gufo-common",
  "indexmap",

@@ -1,0 +1,1 @@
+Require gufo-exif 0.5.4 to avoid a panic in exif lookup for certain images.
