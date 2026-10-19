@@ -7,6 +7,10 @@ ignore = [
     # Crate `unsafe-libyaml` is umaintained
     # Only used in tests
     "RUSTSEC-2024-0449",
+    # zbus
+    "RUSTSEC-2026-0371",
+    "RUSTSEC-2026-0370",
+    "RUSTSEC-2026-0372",
 ]
 
 [licenses]
