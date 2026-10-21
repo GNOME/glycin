@@ -16,8 +16,11 @@ impl Display for ParseError {
 impl std::error::Error for ParseError {}
 
 impl Identifier {
-    pub fn complexity(&self) -> usize {
-        self.0.len()
+    pub fn complexity(&self) -> (usize, usize) {
+        (
+            self.0.len(),
+            self.0.iter().map(|x| x.complexity()).max().unwrap_or(0),
+        )
     }
 
     pub fn parse(s: &str) -> Result<Self, ParseError> {
@@ -80,6 +83,13 @@ impl Rule {
             Err(format!(
                 "This identifier has no known prefix: {rule}. Must be 'ext:' or '<byte position>:'."
             ))
+        }
+    }
+
+    fn complexity(&self) -> usize {
+        match self {
+            Self::Ext(ext) => ext.len(),
+            Self::MagicBytes(mb) => mb.bytes.len(),
         }
     }
 }
