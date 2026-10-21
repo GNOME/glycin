@@ -3,7 +3,7 @@
 //! If external loaders are used, the configuration will usually be loaded from
 //! the filesystem. The configs must be stored in the form of
 //!
-//! ```
+//! ```bash
 //! <data-dir>/share/glycin-loaders/<compat-version>+/conf.d/<loader-name>.conf
 //! ```
 //!
@@ -709,5 +709,35 @@ impl BuiltinProcessor {
             #[cfg(feature = "builtin-test")]
             Self::Test(processor) => processor,
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn indentifier_priority() {
+        let mut config = Config::default();
+        config.image_loader.insert(
+            MimeType::Stack("image/a"),
+            LoaderConfig {
+                expose_base_dir: false,
+                fontconfig: false,
+                identifiers: vec![Identifier::parse("0:ab").unwrap()],
+                processor: Processor::Binary(PathBuf::from("a")),
+            },
+        );
+        config.image_loader.insert(
+            MimeType::Stack("image/b"),
+            LoaderConfig {
+                expose_base_dir: false,
+                fontconfig: false,
+                identifiers: vec![Identifier::parse("0:abc").unwrap()],
+                processor: Processor::Binary(PathBuf::from("b")),
+            },
+        );
+        let mime_type = config.guess_mime_type(None, b"abcd", false).unwrap();
+        assert_eq!(mime_type.as_str(), "image/b")
     }
 }

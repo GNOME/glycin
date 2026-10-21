@@ -1,0 +1,1 @@
+glycin: Longer magic byte strings in config identifiers now have a higher priority. This fixes cursors being sometimes identified as TGAs.
