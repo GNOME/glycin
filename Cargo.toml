@@ -115,7 +115,7 @@ image-extras = { version = "0.1.1", default-features = false, features = [
 ] }
 jpeg-encoder = "0.7.0"
 jpegxl-rs = { version = "0.14.0", default-features = false }
-jxl = { version = "0.7.4", features = ["all-simd", "brotli"] }
+jxl = { version = "0.8.0", features = ["all-simd", "brotli"] }
 libc = "0.2.152"
 libseccomp = "0.4.0"
 log = "0.4.0"
