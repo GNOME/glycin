@@ -1,3 +1,21 @@
+## 2.2.4 (2026-10-22)
+
+This release contains the following new component versions:
+
+- glycin-core 4.0.4
+- glycin-image-rs 2.2.4
+- glycin 4.0.4
+- glycin-builtin 4.0.4
+- glycin-external 4.0.4
+- libglycin 2.2.4
+- libglycin-gtk4 2.2.4
+
+### Fixed
+
+- Require gufo-exif 0.5.4 to avoid a panic in exif lookup for certain images.
+- glycin: Longer magic byte strings in config identifiers now have a higher
+  priority. This fixes cursors being sometimes identified as TGAs.
+
 ## 2.2.3 (2026-10-15)
 
 This release contains the following new component versions:
