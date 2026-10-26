@@ -1,0 +1,1 @@
+meson/thumbnailer: Ensure that libglycin is built before glycin-thumbnailer. #282

@@ -39,6 +39,9 @@ if get_option('libglycin')
             'extra_deps': [],
         },
     ]
+else
+    # Libglycin other targets can depend on
+    libglycin_dep = []
 endif
 
 if get_option('libglycin-gtk4')
@@ -172,6 +175,10 @@ foreach package : packages
             libglycin_shim.full_path(),
         ],
     )
+
+    if suffix == ''
+        libglycin_dep = [libglycin_copy_library]
+    endif
 
     copy_deps = [libglycin_copy_library]
 

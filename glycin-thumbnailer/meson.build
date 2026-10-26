@@ -9,6 +9,7 @@ endif
 
 cargo_build = custom_target(
     'glycin-thumbnailer',
+    depends: libglycin_dep,
     build_by_default: true,
     build_always_stale: true,
     output: 'glycin-thumbnailer-bin',
