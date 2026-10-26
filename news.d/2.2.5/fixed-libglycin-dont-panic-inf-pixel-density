@@ -1,0 +1,1 @@
+libglycin: Don't panic when trying to lookup an infinite pixel density. Instead, don't return any pixel density.

@@ -35,7 +35,7 @@ pub mod imp {
                 .get()
                 .unwrap()
                 .pixel_density()
-                .map(|x| GlyPixelDensity::new(x))
+                .and_then(|x| GlyPixelDensity::new(x))
         }
     }
 }
