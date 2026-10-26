@@ -1,0 +1,1 @@
+Require gufo-exif 0.5.5 to avoid reading exif values from incorrect positions in some images.
