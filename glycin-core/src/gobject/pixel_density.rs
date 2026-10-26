@@ -113,17 +113,28 @@ glib::wrapper! {
 }
 
 impl GlyPixelDensity {
-    pub fn new(pixel_density: physical_dimension::PixelDensity) -> Self {
-        glib::Object::builder()
-            .property("x-value", pixel_density.x().value())
-            .property("x-unit", unsafe {
-                GlyPhysicalDimensionUnit::from_glib(pixel_density.x().unit() as i32)
-            })
-            .property("y-value", pixel_density.y().value())
-            .property("y-unit", unsafe {
-                GlyPhysicalDimensionUnit::from_glib(pixel_density.y().unit() as i32)
-            })
-            .build()
+    pub fn new(pixel_density: physical_dimension::PixelDensity) -> Option<Self> {
+        let x_value = match pixel_density.x().value() {
+            x if x.is_finite() => x,
+            _ => return None,
+        };
+        let y_value = match pixel_density.y().value() {
+            y if y.is_finite() => y,
+            _ => return None,
+        };
+
+        Some(
+            glib::Object::builder()
+                .property("x-value", x_value)
+                .property("x-unit", unsafe {
+                    GlyPhysicalDimensionUnit::from_glib(pixel_density.x().unit() as i32)
+                })
+                .property("y-value", y_value)
+                .property("y-unit", unsafe {
+                    GlyPhysicalDimensionUnit::from_glib(pixel_density.y().unit() as i32)
+                })
+                .build(),
+        )
     }
 
     pub fn for_values(
@@ -166,6 +177,6 @@ impl GlyPixelDensity {
 
     pub fn convert(&self, unit: GlyPhysicalDimensionUnit) -> Self {
         let unit = physical_dimension::PhysicalDimensionUnit::try_from(unit as i32).unwrap();
-        Self::new(self.inner().as_ref().unwrap().convert(unit))
+        Self::new(self.inner().as_ref().unwrap().convert(unit)).unwrap()
     }
 }
