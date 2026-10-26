@@ -1,3 +1,21 @@
+## 2.2.5 (2026-10-26)
+
+This release contains the following new component versions:
+
+- glycin-core 4.0.5
+- glycin 4.0.5
+- glycin-builtin 4.0.5
+- glycin-external 4.0.5
+- libglycin 2.2.5
+- libglycin-gtk4 2.2.5
+
+### Fixed
+
+- Require gufo-exif 0.5.5 to avoid reading exif values from incorrect positions
+  in some images.
+- libglycin: Don't panic when trying to lookup an infinite pixel density.
+  Instead, don't return any pixel density.
+
 ## 2.2.4 (2026-10-22)
 
 This release contains the following new component versions:
