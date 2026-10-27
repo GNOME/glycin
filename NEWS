@@ -15,6 +15,8 @@ This release contains the following new component versions:
   in some images.
 - libglycin: Don't panic when trying to lookup an infinite pixel density.
   Instead, don't return any pixel density.
+- meson/thumbnailer: Ensure that libglycin is built before glycin-thumbnailer.
+  #282
 
 ## 2.2.4 (2026-10-22)
 
