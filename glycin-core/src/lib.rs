@@ -72,7 +72,8 @@ pub use api::*;
 use dbus_shim as dbus;
 pub use error::Error;
 pub use glycin_common::{
-    ColorProfilePreference, MemoryFormat, MemoryFormatSelection, Operation, OperationId, Operations,
+    self as common, ColorProfilePreference, MemoryFormat, MemoryFormatSelection, Operation,
+    OperationId, Operations,
 };
 pub use gufo_common::cicp::Cicp;
 pub use main_context::MainContextSelector;
