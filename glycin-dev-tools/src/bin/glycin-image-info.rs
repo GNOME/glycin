@@ -100,6 +100,10 @@ async fn run() -> Result<(), glycin::Error> {
                 .map_or(String::from("empty"), |x| format!("{x:?}"))
         );
         println!(
+            "color_profile_preference = {:?}",
+            frame.details().color_profile_preference()
+        );
+        println!(
             "bit_depth = {}",
             frame
                 .details()
