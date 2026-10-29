@@ -39,9 +39,6 @@ if get_option('libglycin')
             'extra_deps': [],
         },
     ]
-else
-    # Libglycin other targets can depend on
-    libglycin_dep = []
 endif
 
 if get_option('libglycin-gtk4')

@@ -13,6 +13,9 @@ gtk4_req = '>= 4.16.0'
 seccomp_req = '>= 2.5.0'
 fontconfig_req = '>= 2.13.0'
 
+# Contains libglycin target built within this run if applicable
+libglycin_dep = []
+
 compat_version = '2+'
 
 datadir = get_option('prefix') / get_option('datadir')
