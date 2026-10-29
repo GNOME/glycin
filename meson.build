@@ -13,6 +13,9 @@ gtk4_req = '>= 4.16.0'
 seccomp_req = '>= 2.5.0'
 fontconfig_req = '>= 2.13.0'
 
+# Contains libglycin target built within this run if applicable
+libglycin_dep = []
+
 is_windows_target = host_machine.system() == 'windows'
 
 cc = meson.get_compiler('c')
@@ -91,7 +94,9 @@ else
   endif
 endif
 
-message('RustC cross build carried out: @0@'.format(is_rustc_cross_build ? 'YES' : 'NO'))
+message(
+  'RustC cross build carried out: @0@'.format(is_rustc_cross_build ? 'YES' : 'NO'),
+)
 
 if is_rustc_cross_build
   cargo_target_args = ['--target', cargo_build_target]
