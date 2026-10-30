@@ -276,16 +276,20 @@ impl LoaderImplementation for ImgLoader {
             }
         };
 
-        frame.details.color_cicp = cicp.map(|x| {
-            [
-                x.color_primaries.into(),
-                x.transfer_characteristics.into(),
-                x.matrix_coefficients.into(),
-                x.video_full_range_flag.into(),
-            ]
-        });
+        if frame.details.color_cicp.is_none() {
+            frame.details.color_cicp = cicp.map(|x| {
+                [
+                    x.color_primaries.into(),
+                    x.transfer_characteristics.into(),
+                    x.matrix_coefficients.into(),
+                    x.video_full_range_flag.into(),
+                ]
+            });
+        }
 
-        frame.details.pixel_density = self.pixel_density.clone();
+        if frame.details.pixel_density.is_none() {
+            frame.details.pixel_density = self.pixel_density.clone();
+        }
 
         frame.into_other().expected_error()
     }
