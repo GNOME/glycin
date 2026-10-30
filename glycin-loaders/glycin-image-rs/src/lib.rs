@@ -76,7 +76,7 @@ pub enum SpecificDecoder {
     Exr(Vec<u8>),
     Jpeg(
         (
-            zune_jpeg::JpegDecoder<loader::jpeg::JpegReader>,
+            Box<zune_jpeg::JpegDecoder<loader::jpeg::JpegReader>>,
             FrameDetails<LocalMemory>,
         ),
     ),

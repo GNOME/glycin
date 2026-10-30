@@ -15,7 +15,7 @@ pub fn load<B: ByteData>(
     (
         ImageDetails<B>,
         (
-            zune_jpeg::JpegDecoder<JpegReader>,
+            Box<zune_jpeg::JpegDecoder<JpegReader>>,
             FrameDetails<LocalMemory>,
         ),
     ),
@@ -32,7 +32,7 @@ pub fn load<B: ByteData>(
         Err(err) => err.into_inner(),
     };
 
-    let mut decoder = zune_jpeg::JpegDecoder::new(Cursor::new(data));
+    let mut decoder = Box::new(zune_jpeg::JpegDecoder::new(Cursor::new(data)));
 
     decoder.decode_headers().expected_error()?;
 
