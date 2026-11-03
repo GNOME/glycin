@@ -1,0 +1,1 @@
+meson: Fix build configuration failing if either libglycin or libglycin-gtk4 option being enabled.
