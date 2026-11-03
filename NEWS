@@ -1,3 +1,15 @@
+## 2.2.6 (2026-11-03)
+
+This release contains the following new component versions:
+
+- libglycin 2.2.6
+- libglycin-gtk4 2.2.6
+
+### Fixed
+
+- meson: Fix build configuration failing if either libglycin or libglycin-gtk4
+  option being enabled.
+
 ## 2.2.5 (2026-10-26)
 
 This release contains the following new component versions:
