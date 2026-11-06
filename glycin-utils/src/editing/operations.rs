@@ -11,13 +11,13 @@ pub fn apply_operations(
     for operation in operations.operations() {
         match operation {
             Operation::Rotate(rotation) => {
-                frame = editing::change_orientation(frame, Orientation::new(false, *rotation));
+                frame = editing::change_orientation(frame, Orientation::new(false, *rotation))?;
             }
             Operation::MirrorHorizontally => {
-                frame = editing::change_orientation(frame, Orientation::new(true, Rotation::_0));
+                frame = editing::change_orientation(frame, Orientation::new(true, Rotation::_0))?;
             }
             Operation::MirrorVertically => {
-                frame = editing::change_orientation(frame, Orientation::new(true, Rotation::_180));
+                frame = editing::change_orientation(frame, Orientation::new(true, Rotation::_180))?;
             }
             Operation::Clip(clip) => {
                 frame = editing::clip(frame, *clip)?;

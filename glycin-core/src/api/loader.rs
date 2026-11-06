@@ -785,7 +785,7 @@ impl Frame {
         validate_frame(&frame, &image.loader.limits)?;
 
         let frame = if image.loader.apply_transformations {
-            orientation::apply_exif_orientation(frame.into_fungible(), image)
+            orientation::apply_exif_orientation(frame.into_fungible(), image)?
         } else {
             frame.into_fungible()
         };

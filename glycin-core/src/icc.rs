@@ -323,7 +323,7 @@ mod tests {
     #[test]
     fn cmyk_to_rgb_buffer_covers_all_rows() {
         let (width, height) = (4, 100);
-        let texture = FungibleMemory::LocalMemory(vec![0; width as usize * height as usize * 4]);
+        let texture = FungibleMemory::new((width as usize * height as usize * 4) as u64).unwrap();
         let frame =
             glycin_utils::Frame::new(width, height, MemoryFormat::C8m8y8k8, texture).unwrap();
 

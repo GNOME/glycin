@@ -1,13 +1,13 @@
-use glycin_utils::{Frame, FungibleMemory};
+use glycin_utils::{Frame, FungibleMemory, editing};
 
 use crate::Image;
 
 pub fn apply_exif_orientation(
     frame: Frame<FungibleMemory>,
     image: &Image,
-) -> Frame<FungibleMemory> {
+) -> Result<Frame<FungibleMemory>, editing::Error> {
     if image.details().transformation_ignore_exif() {
-        frame
+        Ok(frame)
     } else {
         let orientation = image.transformation_orientation();
         glycin_utils::editing::change_orientation(frame, orientation)

@@ -2,7 +2,7 @@ use glycin_common::{ExtendedMemoryFormat, MemoryFormatInfo};
 use gufo_common::orientation::{Orientation, Rotation};
 
 use super::EditingFrame;
-use crate::{ByteData, Frame, FungibleMemory};
+use crate::{ByteData, Frame, FungibleMemory, editing};
 
 pub trait BasicFrame<B: ByteData> {
     fn width(&self) -> u32;
@@ -105,7 +105,7 @@ impl<B: ByteData> BasicFrame<B> for Frame<B> {
 pub fn change_orientation<F: BasicFrame<FungibleMemory>>(
     mut frame: F,
     transformation: Orientation,
-) -> F {
+) -> Result<F, editing::Error> {
     let stride = frame.stride() as usize;
     let width = frame.width() as usize;
     let height = frame.height() as usize;
@@ -126,9 +126,9 @@ pub fn change_orientation<F: BasicFrame<FungibleMemory>>(
     }
 
     match transformation.rotate() {
-        Rotation::_0 => frame,
+        Rotation::_0 => Ok(frame),
         Rotation::_270 => {
-            let mut target = vec![0; n_bytes];
+            let mut target = FungibleMemory::new(n_bytes as u64)?;
             frame.set_width(height as u32);
             frame.set_height(width as u32);
             frame.set_stride((height * pixel_size) as u32);
@@ -145,12 +145,12 @@ pub fn change_orientation<F: BasicFrame<FungibleMemory>>(
                 }
             }
 
-            frame.set_texture(FungibleMemory::from_vec(target));
+            frame.set_texture(target);
 
-            frame
+            Ok(frame)
         }
         Rotation::_90 => {
-            let mut target = vec![0; n_bytes];
+            let mut target = FungibleMemory::new(n_bytes as u64)?;
             frame.set_width(height as u32);
             frame.set_height(width as u32);
             frame.set_stride((height * pixel_size) as u32);
@@ -167,9 +167,9 @@ pub fn change_orientation<F: BasicFrame<FungibleMemory>>(
                 }
             }
 
-            frame.set_texture(FungibleMemory::from_vec(target));
+            frame.set_texture(target);
 
-            frame
+            Ok(frame)
         }
         Rotation::_180 => {
             let mid_col = width / 2;
@@ -193,7 +193,7 @@ pub fn change_orientation<F: BasicFrame<FungibleMemory>>(
                 }
             }
 
-            frame
+            Ok(frame)
         }
     }
 }

@@ -4,8 +4,8 @@ use glycin_common::MemoryFormatInfo;
 use gufo_common::math::{Checked, checked};
 
 use super::{EditingFrame, Error};
-use crate::FungibleMemory;
 use crate::editing::orientation::BasicFrame;
+use crate::{ByteData, FungibleMemory};
 
 pub fn clip(
     mut frame: EditingFrame<FungibleMemory>,
@@ -39,6 +39,7 @@ pub fn clip(
     for _ in 0..height {
         cur.seek_relative(x_)?;
         cur.read_exact(&mut row)?;
+        // TODO: Handle more efficiently for mmaps
         new.extend_from_slice(&row);
         cur.seek_relative((stride - x_ - width_).check()?)?;
     }
@@ -47,7 +48,7 @@ pub fn clip(
     frame.height = height;
     frame.stride = new_stride;
 
-    frame.set_texture(FungibleMemory::from_vec(new));
+    frame.set_texture(FungibleMemory::try_from_vec(new)?);
 
     Ok(frame)
 }

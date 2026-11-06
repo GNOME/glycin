@@ -187,7 +187,7 @@ fn apply_non_sparse<B: ByteData>(
         height: info.height as u32,
         stride: info.width as u32 * glycin_memory_format.n_bytes().u32(),
         memory_format: glycin_memory_format,
-        texture: pixels.into(),
+        texture: FungibleMemory::try_from_vec(pixels).expected_error()?,
     };
 
     let editing_frame = editing::apply_operations(editing_frame, &operations).expected_error()?;
