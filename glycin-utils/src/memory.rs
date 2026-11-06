@@ -14,7 +14,7 @@ pub use local::*;
 #[cfg(feature = "external")]
 pub use shared::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MemoryAllocationError(pub(crate) String);
 
 impl std::fmt::Display for MemoryAllocationError {
@@ -26,11 +26,12 @@ impl std::fmt::Display for MemoryAllocationError {
 impl std::error::Error for MemoryAllocationError {}
 
 pub trait ByteData: Sized + Deref<Target = [u8]> + DerefMut + Debug + 'static {
-    fn new(size: u64) -> std::io::Result<Self>;
+    fn new(size: u64) -> Result<Self, MemoryAllocationError>;
     fn into_fungible(self) -> FungibleMemory;
     fn into_other<O: ByteData>(self) -> Result<O, MemoryAllocationError>;
     #[cfg(feature = "external")]
     fn from_shared(shared: SharedMemory) -> Self;
+    fn from_local(shared: LocalMemory) -> Self;
     fn try_from_vec(vec: Vec<u8>) -> Result<Self, MemoryAllocationError>;
     fn try_from_slice(slice: &[u8]) -> Result<Self, MemoryAllocationError>;
     fn initial_seal(

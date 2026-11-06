@@ -177,7 +177,10 @@ impl LoaderImplementation for ImgDecoder {
         std::thread::spawn(move || thread(data, base_file, info_send, frame_send, instr_recv));
         let mut image_info = info_recv.recv().unwrap()?;
 
-        image_info.metadata_xmp = xmp.map(LocalMemory::from);
+        image_info.metadata_xmp = xmp
+            .map(LocalMemory::try_from_vec)
+            .transpose()
+            .expected_error()?;
 
         let decoder = ImgDecoder {
             thread: Mutex::new(Some(ImgDecoderDetails {

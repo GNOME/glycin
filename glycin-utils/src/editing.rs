@@ -57,6 +57,8 @@ pub enum Error {
     UnknownOperation(OperationId),
     #[error("Failed to build rayon thread pool: {0}")]
     ThreadPoolBuildError(#[from] Arc<rayon::ThreadPoolBuildError>),
+    #[error("Failed to allocate memory: {0}")]
+    MemoryAllocationError(crate::memory::MemoryAllocationError),
 }
 
 impl<A: Display, S: Display, V: Display> From<zerocopy::ConvertError<A, S, V>> for Error {
@@ -68,5 +70,11 @@ impl<A: Display, S: Display, V: Display> From<zerocopy::ConvertError<A, S, V>> f
 impl From<std::io::Error> for Error {
     fn from(value: std::io::Error) -> Self {
         Arc::new(value).into()
+    }
+}
+
+impl From<crate::memory::MemoryAllocationError> for Error {
+    fn from(value: crate::memory::MemoryAllocationError) -> Self {
+        Self::MemoryAllocationError(value)
     }
 }

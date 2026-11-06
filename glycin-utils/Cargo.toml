@@ -35,6 +35,9 @@ tokio = { workspace = true, optional = true }
 zbus = { workspace = true, optional = true }
 zerocopy.workspace = true
 
+[target.'cfg(unix)'.dependencies]
+memmap.workspace = true
+
 [features]
 default = ["async-io"]
 async-io = ["zbus?/async-io"]
@@ -45,6 +48,7 @@ gobject = ["glib"]
 glib = ["dep:glib"]
 builtin = []
 external = ["dep:libseccomp", "dep:memmap", "dep:nix", "dep:zbus", "dep:serde"]
+
 
 [package.metadata.docs.rs]
 features = ["image-rs", "loader-utils"]

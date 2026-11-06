@@ -4,7 +4,7 @@ use glycin_common::{ChannelType, MemoryFormatInfo};
 use gufo_common::math::Checked;
 use rayon::prelude::*;
 
-use crate::{Frame, FungibleMemory, MemoryFormat, editing};
+use crate::{ByteData, Frame, FungibleMemory, MemoryFormat, editing};
 pub fn change_memory_format(
     frame: &mut Frame<FungibleMemory>,
     target_format: MemoryFormat,
@@ -110,7 +110,7 @@ pub fn change_memory_format(
             {
                 // Fast path for u16 to u8 conversion
 
-                let mut new_data = vec![0; new_total_size];
+                let mut new_data = FungibleMemory::new(new_total_size as u64)?;
                 let new_data_rows = new_data.chunks_exact_mut(new_stride as usize);
 
                 let mut source_target_index_map = [0; 5];
@@ -156,7 +156,7 @@ pub fn change_memory_format(
             } else {
                 // Slow generic path
 
-                let mut new_data = vec![0; new_total_size];
+                let mut new_data = FungibleMemory::new(new_total_size as u64)?;
                 let new_data_rows = new_data.chunks_exact_mut(new_stride as usize);
 
                 new_data_rows
@@ -185,11 +185,13 @@ pub fn change_memory_format(
 
                 new_data_x = Some(new_data);
             }
-        });
+
+            Ok::<(), editing::Error>(())
+        })?;
 
     if let Some(new_data) = new_data_x {
         frame.stride = new_stride;
-        frame.texture = FungibleMemory::from_vec(new_data);
+        frame.texture = new_data;
     }
     frame.memory_format = target_format;
 

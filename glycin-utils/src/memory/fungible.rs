@@ -6,18 +6,19 @@ use crate::{ByteData, MemoryAllocationError};
 pub enum FungibleMemory {
     #[cfg(feature = "external")]
     SharedMemory(crate::SharedMemory),
-    LocalMemory(Vec<u8>),
+    LocalMemory(crate::LocalMemory),
 }
 
 impl FungibleMemory {
+    #[deprecated]
     pub fn from_vec(vec: Vec<u8>) -> Self {
-        FungibleMemory::LocalMemory(vec)
+        FungibleMemory::LocalMemory(crate::LocalMemory::try_from_vec(vec).unwrap())
     }
 }
 
 impl ByteData for FungibleMemory {
-    fn new(size: u64) -> std::io::Result<Self> {
-        Ok(Self::LocalMemory(vec![0; size as usize]))
+    fn new(size: u64) -> Result<Self, MemoryAllocationError> {
+        Ok(Self::LocalMemory(crate::LocalMemory::new(size)?))
     }
 
     fn into_fungible(self) -> FungibleMemory {
@@ -29,20 +30,26 @@ impl ByteData for FungibleMemory {
         FungibleMemory::SharedMemory(shared)
     }
 
+    fn from_local(local: crate::LocalMemory) -> Self {
+        FungibleMemory::LocalMemory(local)
+    }
+
     fn into_other<O: ByteData>(self) -> Result<O, MemoryAllocationError> {
         match self {
-            Self::LocalMemory(local) => O::try_from_vec(local),
+            Self::LocalMemory(local) => Ok(O::from_local(local)),
             #[cfg(feature = "external")]
             Self::SharedMemory(shared) => Ok(O::from_shared(shared)),
         }
     }
 
     fn try_from_vec(value: Vec<u8>) -> Result<Self, MemoryAllocationError> {
-        Ok(Self::LocalMemory(value))
+        Ok(Self::LocalMemory(crate::LocalMemory::try_from_vec(value)?))
     }
 
     fn try_from_slice(value: &[u8]) -> Result<Self, MemoryAllocationError> {
-        Ok(Self::LocalMemory(value.to_vec()))
+        Ok(Self::LocalMemory(crate::LocalMemory::try_from_slice(
+            value,
+        )?))
     }
 
     async fn initial_seal(&mut self) -> Result<(), MemoryAllocationError> {
@@ -66,7 +73,7 @@ impl ByteData for FungibleMemory {
     #[cfg(feature = "glib")]
     fn into_gbytes(self) -> Result<glib::Bytes, MemoryAllocationError> {
         match self {
-            FungibleMemory::LocalMemory(local) => Ok(glib::Bytes::from_owned(local)),
+            FungibleMemory::LocalMemory(local) => local.into_gbytes(),
             #[cfg(feature = "external")]
             FungibleMemory::SharedMemory(shared) => shared.into_gbytes(),
         }
@@ -97,6 +104,6 @@ impl DerefMut for FungibleMemory {
 
 impl From<Vec<u8>> for FungibleMemory {
     fn from(value: Vec<u8>) -> Self {
-        Self::LocalMemory(value)
+        Self::from_vec(value)
     }
 }

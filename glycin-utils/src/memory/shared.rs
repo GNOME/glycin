@@ -72,8 +72,9 @@ impl Default for SharedMemory {
 }
 
 impl ByteData for SharedMemory {
-    fn new(size: u64) -> std::io::Result<Self> {
-        let (memfd, mmap) = Self::new_memfd(size)?;
+    fn new(size: u64) -> Result<Self, MemoryAllocationError> {
+        let (memfd, mmap) =
+            Self::new_memfd(size).map_err(|x| MemoryAllocationError(x.to_string()))?;
 
         Ok(Self {
             memfd,
@@ -87,6 +88,10 @@ impl ByteData for SharedMemory {
 
     fn from_shared(shared: SharedMemory) -> Self {
         shared
+    }
+
+    fn from_local(local: crate::LocalMemory) -> Self {
+        Self::try_from_slice(&local).unwrap()
     }
 
     fn into_other<O: ByteData>(self) -> Result<O, MemoryAllocationError> {
