@@ -105,7 +105,7 @@ impl LoaderImplementation for ImgLoader {
                 metadata,
             ));
         } else if mime_type == "image/jpeg" {
-            let (metadata, (jpeg, frame_details)) = loader::jpeg::load(buf)?;
+            let (metadata, jpeg, frame_details) = loader::jpeg::load(buf)?;
 
             return Ok((
                 ImgLoader {

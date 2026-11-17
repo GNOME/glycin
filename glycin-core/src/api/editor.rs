@@ -264,20 +264,18 @@ impl EditableImage {
             }
             #[cfg(feature = "builtin")]
             ImageEditor::Builtin(editor) => {
-                let editor_function: Box<dyn FnOnce() -> _ + Send>;
-
-                match editor {
+                let editor_function: Box<dyn FnOnce() -> _ + Send> = match editor {
                     #[cfg(feature = "builtin-image-rs")]
                     ImageEditorBuiltin::ImageRs(editor) => {
                         let editor = editor.clone();
-                        editor_function = Box::new(move || editor.apply_sparse(operations));
+                        Box::new(move || editor.apply_sparse(operations))
                     }
                     #[cfg(feature = "builtin-test")]
                     ImageEditorBuiltin::Test(editor) => {
                         let editor = editor.clone();
-                        editor_function = Box::new(move || editor.apply_sparse(operations));
+                        Box::new(move || editor.apply_sparse(operations))
                     }
-                }
+                };
 
                 let editor_output = gio::spawn_blocking(|| {
                     editor_function().map_err(|e| Error::from(e.into_editor_error()))
@@ -320,20 +318,18 @@ impl EditableImage {
             }
             #[cfg(feature = "builtin")]
             ImageEditor::Builtin(editor) => {
-                let apply_function: Box<dyn FnOnce() -> _ + Send + 'static>;
-
-                match editor {
+                let apply_function: Box<dyn FnOnce() -> _ + Send + 'static> = match editor {
                     #[cfg(feature = "builtin-image-rs")]
                     ImageEditorBuiltin::ImageRs(editor) => {
                         let editor = editor.clone();
-                        apply_function = Box::new(move || editor.apply_complete(operations));
+                        Box::new(move || editor.apply_complete(operations))
                     }
                     #[cfg(feature = "builtin-test")]
                     ImageEditorBuiltin::Test(editor) => {
                         let editor = editor.clone();
-                        apply_function = Box::new(move || editor.apply_complete(operations));
+                        Box::new(move || editor.apply_complete(operations))
                     }
-                }
+                };
 
                 let editor_output = gio::spawn_blocking(|| {
                     apply_function().map_err(|e| Error::from(e.into_editor_error()))

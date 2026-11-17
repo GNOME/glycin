@@ -8,19 +8,11 @@ use zune_jpeg::zune_core;
 use zune_jpeg::zune_core::colorspace;
 
 pub type JpegReader = Cursor<Vec<u8>>;
+pub type JpegDecoder = Box<zune_jpeg::JpegDecoder<JpegReader>>;
 
 pub fn load<B: ByteData>(
     data: Vec<u8>,
-) -> Result<
-    (
-        ImageDetails<B>,
-        (
-            Box<zune_jpeg::JpegDecoder<JpegReader>>,
-            FrameDetails<LocalMemory>,
-        ),
-    ),
-    ProcessError,
-> {
+) -> Result<(ImageDetails<B>, JpegDecoder, FrameDetails<LocalMemory>), ProcessError> {
     let mut frame_details = FrameDetails::default();
 
     let data = match gufo::RawMetadata::for_guessed(data) {
@@ -64,7 +56,7 @@ pub fn load<B: ByteData>(
         .unwrap();
     image_details.info_format_name = Some(String::from("JPEG"));
 
-    Ok((image_details, (decoder, frame_details)))
+    Ok((image_details, decoder, frame_details))
 }
 
 pub fn frame<B: ByteData>(

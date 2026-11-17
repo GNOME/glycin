@@ -24,6 +24,7 @@ fn processor_creator_roundtrip_all() {
             MimeType::BMP,
             MimeType::GIF,
             MimeType::HEIC,
+            #[cfg(feature = "external-loaders")]
             MimeType::JXL,
             MimeType::JPEG,
             MimeType::PNG,

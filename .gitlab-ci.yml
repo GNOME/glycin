@@ -101,6 +101,7 @@ cargo-clippy:
     - meson setup -Dprofile=dev -Dglycin-loaders=false -Dglycin-thumbnailer=false --prefix=/usr builddir
     - meson install -C builddir
     - cargo clippy --no-deps -- --deny warnings
+    - cargo clippy -p glycin-core --no-default-features --features async-io,builtin-image-rs,builtin-svg
 
 test-x86_64:
   image: rust:1.93-trixie

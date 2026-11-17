@@ -199,7 +199,7 @@ fn write_data(target: &mut [u8], src: &[u8]) -> (usize, Vec<u8>) {
         target.copy_from_slice(send);
         (target.len(), cache.to_vec())
     } else {
-        target[..src.len()].copy_from_slice(&src);
+        target[..src.len()].copy_from_slice(src);
         (src.len(), Vec::new())
     }
 }

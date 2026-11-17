@@ -295,49 +295,41 @@ impl Loader {
     ) -> Result<Image, Error> {
         tracing::debug!("Using builtin loader '{}'", builtin.builtin.common().name());
 
-        let init_function: Box<dyn Fn(_, _, _) -> _ + Send>;
-
-        match builtin.builtin {
+        let init_function: Box<dyn Fn(_, _, _) -> _ + Send> = match builtin.builtin {
             #[cfg(feature = "builtin-image-rs")]
-            config::BuiltinProcessor::ImageRs(_) => {
-                init_function = Box::new(|stream, mime_type, details| {
-                    glycin_image_rs::ImgLoader::load(stream, mime_type, details).map(
-                        |(decoder, details)| {
-                            (
-                                ImageBuiltinLoader::ImageRs(Arc::new(Mutex::new(decoder))),
-                                details,
-                            )
-                        },
-                    )
-                });
-            }
+            config::BuiltinProcessor::ImageRs(_) => Box::new(|stream, mime_type, details| {
+                glycin_image_rs::ImgLoader::load(stream, mime_type, details).map(
+                    |(decoder, details)| {
+                        (
+                            ImageBuiltinLoader::ImageRs(Arc::new(Mutex::new(decoder))),
+                            details,
+                        )
+                    },
+                )
+            }),
             #[cfg(feature = "builtin-test")]
-            config::BuiltinProcessor::Test(_) => {
-                init_function = Box::new(|stream, mime_type, details| {
-                    glycin_test::ImgDecoder::load(stream, mime_type, details).map(
-                        |(decoder, details)| {
-                            (
-                                ImageBuiltinLoader::Test(Arc::new(Mutex::new(decoder))),
-                                details,
-                            )
-                        },
-                    )
-                });
-            }
+            config::BuiltinProcessor::Test(_) => Box::new(|stream, mime_type, details| {
+                glycin_test::ImgDecoder::load(stream, mime_type, details).map(
+                    |(decoder, details)| {
+                        (
+                            ImageBuiltinLoader::Test(Arc::new(Mutex::new(decoder))),
+                            details,
+                        )
+                    },
+                )
+            }),
             #[cfg(feature = "builtin-svg")]
-            config::BuiltinProcessor::Svg(_) => {
-                init_function = Box::new(|stream, mime_type, details| {
-                    glycin_svg::ImgDecoder::load(stream, mime_type, details).map(
-                        |(decoder, details)| {
-                            (
-                                ImageBuiltinLoader::Svg(Arc::new(Mutex::new(decoder))),
-                                details,
-                            )
-                        },
-                    )
-                });
-            }
-        }
+            config::BuiltinProcessor::Svg(_) => Box::new(|stream, mime_type, details| {
+                glycin_svg::ImgDecoder::load(stream, mime_type, details).map(
+                    |(decoder, details)| {
+                        (
+                            ImageBuiltinLoader::Svg(Arc::new(Mutex::new(decoder))),
+                            details,
+                        )
+                    },
+                )
+            }),
+        };
 
         let mime_type = builtin.mime_type.clone();
 
@@ -486,43 +478,41 @@ impl Image {
             ImageLoader::Builtin(builtin) => {
                 use glycin_utils::LocalMemory;
 
-                let editor_function: Box<dyn FnOnce() -> _ + Send>;
-
-                match builtin {
+                let loader_function: Box<dyn FnOnce() -> _ + Send> = match builtin {
                     #[cfg(feature = "builtin-image-rs")]
                     ImageBuiltinLoader::ImageRs(loader) => {
                         let loader: Arc<Mutex<glycin_image_rs::ImgLoader>> = loader.to_owned();
-                        editor_function = Box::new(move || {
+                        Box::new(move || {
                             loader
                                 .lock()
                                 .unwrap()
                                 .specific_frame::<LocalMemory>(frame_request)
-                        });
+                        })
                     }
                     #[cfg(feature = "builtin-test")]
                     ImageBuiltinLoader::Test(editor) => {
                         let editor = editor.to_owned();
-                        editor_function = Box::new(move || {
+                        Box::new(move || {
                             editor
                                 .lock()
                                 .unwrap()
                                 .specific_frame::<LocalMemory>(frame_request)
-                        });
+                        })
                     }
                     #[cfg(feature = "builtin-svg")]
                     ImageBuiltinLoader::Svg(loader) => {
                         let loader: Arc<Mutex<glycin_svg::ImgDecoder>> = loader.to_owned();
-                        editor_function = Box::new(move || {
+                        Box::new(move || {
                             loader
                                 .lock()
                                 .unwrap()
                                 .specific_frame::<LocalMemory>(frame_request)
-                        });
+                        })
                     }
-                }
+                };
 
                 let frame = gio::spawn_blocking(|| {
-                    editor_function().map_err(|e| Error::from(e.into_loader_error()))
+                    loader_function().map_err(|e| Error::from(e.into_loader_error()))
                 })
                 .await
                 .map_err(|e| ErrorKind::panic(e))??;
