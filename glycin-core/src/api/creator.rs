@@ -16,7 +16,7 @@ use crate::config::{Config, EditorConfig};
 use crate::error::{ErrorKind, ResultExt};
 use crate::pool::Pool;
 use crate::util::CancellableFuture;
-use crate::{Error, MimeType, Processor, ProcessorContext, SandboxSelector};
+use crate::{Error, MimeType, Processor, ProcessorContext, SandboxSelector, main_context};
 
 /// Builder pattern for creating images
 #[derive(Debug)]
@@ -181,8 +181,12 @@ impl Creator {
             new_image.frames.push(frame);
         }
 
-        let editor_context =
-            ProcessorContext::new_sourceless(self.mime_type, &self.sandbox_selector).await?;
+        let editor_context = ProcessorContext::new_sourceless(
+            self.mime_type,
+            &self.sandbox_selector,
+            main_context::context_auto(),
+        )
+        .await?;
 
         let editor = editor_context
             .editor(self.pool.clone(), &self.cancellable)

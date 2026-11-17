@@ -104,8 +104,14 @@ impl Editor {
     async fn edit_internal(mut self, sync: bool) -> Result<EditableImage, Error> {
         let source: Source = self.source.send();
 
-        let editor_context =
-            ProcessorContext::new(source, false, &self.sandbox_selector, sync).await?;
+        let editor_context = ProcessorContext::new(
+            source,
+            false,
+            &self.sandbox_selector,
+            self.main_context(),
+            sync,
+        )
+        .await?;
 
         let editor = editor_context
             .editor(self.pool.clone(), &self.cancellable)
@@ -131,9 +137,11 @@ impl Editor {
                     editor.process,
                     #[strong(rename_to=path)]
                     editable_image.edit_request,
+                    #[strong(rename_to=main_context)]
+                    self.main_context(),
                     move |_| {
                         tracing::debug!("Terminating loader");
-                        util::spawn_detached(process.use_().done(path))
+                        main_context.spawn(process.use_().done(path));
                     }
                 ));
 
@@ -228,7 +236,9 @@ impl Drop for EditableImage {
         if let ImageEditor::External(editor) = &self.image_editor {
             editor.process.use_().done_background(self);
             *editor.editor_alive.lock().unwrap() = Arc::new(());
-            util::spawn_detached(self.editor.pool.clone().clean_loaders());
+            self.editor
+                .main_context()
+                .spawn(self.editor.pool.clone().clean_loaders());
         }
     }
 }

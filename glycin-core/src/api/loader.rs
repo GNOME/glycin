@@ -206,6 +206,7 @@ impl Loader {
             source,
             self.use_expose_base_dir,
             &self.sandbox_selector,
+            self.main_context(),
             sync,
         )
         .await?;
@@ -264,9 +265,11 @@ impl Loader {
         self.cancellable.connect_cancelled(glib::clone!(
             #[strong(rename_to=process)]
             binary_loader.process,
+            #[strong(rename_to=main_context)]
+            self.main_context(),
             move |_| {
                 tracing::debug!("Terminating loader");
-                util::spawn_detached(process.use_().done(path))
+                main_context.spawn(process.use_().done(path));
             }
         ));
 
@@ -418,7 +421,7 @@ impl Drop for Image {
             let process = image_loader.process.clone();
             let path = self.frame_request_path();
             let loader_alive = std::mem::take(&mut *image_loader.usage_tracker.lock().unwrap());
-            util::spawn_detached(async move {
+            self.loader.main_context().spawn(async move {
                 if let Err(err) = process.use_().done(path).await {
                     tracing::warn!("Failed to tear down loader: {err}")
                 }

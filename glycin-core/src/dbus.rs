@@ -23,17 +23,16 @@ use zbus::zvariant::{self, OwnedObjectPath};
 
 use crate::error::ErrorKind;
 use crate::sandbox::Sandbox;
-use crate::util::{self, Task, spawn};
 use crate::{DBusProxy, EditableImage, Error, Image, MimeType, SandboxMechanism, config};
 
 #[derive(Debug)]
 pub struct RemoteProcess<P: DBusProxy> {
     dbus_connection: zbus::Connection,
-    _dbus_connection_task: Task<()>,
     proxy: P,
     pub stderr_content: Arc<Mutex<String>>,
     pub stdout_content: Arc<Mutex<String>>,
     pub process_disconnected: Arc<AtomicBool>,
+    main_context: glib::MainContext,
     cancellable: gio::Cancellable,
     base_dir: Option<PathBuf>,
 }
@@ -71,6 +70,7 @@ impl<P: DBusProxy> RemoteProcess<P> {
     pub async fn new(
         config_entry: config::ConfigEntry,
         sandbox_mechanism: SandboxMechanism,
+        main_context: glib::MainContext,
         base_dir: Option<PathBuf>,
         cancellable: &gio::Cancellable,
     ) -> Result<Self, Error> {
@@ -161,6 +161,7 @@ impl<P: DBusProxy> RemoteProcess<P> {
             &mut child_process.0,
             &stderr_content,
             process_disconnected.clone(),
+            &main_context,
             "stderr",
         );
 
@@ -169,6 +170,7 @@ impl<P: DBusProxy> RemoteProcess<P> {
             &mut child_process.1,
             &stdout_content,
             process_disconnected.clone(),
+            &main_context,
             "stdout",
         );
 
@@ -208,7 +210,7 @@ impl<P: DBusProxy> RemoteProcess<P> {
 
         let dbus_connection = dbus_result.await?;
 
-        let dbus_connection_task = spawn(glib::clone!(
+        main_context.spawn(glib::clone!(
             #[strong]
             dbus_connection,
             async move {
@@ -228,11 +230,11 @@ impl<P: DBusProxy> RemoteProcess<P> {
 
         Ok(Self {
             dbus_connection,
-            _dbus_connection_task: dbus_connection_task,
             proxy: decoding_instruction,
             stderr_content,
             stdout_content,
             process_disconnected,
+            main_context,
             cancellable: cancellable.clone(),
             base_dir,
         })
@@ -363,7 +365,7 @@ impl RemoteProcess<EditorProxy<'static>> {
         let edit_request_path = image.edit_request_path();
         let arc = self.clone();
 
-        util::spawn_detached(arc.done(edit_request_path));
+        self.main_context.spawn(arc.done(edit_request_path));
     }
 
     pub async fn done(self: Arc<Self>, edit_request_path: OwnedObjectPath) -> Result<(), Error> {
@@ -429,12 +431,13 @@ fn spawn_stdio_reader(
     stdio: &mut Option<impl Read + Send + std::os::fd::AsFd + async_io::IoSafe + 'static>,
     store: &Arc<Mutex<String>>,
     process_disconnected: Arc<AtomicBool>,
+    main_context: &glib::MainContext,
     name: &'static str,
 ) {
     use futures_lite::AsyncBufReadExt;
     if let Some(stdio) = stdio.take() {
         let store = store.clone();
-        util::spawn_detached(async move {
+        main_context.spawn(async move {
             match async_io::Async::new(stdio) {
                 Err(err) => {
                     tracing::error!("Can't read {name}: {err}");
@@ -468,11 +471,13 @@ fn spawn_stdio_reader(
     }
 }
 
+// TODO: Don't use dedicated threads
 #[cfg(feature = "tokio")]
 fn spawn_stdio_reader(
     stdio: &mut Option<impl Read + Send + 'static>,
     store: &Arc<Mutex<String>>,
     process_disconnected: Arc<AtomicBool>,
+    _main_context: &glib::MainContext,
     name: &'static str,
 ) {
     use std::io::{BufRead, BufReader};

@@ -207,6 +207,8 @@ pub(crate) struct ConfigEntryHash {
     expose_base_dir: bool,
     base_dir: Option<PathBuf>,
     sandbox_mechanism: SandboxMechanism,
+    // We spawn the D-Bus listening process on this thread
+    main_context: glib::MainContext,
 }
 
 impl ConfigEntryHash {
@@ -269,6 +271,7 @@ impl ConfigEntry {
         &self,
         base_dir: Option<PathBuf>,
         sandbox_mechanism: SandboxMechanism,
+        main_context: &glib::MainContext,
     ) -> ConfigEntryHash {
         ConfigEntryHash {
             fontconfig: self.fontconfig(),
@@ -276,6 +279,7 @@ impl ConfigEntry {
             expose_base_dir: self.expose_base_dir(),
             base_dir,
             sandbox_mechanism,
+            main_context: main_context.clone(),
         }
     }
 

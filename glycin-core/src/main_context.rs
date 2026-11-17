@@ -27,6 +27,7 @@ impl ProvidesMainContext for crate::Loader {
         main_context(&self.main_context_selector)
     }
 }
+
 impl ProvidesMainContext for crate::Editor {
     fn main_context(&self) -> glib::MainContext {
         main_context(&self.main_context_selector)
@@ -50,7 +51,7 @@ fn main_context(selector: &MainContextSelector) -> glib::MainContext {
     main_context
 }
 
-fn context_auto() -> glib::MainContext {
+pub fn context_auto() -> glib::MainContext {
     if let Some(thread_context) = glib::MainContext::thread_default() {
         tracing::debug!("Using current threads default MainContext.");
         // Current thread has a default MainContext

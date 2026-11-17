@@ -177,6 +177,7 @@ pub(crate) struct ProcessorContext<T: GetConfig, S> {
     pub sandbox_mechanism: SandboxMechanism,
     pub config_entry: T,
     pub g_file_worker: S,
+    pub main_context: glib::MainContext,
     pub base_dir: Option<PathBuf>,
 }
 
@@ -229,6 +230,7 @@ impl<T: GetConfig + Clone> ProcessorContext<T, SourceTransmission> {
         source: Source,
         use_expose_base_dir: bool,
         sandbox_selector: &SandboxSelector,
+        main_context: glib::MainContext,
         sync: bool,
     ) -> Result<ProcessorContext<T, SourceTransmission>, Error> {
         let file = source.file();
@@ -267,6 +269,7 @@ impl<T: GetConfig + Clone> ProcessorContext<T, SourceTransmission> {
             base_dir,
             mime_type,
             sandbox_mechanism,
+            main_context,
             g_file_worker: source_transmission,
         })
     }
@@ -276,6 +279,7 @@ impl<T: GetConfig + Clone> ProcessorContext<T, ()> {
     pub async fn new_sourceless(
         mime_type: MimeType,
         sandbox_selector: &SandboxSelector,
+        main_context: glib::MainContext,
     ) -> Result<ProcessorContext<T, ()>, Error> {
         let config = Config::cached().await;
         let config_entry = T::config_entry(&config, &mime_type)?.clone();
@@ -286,6 +290,7 @@ impl<T: GetConfig + Clone> ProcessorContext<T, ()> {
             base_dir: None,
             config_entry,
             sandbox_mechanism,
+            main_context,
             g_file_worker: (),
         })
     }
@@ -324,6 +329,7 @@ impl<S> ProcessorContext<LoaderConfig, S> {
             .get_loader(
                 self.config_entry,
                 self.sandbox_mechanism,
+                self.main_context,
                 self.base_dir,
                 cancellable,
             )
@@ -372,6 +378,7 @@ impl<S> ProcessorContext<EditorConfig, S> {
             .get_editor(
                 self.config_entry,
                 self.sandbox_mechanism,
+                self.main_context,
                 self.base_dir,
                 cancellable,
             )

@@ -134,6 +134,7 @@ impl Pool {
         self: Arc<Self>,
         loader_config: config::LoaderConfig,
         sandbox_mechanism: SandboxMechanism,
+        main_context: glib::MainContext,
         base_dir: Option<PathBuf>,
         cancellable: &gio::Cancellable,
     ) -> Result<
@@ -151,6 +152,7 @@ impl Pool {
                 pooled_loaders,
                 ConfigEntry::Loader(loader_config.clone()),
                 sandbox_mechanism,
+                main_context,
                 base_dir,
                 cancellable,
             )
@@ -164,6 +166,7 @@ impl Pool {
         self: Arc<Self>,
         editor_config: config::EditorConfig,
         sandbox_mechanism: SandboxMechanism,
+        main_context: glib::MainContext,
         base_dir: Option<PathBuf>,
         cancellable: &gio::Cancellable,
     ) -> Result<
@@ -181,6 +184,7 @@ impl Pool {
                 pooled_editors,
                 ConfigEntry::Editor(editor_config.clone()),
                 sandbox_mechanism,
+                main_context,
                 base_dir,
                 cancellable,
             )
@@ -195,10 +199,11 @@ impl Pool {
         pooled_processes: &AsyncMutex<BTreeMap<ConfigEntryHash, Vec<Arc<PooledProcess<P>>>>>,
         config: config::ConfigEntry,
         sandbox_mechanism: SandboxMechanism,
+        main_context: glib::MainContext,
         base_dir: Option<PathBuf>,
         cancellable: &gio::Cancellable,
     ) -> Result<(Arc<PooledProcess<P>>, Arc<UsageTracker>), Error> {
-        let config_hash = config.hash_value(base_dir.clone(), sandbox_mechanism);
+        let config_hash = config.hash_value(base_dir.clone(), sandbox_mechanism, &main_context);
         let mut pooled_processes = pooled_processes.lock().await;
         let pooled_processes = pooled_processes.entry(config_hash).or_default();
 
@@ -235,6 +240,7 @@ impl Pool {
             dbus::RemoteProcess::new(
                 config.clone(),
                 sandbox_mechanism,
+                main_context,
                 base_dir,
                 &process_cancellable,
             )

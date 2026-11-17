@@ -227,25 +227,6 @@ mod async_io_utils {
         async_io::block_on(f)
     }
 
-    #[cfg(feature = "external")]
-    pub type Task<T> = async_task::Task<T>;
-
-    #[cfg(feature = "external")]
-    pub fn spawn<T: Send + 'static>(
-        f: impl std::future::Future<Output = T> + Send + 'static,
-    ) -> Task<T> {
-        async_global_executor::spawn(f)
-    }
-
-    #[cfg(feature = "external")]
-    pub fn spawn_detached<F>(f: F)
-    where
-        F: Future + Send + 'static,
-        F::Output: Send + 'static,
-    {
-        async_global_executor::spawn(f).detach()
-    }
-
     pub type AsyncMutex<T> = async_lock::Mutex<T>;
 
     pub const fn new_async_mutex<T>(t: T) -> AsyncMutex<T> {
@@ -302,26 +283,7 @@ mod tokio_utils {
         tokio::runtime::Runtime::new().unwrap().block_on(f)
     }
 
-    #[cfg(feature = "external")]
-    pub type Task<T> = tokio::task::JoinHandle<T>;
-
     pub use tokio::fs::read;
-
-    #[cfg(feature = "external")]
-    pub fn spawn<T: Send + 'static>(
-        f: impl std::future::Future<Output = T> + Send + 'static,
-    ) -> Task<T> {
-        tokio::task::spawn(f)
-    }
-
-    #[cfg(feature = "external")]
-    pub fn spawn_detached<F>(f: F)
-    where
-        F: Future + Send + 'static,
-        F::Output: Send + 'static,
-    {
-        tokio::task::spawn(f);
-    }
 
     pub type AsyncMutex<T> = tokio::sync::Mutex<T>;
 
