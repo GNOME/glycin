@@ -64,7 +64,6 @@ expect_used = "warn"
 async-fs = "2.1.0"
 async-io = "2.3.2"
 async-lock = "3.3.0"
-async-task = "4.0.0"
 bitflags = "2.9.0"
 blocking = "1.6.1"
 bytemuck = { version = "1.25", features = ["extern_crate_std"] }
