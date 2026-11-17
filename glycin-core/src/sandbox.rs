@@ -21,7 +21,7 @@ use nix::unistd;
 
 use crate::config::{ConfigEntry, LoaderConfig, Processor};
 use crate::error::ErrorKind;
-use crate::util::{self, AsyncMutex, new_async_mutex, spawn_blocking};
+use crate::util::{self, AsyncMutex, new_async_mutex};
 use crate::{Error, SandboxMechanism};
 
 type SystemSetupStore = Arc<Result<SystemSetup, Arc<io::Error>>>;
@@ -435,7 +435,7 @@ impl Sandbox {
             let fc_cache_dir = PathBuf::from_iter([cache_dir.clone(), "fontconfig".into()]);
 
             // Create cache dir
-            match util::spawn_blocking(move || {
+            match util::DedicatedMainContext::unblock_once(move || {
                 std::fs::create_dir_all(fc_cache_dir).map_err(|x| x.into())
             })
             .await
@@ -697,7 +697,7 @@ impl Sandbox {
 
         tracing::debug!("Testing bwrap availability with: {command:?}");
 
-        let output = spawn_blocking(move || command.output()).await??;
+        let output = util::DedicatedMainContext::unblock_once(move || command.output()).await??;
 
         tracing::debug!(
             "bwrap availability test returned: {output:?} (Signal: {signal:?}, Code: {code:?})",

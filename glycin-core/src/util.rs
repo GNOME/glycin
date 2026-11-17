@@ -308,12 +308,6 @@ pub use tokio_utils::*;
 mod async_io_utils {
     use super::*;
 
-    pub async fn spawn_blocking<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(
-        f: F,
-    ) -> Result<T, crate::Error> {
-        Ok(blocking::unblock(f).await)
-    }
-
     #[cfg(feature = "gobject")]
     pub fn block_on<F: Future>(f: F) -> F::Output {
         async_io::block_on(f)
@@ -347,14 +341,6 @@ mod async_io_utils {
 #[cfg(feature = "tokio")]
 mod tokio_utils {
     use super::*;
-
-    pub async fn spawn_blocking<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(
-        f: F,
-    ) -> Result<T, crate::Error> {
-        tokio::task::spawn_blocking(f)
-            .await
-            .map_err(|x| crate::Error::other(&x.to_string()))
-    }
 
     #[cfg(feature = "gobject")]
     pub fn block_on<F: Future>(f: F) -> F::Output {
