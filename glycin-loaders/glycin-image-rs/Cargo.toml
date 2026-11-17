@@ -9,6 +9,9 @@ repository.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 
+[lints]
+workspace = true
+
 [features]
 default = ["external"]
 builtin = ["glycin-utils/builtin"]

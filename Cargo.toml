@@ -83,8 +83,6 @@ futures-util = "0.3.30"
 gdk = { package = "gdk4", version = "0.11.0", features = ["v4_16"] }
 gdk-pixbuf = "0.22.0"
 gdk-sys = { package = "gdk4-sys", version = "0.11.0", features = ["v4_16"] }
-# Use newer version to fix issues
-gif = "0.13.3"
 gio = { version = "0.22.0", features = ["v2_62"] }
 gio-sys = { version = "0.22.0", features = ["v2_62"] }
 gio-unix = "0.22.0"

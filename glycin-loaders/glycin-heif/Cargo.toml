@@ -10,6 +10,9 @@ repository.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 four-cc = "0.4.0"
 glycin-utils = { workspace = true, features = [
