@@ -347,6 +347,9 @@ impl Config {
         )
         .await;
 
+        #[cfg(feature = "builtin-svg")]
+        Self::load_builtin_config(BuiltinProcessor::Svg(glycin_svg::BuiltinSvg), &mut config).await;
+
         #[cfg(feature = "external")]
         for mut data_dir in Self::data_dirs() {
             data_dir.push("glycin-loaders");
@@ -698,6 +701,8 @@ pub enum BuiltinProcessor {
     ImageRs(glycin_image_rs::BuiltinImageRs),
     #[cfg(feature = "builtin-test")]
     Test(glycin_test::BuiltinTest),
+    #[cfg(feature = "builtin-svg")]
+    Svg(glycin_svg::BuiltinSvg),
 }
 
 #[cfg(feature = "builtin")]
@@ -708,6 +713,8 @@ impl BuiltinProcessor {
             Self::ImageRs(processor) => processor,
             #[cfg(feature = "builtin-test")]
             Self::Test(processor) => processor,
+            #[cfg(feature = "builtin-svg")]
+            Self::Svg(processor) => processor,
         }
     }
 }

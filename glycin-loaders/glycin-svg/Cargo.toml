@@ -10,15 +10,15 @@ repository.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 
+[features]
+default = ["external"]
+builtin = ["glycin-utils/builtin"]
+external = ["glycin-utils/external"]
+
 [dependencies]
 cairo-rs.workspace = true
 gio.workspace = true
-gio-unix.workspace = true
-glycin-utils = { workspace = true, features = [
-    "async-io",
-    "loader-utils",
-    "external",
-] }
+glycin-utils = { workspace = true, features = ["async-io", "loader-utils"] }
 rsvg = { package = "librsvg-rebind", version = "0.3.0" }
 gufo-svg.workspace = true
 gufo-common.workspace = true

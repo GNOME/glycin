@@ -36,6 +36,7 @@ gdk4 = ["dep:gdk"]
 
 builtin-image-rs = ["dep:glycin-image-rs", "builtin"]
 builtin-test = ["dep:glycin-test", "builtin"]
+builtin-svg = ["dep:glycin-svg", "builtin"]
 builtin = ["glycin-utils/builtin", "futures-util/sink", "futures-channel/sink"]
 external = [
     "dep:libseccomp",
@@ -69,6 +70,7 @@ glycin-common.workspace = true
 glycin-utils = { workspace = true, features = ["glib"] }
 glycin-image-rs = { workspace = true, optional = true, features = ["builtin"] }
 glycin-test = { workspace = true, optional = true, features = ["builtin"] }
+glycin-svg = { workspace = true, optional = true, features = ["builtin"] }
 gufo-common.workspace = true
 gufo-exif.workspace = true
 gufo.workspace = true

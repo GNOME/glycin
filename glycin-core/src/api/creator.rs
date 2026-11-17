@@ -232,6 +232,10 @@ impl Creator {
                             glycin_test::ImgEditor::create(mime_type, new_image, encoding_options)
                         });
                     }
+                    #[cfg(feature = "builtin-svg")]
+                    config::BuiltinProcessor::Svg(_) => {
+                        todo!("Not supported")
+                    }
                 }
 
                 let encoded_image = gio::spawn_blocking(|| {

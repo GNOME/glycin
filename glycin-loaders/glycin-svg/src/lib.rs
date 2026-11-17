@@ -14,7 +14,20 @@ use rsvg::prelude::*;
 /// <https://gitlab.gnome.org/GNOME/librsvg/-/issues/938>
 pub const RSVG_MAX_SIZE: u32 = 32_767;
 
-init_main_loader!(ImgDecoder);
+#[cfg(feature = "builtin")]
+#[derive(Debug, Clone)]
+pub struct BuiltinSvg;
+
+#[cfg(feature = "builtin")]
+impl Builtin for BuiltinSvg {
+    fn config(&self) -> &'static str {
+        include_str!("../glycin-svg.conf")
+    }
+
+    fn name(&self) -> &'static str {
+        "svg"
+    }
+}
 
 #[derive(Default)]
 pub struct ImgDecoder {

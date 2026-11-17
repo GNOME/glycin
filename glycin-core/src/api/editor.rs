@@ -171,6 +171,10 @@ impl Editor {
                                 .map(|e| ImageEditorBuiltin::Test(Arc::new(e)))
                         });
                     }
+                    #[cfg(feature = "builtin-svg")]
+                    config::BuiltinProcessor::Svg(_) => {
+                        todo!("Not supported")
+                    }
                 }
 
                 let editor_future = gio::spawn_blocking(move || {

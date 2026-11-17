@@ -9,8 +9,8 @@ pub use glycin_common::MemoryFormat;
 use glycin_common::{ColorProfilePreference, MemoryFormatInfo, MemoryFormatSelection};
 #[cfg(feature = "builtin")]
 use glycin_utils::LoaderImplementation;
-use glycin_utils::safe_math::*;
 use glycin_utils::{ByteData, FungibleMemory};
+use glycin_utils::{InitializationDetails, safe_math::*};
 use gufo_common::cicp::Cicp;
 use gufo_common::orientation::{Orientation, Rotation};
 use gufo_common::physical_dimension;
@@ -210,6 +210,9 @@ impl Loader {
         )
         .await?;
 
+        let mut initialization_details = InitializationDetails::default();
+        initialization_details.base_dir = loader_context.base_dir.clone();
+
         let loader = loader_context
             .loader(self.pool.clone(), &self.cancellable)
             .await?;
@@ -218,7 +221,10 @@ impl Loader {
             #[cfg(feature = "external")]
             Processor::Binary(binary_loader) => self.load_internal_external(binary_loader).await,
             #[cfg(feature = "builtin")]
-            Processor::Builtin(builtin) => self.load_internal_builtin(builtin).await,
+            Processor::Builtin(builtin) => {
+                self.load_internal_builtin(builtin, initialization_details)
+                    .await
+            }
         }
     }
 
@@ -285,6 +291,7 @@ impl Loader {
     async fn load_internal_builtin<P: DBusProxy>(
         self,
         builtin: BuiltinProcessor<P, SourceTransmission>,
+        initialization_details: InitializationDetails,
     ) -> Result<Image, Error> {
         tracing::debug!("Using builtin loader '{}'", builtin.builtin.common().name());
 
@@ -317,6 +324,19 @@ impl Loader {
                     )
                 });
             }
+            #[cfg(feature = "builtin-svg")]
+            config::BuiltinProcessor::Svg(_) => {
+                init_function = Box::new(|stream, mime_type, details| {
+                    glycin_svg::ImgDecoder::load(stream, mime_type, details).map(
+                        |(decoder, details)| {
+                            (
+                                ImageBuiltinLoader::Svg(Arc::new(Mutex::new(decoder))),
+                                details,
+                            )
+                        },
+                    )
+                });
+            }
         }
 
         let mime_type = builtin.mime_type.clone();
@@ -327,8 +347,7 @@ impl Loader {
             init_function(
                 source_reader,
                 builtin.mime_type.to_string(),
-                // TODO: That should be something different?
-                glycin_utils::InitializationDetails::default(),
+                initialization_details,
             )
             .map_err(|e| Error::from(e.into_loader_error()))
         })
@@ -490,6 +509,16 @@ impl Image {
                                 .specific_frame::<LocalMemory>(frame_request)
                         });
                     }
+                    #[cfg(feature = "builtin-svg")]
+                    ImageBuiltinLoader::Svg(loader) => {
+                        let loader: Arc<Mutex<glycin_svg::ImgDecoder>> = loader.to_owned();
+                        editor_function = Box::new(move || {
+                            loader
+                                .lock()
+                                .unwrap()
+                                .specific_frame::<LocalMemory>(frame_request)
+                        });
+                    }
                 }
 
                 let frame = gio::spawn_blocking(|| {
@@ -603,6 +632,8 @@ enum ImageBuiltinLoader {
     ImageRs(Arc<Mutex<glycin_image_rs::ImgLoader>>),
     #[cfg(feature = "builtin-test")]
     Test(Arc<Mutex<glycin_test::ImgDecoder>>),
+    #[cfg(feature = "builtin-svg")]
+    Svg(Arc<Mutex<glycin_svg::ImgDecoder>>),
 }
 
 #[cfg(feature = "builtin")]

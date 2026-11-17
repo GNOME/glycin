@@ -1201,6 +1201,7 @@ dependencies = [
  "glib",
  "glycin-common",
  "glycin-image-rs",
+ "glycin-svg",
  "glycin-test",
  "glycin-utils",
  "gufo",
@@ -1311,7 +1312,6 @@ version = "2.3.0-alpha"
 dependencies = [
  "cairo-rs",
  "gio",
- "gio-unix",
  "glycin-utils",
  "gufo-common",
  "gufo-svg",

@@ -14,7 +14,10 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
-glycin-core = { workspace = true, features = ["builtin-image-rs"] }
+glycin-core = { workspace = true, features = [
+    "builtin-image-rs",
+    "builtin-svg",
+] }
 
 [features]
 async-io = ["glycin-core/async-io"]
