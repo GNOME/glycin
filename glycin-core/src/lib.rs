@@ -81,6 +81,10 @@ pub use glycin_common::{
 };
 pub use gufo_common::cicp::Cicp;
 pub use main_context::MainContextSelector;
+#[cfg(feature = "gobject")]
+pub use main_context::ProvidesMainContext;
+#[cfg(feature = "gobject")]
+pub use main_context::context_auto as main_context_auto;
 pub use pool::{Pool, PoolConfig};
 #[cfg(not(feature = "external"))]
 use pool_shim as pool;

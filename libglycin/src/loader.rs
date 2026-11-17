@@ -210,7 +210,7 @@ pub unsafe extern "C" fn gly_loader_get_mime_types_async(
 
         let task = gio::Task::new(None, cancellable.as_ref(), closure);
 
-        async_global_executor::spawn(async move {
+        glycin_core::main_context_auto().spawn(async move {
             let mime_types = glycin_core::Loader::supported_mime_types().await;
             let strv = glib::StrV::from_iter(
                 mime_types
@@ -218,8 +218,7 @@ pub unsafe extern "C" fn gly_loader_get_mime_types_async(
                     .map(|x| glib::GString::from(x.as_str())),
             );
             task.return_result(Ok(strv));
-        })
-        .detach();
+        });
     }
 }
 

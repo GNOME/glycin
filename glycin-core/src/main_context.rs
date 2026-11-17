@@ -18,7 +18,7 @@ pub enum MainContextSelector {
 }
 
 static CHECK_MAIN_CONTEXT: LazyLock<std::sync::Mutex<()>> = LazyLock::new(Default::default);
-pub(crate) trait ProvidesMainContext {
+pub trait ProvidesMainContext {
     fn main_context(&self) -> glib::MainContext;
 }
 
@@ -72,7 +72,7 @@ pub fn context_auto() -> glib::MainContext {
     }
 }
 
-fn context_managed() -> glib::MainContext {
+pub fn context_managed() -> glib::MainContext {
     tracing::debug!("Using global glycin MainContext.");
     static GLYCIN_MAIN_CONTEXT: LazyLock<glib::MainContext> = LazyLock::new(|| {
         tracing::debug!("Creating glycin global MainContext.");
