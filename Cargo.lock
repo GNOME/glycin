@@ -1170,8 +1170,6 @@ dependencies = [
  "glib",
  "gufo-common",
  "half",
- "memmap2",
- "nix",
  "paste",
  "rmp-serde",
  "serde",
