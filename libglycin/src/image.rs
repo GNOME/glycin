@@ -6,7 +6,7 @@ use gio::prelude::*;
 use glib::ffi::{GError, GStrv, GType, gpointer};
 use glib::subclass::prelude::*;
 use glib::translate::*;
-use glycin::gobject;
+use glycin_core::gobject;
 
 use crate::common::*;
 use crate::*;
@@ -65,7 +65,7 @@ pub unsafe extern "C" fn gly_image_get_specific_frame(
 ) -> *mut GlyFrame {
     unsafe {
         let obj = gobject::GlyImage::from_glib_ptr_borrow(&image);
-        let frame_request: glycin::FrameRequest =
+        let frame_request: glycin_core::FrameRequest =
             gobject::GlyFrameRequest::from_glib_ptr_borrow(&frame_request).frame_request();
 
         let result = obj.specific_frame(frame_request);
@@ -90,7 +90,7 @@ pub unsafe extern "C" fn gly_image_get_specific_frame_async(
 ) {
     unsafe {
         let obj = gobject::GlyImage::from_glib_none(image);
-        let frame_request: glycin::FrameRequest =
+        let frame_request: glycin_core::FrameRequest =
             gobject::GlyFrameRequest::from_glib_ptr_borrow(&frame_request).frame_request();
         let cancellable: Option<gio::Cancellable> = from_glib_none(cancellable);
         let callback: GAsyncReadyCallbackSend = GAsyncReadyCallbackSend::new(callback, user_data);

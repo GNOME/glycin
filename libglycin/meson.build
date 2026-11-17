@@ -16,6 +16,20 @@ if host_machine.system() == 'linux'
     ]
 endif
 
+glycin_base_features = []
+
+if get_option('external-loaders') == 'auto' and host_machine.system() == 'linux'
+    glycin_base_features += 'external'
+else
+    glycin_base_features += 'builtin'
+endif
+
+glycin_builtin_features = []
+
+foreach loader : builtin_loaders
+    glycin_builtin_features += loader.replace('glycin-', 'builtin-')
+endforeach
+
 pkg = import('pkgconfig')
 gnome = import('gnome')
 manifest = meson.project_source_root() / 'Cargo.toml'
@@ -79,12 +93,15 @@ foreach package : packages
     extra_gir_deps = []
     if suffix != ''
         link_with += global_libglycin
+        loader_features = glycin_base_features
         if introspection
             if get_option('libglycin')
                 extra_gir_deps += declare_dependency(sources: global_libglycin_gir)
             endif
             extra_girs += ['Gly-2', 'Gdk-4.0']
         endif
+    else
+        loader_features = glycin_base_features + glycin_builtin_features
     endif
 
     libglycin_target_name = f'glycin@suffix@-2'
@@ -116,6 +133,7 @@ foreach package : packages
             cargo_bin,
             'build',
             cargo_options,
+            '--features', ','.join(loader_features),
             '-p', f'libglycin@suffix@',
         ],
     )

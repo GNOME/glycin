@@ -32,7 +32,11 @@ mod error_message {
 
 #[cfg(all(
     feature = "builtin",
-    not(any(feature = "builtin-image-rs", feature = "builtin-test"))
+    not(any(
+        feature = "builtin-image-rs",
+        feature = "builtin-test",
+        feature = "builtin-svg"
+    ))
 ))]
 compile_error!(
     "At least one builtin loader feature like 'builtin-image-rs' has to be enabled if 'builtin' is enabled."

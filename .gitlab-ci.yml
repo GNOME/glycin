@@ -222,8 +222,8 @@ macos:
     - | # Install pkgconfig.
       curl -L $CI_API_V4_URL/projects/30437/packages/generic/pkgconfig/v0.29.2+10/pkg-config-0.29.2+10_$(uname -m).tar.xz | tar -C .venv -xJ
   script:
-    - cargo build -p glycin --features gdk4
-    - meson setup -Dintrospection=false -Dvapi=false builddir
+    - cargo build -p glycin-core --no-default-features --features gdk4,async-io,builtin-image-rs
+    - meson setup -Dintrospection=false -Dvapi=false -Dbuiltin-loaders=glycin-image-rs builddir
     - meson compile -C builddir
 
 windows-gnu:

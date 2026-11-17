@@ -2,7 +2,7 @@ use gio::prelude::*;
 use glib::ffi::GType;
 use glib::subclass::prelude::*;
 use glib::translate::*;
-use glycin::gobject::{self, GlyPhysicalDimensionUnit};
+use glycin_core::gobject::{self, GlyPhysicalDimensionUnit};
 
 pub type GlyPixelDensity =
     <gobject::pixel_density::imp::GlyPixelDensity as ObjectSubclass>::Instance;

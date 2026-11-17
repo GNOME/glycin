@@ -1,7 +1,7 @@
 use gio::prelude::*;
 use glib::ffi::GType;
 use glib::translate::*;
-pub use glycin::gobject::GlyColorMode;
+pub use glycin_core::gobject::GlyColorMode;
 
 #[unsafe(no_mangle)]
 pub extern "C" fn gly_color_mode_get_type() -> GType {

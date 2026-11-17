@@ -2,7 +2,7 @@ use gio::prelude::*;
 use glib::ffi::GType;
 use glib::subclass::prelude::*;
 use glib::translate::*;
-use glycin::gobject;
+use glycin_core::gobject;
 
 pub type GlyFrameDetails =
     <gobject::frame_details::imp::GlyFrameDetails as ObjectSubclass>::Instance;

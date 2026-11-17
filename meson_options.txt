@@ -46,6 +46,26 @@ option(
 )
 
 option(
+  'builtin-loaders',
+  type: 'array',
+  choices: [
+    'auto',
+    'glycin-image-rs',
+    'glycin-svg',
+    'glycin-test',
+  ],
+  value: ['auto'],
+  description: 'List of loaders to build into libglycin. If the value "auto" is present, no loaders a built into libglycin on linux and glycin-image-rs and glycin-svg are used on all other systems.',
+)
+
+option(
+  'external-loaders',
+  type: 'combo',
+  choices: ['auto', 'disabled'],
+  value: 'auto',
+)
+
+option(
   'tests',
   type: 'boolean',
   description: 'Support running tests.',

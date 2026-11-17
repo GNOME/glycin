@@ -2,7 +2,7 @@ use gdk::ffi::GdkTexture;
 use gdk::glib;
 use glib::subclass::prelude::*;
 use glib::translate::*;
-use glycin::gobject::{self, GlyCicp};
+use glycin_core::gobject::{self, GlyCicp};
 
 pub type GlyFrame = <gobject::frame::imp::GlyFrame as ObjectSubclass>::Instance;
 
@@ -49,8 +49,8 @@ pub unsafe extern "C" fn gly_gtk_frame_get_texture(frame: *mut GlyFrame) -> *mut
         };
 
         let gly_format =
-            glycin::MemoryFormat::try_from(gly_frame_get_memory_format(frame)).unwrap();
-        let gdk_format = glycin::gdk_memory_format(gly_format).into_glib();
+            glycin_core::MemoryFormat::try_from(gly_frame_get_memory_format(frame)).unwrap();
+        let gdk_format = glycin_core::gdk_memory_format(gly_format).into_glib();
 
         let texture = gdk::ffi::gdk_memory_texture_builder_new();
 

@@ -10,9 +10,13 @@ repository.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 
+[features]
+external = ["glycin-core/external"]
+builtin = ["glycin-core/builtin-test"]
+
 [dependencies]
 gdk.workspace = true
-glycin = { workspace = true, features = ["async-io", "gobject", "gdk4"] }
+glycin-core = { workspace = true, features = ["async-io", "gobject", "gdk4"] }
 
 [build-dependencies]
 system-deps.workspace = true

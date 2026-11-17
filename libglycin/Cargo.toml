@@ -13,12 +13,18 @@ rust-version.workspace = true
 [lints.clippy]
 missing_safety_doc = "allow"
 
+[features]
+builtin-image-rs = ["glycin-core/builtin-image-rs"]
+builtin-svg = ["glycin-core/builtin-svg"]
+external = ["glycin-core/external"]
+builtin = ["glycin-core/builtin"]
+
 [dependencies]
 async-global-executor.workspace = true
 futures-task.workspace = true
 gio.workspace = true
 glib.workspace = true
-glycin = { workspace = true, features = ["async-io", "gobject"] }
+glycin-core = { workspace = true, features = ["async-io", "gobject"] }
 tracing-subscriber.workspace = true
 tracing.workspace = true
 

@@ -4,7 +4,7 @@ use gio::prelude::*;
 use glib::ffi::GType;
 use glib::subclass::prelude::*;
 use glib::translate::*;
-use glycin::gobject;
+use glycin_core::gobject;
 
 pub type GlyFrameRequest =
     <gobject::frame_request::imp::GlyFrameRequest as ObjectSubclass>::Instance;

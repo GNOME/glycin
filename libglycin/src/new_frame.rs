@@ -2,8 +2,8 @@ use gio::prelude::*;
 use glib::ffi::{GBytes, GType};
 use glib::subclass::prelude::*;
 use glib::translate::*;
-use glycin::gobject;
-use glycin::gobject::GlyPhysicalDimensionUnit;
+use glycin_core::gobject;
+use glycin_core::gobject::GlyPhysicalDimensionUnit;
 
 use crate::GlyPixelDensity;
 

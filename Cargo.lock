@@ -1808,7 +1808,7 @@ dependencies = [
  "futures-task",
  "gio",
  "glib",
- "glycin",
+ "glycin-core",
  "tracing",
  "tracing-subscriber",
 ]
@@ -1818,7 +1818,7 @@ name = "libglycin-gtk4"
 version = "2.3.0"
 dependencies = [
  "gdk4",
- "glycin",
+ "glycin-core",
  "system-deps",
 ]
 

@@ -2,7 +2,7 @@ use gio::prelude::*;
 use glib::ffi::{GBytes, GType};
 use glib::subclass::prelude::*;
 use glib::translate::*;
-use glycin::gobject::{self, GlyCicp};
+use glycin_core::gobject::{self, GlyCicp};
 
 use crate::GlyFrameDetails;
 

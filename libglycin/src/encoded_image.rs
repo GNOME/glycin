@@ -2,7 +2,7 @@ use gio::prelude::*;
 use glib::ffi::{GBytes, GType};
 use glib::subclass::prelude::*;
 use glib::translate::*;
-use glycin::gobject;
+use glycin_core::gobject;
 
 pub type GlyEncodedImage =
     <gobject::encoded_image::imp::GlyEncodedImage as ObjectSubclass>::Instance;

@@ -7,7 +7,7 @@ use gio::prelude::*;
 use glib::ffi::{GBytes, GError, GStrv, GType, gpointer};
 use glib::subclass::prelude::*;
 use glib::translate::*;
-use glycin::{
+use glycin_core::{
     MemoryFormatSelection as GlyMemoryFormatSelection, SandboxSelector as GlySandboxSelector,
     gobject,
 };
@@ -63,7 +63,7 @@ pub unsafe extern "C" fn gly_loader_set_accepted_memory_formats(
 ) {
     unsafe {
         let memory_format_selection =
-            glycin::MemoryFormatSelection::from_bits_truncate(memory_format_selection);
+            glycin_core::MemoryFormatSelection::from_bits_truncate(memory_format_selection);
         let obj = gobject::GlyLoader::from_glib_ptr_borrow(&loader);
 
         obj.set_accepted_memory_formats(memory_format_selection);
@@ -185,7 +185,7 @@ pub unsafe extern "C" fn gly_loader_load_finish(
 pub extern "C" fn gly_loader_get_mime_types() -> GStrv {
     let mime_types = glib::StrV::from_iter(
         glib::MainContext::new()
-            .block_on(glycin::Loader::supported_mime_types())
+            .block_on(glycin_core::Loader::supported_mime_types())
             .into_iter()
             .map(|x| glib::GString::from(x.as_str())),
     );
@@ -211,7 +211,7 @@ pub unsafe extern "C" fn gly_loader_get_mime_types_async(
         let task = gio::Task::new(None, cancellable.as_ref(), closure);
 
         async_global_executor::spawn(async move {
-            let mime_types = glycin::Loader::supported_mime_types().await;
+            let mime_types = glycin_core::Loader::supported_mime_types().await;
             let strv = glib::StrV::from_iter(
                 mime_types
                     .into_iter()

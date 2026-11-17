@@ -160,6 +160,15 @@ endif
 introspection = (get_option('introspection') or get_option('vapi') or get_option('capi_docs'))
 glycin_loaders = (get_option('glycin-loaders') and host_machine.system() == 'linux')
 
+builtin_loaders = get_option('builtin-loaders')
+if builtin_loaders.contains('auto')
+  if host_machine.system() == 'linux'
+    builtin_loaders = []
+  else
+    builtin_loaders = ['glycin-image-rs', 'glycin-svg']
+  endif
+endif
+
 if get_option('introspection') != introspection
   summary('introspection', introspection, section: 'Overwritten options')
 endif

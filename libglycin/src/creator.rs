@@ -7,8 +7,8 @@ use gio::prelude::*;
 use glib::ffi::{GBytes, GError, GType, gpointer};
 use glib::subclass::prelude::*;
 use glib::translate::*;
-use glycin::SandboxSelector as GlySandboxSelector;
-use glycin::gobject::{self};
+use glycin_core::SandboxSelector as GlySandboxSelector;
+use glycin_core::gobject::{self};
 
 use crate::common::*;
 use crate::*;
@@ -79,10 +79,10 @@ pub unsafe extern "C" fn gly_creator_add_frame(
 ) -> *mut GlyNewFrame {
     unsafe {
         let obj = gobject::GlyCreator::from_glib_ptr_borrow(&creator);
-        let memory_format = glycin::MemoryFormat::try_from(memory_format).unwrap();
+        let memory_format = glycin_core::MemoryFormat::try_from(memory_format).unwrap();
         let data = glib::Bytes::from_glib_ptr_borrow(&data).clone();
 
-        let new_frame: Result<gobject::GlyNewFrame, glycin::Error> =
+        let new_frame: Result<gobject::GlyNewFrame, glycin_core::Error> =
             glib::MainContext::new().block_on(obj.add_frame(width, height, memory_format, data));
 
         match new_frame {
@@ -107,10 +107,10 @@ pub unsafe extern "C" fn gly_creator_add_frame_with_stride(
 ) -> *mut GlyNewFrame {
     unsafe {
         let obj = gobject::GlyCreator::from_glib_ptr_borrow(&creator);
-        let memory_format = glycin::MemoryFormat::try_from(memory_format).unwrap();
+        let memory_format = glycin_core::MemoryFormat::try_from(memory_format).unwrap();
         let data = glib::Bytes::from_glib_ptr_borrow(&data).clone();
 
-        let new_frame: Result<gobject::GlyNewFrame, glycin::Error> = glib::MainContext::new()
+        let new_frame: Result<gobject::GlyNewFrame, glycin_core::Error> = glib::MainContext::new()
             .block_on(obj.add_frame_with_stride(width, height, stride, memory_format, data));
 
         match new_frame {

@@ -14,8 +14,8 @@ pub enum GlyLoaderError {
     NoMoreFrames = 2,
 }
 
-impl From<&glycin::Error> for GlyLoaderError {
-    fn from(value: &glycin::Error) -> Self {
+impl From<&glycin_core::Error> for GlyLoaderError {
+    fn from(value: &glycin_core::Error) -> Self {
         if value.has_no_more_frames() {
             Self::NoMoreFrames
         } else if value.unsupported_format().is_some() {
@@ -36,7 +36,7 @@ pub unsafe extern "C" fn gly_loader_error_get_type() -> glib::ffi::GType {
     GlyLoaderError::static_type().into_glib()
 }
 
-pub unsafe fn set_context_error(g_error: *mut *mut GError, err: &glycin::Error) {
+pub unsafe fn set_context_error(g_error: *mut *mut GError, err: &glycin_core::Error) {
     unsafe {
         if !g_error.is_null() {
             *g_error = glib_context_error(err).into_glib_ptr();
@@ -44,7 +44,7 @@ pub unsafe fn set_context_error(g_error: *mut *mut GError, err: &glycin::Error) 
     }
 }
 
-pub unsafe fn set_error(g_error: *mut *mut GError, err: &glycin::Error) {
+pub unsafe fn set_error(g_error: *mut *mut GError, err: &glycin_core::Error) {
     unsafe {
         if !g_error.is_null() {
             *g_error = glib_error(err).into_glib_ptr();
@@ -52,12 +52,12 @@ pub unsafe fn set_error(g_error: *mut *mut GError, err: &glycin::Error) {
     }
 }
 
-pub fn glib_context_error(err: &glycin::Error) -> glib::Error {
+pub fn glib_context_error(err: &glycin_core::Error) -> glib::Error {
     let gly_error: GlyLoaderError = err.into();
     glib::Error::new(gly_error, &err.to_string())
 }
 
-pub fn glib_error(err: &glycin::Error) -> glib::Error {
+pub fn glib_error(err: &glycin_core::Error) -> glib::Error {
     let gly_error: GlyLoaderError = err.into();
     glib::Error::new(gly_error, &err.to_string())
 }
