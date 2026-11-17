@@ -14,7 +14,11 @@ fn main() {
             // filename the DLL was linked with, so the final installed
             // name has to be given to Cargo directly here
             let out_dir = std::env::var("OUT_DIR").unwrap();
-            let profile_dir = std::path::Path::new(&out_dir).ancestors().nth(3).unwrap();
+            let profile_dir = std::path::Path::new(&out_dir)
+                .ancestors()
+                .find(|path| path.file_name() == Some(std::ffi::OsStr::new("build")))
+                .and_then(std::path::Path::parent)
+                .expect("OUT_DIR does not have the expected Cargo layout");
             println!(
                 "cargo:rustc-cdylib-link-arg=/OUT:{}",
                 profile_dir
