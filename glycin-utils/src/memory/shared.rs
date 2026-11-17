@@ -237,7 +237,7 @@ impl SharedMemory {
                 }
                 Err(_) => {
                     // Try again after short waiting time
-                    futures_timer::Delay::new(std::time::Duration::from_millis(1)).await
+                    async_io::Timer::after(std::time::Duration::from_millis(1)).await;
                 }
             }
         }

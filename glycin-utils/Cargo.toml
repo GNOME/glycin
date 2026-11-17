@@ -13,12 +13,12 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
+async-io.workspace = true
 async-lock.workspace = true
 bitflags.workspace = true
 blocking.workspace = true
 env_logger.workspace = true
 futures-lite = { workspace = true, optional = true }
-futures-timer.workspace = true
 futures-util.workspace = true
 glib = { workspace = true, optional = true }
 glycin-common.workspace = true
