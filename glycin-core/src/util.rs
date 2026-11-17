@@ -299,6 +299,10 @@ impl DedicatedMainContext {
     }
 }
 
+pub async fn timeout_future(duration: std::time::Duration) {
+    glib::timeout_future_seconds(duration.as_secs() as u32).await;
+}
+
 #[cfg(feature = "async-io")]
 pub use async_io_utils::*;
 #[cfg(feature = "tokio")]
@@ -327,10 +331,6 @@ mod async_io_utils {
     }
 
     pub use async_fs::read;
-
-    pub async fn timeout_future(duration: std::time::Duration) {
-        async_io::Timer::after(duration).await;
-    }
 }
 
 #[cfg(feature = "tokio")]
@@ -356,9 +356,5 @@ mod tokio_utils {
 
         Ok(tokio_stream::wrappers::ReadDirStream::new(read_dir)
             .map(|result| result.map(|entry| entry.path()).map_err(Into::into)))
-    }
-
-    pub async fn timeout_future(duration: std::time::Duration) {
-        tokio::time::sleep(duration).await;
     }
 }
