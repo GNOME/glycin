@@ -209,7 +209,7 @@ GType gly_memory_format_selection_get_type(void);
  * @GLY_PHYSICAL_DIMENSION_UNIT_CENTIMETER:
  * @GLY_PHYSICAL_DIMENSION_UNIT_MILLIMETER:
  *
- * Sandbox mechanisms
+ * Physical dimension units
  *
  * Since: 2.2
  */
