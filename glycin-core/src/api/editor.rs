@@ -185,10 +185,10 @@ impl Editor {
                     }
                 }
 
-                let editor_future = gio::spawn_blocking(move || {
+                let editor_future = util::DedicatedMainContext::unblock_once(move || {
                     edit_function().map_err(|err| Error::from(err.into_editor_error()))
                 })
-                .map(|x| x.map_err(|e| ErrorKind::panic(e).err()));
+                .map(|x| x.map_err(|e| e.err()));
 
                 let editor = editor_future
                     .join_abort_on_error(read_data_future)
@@ -287,11 +287,10 @@ impl EditableImage {
                     }
                 };
 
-                let editor_output = gio::spawn_blocking(|| {
+                let editor_output = util::DedicatedMainContext::unblock_once(|| {
                     editor_function().map_err(|e| Error::from(e.into_editor_error()))
                 })
-                .await
-                .map_err(|e| ErrorKind::panic(e))??;
+                .await??;
 
                 SparseEdit::try_from(editor_output)
             }
@@ -341,11 +340,10 @@ impl EditableImage {
                     }
                 };
 
-                let editor_output = gio::spawn_blocking(|| {
+                let editor_output = util::DedicatedMainContext::unblock_once(|| {
                     apply_function().map_err(|e| Error::from(e.into_editor_error()))
                 })
-                .await
-                .map_err(|e| ErrorKind::panic(e))??;
+                .await??;
 
                 Ok(Edit {
                     inner: editor_output,
@@ -450,7 +448,7 @@ impl SparseEdit {
         match self {
             Self::Sparse(bit_changes) => {
                 let bit_changes = bit_changes.clone();
-                util::spawn_blocking(move || {
+                util::DedicatedMainContext::unblock_once(move || {
                     let stream = file.open_readwrite(gio::Cancellable::NONE)?;
                     let output_stream = stream.output_stream();
                     for change in bit_changes.changes {

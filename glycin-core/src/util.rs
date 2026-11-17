@@ -290,6 +290,13 @@ impl DedicatedMainContext {
             .await
             .map_err(|x| ErrorKind::panic(x.into_panic()))
     }
+
+    pub async fn unblock_once<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(
+        f: F,
+    ) -> Result<T, ErrorKind> {
+        let mut self_ = Self::new();
+        self_.unblock(f).await
+    }
 }
 
 #[cfg(feature = "async-io")]

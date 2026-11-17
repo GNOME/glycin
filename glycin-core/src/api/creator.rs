@@ -214,6 +214,8 @@ impl Creator {
             Processor::Builtin(builtin) => {
                 use glycin_utils::EditorImplementation;
 
+                use crate::util;
+
                 let mime_type = builtin.mime_type.to_string();
                 let encoding_options = self.encoding_options;
 
@@ -242,11 +244,10 @@ impl Creator {
                     }
                 }
 
-                let encoded_image = gio::spawn_blocking(|| {
+                let encoded_image = util::DedicatedMainContext::unblock_once(|| {
                     editor_function().map_err(|e| Error::from(e.into_editor_error()))
                 })
-                .await
-                .map_err(|e| ErrorKind::panic(e))??;
+                .await??;
 
                 EncodedImage::new(encoded_image).await
             }
