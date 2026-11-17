@@ -52,7 +52,7 @@ pub async fn compare_images_path(
 
 #[cfg(not(feature = "tokio"))]
 pub fn block_on<F: std::future::Future>(future: F) -> F::Output {
-    async_io::block_on(future)
+    glib::MainContext::new().block_on(future)
 }
 
 #[cfg(feature = "tokio")]

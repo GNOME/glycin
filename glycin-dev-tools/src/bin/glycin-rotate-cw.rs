@@ -13,7 +13,7 @@ fn main() {
         std::process::exit(2)
     };
 
-    let _ = async_io::block_on(render(&path));
+    let _ = glib::MainContext::new().block_on(render(&path));
 }
 
 async fn render<P>(path: P) -> Result<(), Box<dyn std::error::Error>>

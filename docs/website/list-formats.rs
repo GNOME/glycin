@@ -7,7 +7,6 @@ edition = "2024"
 glycin = { path = "../../glycin" }
 glib = "0.21"
 gio = "0.21"
-async-io = "2.5"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml_ng = "0.10"
 itertools = "0.14"
@@ -219,11 +218,12 @@ fn info() -> FormatList {
                 eprintln!("{type_}: {mime_type}");
 
                 let mut config = glycin::config::Config::default();
-                async_io::block_on(glycin::config::Config::load_from_into(
-                    glycin::config::ConfigSource::File(path.clone()),
-                    &mut config,
-                ))
-                .unwrap();
+                glib::MainContext::new()
+                    .block_on(glycin::config::Config::load_from_into(
+                        glycin::config::ConfigSource::File(path.clone()),
+                        &mut config,
+                    ))
+                    .unwrap();
 
                 let entry = info.entry(mime_type.to_string()).or_default();
 

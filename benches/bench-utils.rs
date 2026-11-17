@@ -6,6 +6,7 @@ use std::time::Duration;
 
 use criterion::{Criterion, criterion_group, criterion_main};
 use glycin::MemoryFormat;
+use glycin_utils::ByteData;
 
 fn images() -> Vec<(MemoryFormat, PathBuf)> {
     let mut img = utils::test_images();
@@ -54,8 +55,11 @@ fn convert_image_format(c: &mut Criterion) {
                     b.iter_batched(
                         || {
                             let loader = glycin::Loader::new(file.clone());
-                            let mut image = async_io::block_on(loader.load()).unwrap();
-                            let frame = async_io::block_on(image.next_frame()).unwrap();
+                            let mut image =
+                                glib::MainContext::new().block_on(loader.load()).unwrap();
+                            let frame = glib::MainContext::new()
+                                .block_on(image.next_frame())
+                                .unwrap();
 
                             assert_eq!(frame.memory_format(), src_format, "{image_path:?}");
 
@@ -63,7 +67,8 @@ fn convert_image_format(c: &mut Criterion) {
                                 frame.width(),
                                 frame.height(),
                                 frame.memory_format(),
-                                glycin_utils::LocalMemory::from(frame.buf_slice().to_vec()),
+                                glycin_utils::LocalMemory::try_from_slice(frame.buf_slice())
+                                    .unwrap(),
                             )
                             .unwrap()
                             .into_fungible()

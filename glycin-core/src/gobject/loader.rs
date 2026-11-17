@@ -10,7 +10,7 @@ use glycin_common::MemoryFormatSelection;
 use super::{GlyImage, init};
 use crate::error::ErrorKind;
 use crate::main_context::ProvidesMainContext;
-use crate::{Loader, SandboxSelector, util};
+use crate::{Loader, SandboxSelector};
 
 static_assertions::assert_impl_all!(GlyLoader: Send, Sync);
 
@@ -84,7 +84,7 @@ pub mod imp {
         }
 
         fn init(&self, loader: Loader) {
-            util::block_on(async {
+            glib::MainContext::new().block_on(async {
                 let mut loader_mutex = self.loader.lock().await;
                 if loader_mutex.is_some() {
                     g_critical!(
@@ -171,7 +171,7 @@ impl GlyLoader {
     }
 
     pub fn load(&self) -> Result<GlyImage, crate::Error> {
-        util::block_on(async {
+        glib::MainContext::new().block_on(async {
             let Some(mut loader) = std::mem::take(&mut *self.imp().loader.lock().await) else {
                 return Err(ErrorKind::LoaderUsedTwice.into());
             };

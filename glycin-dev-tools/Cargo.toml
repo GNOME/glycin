@@ -16,6 +16,7 @@ rust-version.workspace = true
 glycin = { workspace = true, features = ['gdk4', 'async-io'] }
 gdk.workspace = true
 gio.workspace = true
+glib.workspace = true
 async-io.workspace = true
 gufo-common.workspace = true
 tracing-subscriber.workspace = true

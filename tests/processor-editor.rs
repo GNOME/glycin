@@ -54,9 +54,9 @@ async fn test(test_name: &str) {
         let path = entry.unwrap().path();
         eprintln!("- {path:?}");
 
-        let data_sparse = async_io::block_on(apply_operations_sparse(&path, &operations_path));
+        let data_sparse = apply_operations_sparse(&path, &operations_path).await;
 
-        let data_complete = async_io::block_on(apply_operations_complete(&path, &operations_path));
+        let data_complete = apply_operations_complete(&path, &operations_path).await;
 
         for (apply_type, data) in [("sparse", data_sparse), ("complete", data_complete)] {
             let out_name = format!(

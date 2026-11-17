@@ -6,7 +6,6 @@ edition = "2024"
 [dependencies]
 glycin = { path = "../glycin" }
 glib = "0.21"
-async-io = "2.5"
 ---
 
 // Rewrite the mime types in thumbnailer configs based on loader configs
@@ -24,11 +23,12 @@ fn main() {
             thumbnailer_path.set_extension("thumbnailer.in");
 
             let mut config = glycin::config::Config::default();
-            async_io::block_on(glycin::config::Config::load_from_into(
-                glycin::config::ConfigSource::File(loader_path.clone()),
-                &mut config,
-            ))
-            .unwrap();
+            glib::MainContext::new()
+                .block_on(glycin::config::Config::load_from_into(
+                    glycin::config::ConfigSource::File(loader_path.clone()),
+                    &mut config,
+                ))
+                .unwrap();
 
             let mut mime_types = config
                 .loaders()

@@ -88,7 +88,7 @@ criterion_group!(
 );
 
 fn do_glycin_load(context: &Context) {
-    async_io::block_on(async {
+    glib::MainContext::new().block_on(async {
         let mut loader = context.loader();
         loader.sandbox_selector(glycin::SandboxSelector::NotSandboxed);
 

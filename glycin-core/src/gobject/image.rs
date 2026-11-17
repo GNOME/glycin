@@ -6,7 +6,7 @@ use glib::subclass::prelude::*;
 
 use super::GlyFrame;
 use crate::main_context::ProvidesMainContext;
-use crate::{Error, FrameRequest, Image, ImageDetails, MainContextSelector, util};
+use crate::{Error, FrameRequest, Image, ImageDetails, MainContextSelector};
 
 static_assertions::assert_impl_all!(GlyImage: Send, Sync);
 
@@ -46,7 +46,7 @@ impl GlyImage {
     }
 
     pub fn specific_frame(&self, frame_request: FrameRequest) -> Result<GlyFrame, Error> {
-        util::block_on(async {
+        glib::MainContext::new().block_on(async {
             let mut image = self.image();
 
             let mut main_context = MainContextSelector::Managed;

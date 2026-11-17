@@ -308,11 +308,6 @@ pub use tokio_utils::*;
 mod async_io_utils {
     use super::*;
 
-    #[cfg(feature = "gobject")]
-    pub fn block_on<F: Future>(f: F) -> F::Output {
-        async_io::block_on(f)
-    }
-
     pub type AsyncMutex<T> = async_lock::Mutex<T>;
 
     pub const fn new_async_mutex<T>(t: T) -> AsyncMutex<T> {
@@ -341,11 +336,6 @@ mod async_io_utils {
 #[cfg(feature = "tokio")]
 mod tokio_utils {
     use super::*;
-
-    #[cfg(feature = "gobject")]
-    pub fn block_on<F: Future>(f: F) -> F::Output {
-        tokio::runtime::Runtime::new().unwrap().block_on(f)
-    }
 
     pub use tokio::fs::read;
 

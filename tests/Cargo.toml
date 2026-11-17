@@ -28,6 +28,7 @@ blocking.workspace = true
 glycin-core = { workspace = true, features = ["gdk4"] }
 glycin-utils = { workspace = true, features = ["loader-utils"] }
 gio.workspace = true
+glib.workspace = true
 tokio.workspace = true
 gdk.workspace = true
 zbus = { workspace = true, features = ["p2p"] }

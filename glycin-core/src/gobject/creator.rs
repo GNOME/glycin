@@ -44,7 +44,9 @@ pub mod imp {
             let mut creator = self.creator.lock_blocking();
 
             if creator.is_none() {
-                *creator = async_io::block_on(Creator::new(MimeType::new(obj.mime_type()))).ok();
+                *creator = glib::MainContext::new()
+                    .block_on(Creator::new(MimeType::new(obj.mime_type())))
+                    .ok();
             }
 
             init();
