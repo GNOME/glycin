@@ -49,10 +49,7 @@ pub fn frame<B: ByteData>(data: &[u8]) -> Result<Frame<B>, ProcessError> {
                 Pixels {
                     width,
                     height,
-                    pixels: B::new(
-                        width as u64 * height as u64 * channel_size as u64 * num_channels as u64,
-                    )
-                    .unwrap(),
+                    pixels: B::new(width * height * channel_size * num_channels).unwrap(),
                     f16: matches!(sample_type, SampleType::F16),
                     alpha,
                     channel_size,

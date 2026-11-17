@@ -17,7 +17,7 @@ impl FungibleMemory {
 }
 
 impl ByteData for FungibleMemory {
-    fn new(size: u64) -> Result<Self, MemoryAllocationError> {
+    fn new(size: usize) -> Result<Self, MemoryAllocationError> {
         Ok(Self::LocalMemory(crate::LocalMemory::new(size)?))
     }
 

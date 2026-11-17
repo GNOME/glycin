@@ -111,7 +111,7 @@ pub fn animated_get_frame<B: ByteData>(
     let width = buffer.width();
     let height = buffer.height();
 
-    let mut texture = B::new(u64::from(width) * u64::from(height) * memory_format.n_bytes().u64())
+    let mut texture = B::new(width as usize * height as usize * memory_format.n_bytes().usize())
         .expected_error()
         .unwrap();
     Cursor::new(buffer.into_raw())

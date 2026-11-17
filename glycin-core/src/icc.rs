@@ -224,7 +224,7 @@ fn transform(
             let dst_stride = width * final_memory_format.n_bytes().u32();
             let dst_size = dst_stride as usize * height as usize;
 
-            let mut dst_buf = FungibleMemory::new(dst_size as u64)?;
+            let mut dst_buf = FungibleMemory::new(dst_size)?;
 
             let dst_chunk_size = rows_per_thread * dst_stride as usize;
 

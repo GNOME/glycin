@@ -13,20 +13,20 @@ pub enum LocalMemory {
 }
 
 impl ByteData for LocalMemory {
-    fn new(size: u64) -> Result<Self, MemoryAllocationError> {
+    fn new(size: usize) -> Result<Self, MemoryAllocationError> {
         #[cfg(unix)]
         {
-            Ok(if size > MMAP_THRESHOLD as u64 {
+            Ok(if size > MMAP_THRESHOLD {
                 Self::Mmap(
-                    memmap::MmapMut::map_anon(size as usize)
+                    memmap::MmapMut::map_anon(size)
                         .map_err(|x| MemoryAllocationError(x.to_string()))?,
                 )
             } else {
-                Self::Vec(vec![0; size as usize])
+                Self::Vec(vec![0; size])
             })
         }
         #[cfg(not(unix))]
-        Ok(Self::Vec(vec![0; size as usize]))
+        Ok(Self::Vec(vec![0; size]))
     }
 
     fn into_fungible(self) -> FungibleMemory {
@@ -54,8 +54,8 @@ impl ByteData for LocalMemory {
         #[cfg(unix)]
         {
             if value.len() > MMAP_THRESHOLD {
-                let mut local = Self::new(value.len() as u64)
-                    .map_err(|x| MemoryAllocationError(x.to_string()))?;
+                let mut local =
+                    Self::new(value.len()).map_err(|x| MemoryAllocationError(x.to_string()))?;
                 local.copy_from_slice(value);
                 return Ok(local);
             }

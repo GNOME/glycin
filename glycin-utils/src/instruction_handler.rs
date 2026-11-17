@@ -16,14 +16,18 @@ pub struct DbusServer {
 impl DbusServer {
     pub fn spawn_loader<L: api::LoaderImplementation>(description: String) {
         futures_lite::future::block_on(async move {
-            let _connection = Self::connect::<L, VoidEditorImplementation>(description).await;
+            let _connection = Self::handle_connect_err(
+                Self::connect::<L, VoidEditorImplementation>(description).await,
+            );
             std::future::pending::<()>().await;
         })
     }
 
     pub fn spawn_editor<E: api::EditorImplementation>(description: String) {
         futures_lite::future::block_on(async move {
-            let _connection = Self::connect::<VoidLoaderImplementation, E>(description).await;
+            let _connection = Self::handle_connect_err(
+                Self::connect::<VoidLoaderImplementation, E>(description).await,
+            );
             std::future::pending::<()>().await;
         })
     }
@@ -32,14 +36,23 @@ impl DbusServer {
         description: String,
     ) {
         futures_lite::future::block_on(async move {
-            let _connection = Self::connect::<L, E>(description).await;
+            let _connection = Self::handle_connect_err(Self::connect::<L, E>(description).await);
             std::future::pending::<()>().await;
         })
     }
 
+    fn handle_connect_err<T>(res: Result<T, Box<dyn std::error::Error>>) -> T {
+        match res {
+            Err(err) => {
+                panic!("Failed to spawn D-Bus server: {err}")
+            }
+            Ok(x) => x,
+        }
+    }
+
     async fn connect<L: api::LoaderImplementation, E: api::EditorImplementation>(
         description: String,
-    ) -> Self {
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         env_logger::builder().format_timestamp_millis().init();
 
         log::info!("Loader {description} startup");
@@ -74,8 +87,7 @@ impl DbusServer {
         let unix_stream: UnixStream = unsafe { UnixStream::from_raw_fd(dbus_fd) };
 
         #[cfg(feature = "tokio")]
-        let unix_stream =
-            tokio::net::UnixStream::from_std(unix_stream).expect("wrapping unix stream works");
+        let unix_stream = tokio::net::UnixStream::from_std(unix_stream)?;
 
         let mut dbus_connection_builder = zbus::connection::Builder::unix_stream(unix_stream)
             .p2p()
@@ -88,8 +100,7 @@ impl DbusServer {
             };
 
             dbus_connection_builder = dbus_connection_builder
-                .serve_at("/org/gnome/glycin", loader_instruction_handler)
-                .expect("Failed to setup loader handler");
+                .serve_at("/org/gnome/glycin", loader_instruction_handler)?;
         }
 
         if E::USEABLE {
@@ -98,19 +109,15 @@ impl DbusServer {
                 editor: Default::default(),
             };
             dbus_connection_builder = dbus_connection_builder
-                .serve_at("/org/gnome/glycin", editor_instruction_handler)
-                .expect("Failed to setup editor handler");
+                .serve_at("/org/gnome/glycin", editor_instruction_handler)?;
         }
 
-        let dbus_connection = dbus_connection_builder
-            .build()
-            .await
-            .expect("Failed to create private DBus connection");
+        let dbus_connection = dbus_connection_builder.build().await?;
 
         log::debug!("D-Bus connection to glycin created");
-        DbusServer {
+        Ok(DbusServer {
             _dbus_connection: dbus_connection,
-        }
+        })
     }
 }
 

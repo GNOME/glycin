@@ -110,7 +110,7 @@ pub fn change_memory_format(
             {
                 // Fast path for u16 to u8 conversion
 
-                let mut new_data = FungibleMemory::new(new_total_size as u64)?;
+                let mut new_data = FungibleMemory::new(new_total_size)?;
                 let new_data_rows = new_data.chunks_exact_mut(new_stride as usize);
 
                 let mut source_target_index_map = [0; 5];
@@ -156,7 +156,7 @@ pub fn change_memory_format(
             } else {
                 // Slow generic path
 
-                let mut new_data = FungibleMemory::new(new_total_size as u64)?;
+                let mut new_data = FungibleMemory::new(new_total_size)?;
                 let new_data_rows = new_data.chunks_exact_mut(new_stride as usize);
 
                 new_data_rows

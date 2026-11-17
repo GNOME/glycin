@@ -66,7 +66,7 @@ pub fn frame<B: ByteData>(
     let (width, height) = decoder.dimensions().unwrap();
     let color = decoder.output_colorspace().unwrap();
     let n_components = color.num_components();
-    let mut texture = B::new((width * height * n_components) as u64).expected_error()?;
+    let mut texture = B::new(width * height * n_components).expected_error()?;
     decoder.decode_into(&mut texture).expected_error()?;
 
     let memory_format = match color {

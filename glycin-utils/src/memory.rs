@@ -23,10 +23,16 @@ impl std::fmt::Display for MemoryAllocationError {
     }
 }
 
+impl From<std::io::Error> for MemoryAllocationError {
+    fn from(value: std::io::Error) -> Self {
+        MemoryAllocationError(format!("IO-Error: {value}"))
+    }
+}
+
 impl std::error::Error for MemoryAllocationError {}
 
 pub trait ByteData: Sized + Deref<Target = [u8]> + DerefMut + Debug + 'static {
-    fn new(size: u64) -> Result<Self, MemoryAllocationError>;
+    fn new(size: usize) -> Result<Self, MemoryAllocationError>;
     fn into_fungible(self) -> FungibleMemory;
     fn into_other<O: ByteData>(self) -> Result<O, MemoryAllocationError>;
     #[cfg(feature = "external")]

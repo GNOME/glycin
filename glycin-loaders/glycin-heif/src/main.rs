@@ -164,10 +164,8 @@ fn animated_worker(data: Vec<u8>, mime_type: String, send: FrameSender) {
 
                     let plane = image.planes().interleaved.unwrap();
 
-                    let mut memory = SharedMemory::new(
-                        plane.stride.try_u64().unwrap() * u64::from(plane.height),
-                    )
-                    .unwrap();
+                    let mut memory =
+                        SharedMemory::new(plane.stride * plane.height as usize).unwrap();
 
                     Cursor::new(plane.data).read_exact(&mut memory).unwrap();
                     let texture = memory;

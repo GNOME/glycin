@@ -128,7 +128,7 @@ pub fn change_orientation<F: BasicFrame<FungibleMemory>>(
     match transformation.rotate() {
         Rotation::_0 => Ok(frame),
         Rotation::_270 => {
-            let mut target = FungibleMemory::new(n_bytes as u64)?;
+            let mut target = FungibleMemory::new(n_bytes)?;
             frame.set_width(height as u32);
             frame.set_height(width as u32);
             frame.set_stride((height * pixel_size) as u32);
@@ -150,7 +150,7 @@ pub fn change_orientation<F: BasicFrame<FungibleMemory>>(
             Ok(frame)
         }
         Rotation::_90 => {
-            let mut target = FungibleMemory::new(n_bytes as u64)?;
+            let mut target = FungibleMemory::new(n_bytes)?;
             frame.set_width(height as u32);
             frame.set_height(width as u32);
             frame.set_stride((height * pixel_size) as u32);

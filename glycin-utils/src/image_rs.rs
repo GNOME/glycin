@@ -1,4 +1,5 @@
 use glycin_common::{ExtendedMemoryFormat, MemoryFormat, MemoryFormatInfo};
+use gufo_common::math::ToUsize;
 
 use crate::editing::EditingFrame;
 use crate::{
@@ -81,7 +82,8 @@ impl Handler {
             .checked_mul(width)
             .ok_or(DimensionTooLargerError)?;
 
-        let mut texture = B::new(decoder.total_bytes()).expected_error()?;
+        let mut texture =
+            B::new(decoder.total_bytes().usize().expected_error()?).expected_error()?;
         decoder.read_image(&mut texture).expected_error()?;
 
         Ok(EditingFrame {

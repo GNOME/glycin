@@ -1,3 +1,4 @@
+use std::num::TryFromIntError;
 use std::ops::{Deref, DerefMut};
 use std::os::fd::{AsRawFd, OwnedFd};
 
@@ -72,9 +73,8 @@ impl Default for SharedMemory {
 }
 
 impl ByteData for SharedMemory {
-    fn new(size: u64) -> Result<Self, MemoryAllocationError> {
-        let (memfd, mmap) =
-            Self::new_memfd(size).map_err(|x| MemoryAllocationError(x.to_string()))?;
+    fn new(size: usize) -> Result<Self, MemoryAllocationError> {
+        let (memfd, mmap) = Self::new_memfd(size)?;
 
         Ok(Self {
             memfd,
@@ -103,10 +103,8 @@ impl ByteData for SharedMemory {
     }
 
     fn try_from_slice(value: &[u8]) -> Result<Self, MemoryAllocationError> {
-        let (memfd, mut mmap) = Self::new_memfd(
-            u64::try_from(value.len()).map_err(|err| MemoryAllocationError(err.to_string()))?,
-        )
-        .map_err(|err| MemoryAllocationError(err.to_string()))?;
+        let (memfd, mut mmap) =
+            Self::new_memfd(value.len()).map_err(|err| MemoryAllocationError(err.to_string()))?;
 
         mmap.copy_from_slice(value.as_ref());
 
@@ -183,13 +181,19 @@ impl ByteData for SharedMemory {
 }
 
 impl SharedMemory {
-    fn new_memfd(size: u64) -> std::io::Result<(OwnedFd, memmap::MmapMut)> {
+    fn new_memfd(size: usize) -> Result<(OwnedFd, memmap::MmapMut), MemoryAllocationError> {
         let memfd = nix::sys::memfd::memfd_create(
             c"glycin-frame",
             nix::sys::memfd::MFdFlags::MFD_CLOEXEC | nix::sys::memfd::MFdFlags::MFD_ALLOW_SEALING,
-        )?;
+        )
+        .map_err(|x| MemoryAllocationError(x.to_string()))?;
 
-        nix::unistd::ftruncate(&memfd, size.try_into().expect("Required memory too large"))?;
+        nix::unistd::ftruncate(
+            &memfd,
+            size.try_into()
+                .map_err(|x: TryFromIntError| MemoryAllocationError(x.to_string()))?,
+        )
+        .map_err(|x| MemoryAllocationError(x.to_string()))?;
 
         let raw_fd = memfd.as_raw_fd();
         let mmap = unsafe { memmap::MmapMut::map_mut(raw_fd) }?;
@@ -247,6 +251,7 @@ impl Deref for SharedMemory {
 
     #[inline]
     fn deref(&self) -> &[u8] {
+        #[allow(clippy::expect_used)]
         self.mmap
             .as_ref()
             .expect("SharedMemory haven't been sealed before use.")
@@ -256,6 +261,7 @@ impl Deref for SharedMemory {
 impl DerefMut for SharedMemory {
     #[inline]
     fn deref_mut(&mut self) -> &mut [u8] {
+        #[allow(clippy::expect_used)]
         self.mmap
             .as_mut()
             .expect("SharedMemory haven't been sealed before use.")
