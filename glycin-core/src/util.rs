@@ -247,20 +247,6 @@ mod async_io_utils {
 
     pub use async_fs::read;
 
-    #[cfg(feature = "external")]
-    pub type TimerHandle = async_global_executor::Task<()>;
-
-    #[cfg(feature = "external")]
-    pub fn spawn_timeout(
-        duration: std::time::Duration,
-        f: impl Future + Send + 'static,
-    ) -> TimerHandle {
-        async_global_executor::spawn(async move {
-            async_io::Timer::after(duration).await;
-            f.await;
-        })
-    }
-
     pub async fn timeout_future(duration: std::time::Duration) {
         async_io::Timer::after(duration).await;
     }
@@ -302,28 +288,6 @@ mod tokio_utils {
 
         Ok(tokio_stream::wrappers::ReadDirStream::new(read_dir)
             .map(|result| result.map(|entry| entry.path()).map_err(Into::into)))
-    }
-
-    #[cfg(feature = "external")]
-    #[derive(Debug)]
-    pub struct TimerHandle(tokio::task::JoinHandle<()>);
-
-    #[cfg(feature = "external")]
-    impl Drop for TimerHandle {
-        fn drop(&mut self) {
-            self.0.abort();
-        }
-    }
-
-    #[cfg(feature = "external")]
-    pub fn spawn_timeout(
-        duration: std::time::Duration,
-        f: impl Future + Send + 'static,
-    ) -> TimerHandle {
-        TimerHandle(tokio::task::spawn(async move {
-            tokio::time::sleep(duration).await;
-            f.await;
-        }))
     }
 
     pub async fn timeout_future(duration: std::time::Duration) {

@@ -13,13 +13,12 @@ use gio::prelude::*;
 use crate::DBusProxy;
 use crate::config::{ConfigEntry, ConfigEntryHash};
 use crate::error::ErrorKind;
-use crate::util::{AsyncMutex, TimerHandle, spawn_timeout};
-use crate::{Error, SandboxMechanism, config, dbus};
+use crate::util::AsyncMutex;
+use crate::{Error, SandboxMechanism, config, dbus, main_context};
 
 #[derive(Debug)]
 pub struct PooledProcess<P: DBusProxy> {
     last_use: Mutex<Instant>,
-    _timeout: Arc<Mutex<Option<TimerHandle>>>,
     process: Arc<dbus::RemoteProcess<P>>,
     useage_tracker: Mutex<std::sync::Weak<UsageTracker>>,
 }
@@ -27,12 +26,11 @@ pub struct PooledProcess<P: DBusProxy> {
 #[derive(Debug)]
 pub struct UsageTracker {
     pool: Arc<Pool>,
-    timeout: Arc<Mutex<Option<TimerHandle>>>,
 }
 
 impl UsageTracker {
-    pub fn new(pool: Arc<Pool>, timeout: Arc<Mutex<Option<TimerHandle>>>) -> Self {
-        Self { pool, timeout }
+    pub fn new(pool: Arc<Pool>) -> Self {
+        Self { pool }
     }
 }
 
@@ -41,11 +39,13 @@ impl Drop for UsageTracker {
         tracing::trace!("One process occupation dropped");
         let pool = self.pool.clone();
 
-        *self.timeout.lock().unwrap() = Some(spawn_timeout(
+        main_context::context_managed().spawn(glib::clone!(
+            #[strong(rename_to=loader_retention_time)]
             self.pool.config.loader_retention_time,
-            async {
+            async move {
+                glib::timeout_future_seconds(loader_retention_time.as_secs() as u32).await;
                 pool.clean_loaders().await;
-            },
+            }
         ));
     }
 }
@@ -217,9 +217,9 @@ impl Pool {
             } else {
                 tracing::debug!("Using existing loader from pool.");
                 let mut current_usage_tracker = process.useage_tracker.lock().unwrap();
-                let usage_tracker = current_usage_tracker.upgrade().unwrap_or_else(|| {
-                    Arc::new(UsageTracker::new(self.clone(), process._timeout.clone()))
-                });
+                let usage_tracker = current_usage_tracker
+                    .upgrade()
+                    .unwrap_or_else(|| Arc::new(UsageTracker::new(self.clone())));
                 *current_usage_tracker = Arc::downgrade(&usage_tracker);
                 return Ok((process.clone(), usage_tracker));
             }
@@ -249,13 +249,10 @@ impl Pool {
 
         cancellable.disconnect_cancelled(process_cancellable_tie);
 
-        let _timeout = Arc::new(Mutex::new(None));
-
-        let usage_tracker = Arc::new(UsageTracker::new(self.clone(), _timeout.clone()));
+        let usage_tracker = Arc::new(UsageTracker::new(self.clone()));
 
         let pp = Arc::new(PooledProcess {
             last_use: Mutex::new(Instant::now()),
-            _timeout,
             process: process.clone(),
             useage_tracker: Mutex::new(Arc::downgrade(&usage_tracker)),
         });
