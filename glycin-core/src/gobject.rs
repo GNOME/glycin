@@ -49,11 +49,5 @@ pub fn init() {
 
         tracing::debug!("Initialized logging");
         tracing::debug!("Glycin {}", env!("CARGO_PKG_VERSION"));
-
-        async_global_executor::init_with_config(
-            async_global_executor::GlobalExecutorConfig::default()
-                .with_min_threads(1)
-                .with_thread_name_fn(|| String::from("gly-global-exec")),
-        );
     });
 }

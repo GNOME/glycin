@@ -15,7 +15,6 @@ default = ["async-io"]
 # Async runtime
 async-io = [
     "dep:async-fs",
-    "dep:async-global-executor",
     "dep:async-io",
     "dep:async-lock",
     "dep:async-task",
@@ -52,7 +51,6 @@ workspace = true
 
 [dependencies]
 async-fs = { workspace = true, optional = true }
-async-global-executor = { workspace = true, optional = true }
 async-io = { workspace = true, optional = true }
 async-lock = { workspace = true, optional = true }
 async-task = { workspace = true, optional = true }

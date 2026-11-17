@@ -151,20 +151,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-global-executor"
-version = "3.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13f937e26114b93193065fd44f507aa2e9169ad0cdabbb996920b1fe1ddea7ba"
-dependencies = [
- "async-channel",
- "async-executor",
- "async-io",
- "async-lock",
- "blocking",
- "futures-lite",
-]
-
-[[package]]
 name = "async-io"
 version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1183,7 +1169,6 @@ name = "glycin-core"
 version = "5.0.0-alpha"
 dependencies = [
  "async-fs",
- "async-global-executor",
  "async-io",
  "async-lock",
  "async-task",
@@ -1802,7 +1787,6 @@ checksum = "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
 name = "libglycin"
 version = "2.3.0-alpha"
 dependencies = [
- "async-global-executor",
  "futures-task",
  "gio",
  "glib",

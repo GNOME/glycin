@@ -20,7 +20,6 @@ external = ["glycin-core/external"]
 builtin = ["glycin-core/builtin"]
 
 [dependencies]
-async-global-executor.workspace = true
 futures-task.workspace = true
 gio.workspace = true
 glib.workspace = true
