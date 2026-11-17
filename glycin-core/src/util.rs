@@ -207,6 +207,91 @@ async fn flatpak_devel() -> Option<bool> {
     Some(flatpak_builder && name.ends_with("Devel"))
 }
 
+/// Single thread that can be used for running one blocking tasks at a time
+///
+/// TODO: For builtin loaders, the threads are kept alive. For external, we don't retain them.
+///
+/// Reason: For builtin loaders, there is a risk that the memory usage would spread over too many arenas if we don't re-use the threads.
+#[derive(Debug)]
+pub enum DedicatedMainContext {
+    Uninitialized,
+    Initialized {
+        main_context: glib::MainContext,
+        main_loop: glib::MainLoop,
+    },
+}
+
+impl Drop for DedicatedMainContext {
+    fn drop(&mut self) {
+        if let Self::Initialized {
+            main_context,
+            main_loop,
+        } = self
+        {
+            // Run on the MainContext to ensure that we only quit after the loop is actually running
+            main_context.invoke(glib::clone!(
+                #[strong]
+                main_loop,
+                move || main_loop.quit()
+            ));
+        }
+    }
+}
+
+impl DedicatedMainContext {
+    pub fn new() -> Self {
+        Self::Uninitialized
+    }
+
+    fn ensure_init(&mut self) -> glib::MainContext {
+        match self {
+            DedicatedMainContext::Initialized {
+                main_context,
+                main_loop: _,
+            } => main_context.clone(),
+            DedicatedMainContext::Uninitialized => {
+                // TODO: Limit number of threads
+
+                let main_context = glib::MainContext::new();
+                let main_loop = glib::MainLoop::new(Some(&main_context), true);
+
+                std::thread::spawn(glib::clone!(
+                    #[strong]
+                    main_context,
+                    #[strong]
+                    main_loop,
+                    move || {
+                        let res = main_context.with_thread_default(|| main_loop.run());
+                        if let Err(err) = res {
+                            tracing::error!(
+                                "Failed to spawn main loop for dedicated thread: {err}"
+                            );
+                        }
+                        tracing::debug!("Exiting deditacted thread.")
+                    }
+                ));
+
+                *self = Self::Initialized {
+                    main_context: main_context.clone(),
+                    main_loop,
+                };
+
+                main_context
+            }
+        }
+    }
+
+    pub async fn unblock<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(
+        &mut self,
+        f: F,
+    ) -> Result<T, ErrorKind> {
+        self.ensure_init()
+            .spawn(async { f() })
+            .await
+            .map_err(|x| ErrorKind::panic(x.into_panic()))
+    }
+}
+
 #[cfg(feature = "async-io")]
 pub use async_io_utils::*;
 #[cfg(feature = "tokio")]

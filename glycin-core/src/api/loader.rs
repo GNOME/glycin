@@ -27,7 +27,6 @@ use crate::main_context::{MainContextSelector, ProvidesMainContext};
 #[cfg(feature = "external")]
 use crate::pool::{PooledProcess, UsageTracker};
 use crate::source::SourceTransmission;
-use crate::util::spawn_blocking;
 use crate::{Error, MAX_TEXTURE_SIZE, Pool, config, icc, orientation, util};
 
 /// Builder pattern for loading images
@@ -43,6 +42,7 @@ pub struct Loader {
     pub(crate) limits: Limits,
     pub(crate) main_context_selector: MainContextSelector,
     pub(crate) color_convert_icc_srgb: bool,
+    pub(crate) dedicated_main_context: util::DedicatedMainContext,
 }
 
 static_assertions::assert_impl_all!(Loader: Send, Sync);
@@ -86,6 +86,7 @@ impl Loader {
             limits: Limits::default(),
             main_context_selector: MainContextSelector::Auto,
             color_convert_icc_srgb: true,
+            dedicated_main_context: util::DedicatedMainContext::new(),
         }
     }
 
@@ -292,7 +293,7 @@ impl Loader {
 
     #[cfg(feature = "builtin")]
     async fn load_internal_builtin<P: DBusProxy>(
-        self,
+        mut self,
         builtin: BuiltinProcessor<P, SourceTransmission>,
         initialization_details: InitializationDetails,
     ) -> Result<Image, Error> {
@@ -338,19 +339,20 @@ impl Loader {
 
         let (source_reader, file_read_future) = builtin.source_transmission.spawn_builtin();
 
-        let remote_image_future = gio::spawn_blocking(move || {
-            init_function(
-                source_reader,
-                builtin.mime_type.to_string(),
-                initialization_details,
-            )
-            .map_err(|e| Error::from(e.into_loader_error()))
-        })
-        .map(|x| x.map_err(|e| ErrorKind::panic(e).err()));
+        let image_future = self
+            .dedicated_main_context
+            .unblock(move || {
+                init_function(
+                    source_reader,
+                    builtin.mime_type.to_string(),
+                    initialization_details,
+                )
+                .map_err(|e| Error::from(e.into_loader_error()))
+            })
+            .map(|x| x.map_err(|e| e.err()));
 
-        let (image_loader, image_details) = remote_image_future
-            .join_abort_on_error(file_read_future)
-            .await??;
+        let (image_loader, image_details) =
+            image_future.join_abort_on_error(file_read_future).await??;
 
         Ok(Image {
             image_loader: ImageLoader::Builtin(image_loader),
@@ -454,15 +456,19 @@ impl Image {
     ) -> Pin<Box<dyn Future<Output = Result<Frame, Error>> + 'a + Send>> {
         Box::pin(async move {
             let cancellable = self.loader.cancellable.clone();
+            let timeout = self.loader.limits.inner.timeout;
 
             self.specific_frame_internal(frame_request)
                 .make_cancellable(cancellable)
-                .enforce_timeout(self.loader.limits.inner.timeout)
+                .enforce_timeout(timeout)
                 .await
         })
     }
 
-    async fn specific_frame_internal(&self, frame_request: FrameRequest) -> Result<Frame, Error> {
+    async fn specific_frame_internal(
+        &mut self,
+        frame_request: FrameRequest,
+    ) -> Result<Frame, Error> {
         let frame_request = frame_request.request;
 
         match &self.image_loader {
@@ -514,11 +520,11 @@ impl Image {
                     }
                 };
 
-                let frame = gio::spawn_blocking(|| {
-                    loader_function().map_err(|e| Error::from(e.into_loader_error()))
-                })
-                .await
-                .map_err(|e| ErrorKind::panic(e))??;
+                let frame = self
+                    .loader
+                    .dedicated_main_context
+                    .unblock(|| loader_function().map_err(|e| Error::from(e.into_loader_error())))
+                    .await??;
 
                 Frame::from_loader(frame, self).await
             }
@@ -802,7 +808,7 @@ impl Frame {
 
     pub(crate) async fn from_loader<B: ByteData>(
         mut frame: glycin_utils::Frame<B>,
-        image: &Image,
+        image: &mut Image,
     ) -> Result<Self, Error> {
         frame.initial_seal().await?;
 
@@ -845,10 +851,13 @@ impl Frame {
             frame
         } else if let Some(icc_profile) = icc_profile {
             if image.loader.color_convert_icc_srgb {
-                let (frame, icc_result) = spawn_blocking(move || {
-                    icc::apply_transformation(&icc_profile, frame, final_memory_format)
-                })
-                .await?;
+                let (frame, icc_result) = image
+                    .loader
+                    .dedicated_main_context
+                    .unblock(move || {
+                        icc::apply_transformation(&icc_profile, frame, final_memory_format)
+                    })
+                    .await?;
 
                 match icc_result {
                     Err(err) => {
@@ -876,11 +885,14 @@ impl Frame {
             .best_format_for(frame.memory_format)
             && frame.memory_format != target_format
         {
-            frame = util::spawn_blocking(move || {
-                glycin_utils::editing::change_memory_format(&mut frame, target_format)?;
-                Ok::<_, Error>(frame)
-            })
-            .await??;
+            frame = image
+                .loader
+                .dedicated_main_context
+                .unblock(move || {
+                    glycin_utils::editing::change_memory_format(&mut frame, target_format)?;
+                    Ok::<_, Error>(frame)
+                })
+                .await??;
         }
 
         // Transformations above must not break the invariants checked before

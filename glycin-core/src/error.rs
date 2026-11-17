@@ -229,7 +229,6 @@ pub(crate) enum ErrorKind {
     MemoryAllocationError(String),
     #[error("GLib thread failed: {0}")]
     JoinError(String),
-    #[cfg(feature = "builtin")]
     #[error("Thread panic: {0:?}")]
     ThreadPanic(Option<String>),
     #[error("Feature not supported: {0}")]
@@ -247,7 +246,6 @@ impl ErrorKind {
         Error::from_kind(self)
     }
 
-    #[cfg(feature = "builtin")]
     pub fn panic(any: Box<dyn std::any::Any>) -> ErrorKind {
         let s = any
             .downcast_ref::<&str>()
